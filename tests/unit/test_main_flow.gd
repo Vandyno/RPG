@@ -390,8 +390,11 @@ func test_full_spawn_yard_system_loop() -> void:
 	main._handle_interact_requested()
 	assert_true(main.hud.systems_body_label.text.contains("Closed now."))
 	assert_true(main.hud.systems_action_list.visible)
-	assert_eq((main.hud.systems_action_list.get_child(0) as Button).text, "No actions")
-	assert_true((main.hud.systems_action_list.get_child(0) as Button).disabled)
+	var back_button := main.hud.systems_action_list.get_child(0) as Button
+	assert_eq(back_button.text, "Back")
+	assert_false(back_button.disabled)
+	back_button.pressed.emit()
+	assert_false(main.hud.is_systems_panel_visible())
 	assert_true(main.time.advance_hours(12))
 	main.hud.refresh()
 

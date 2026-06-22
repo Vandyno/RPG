@@ -811,10 +811,12 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 	if not systems_action_list:
 		return
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
+	if actions.is_empty():
+		actions = [{"id": "ui:back", "text": "Back"}]
 	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	systems_action_list.visible = UiActionButtons.refresh(
 		systems_action_list, actions, self, "inventory_item_selected", "item_id",
-		Vector2(118, 44) if compact else Vector2(156, 48), 13 if compact else 14, "No actions"
+		Vector2(118, 44) if compact else Vector2(156, 48), 13 if compact else 14
 	)
 
 

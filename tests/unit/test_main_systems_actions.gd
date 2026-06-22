@@ -26,6 +26,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 		"wait:8",
 		"save:game",
 		"load:game",
+		"ui:back",
 		"item_draught"
 	]:
 		MainSystemsActions.handle(main, action_id)
@@ -41,6 +42,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 			"wait:8",
 			"save",
 			"load",
+			"hide_systems",
 			"use:item_draught"
 		]
 	)
@@ -50,6 +52,7 @@ class MainStub:
 	extends RefCounted
 
 	var calls: Array[String] = []
+	var hud := HudStub.new(calls)
 
 	func _handle_equip_item(item_id: String) -> void:
 		calls.append("equip:%s" % item_id)
@@ -77,3 +80,15 @@ class MainStub:
 
 	func _use_inventory_item(item_id: String) -> void:
 		calls.append("use:%s" % item_id)
+
+
+class HudStub:
+	extends RefCounted
+
+	var calls: Array[String]
+
+	func _init(call_log: Array[String]) -> void:
+		calls = call_log
+
+	func hide_systems_panel() -> void:
+		calls.append("hide_systems")

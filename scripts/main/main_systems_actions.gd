@@ -27,6 +27,9 @@ static func handle(main, action_id: String) -> void:
 			main._handle_save_requested()
 		"load":
 			main._handle_load_requested()
+		"ui":
+			if target_id == "back" and main.hud:
+				main.hud.hide_systems_panel()
 		_:
 			main._use_inventory_item(target_id)
 
