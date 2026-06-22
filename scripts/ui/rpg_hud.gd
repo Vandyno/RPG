@@ -32,6 +32,7 @@ var systems_bottom_panel: PanelContainer
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
+var inventory_action_button: Button
 
 
 func _build_ui() -> void:
@@ -329,6 +330,94 @@ func _add_nav_button(text: String, callback: Callable) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(callback)
 	top_nav_buttons.add_child(button)
+
+
+func _build_touch_controls() -> void:
+	move_pad = Panel.new()
+	move_pad.name = "MovePad"
+	_apply_panel_style(move_pad)
+	move_pad.anchor_top = 1.0
+	move_pad.anchor_bottom = 1.0
+	move_pad.offset_left = 18
+	move_pad.offset_top = -172
+	move_pad.offset_right = 184
+	move_pad.offset_bottom = -12
+	move_pad.mouse_filter = Control.MOUSE_FILTER_STOP
+	move_pad.gui_input.connect(_on_move_pad_gui_input)
+	root.add_child(move_pad)
+
+	move_knob = ColorRect.new()
+	move_knob.name = "MoveKnob"
+	move_knob.color = Color(0.86, 0.78, 0.58, 0.55)
+	move_knob.custom_minimum_size = MOVE_KNOB_SIZE
+	move_knob.size = MOVE_KNOB_SIZE
+	move_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	move_pad.add_child(move_knob)
+
+	_add_hold_button(move_pad, "move_up", Vector2(54, 6))
+	_add_hold_button(move_pad, "move_left", Vector2(6, 54))
+	_add_hold_button(move_pad, "move_right", Vector2(102, 54))
+	_add_hold_button(move_pad, "move_down", Vector2(54, 102))
+	_update_move_knob()
+
+	action_buttons = HBoxContainer.new()
+	action_buttons.name = "ActionButtons"
+	action_buttons.anchor_left = 1.0
+	action_buttons.anchor_right = 1.0
+	action_buttons.anchor_top = 1.0
+	action_buttons.anchor_bottom = 1.0
+	action_buttons.offset_left = -544
+	action_buttons.offset_top = -76
+	action_buttons.offset_right = -12
+	action_buttons.offset_bottom = -12
+	action_buttons.add_theme_constant_override("separation", 8)
+	root.add_child(action_buttons)
+
+	inventory_action_button = _new_button("Inventory", Vector2(92, 58))
+	inventory_action_button.name = "InventoryButton"
+	inventory_action_button.tooltip_text = "Open inventory"
+	inventory_action_button.pressed.connect(func() -> void: show_systems_panel("inventory"))
+	action_buttons.add_child(inventory_action_button)
+
+	target_action_button = _new_button("Target", Vector2(92, 58))
+	target_action_button.name = "TargetButton"
+	HoldActionButton.bind(
+		target_action_button,
+		func() -> void: cycle_target_pressed.emit(),
+		func() -> void:
+			if not is_target_picker_visible():
+				toggle_target_picker()
+	)
+	action_buttons.add_child(target_action_button)
+
+	primary_action_button = _new_button("Interact", Vector2(136, 58))
+	primary_action_button.name = "InteractButton"
+	primary_action_button.pressed.connect(func() -> void: interact_pressed.emit())
+	action_buttons.add_child(primary_action_button)
+
+	var systems := _new_button("Menu", Vector2(82, 58))
+	systems.name = "SystemsButton"
+	systems.pressed.connect(toggle_systems)
+	action_buttons.add_child(systems)
+
+
+func _set_action_button_layout(compact: bool) -> void:
+	if not action_buttons:
+		return
+	action_buttons.add_theme_constant_override("separation", 6 if compact else 8)
+	var sizes := {
+		"InventoryButton": Vector2(78, 52) if compact else Vector2(92, 58),
+		"TargetButton": Vector2(78, 52) if compact else Vector2(92, 58),
+		"InteractButton": Vector2(112, 52) if compact else Vector2(136, 58),
+		"SystemsButton": Vector2(72, 52) if compact else Vector2(82, 58)
+	}
+	for child in action_buttons.get_children():
+		if child is Button:
+			child.custom_minimum_size = sizes.get(child.name, BUTTON_SIZE)
+			child.add_theme_font_size_override("font_size", 12 if compact else 15)
+			if child == primary_action_button:
+				child.add_theme_font_size_override("font_size", 14 if compact else 16)
+				_apply_primary_action_style(child)
 
 
 func _add_systems_tab(tab_id: String, text: String) -> void:
@@ -758,6 +847,21 @@ func _apply_row_button_style(button: Button, selected: bool) -> void:
 	)
 	button.add_theme_stylebox_override(
 		"pressed", _button_style_with_border(Color(0.15, 0.20, 0.11, 0.98), border)
+	)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
+func _apply_primary_action_style(button: Button) -> void:
+	var border := Color(0.92, 0.76, 0.42, 0.92)
+	button.add_theme_color_override("font_color", Color(1.0, 0.92, 0.74))
+	button.add_theme_stylebox_override(
+		"normal", _button_style_with_border(Color(0.08, 0.075, 0.055, 0.98), border)
+	)
+	button.add_theme_stylebox_override(
+		"hover", _button_style_with_border(Color(0.13, 0.12, 0.075, 0.98), border)
+	)
+	button.add_theme_stylebox_override(
+		"pressed", _button_style_with_border(Color(0.19, 0.17, 0.09, 0.98), border)
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 

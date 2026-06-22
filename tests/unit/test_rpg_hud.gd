@@ -58,6 +58,38 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+
+	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Next", "Talk", "Menu"])
+	assert_gt(
+		hud.primary_action_button.custom_minimum_size.x,
+		hud.inventory_action_button.custom_minimum_size.x
+	)
+
+	var interact_events := []
+	var cycle_events := []
+	hud.interact_pressed.connect(func() -> void: interact_events.append("interact"))
+	hud.cycle_target_pressed.connect(func() -> void: cycle_events.append("cycle"))
+
+	hud.inventory_action_button.pressed.emit()
+	assert_true(hud.is_systems_panel_visible())
+	assert_eq(hud.get_systems_tab(), "inventory")
+
+	hud.hide_systems_panel()
+	hud.primary_action_button.pressed.emit()
+	assert_eq(interact_events, ["interact"])
+
+	hud.target_action_button.pressed.emit()
+	assert_eq(cycle_events, ["cycle"])
+
+	var menu_button := _button_containing(hud.action_buttons, "Menu")
+	assert_not_null(menu_button)
+	menu_button.pressed.emit()
+	assert_true(hud.is_systems_panel_visible())
+
+
 func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -136,9 +168,13 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var status_rect := _top_left_rect(hud.status_panel)
 	var message_rect := _top_left_rect(hud.message_panel)
+	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
+	var move_rect := _anchored_rect(hud.move_pad, Vector2(640, 360))
 	assert_true(_rect_inside(status_rect, screen), "Compact status should stay on screen.")
 	assert_true(_rect_inside(message_rect, screen), "Compact messages should stay on screen.")
+	assert_true(_rect_inside(action_rect, screen), "Compact actions should stay on screen.")
 	assert_false(status_rect.intersects(message_rect), "Compact top panels should not overlap.")
+	assert_false(action_rect.intersects(move_rect), "Actions should not cover movement.")
 
 
 func _new_hud() -> RpgHud:
