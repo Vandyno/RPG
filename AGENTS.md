@@ -4,6 +4,7 @@ Use these files as the current source of truth:
 - `DESIGN.md` for game vision and player experience
 - `ARCHITECTURE.md` for technical boundaries and system ownership
 - `CONTENT_GUIDE.md` for authored content structure and ID conventions
+- `docs/ui/UI_TARGET.md` for the player-facing RPG UI mockup target
 - `LORE.md` for setting canon and worldbuilding
 - `MAP.md` for map direction and preserved place names
 - `QUEST_PROPOSAL_LOOP.md` for AI quest proposal workflow
