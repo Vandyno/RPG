@@ -31,8 +31,8 @@ const MainSaveProviders = preload("res://scripts/main/main_save_providers.gd")
 const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
 const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const MainCameraFraming = preload("res://scripts/main/main_camera_framing.gd")
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
-
 var event_bus
 var condition_evaluator
 var effect_runner
@@ -83,8 +83,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if camera and player:
-		camera.global_position = player.global_position
+	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(self, delta)
 	_update_location_discoveries()
 	_update_nearby()
@@ -239,10 +238,29 @@ func _bootstrap() -> void:
 
 	event_bus.player_tile_changed.connect(_on_player_tile_changed)
 	streamer.update_center(player.global_tile)
+	_sync_camera_to_player()
 
 
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
 	streamer.update_center(global_tile)
+
+func _sync_camera_to_player() -> void:
+	if not camera or not player:
+		return
+	camera.global_position = MainCameraFraming.position_for_player(
+		player.global_position,
+		_camera_focus_position(),
+		get_viewport_rect().size,
+		camera.zoom
+	)
+	camera.reset_smoothing()
+
+
+func _camera_focus_position() -> Vector2:
+	var entity = entities.get_entity(selected_target_id) if entities else null
+	if not entity and entities and not String(auto_interact_target_id).is_empty():
+		entity = entities.get_entity(auto_interact_target_id)
+	return entity.global_position if entity else player.global_position
 
 
 func _update_nearby() -> void:
