@@ -58,6 +58,29 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+
+	var used_targets: Array[String] = []
+	hud.target_used.connect(func(entity_id: String) -> void: used_targets.append(entity_id))
+	hud.toggle_target_picker()
+
+	assert_true(hud.is_target_picker_visible())
+	assert_eq((hud.target_panel.find_child("TargetTitle", true, false) as Label).text, "Focus Target")
+	assert_eq(hud.target_scroll.get_child(0), hud.target_list)
+	var row := _button_containing(hud.target_list, "Harrow Venn")
+	assert_not_null(row)
+	assert_true(row.text.contains("Road Notice"))
+	row.pressed.emit()
+	assert_eq(used_targets, ["npc_harrow_venn_world"])
+
+	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
+	assert_not_null(close)
+	close.pressed.emit()
+	assert_false(hud.is_target_picker_visible())
+
+
 func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -299,7 +322,24 @@ func _sample_state() -> Dictionary:
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}],
 		"time": "Day 1, 16:00 (Afternoon)",
 		"location_details": "Briarwatch Crossroads - Marches of Velcor",
-		"nearby_targets": [],
+		"nearby_targets":
+		[
+			{
+				"id": "npc_harrow_venn_world",
+				"name": "Harrow Venn",
+				"kind": "npc",
+				"detail": "Blacksmith, quest giver",
+				"navigation": "Near Road Notice",
+				"selected": true
+			},
+			{
+				"id": "readable_road_notice",
+				"name": "Road Notice",
+				"kind": "readable",
+				"detail": "Readable notice board",
+				"navigation": "East of the bridge"
+			}
+		],
 		"quest_directions": "The Missing Tools: E 5.0t Harrow Venn",
 		"quest_target_actions": [{"id": "target:npc_harrow_venn_world", "text": "Target Harrow Venn"}]
 	}

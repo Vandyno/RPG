@@ -4,6 +4,7 @@ extends DebugHud
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
+const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -355,6 +356,17 @@ func _add_nav_button(text: String, callback: Callable) -> void:
 	top_nav_buttons.add_child(button)
 
 
+func _build_target_panel() -> void:
+	var nodes := RpgTargetPanelBuilder.build(
+		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
+		Callable(self, "_new_label"), Callable(self, "_new_button"),
+		Callable(self, "hide_target_picker")
+	)
+	target_panel = nodes["panel"]
+	target_scroll = nodes["scroll"]
+	target_list = nodes["list"]
+
+
 func _build_touch_controls() -> void:
 	var move_nodes := RpgMovePadBuilder.build(
 		root, Callable(self, "_on_move_pad_gui_input"), MOVE_KNOB_SIZE
@@ -480,6 +492,7 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 		prompt_panel.visible = false
 	_layout_systems_panel(viewport_size, compact)
 	_layout_content_panel(viewport_size, compact)
+	RpgTargetPanelBuilder.apply_layout(target_panel, target_list, viewport_size, compact, HUD_MARGIN)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 
@@ -727,6 +740,17 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 	else:
 		content_preview_label.text = "%s - close when finished." % kind_text
 
+
+func _refresh_target_picker(state: Dictionary) -> void:
+	if not target_list or not target_panel.visible:
+		return
+	RpgTargetPanelBuilder.refresh(
+		target_list, _array_field(state.get("nearby_targets", [])),
+		Callable(self, "_new_label"), Callable(self, "_new_button"),
+		Callable(self, "_apply_row_button_style"),
+		func(entity_id: String) -> void: target_used.emit(entity_id),
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	)
 
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()

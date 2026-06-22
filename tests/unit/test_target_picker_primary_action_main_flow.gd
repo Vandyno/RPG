@@ -45,7 +45,7 @@ func test_unselected_target_picker_row_uses_target_directly() -> void:
 	assert_true(main.hud.is_target_picker_visible())
 	var harrow_row := _button_containing(main.hud.target_list, "Harrow Venn")
 	assert_not_null(harrow_row)
-	assert_false(harrow_row.text.begins_with(">"))
+	assert_false(harrow_row.text.contains("Current Target"))
 
 	harrow_row.pressed.emit()
 
@@ -57,7 +57,7 @@ func test_unselected_target_picker_row_uses_target_directly() -> void:
 
 func _selected_button_containing(container: Control, text: String) -> Button:
 	for child in container.get_children():
-		if child is Button and child.text.begins_with(">") and child.text.contains(text):
+		if child is Button and child.text.contains("Current Target") and child.text.contains(text):
 			return child
 	return null
 
