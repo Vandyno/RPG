@@ -129,14 +129,57 @@ static func apply_layout(
 
 
 static func _target_text(target_data: Dictionary, compact: bool) -> String:
-	var name := String(target_data.get("name", target_data.get("id", "Target")))
+	var display_name := String(target_data.get("name", target_data.get("id", "Target")))
+	var name := display_name
+	var kind := _kind_text(String(target_data.get("kind", "")))
+	var detail := _clean_detail(String(target_data.get("detail", "")))
+	if detail == display_name:
+		detail = ""
+	if compact:
+		detail = _shorten(detail, 42)
 	if bool(target_data.get("selected", false)):
-		name = "Current Target: %s" % name
+		name = "Selected: %s" % name
 	var navigation := String(target_data.get("navigation", ""))
-	var detail := String(target_data.get("detail", ""))
 	var lines: Array[String] = [name]
+	var role_line := kind
+	if not detail.is_empty():
+		role_line = "%s - %s" % [kind, detail] if not kind.is_empty() else detail
+	if not role_line.is_empty():
+		lines.append(role_line)
 	if not navigation.is_empty():
 		lines.append(navigation)
-	if not compact and not detail.is_empty():
-		lines.append(detail)
 	return "\n".join(lines)
+
+
+static func _shorten(text: String, max_chars: int) -> String:
+	if text.length() <= max_chars:
+		return text
+	return "%s..." % text.substr(0, max_chars - 3).strip_edges()
+
+
+static func _clean_detail(detail: String) -> String:
+	for prefix in ["Readable: ", "Rest: ", "Pickup: ", "Container: ", "Door: "]:
+		if detail.begins_with(prefix):
+			return detail.trim_prefix(prefix)
+	return detail
+
+
+static func _kind_text(kind: String) -> String:
+	match kind:
+		"npc":
+			return "Talk"
+		"enemy":
+			return "Attack"
+		"readable":
+			return "Read"
+		"pickup":
+			return "Take"
+		"container":
+			return "Open"
+		"rest":
+			return "Rest"
+		"poi":
+			return "Use"
+		"door":
+			return "Enter"
+	return "Target"
