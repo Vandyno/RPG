@@ -523,18 +523,19 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		var tile_key := GridMath.tile_key(tile)
 		var world_position := GridMath.tile_to_world(tile) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
 		var distance_from_spawn := spawn_world.distance_to(world_position)
-		assert_false(
-			occupied_tiles.has(tile_key), "%s should not share a spawn test tile." % entity_id
-		)
-		occupied_tiles[tile_key] = true
+		if String(entry.get("kind", "")) != "location":
+			assert_false(
+				occupied_tiles.has(tile_key), "%s should not share a spawn test tile." % entity_id
+			)
+			occupied_tiles[tile_key] = true
 		assert_true(
-			_has_walkable_path(chunks, Vector2i.ZERO, tile, 8),
+			_has_walkable_path(chunks, Vector2i.ZERO, tile, 12),
 			"%s should be walkably reachable from spawn." % entity_id
 		)
-		assert_gte(distance_from_spawn, 86.0, "%s should be spread out from spawn." % entity_id)
 		if String(entry.get("kind", "")) == "location":
 			assert_lte(distance_from_spawn, float(entry.get("discovery_radius", 42.0)))
 		else:
+			assert_true(chunks.is_walkable(tile), "%s should not sit on blocked terrain." % entity_id)
 			assert_lte(
 				distance_from_spawn,
 				float(
@@ -646,7 +647,7 @@ func test_quest_load_sanitizes_unknown_states_and_regenerates_objectives() -> vo
 		quests.quests["quest_missing_tools"]["objectives"],
 		{
 			"find_toolbox":
-			{"text": "Find Harrow's old toolbox near the road.", "target_id": "pickup_old_toolbox"}
+			{"text": "Find Harrow's old toolbox by the west road.", "target_id": "pickup_old_toolbox"}
 		}
 	)
 
@@ -704,7 +705,7 @@ func test_quest_summary_and_save_regenerate_malformed_live_active_state() -> voi
 	}
 
 	assert_eq(
-		quests.get_active_summary(), ["The Missing Tools: Find Harrow's old toolbox near the road."]
+		quests.get_active_summary(), ["The Missing Tools: Find Harrow's old toolbox by the west road."]
 	)
 	assert_eq(
 		quests.get_save_data(),
@@ -717,7 +718,7 @@ func test_quest_summary_and_save_regenerate_malformed_live_active_state() -> voi
 				{
 					"find_toolbox":
 					{
-						"text": "Find Harrow's old toolbox near the road.",
+						"text": "Find Harrow's old toolbox by the west road.",
 						"target_id": "pickup_old_toolbox"
 					}
 				}

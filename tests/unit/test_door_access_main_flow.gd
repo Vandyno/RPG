@@ -12,7 +12,7 @@ func test_door_open_conditions_gate_route_effects_until_unlocked() -> void:
 	assert_eq(main.get_debug_state()["primary_action"], "Locked")
 	main._handle_interact_requested()
 	assert_false(main.world_state.has_flag("flag_north_gate_opened"))
-	assert_false(main.chunks.is_object_opened("object_north_gate", Vector2i(0, -7)))
+	assert_false(main.chunks.is_object_opened("object_north_gate", Vector2i(3, -8)))
 	assert_true(main.hud.log_label.text.contains("north gate chain"))
 
 	_select_entity(main, "object_road_notice")
@@ -24,7 +24,7 @@ func test_door_open_conditions_gate_route_effects_until_unlocked() -> void:
 	main._handle_interact_requested()
 
 	assert_true(main.world_state.has_flag("flag_north_gate_opened"))
-	assert_true(main.chunks.is_object_opened("object_north_gate", Vector2i(0, -7)))
+	assert_true(main.chunks.is_object_opened("object_north_gate", Vector2i(3, -8)))
 	assert_eq(main.time.get_summary(), "Day 1, 08:15 (Morning)")
 	assert_eq(main.get_debug_state()["target_detail"], "Door: opened")
 	assert_eq(main.get_debug_state()["primary_action"], "Opened")

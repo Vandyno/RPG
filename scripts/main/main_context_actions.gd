@@ -44,7 +44,12 @@ static func preferred_primary(main, entity) -> Dictionary:
 			return action
 	if entity and entity.get_kind() == "npc":
 		return _first_action_with_prefix(actions, "trade:")
-	if entity and entity.get_kind() == "poi" and _poi_has_been_discovered(main, entity):
+	if (
+		entity
+		and entity.get_kind() == "poi"
+		and bool(entity.data.get("prefer_primary_action", true))
+		and _poi_has_been_discovered(main, entity)
+	):
 		return _single_poi_action(actions)
 	return {}
 

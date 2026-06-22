@@ -6,12 +6,12 @@ static func status_panel(
 	viewport_size: Vector2, line_count: int, margin: float, compact: bool
 ) -> Dictionary:
 	var width := minf(318.0, maxf(260.0, viewport_size.x * 0.50))
-	var base_height := 70.0 if compact else 136.0
-	var per_extra_line := 15.0 if compact else 17.0
-	var height := minf(
-		viewport_size.y - margin * 2.0,
-		base_height + maxf(0.0, float(line_count - 4)) * per_extra_line
-	)
+	var base_height := (40.0 + float(line_count) * 13.5) if compact else 136.0
+	var per_extra_line := 0.0 if compact else 17.0
+	var height := base_height + maxf(0.0, float(line_count - 4)) * per_extra_line
+	if compact:
+		height = minf(height, 100.0)
+	height = minf(viewport_size.y - margin * 2.0, height)
 	return {
 		"width": width,
 		"height": height,

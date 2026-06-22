@@ -3,20 +3,21 @@ extends GutTest
 const Main = preload("res://scripts/main/main.gd")
 
 
-func test_spawn_town_poi_shows_place_card_and_discovers_location() -> void:
+func test_town_hall_job_board_shows_place_card() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
 	_select_entity(main, "poi_briarwatch_square")
-	assert_eq(main.get_debug_state()["target_detail"], "Town Center: notice post and roads")
+	assert_eq(
+		main.get_debug_state()["target_detail"],
+		"Town Hall: jobs, notices, and town records"
+	)
 	main._handle_interact_requested()
 
-	assert_true(main.world_state.discovered_locations.has("location_briarwatch_square"))
-	assert_true(main.hud.content_title_label.text.contains("Briarwatch Square"))
-	assert_true(main.hud.content_body_label.text.contains("Harrow's forge"))
+	assert_true(main.hud.content_title_label.text.contains("Warden's Job Board"))
+	assert_true(main.hud.content_body_label.text.contains("town hall"))
 	assert_not_null(_button_containing(main.hud.content_choice_list, "Take Road Patrol Job"))
-	assert_true(main.hud.log_label.text.contains("Discovered Briarwatch Square"))
-	assert_true(main.get_debug_state()["location_details"].contains("Briarwatch Square"))
+	assert_true(main.hud.log_label.text.contains("Visited Warden's Job Board"))
 
 
 func test_available_town_square_job_can_be_started_from_context_action() -> void:
@@ -30,20 +31,20 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	_select_entity(main, "poi_briarwatch_square")
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
 	main._handle_interact_requested()
-	assert_true(main.hud.content_body_label.text.contains("Harrow's forge"))
+	assert_true(main.hud.content_body_label.text.contains("official notices"))
 	main.hud.hide_content_card()
 	main._update_nearby()
 	var job_button := _button_containing(main.hud.context_action_buttons, "Take Road Patrol Job")
-	assert_true(job_button == null or not job_button.visible)
+	assert_not_null(job_button)
 	assert_not_null(_button_containing(main.hud.context_action_buttons, "Inspect"))
-	assert_eq(main.get_debug_state()["primary_action"], "Take Road Patrol Job")
-	main._handle_interact_requested()
+	assert_eq(main.get_debug_state()["primary_action"], "Use")
+	job_button.pressed.emit()
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
 	assert_false(main.hud.is_content_card_visible())
 	assert_true(main.hud.log_label.text.contains("road thug west of Briarwatch"))
 	assert_true(main.hud.status_label.text.contains("Quest: The Missing Tools (+1)"))
-	assert_true(main.hud.status_label.text.contains("Next: SE 5.7t Old Toolbox (+1)"))
+	assert_true(main.hud.status_label.text.contains("Old Toolbox (+1)"))
 
 
 func test_shop_poi_opens_trade_panel_directly() -> void:
@@ -63,7 +64,7 @@ func test_shop_poi_opens_trade_panel_directly() -> void:
 
 	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
 	assert_true(main.hud.is_content_card_visible())
-	assert_true(main.hud.content_body_label.text.contains("trading side of town"))
+	assert_true(main.hud.content_body_label.text.contains("wooden shop"))
 	assert_false(main.hud.is_systems_panel_visible())
 	main.hud.hide_content_card()
 	main._handle_interact_requested()
@@ -169,12 +170,18 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 
 	_select_entity(main, "poi_briarwatch_square")
 	main._handle_interact_requested()
+	var report_button := _button_containing(
+		main.hud.content_choice_list, "Report Road Patrol Complete"
+	)
+	assert_not_null(report_button)
+	report_button.pressed.emit()
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "completed")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 11)
 	assert_eq(main.factions.get_reputation("faction_marches_of_velcor"), 2)
 	assert_eq(main.progression.experience, 18)
-	assert_false(main.hud.is_content_card_visible())
+	assert_true(main.hud.is_content_card_visible())
+	assert_true(main.hud.content_body_label.text.contains("road clear"))
 	assert_true(main.hud.log_label.text.contains("road clear"))
 
 

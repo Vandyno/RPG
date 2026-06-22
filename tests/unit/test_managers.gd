@@ -370,22 +370,34 @@ func test_chunk_load_ignores_invalid_removed_entities() -> void:
 	)
 
 
-func test_roads_override_noise_and_stay_walkable() -> void:
+func test_spawn_town_uses_authored_tiles_and_walkability() -> void:
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
 
 	assert_eq(chunks.get_tile_kind(Vector2i.ZERO), "road")
 	assert_true(chunks.is_walkable(Vector2i.ZERO))
-	assert_eq(chunks.get_tile_kind(Vector2i(0, 7)), "road")
-	assert_true(chunks.is_walkable(Vector2i(0, 7)))
+	assert_eq(chunks.get_tile_kind(Vector2i(0, -2)), "grass")
+	assert_true(chunks.is_walkable(Vector2i(0, -2)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-3, -4)), "water")
+	assert_false(chunks.is_walkable(Vector2i(-3, -4)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-3, 0)), "bridge")
+	assert_true(chunks.is_walkable(Vector2i(-3, 0)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-12, -10)), "stone_wall")
+	assert_false(chunks.is_walkable(Vector2i(-12, -10)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-12, 0)), "road")
+	assert_true(chunks.is_walkable(Vector2i(-12, 0)))
+	assert_eq(chunks.get_tile_kind(Vector2i(8, -1)), "wood_wall")
+	assert_false(chunks.is_walkable(Vector2i(8, -1)))
+	assert_eq(chunks.get_tile_kind(Vector2i(6, 1)), "wood_floor")
+	assert_true(chunks.is_walkable(Vector2i(6, 1)))
 
 
-func test_spawn_has_nearby_blocked_collision_tile() -> void:
+func test_procedural_roads_continue_outside_authored_town() -> void:
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
 
-	assert_eq(chunks.get_tile_kind(Vector2i(1, 2)), "water")
-	assert_false(chunks.is_walkable(Vector2i(1, 2)))
+	assert_eq(chunks.get_tile_kind(Vector2i(20, 0)), "road")
+	assert_true(chunks.is_walkable(Vector2i(20, 0)))
 
 
 func test_streaming_loads_enough_chunks_for_small_tile_scale() -> void:

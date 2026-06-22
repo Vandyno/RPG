@@ -35,14 +35,14 @@
   "quest_missing_tools": {
     "id": "quest_missing_tools",
     "title": "The Missing Tools",
-    "description": "Harrow Venn's tools were stolen near the old road.",
+    "description": "Harrow Venn's tools were stolen near Briarwatch's west road.",
     "initial_state": "inactive",
     "start_stage": "started",
     "stages": {
       "started": {
         "objectives": {
           "find_toolbox": {
-            "text": "Find Harrow's old toolbox near the road.",
+            "text": "Find Harrow's old toolbox by the west road.",
             "target_id": "pickup_old_toolbox"
           }
         }

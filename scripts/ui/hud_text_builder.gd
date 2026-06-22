@@ -4,11 +4,7 @@ extends RefCounted
 
 static func status_text(state: Dictionary) -> String:
 	var lines: Array[String] = []
-	lines.append("Velcor  %s" % state.get("time", "Day 1, 08:00"))
-	lines.append("Tile %s  %s" % [state.get("player_tile", ""), state.get("terrain", "unknown")])
-	var inventory := String(state.get("inventory", "empty"))
-	if inventory != "empty":
-		lines.append("Inventory: %s" % inventory)
+	lines.append("%s  %s" % [_primary_location_name(state), state.get("time", "Day 1, 08:00")])
 	var statuses := String(state.get("statuses", "none"))
 	if statuses != "none":
 		lines.append("Effects: %s" % statuses)
@@ -224,6 +220,16 @@ static func _with_extra_count(text: String, count: int) -> String:
 	if count <= 1:
 		return text
 	return "%s (+%d)" % [text, count - 1]
+
+
+static func _primary_location_name(state: Dictionary) -> String:
+	var locations := String(state.get("locations", ""))
+	if locations.is_empty() or locations == "none":
+		return "Velcor"
+	var names := locations.split(",", false)
+	if names.is_empty():
+		return locations
+	return names[0].strip_edges()
 
 
 static func _ellipsized(value: String, max_chars: int) -> String:

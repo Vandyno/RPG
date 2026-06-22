@@ -35,17 +35,25 @@ func _draw() -> void:
 
 
 func _color_for_kind(kind: String) -> Color:
+	var color := Color(0.34, 0.49, 0.27)
 	match kind:
 		"water":
-			return Color(0.16, 0.36, 0.58)
+			color = Color(0.16, 0.36, 0.58)
+		"bridge":
+			color = Color(0.50, 0.35, 0.20)
+		"stone_wall":
+			color = Color(0.36, 0.38, 0.38)
+		"wood_wall":
+			color = Color(0.36, 0.22, 0.12)
+		"wood_floor":
+			color = Color(0.50, 0.34, 0.18)
 		"forest":
-			return Color(0.18, 0.35, 0.17)
+			color = Color(0.18, 0.35, 0.17)
 		"hill":
-			return Color(0.48, 0.43, 0.31)
+			color = Color(0.48, 0.43, 0.31)
 		"road":
-			return Color(0.58, 0.51, 0.38)
-		_:
-			return Color(0.34, 0.49, 0.27)
+			color = Color(0.58, 0.51, 0.38)
+	return color
 
 
 func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:

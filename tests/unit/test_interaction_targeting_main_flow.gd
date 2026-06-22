@@ -146,12 +146,13 @@ func test_world_tap_on_target_closes_content_card_and_uses_target() -> void:
 
 	assert_not_null(harrow)
 	assert_not_null(toolbox)
+	var toolbox_position: Vector2 = toolbox.global_position
 	assert_true(MainInputRouter.target_world(main, harrow.global_position))
 	assert_true(main.hud.is_content_card_visible())
 
-	main.player.set_world_position(toolbox.global_position)
+	main.player.set_world_position(toolbox_position)
 	main._update_nearby()
-	assert_true(MainInputRouter.target_world(main, toolbox.global_position))
+	assert_true(MainInputRouter.target_world(main, toolbox_position))
 
 	assert_false(main.hud.is_content_card_visible())
 	assert_true(main.inventory.has_item("item_old_toolbox"))
@@ -287,7 +288,7 @@ func test_world_tap_interacts_with_target_on_blocked_tile_from_reachable_edge() 
 func test_world_tap_moves_to_empty_ground_without_target_menu() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var destination: Vector2 = main.player.global_position + Vector2(96.0, 64.0)
+	var destination: Vector2 = GridMath.tile_to_world(Vector2i(0, -1)) + Vector2(8.0, 8.0)
 
 	assert_true(MainInputRouter.move_to_world(main, destination))
 	assert_true(main.auto_move_active)
@@ -347,7 +348,7 @@ func test_manual_movement_cancels_world_tap_approach() -> void:
 func test_manual_movement_cancels_empty_ground_move() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var destination: Vector2 = main.player.global_position + Vector2(96.0, 64.0)
+	var destination: Vector2 = GridMath.tile_to_world(Vector2i(0, -1)) + Vector2(8.0, 8.0)
 
 	assert_true(MainInputRouter.move_to_world(main, destination))
 	main.player.set_external_move_vector(Vector2.LEFT)
@@ -374,7 +375,7 @@ func test_primary_button_cancels_world_tap_approach() -> void:
 func test_primary_button_cancels_empty_ground_move() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var destination: Vector2 = main.player.global_position + Vector2(96.0, 64.0)
+	var destination: Vector2 = GridMath.tile_to_world(Vector2i(0, -1)) + Vector2(8.0, 8.0)
 
 	assert_true(MainInputRouter.move_to_world(main, destination))
 	main._handle_interact_requested()

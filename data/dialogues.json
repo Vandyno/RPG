@@ -5,7 +5,7 @@
       {
         "id": "start_missing_tools",
         "speaker": "Harrow Venn",
-        "text": "If you want work, I need my old toolbox back. Bandits dropped it somewhere east of the road.",
+        "text": "If you want work, I need my old toolbox back. Bandits dropped it by the west road.",
         "conditions": [
           {
             "type": "quest_state",
@@ -17,7 +17,7 @@
           {
             "id": "accept_missing_tools",
             "text": "I'll find it.",
-            "response": "Good. Look for the brass latch near the east road.",
+            "response": "Good. Look for the brass latch near the west road.",
             "effects": [
               {
                 "type": "start_quest",

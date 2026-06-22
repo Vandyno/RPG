@@ -11,7 +11,7 @@ func test_training_stat_unlocks_nearby_access_object() -> void:
 	assert_eq(main.get_debug_state()["target_detail"], "Door: locked")
 	main._handle_interact_requested()
 	assert_false(main.world_state.has_flag("flag_training_gate_opened"))
-	assert_false(main.chunks.is_object_opened("object_training_gate", Vector2i(-7, 1)))
+	assert_false(main.chunks.is_object_opened("object_training_gate", Vector2i(3, 8)))
 	assert_true(main.hud.log_label.text.contains("counterweight needs a stronger pull"))
 
 	main.progression.load_save_data({"level": 2, "skill_points": 1})
@@ -28,7 +28,7 @@ func test_training_stat_unlocks_nearby_access_object() -> void:
 	main._handle_interact_requested()
 
 	assert_true(main.world_state.has_flag("flag_training_gate_opened"))
-	assert_true(main.chunks.is_object_opened("object_training_gate", Vector2i(-7, 1)))
+	assert_true(main.chunks.is_object_opened("object_training_gate", Vector2i(3, 8)))
 	assert_eq(main.time.get_summary(), "Day 1, 08:05 (Morning)")
 	assert_eq(main.get_debug_state()["target_detail"], "Door: opened")
 

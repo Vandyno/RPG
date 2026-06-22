@@ -12,7 +12,7 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 	assert_eq(main.get_debug_state()["primary_action"], "Locked")
 	main._handle_interact_requested()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_false(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(7, 0)))
+	assert_false(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(3, 6)))
 	assert_true(main.hud.log_label.text.contains("strongbox seal matches"))
 
 	_select_entity(main, "object_road_notice")
@@ -24,7 +24,7 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 	main._handle_interact_requested()
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 4)
-	assert_true(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(7, 0)))
+	assert_true(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(3, 6)))
 	assert_eq(main.get_debug_state()["target_detail"], "Container: opened")
 	assert_eq(main.get_debug_state()["primary_action"], "Opened")
 

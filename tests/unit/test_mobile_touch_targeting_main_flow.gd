@@ -9,7 +9,7 @@ func test_mobile_touch_assist_reaches_small_pickup_without_mouse_precision() -> 
 	add_child_autofree(mouse_main)
 	var mouse_draught = mouse_main.entities.get_entity("pickup_roadside_draught")
 	assert_not_null(mouse_draught)
-	var near_miss: Vector2 = mouse_draught.global_position + Vector2(-32.0, -32.0)
+	var near_miss: Vector2 = mouse_draught.global_position + Vector2(-45.0, 0.0)
 
 	assert_false(MainInputRouter.target_world(mouse_main, near_miss))
 	assert_false(mouse_main.inventory.has_item("item_roadside_draught"))
@@ -18,7 +18,7 @@ func test_mobile_touch_assist_reaches_small_pickup_without_mouse_precision() -> 
 	add_child_autofree(touch_main)
 	var touch_draught = touch_main.entities.get_entity("pickup_roadside_draught")
 	assert_not_null(touch_draught)
-	near_miss = touch_draught.global_position + Vector2(-32.0, -32.0)
+	near_miss = touch_draught.global_position + Vector2(-45.0, 0.0)
 
 	assert_true(
 		MainInputRouter.target_world(

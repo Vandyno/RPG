@@ -16,7 +16,7 @@ func test_location_text_builder_summarizes_discovered_locations() -> void:
 	var details := LocationTextBuilder.details(discovered, content)
 
 	assert_true(details.contains("Briarwatch Crossroads - Marches of Velcor"))
-	assert_true(details.contains("Briarwatch road meets the old trade track"))
+	assert_true(details.contains("west road meets the bridge"))
 	assert_true(details.contains("location_missing"))
 	assert_eq(LocationTextBuilder.names({}, content), "none")
 	assert_eq(LocationTextBuilder.details({}, content), "none")

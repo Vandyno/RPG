@@ -12,9 +12,9 @@ func test_next_target_uses_facing_rank_in_crowded_spawn() -> void:
 
 	main._handle_cycle_target_requested()
 
-	assert_eq(main.selected_target_id, "object_sealed_strongbox")
+	assert_eq(main.selected_target_id, "poi_harrow_forge")
 	assert_true(main.manual_target_locked)
-	assert_true(main.hud.log_label.text.contains("Targeting Sealed Strongbox."))
+	assert_true(main.hud.log_label.text.contains("Targeting Harrow's Forge."))
 
 
 func test_next_target_can_cycle_through_every_nearby_spawn_target() -> void:
@@ -44,5 +44,5 @@ func test_target_picker_data_uses_same_intent_rank_as_next_target() -> void:
 
 	assert_gt(targets.size(), 2)
 	assert_eq(targets[0]["id"], "npc_harrow_venn_world")
-	assert_eq(targets[1]["id"], "object_sealed_strongbox")
+	assert_eq(targets[1]["id"], "poi_harrow_forge")
 	assert_true(bool(targets[0]["selected"]))

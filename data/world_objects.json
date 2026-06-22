@@ -3,33 +3,34 @@
     "id": "object_road_notice",
     "name": "Road Notice",
     "kind": "readable",
-    "global_tile": [-2, -5],
+    "global_tile": [2, 6],
+    "interaction_radius": 128,
     "readable_id": "readable_briarwatch_notice"
   },
   {
     "id": "npc_harrow_venn_world",
     "name": "Harrow Venn",
     "kind": "npc",
-    "global_tile": [5, 2],
+    "global_tile": [5, 1],
     "npc_id": "npc_harrow_venn"
   },
   {
     "id": "npc_maera_pike_world",
     "name": "Maera Pike",
     "kind": "npc",
-    "global_tile": [4, -4],
+    "global_tile": [3, -5],
     "npc_id": "npc_maera_pike"
   },
   {
     "id": "poi_briarwatch_square",
-    "name": "Briarwatch Square",
+    "name": "Warden's Job Board",
     "kind": "poi",
-    "poi_type": "Town Center",
-    "summary": "notice post and roads",
-    "global_tile": [-6, 2],
+    "poi_type": "Town Hall",
+    "summary": "jobs, notices, and town records",
+    "global_tile": [4, 5],
     "interaction_radius": 128,
-    "location_id": "location_briarwatch_square",
-    "description": "The square gives Briarwatch a readable center: Harrow's forge to the east, Maera's stall to the northeast, gates on the roads, and a notice post for future jobs.",
+    "prefer_primary_action": false,
+    "description": "The job board is mounted inside Briarwatch's town hall, close enough to the square for travelers to find it but sheltered where official notices, patrol work, and town records belong.",
     "actions": [
       {
         "id": "take_road_patrol",
@@ -98,7 +99,7 @@
     "global_tile": [6, 2],
     "interaction_radius": 128,
     "location_id": "location_harrow_forge",
-    "description": "The forge is hot, practical, and close to Harrow. This is the right place for future repair, crafting, upgrade, and blacksmith quest actions.",
+    "description": "The forge sits inside a timber-and-stone workshop on the east side of the square. This is the right place for future repair, crafting, upgrade, and blacksmith quest actions.",
     "actions": [
       {
         "id": "sharpen_road_hatchet",
@@ -137,18 +138,18 @@
     "kind": "poi",
     "poi_type": "Market Stall",
     "summary": "trade and rumor hook",
-    "global_tile": [6, -2],
+    "global_tile": [3, -4],
     "interaction_radius": 128,
     "location_id": "location_maera_stall",
     "shop_id": "shop_crossroads_peddler",
     "system_tab": "trade",
-    "description": "Maera's awning marks the trading side of town. The stall is positioned for future buy/sell shortcuts, rumor boards, map leads, and supply quests."
+    "description": "Maera's awning hangs inside a wooden shop near the north road. The stall is positioned for future buy/sell shortcuts, rumor boards, map leads, and supply quests."
   },
   {
     "id": "pickup_old_toolbox",
     "name": "Old Toolbox",
     "kind": "pickup",
-    "global_tile": [4, 4],
+    "global_tile": [-5, 2],
     "item_id": "item_old_toolbox",
     "count": 1,
     "effects_on_pickup": [
@@ -163,7 +164,7 @@
     "id": "pickup_roadside_draught",
     "name": "Roadside Draught",
     "kind": "pickup",
-    "global_tile": [-4, -4],
+    "global_tile": [2, -5],
     "item_id": "item_roadside_draught",
     "count": 1
   },
@@ -171,7 +172,8 @@
     "id": "pickup_road_hatchet",
     "name": "Road Hatchet",
     "kind": "pickup",
-    "global_tile": [5, -3],
+    "global_tile": [7, 2],
+    "interaction_radius": 128,
     "item_id": "item_road_hatchet",
     "count": 1
   },
@@ -179,7 +181,7 @@
     "id": "pickup_traveler_buckler",
     "name": "Traveler Buckler",
     "kind": "pickup",
-    "global_tile": [-3, 5],
+    "global_tile": [4, -4],
     "item_id": "item_traveler_buckler",
     "count": 1
   },
@@ -187,7 +189,8 @@
     "id": "object_road_cache",
     "name": "Roadside Cache",
     "kind": "container",
-    "global_tile": [3, -5],
+    "global_tile": [-7, 2],
+    "interaction_radius": 128,
     "effects_on_open": [
       {
         "type": "add_item",
@@ -204,7 +207,7 @@
     "id": "object_warden_cache",
     "name": "Warden's Cache",
     "kind": "container",
-    "global_tile": [5, 3],
+    "global_tile": [3, 5],
     "conditions": [
       {
         "type": "read_readable",
@@ -223,7 +226,7 @@
     "id": "object_sealed_strongbox",
     "name": "Sealed Strongbox",
     "kind": "container",
-    "global_tile": [7, 0],
+    "global_tile": [3, 6],
     "interaction_radius": 128,
     "open_conditions": [
       {
@@ -244,7 +247,7 @@
     "id": "enemy_road_thug",
     "name": "Road Thug",
     "kind": "enemy",
-    "global_tile": [-5, -2],
+    "global_tile": [-4, 2],
     "max_health": 12,
     "damage_taken_per_hit": 6,
     "attack_damage": 4,
@@ -274,8 +277,8 @@
     "id": "object_north_gate",
     "name": "North Gate",
     "kind": "door",
-    "global_tile": [0, -7],
-    "interaction_radius": 128,
+    "global_tile": [3, -8],
+    "interaction_radius": 176,
     "open_conditions": [
       {
         "type": "read_readable",
@@ -299,8 +302,8 @@
     "id": "object_training_gate",
     "name": "Training Gate",
     "kind": "door",
-    "global_tile": [-7, 1],
-    "interaction_radius": 128,
+    "global_tile": [3, 8],
+    "interaction_radius": 176,
     "open_conditions": [
       {
         "type": "stat_at_least",
@@ -325,7 +328,7 @@
     "id": "object_roadside_campfire",
     "name": "Roadside Campfire",
     "kind": "rest",
-    "global_tile": [2, 5],
+    "global_tile": [0, 5],
     "heal_amount": 100,
     "rest_hours": 8
   },
@@ -333,7 +336,7 @@
     "id": "location_briarwatch_crossroads_marker",
     "name": "Briarwatch Crossroads",
     "kind": "location",
-    "global_tile": [-5, 2],
+    "global_tile": [1, 2],
     "location_id": "location_briarwatch_crossroads",
     "discovery_radius": 96
   }

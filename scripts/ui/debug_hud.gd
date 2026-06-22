@@ -685,11 +685,24 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	action_buttons.offset_right = -HUD_MARGIN
 	action_buttons.offset_top = -68 if compact_actions else -76
 
-	var action_left := viewport_size.x + action_buttons.offset_left
-	var message_left := move_pad.offset_right + HUD_MARGIN
-	var message_right := action_left - HUD_MARGIN
+	var message_left := 0.0
+	var message_right := 0.0
+	if compact_actions:
+		message_panel.anchor_top = 0.0
+		message_panel.anchor_bottom = 0.0
+		message_left = status_panel.offset_right + HUD_MARGIN
+		message_right = viewport_size.x - HUD_MARGIN
+		message_panel.offset_top = HUD_MARGIN
+		message_panel.offset_bottom = 64.0
+	else:
+		message_panel.anchor_top = 1.0
+		message_panel.anchor_bottom = 1.0
+		var action_left := viewport_size.x + action_buttons.offset_left
+		message_left = move_pad.offset_right + HUD_MARGIN
+		message_right = action_left - HUD_MARGIN
+		message_panel.offset_top = -94
+		message_panel.offset_bottom = -12
 	message_panel.offset_left = message_left
-	message_panel.offset_top = -58 if compact_actions else -94
 	message_panel.offset_right = message_right
 	message_panel.visible = message_right - message_left >= MESSAGE_MIN_WIDTH
 	HudLayoutMetrics.apply_log_label(log_label, compact_actions)

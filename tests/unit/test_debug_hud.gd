@@ -15,8 +15,10 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_eq(int(hud.health_bar.max_value), 100)
 	assert_eq(hud.health_bar.tooltip_text, "Health: 76/100")
 	assert_eq(hud.health_label.text, "Health 76/100")
+	assert_true(hud.status_label.text.contains("Briarwatch Crossroads"))
 	assert_true(hud.status_label.text.contains("Day 1, 16:00"))
-	assert_true(hud.status_label.text.contains("Inventory: Old Toolbox x1"))
+	assert_false(hud.status_label.text.contains("Inventory: Old Toolbox x1"))
+	assert_false(hud.status_label.text.contains("Tile (0, 0)"))
 	assert_true(hud.status_label.text.contains("Quest: The Missing Tools"))
 	assert_true(hud.status_label.text.contains("Goal: Return the toolbox to Harrow Venn."))
 	assert_true(hud.status_label.text.contains("Next: E 5.0t Harrow Venn"))
@@ -281,14 +283,23 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	var message_width := hud.message_panel.offset_right - hud.message_panel.offset_left
 	assert_true(hud.message_panel.visible)
 	assert_gte(message_width, DebugHud.MESSAGE_MIN_WIDTH)
-	assert_lte(hud.message_panel.offset_right, 960.0 + hud.action_buttons.offset_left - 12.0)
+	assert_eq(hud.message_panel.offset_top, 12.0)
+	assert_eq(hud.message_panel.offset_bottom, 64.0)
+	assert_lte(hud.message_panel.offset_right, 948.0)
+	assert_false(
+		_rect_for_top_left_panel(hud.message_panel).intersects(
+			_rect_for_top_left_panel(hud.status_panel)
+		)
+	)
 
 	hud._apply_layout_for_size(Vector2(860, 484))
 	assert_true(hud.message_panel.visible)
 	assert_gte(
 		hud.message_panel.offset_right - hud.message_panel.offset_left, DebugHud.MESSAGE_MIN_WIDTH
 	)
-	assert_lte(hud.message_panel.offset_right, 860.0 + hud.action_buttons.offset_left - 12.0)
+	assert_eq(hud.message_panel.offset_top, 12.0)
+	assert_eq(hud.message_panel.offset_bottom, 64.0)
+	assert_lte(hud.message_panel.offset_right, 848.0)
 
 	hud._apply_layout_for_size(Vector2(640, 360))
 	var compact_status_rect := _rect_for_top_left_panel(hud.status_panel)
@@ -309,7 +320,12 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 		hud.message_panel.offset_right - hud.message_panel.offset_left,
 		DebugHud.MESSAGE_MIN_WIDTH
 	)
-	assert_eq(hud.message_panel.offset_top, -58.0)
+	assert_eq(hud.message_panel.offset_top, 12.0)
+	assert_eq(hud.message_panel.offset_bottom, 64.0)
+	assert_false(
+		_rect_for_top_left_panel(hud.message_panel).intersects(compact_status_rect),
+		"Compact message strip should use the top-right lane beside status."
+	)
 	assert_eq(hud.log_label.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_gt(640.0 + hud.action_buttons.offset_left, hud.move_pad.offset_right)
 	assert_eq(hud.action_buttons.offset_top, -68.0)
