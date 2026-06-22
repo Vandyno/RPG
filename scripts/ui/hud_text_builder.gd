@@ -82,9 +82,9 @@ static func systems_text(
 
 
 static func _systems_inventory_text(state: Dictionary) -> String:
-	var lines: Array[String] = ["Inventory"]
+	var lines := _screen_header("Inventory", "Gear, supplies, and valuables.")
 	lines.append("Health: %s" % state.get("player_health", "unknown"))
-	lines.append("Inventory: %s" % state.get("inventory", "empty"))
+	lines.append("Carried: %s" % state.get("inventory", "empty"))
 	lines.append("Equipped:")
 	lines.append(String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty")))
 	var inventory_details := String(state.get("inventory_details", ""))
@@ -99,7 +99,7 @@ static func _systems_inventory_text(state: Dictionary) -> String:
 
 
 static func _systems_character_text(state: Dictionary) -> String:
-	var lines: Array[String] = ["Character"]
+	var lines := _screen_header("Character", "Health, training, effects, and equipment.")
 	lines.append("Health: %s" % state.get("player_health", "unknown"))
 	lines.append("Progression:")
 	lines.append(String(state.get("progression_details", state.get("progression", "Level 1"))))
@@ -112,11 +112,13 @@ static func _systems_character_text(state: Dictionary) -> String:
 
 
 static func _systems_trade_text(state: Dictionary) -> String:
-	return "Trade\n%s" % String(state.get("trade", "No trader selected."))
+	var lines := _screen_header("Trade", "Buy and sell with the selected merchant.")
+	lines.append(String(state.get("trade", "No trader selected.")))
+	return "\n".join(lines)
 
 
 static func _systems_quests_text(state: Dictionary) -> String:
-	var lines: Array[String] = ["Quests"]
+	var lines := _screen_header("Quests", "Active work and nearby objectives.")
 	var quests := _array_field(state.get("quests", []))
 	if quests.is_empty():
 		lines.append("No active quests.")
@@ -133,7 +135,7 @@ static func _systems_quests_text(state: Dictionary) -> String:
 
 
 static func _systems_map_text(state: Dictionary) -> String:
-	var lines: Array[String] = ["Map"]
+	var lines := _screen_header("Map", "Known places, routes, and nearby leads.")
 	lines.append("Now: %s" % state.get("time", "Day 1, 08:00"))
 	var locations := String(state.get("locations", "none"))
 	if locations == "none" or locations.is_empty():
@@ -159,7 +161,7 @@ static func _systems_map_text(state: Dictionary) -> String:
 
 
 static func _systems_journal_text(state: Dictionary, message_log: Array[String]) -> String:
-	var lines: Array[String] = ["Journal"]
+	var lines := _screen_header("Journal", "Time, reputation, and recent events.")
 	lines.append(String(state.get("time_details", state.get("time", ""))))
 	var factions := String(state.get("factions", "none"))
 	if factions != "none":
@@ -174,6 +176,10 @@ static func _systems_journal_text(state: Dictionary, message_log: Array[String])
 		for message in message_log:
 			lines.append("- %s" % message)
 	return "\n".join(lines)
+
+
+static func _screen_header(title: String, subtitle: String) -> Array[String]:
+	return [title, subtitle, ""]
 
 
 static func _array_field(value: Variant) -> Array:

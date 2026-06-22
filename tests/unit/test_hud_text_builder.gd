@@ -54,3 +54,31 @@ func test_message_text_uses_latest_message_only_in_compact_layout() -> void:
 		HudTextBuilder.message_text(messages, false),
 		"First\nSecond\nDiscovered Briarwatch Crossroads."
 	)
+
+
+func test_systems_text_uses_player_facing_screen_headers() -> void:
+	var state := {
+		"inventory": "Road Hatchet x1",
+		"equipment": "Weapon: Road Hatchet",
+		"player_health": "100/100",
+		"quests": ["The Missing Tools: Return the toolbox."],
+		"locations": "Briarwatch Crossroads",
+		"time": "Day 1, 08:00 (Morning)"
+	}
+
+	assert_true(
+		HudTextBuilder.systems_text(state, "inventory", []).contains(
+			"Gear, supplies, and valuables."
+		)
+	)
+	assert_true(HudTextBuilder.systems_text(state, "inventory", []).contains("Carried:"))
+	assert_true(
+		HudTextBuilder.systems_text(state, "quests", []).contains(
+			"Active work and nearby objectives."
+		)
+	)
+	assert_true(
+		HudTextBuilder.systems_text(state, "map", []).contains(
+			"Known places, routes, and nearby leads."
+		)
+	)
