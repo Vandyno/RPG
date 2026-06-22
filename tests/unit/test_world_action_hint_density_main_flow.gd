@@ -22,6 +22,52 @@ func test_nearby_spawn_hints_stay_sparse_around_selected_target() -> void:
 	assert_lte(visible_hint_count, 2)
 
 
+func test_nearby_spawn_hints_do_not_overlap_selected_hint() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	var campfire = main.entities.get_entity("object_roadside_campfire")
+
+	assert_not_null(campfire)
+	main._handle_target_selected("object_roadside_campfire")
+	main._update_nearby()
+
+	var selected_rect: Rect2 = MainWorldGuidance._hint_rect(
+		campfire.global_position, campfire.action_hint_text, campfire.action_hint_offset_y
+	).grow(MainWorldGuidance.ACTION_HINT_MARGIN)
+	for entity in main.entities.entities_by_id.values():
+		if entity == campfire or not entity.action_hint_visible:
+			continue
+		var rect: Rect2 = MainWorldGuidance._hint_rect(
+			entity.global_position, entity.action_hint_text, entity.action_hint_offset_y
+		)
+		assert_false(
+			rect.intersects(selected_rect),
+			"%s hint should not overlap selected hint." % entity.get_entity_id()
+		)
+
+
+func test_unselected_spawn_hints_do_not_compete_with_player_ring() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	var campfire = main.entities.get_entity("object_roadside_campfire")
+
+	assert_not_null(campfire)
+	main._handle_target_selected("object_roadside_campfire")
+	main._update_nearby()
+
+	var player_rect: Rect2 = MainWorldGuidance._player_clearance_rect(main.player.global_position)
+	for entity in main.entities.entities_by_id.values():
+		if entity == campfire or not entity.action_hint_visible:
+			continue
+		var rect: Rect2 = MainWorldGuidance._hint_rect(
+			entity.global_position, entity.action_hint_text, entity.action_hint_offset_y
+		)
+		assert_false(
+			rect.intersects(player_rect),
+			"%s hint should not sit under the player ring." % entity.get_entity_id()
+		)
+
+
 func test_compact_landscape_shows_only_selected_world_hint() -> void:
 	assert_eq(MainWorldGuidance._max_world_action_hints_for_width(640.0), 1)
 	assert_eq(MainWorldGuidance._max_world_action_hints_for_width(1152.0), 2)

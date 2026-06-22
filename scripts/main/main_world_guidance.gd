@@ -12,6 +12,14 @@ const COMPACT_HINT_WIDTH := 720.0
 const ACTION_HINT_WITH_NAME_MAX_CHARS := 22
 const COMPACT_SELECTED_NAME_MAX_CHARS := 18
 const UNSELECTED_HINT_OFFSETS := [20.0]
+const ACTION_HINT_HEIGHT := 22.0
+const ACTION_HINT_MIN_WIDTH := 48.0
+const ACTION_HINT_MAX_WIDTH := 148.0
+const ACTION_HINT_CHAR_WIDTH := 6.6
+const ACTION_HINT_HORIZONTAL_PADDING := 18.0
+const ACTION_HINT_MARGIN := 12.0
+const ACTION_HINT_PLAYER_CLEARANCE := Vector2(380.0, 256.0)
+const ACTION_HINT_PLAYER_CLEARANCE_OFFSET := Vector2(-190.0, -128.0)
 const HINT_FORWARD_CONE_DOT := 0.28
 const HINT_FORWARD_BONUS := 28.0
 const HINT_BEHIND_PENALTY := 92.0
@@ -25,7 +33,6 @@ static func sync(main, nearby_entities: Array) -> void:
 		main.entities.set_action_hints({})
 		return
 	var hints: Dictionary = {}
-	var unselected_index := 0
 	var player_position: Vector2 = main.player.global_position if main.player else Vector2.ZERO
 	var facing: Vector2 = (
 		main.player.get_facing_direction()
@@ -33,19 +40,14 @@ static func sync(main, nearby_entities: Array) -> void:
 		else Vector2.ZERO
 	)
 	var max_hints := _max_world_action_hints(main)
-	for entity in _hint_entities(
-		nearby_entities, main.selected_target_id, player_position, facing, max_hints
-	):
+	for entry in _hint_entries(main, nearby_entities, player_position, facing, max_hints):
+		var entity = entry["entity"]
 		var entity_id: String = entity.get_entity_id()
-		var selected: bool = entity_id == main.selected_target_id
-		var offset_y := 0.0
-		if not selected:
-			offset_y = _unselected_hint_offset(unselected_index)
-			unselected_index += 1
+		var selected: bool = bool(entry.get("selected", false))
 		hints[entity_id] = {
-			"text": _action_hint_text(main, entity, selected),
+			"text": entry["text"],
 			"selected": selected,
-			"offset_y": offset_y
+			"offset_y": float(entry.get("offset_y", 0.0))
 		}
 	main.entities.set_action_hints(hints)
 
@@ -63,29 +65,63 @@ static func _quest_target_markers(main) -> Dictionary:
 	return markers
 
 
-static func _hint_entities(
+static func _hint_entries(
+	main,
 	nearby_entities: Array,
-	selected_target_id: String,
 	player_world_position: Vector2,
 	facing_direction: Vector2,
 	max_hints: int
 ) -> Array:
 	var result := []
 	var unselected := []
+	var used_rects: Array[Rect2] = [_player_clearance_rect(player_world_position)]
+	var unselected_index := 0
 	for entity in nearby_entities:
-		if entity.get_entity_id() == selected_target_id:
-			result.append(entity)
+		if entity.get_entity_id() == main.selected_target_id:
+			var text := _action_hint_text(main, entity, true)
+			result.append({"entity": entity, "selected": true, "text": text, "offset_y": 0.0})
+			used_rects.append(_hint_rect(entity.global_position, text, 0.0).grow(ACTION_HINT_MARGIN))
 			break
 	for entity in nearby_entities:
-		if entity.get_entity_id() == selected_target_id:
+		if entity.get_entity_id() == main.selected_target_id:
 			continue
 		unselected.append(entity)
 	_sort_hint_candidates(unselected, player_world_position, facing_direction)
 	for entity in unselected:
 		if result.size() >= max_hints:
 			break
-		result.append(entity)
+		var offset_y := _unselected_hint_offset(unselected_index)
+		var text := _action_hint_text(main, entity, false)
+		var rect := _hint_rect(entity.global_position, text, offset_y)
+		if _intersects_any(rect, used_rects):
+			continue
+		result.append({"entity": entity, "selected": false, "text": text, "offset_y": offset_y})
+		used_rects.append(rect.grow(ACTION_HINT_MARGIN))
+		unselected_index += 1
 	return result
+
+
+static func _hint_rect(world_position: Vector2, text: String, offset_y: float) -> Rect2:
+	var width := clampf(
+		float(text.length()) * ACTION_HINT_CHAR_WIDTH + ACTION_HINT_HORIZONTAL_PADDING,
+		ACTION_HINT_MIN_WIDTH,
+		ACTION_HINT_MAX_WIDTH
+	)
+	return Rect2(
+		world_position + Vector2(-width * 0.5, -45.0 + offset_y),
+		Vector2(width, ACTION_HINT_HEIGHT)
+	)
+
+
+static func _player_clearance_rect(world_position: Vector2) -> Rect2:
+	return Rect2(world_position + ACTION_HINT_PLAYER_CLEARANCE_OFFSET, ACTION_HINT_PLAYER_CLEARANCE)
+
+
+static func _intersects_any(rect: Rect2, others: Array[Rect2]) -> bool:
+	for other in others:
+		if rect.intersects(other):
+			return true
+	return false
 
 
 static func _max_world_action_hints(main) -> int:
@@ -139,7 +175,8 @@ static func _unselected_hint_offset(index: int) -> float:
 
 static func _action_hint_text(main, entity, selected: bool) -> String:
 	var action := _action_text(main, entity, selected)
-	return _hint_text_for_width(action, entity.get_display_name(), selected, _viewport_width(main))
+	var viewport_width := _viewport_width(main) if main else 0.0
+	return _hint_text_for_width(action, entity.get_display_name(), selected, viewport_width)
 
 
 static func _hint_text_for_width(
