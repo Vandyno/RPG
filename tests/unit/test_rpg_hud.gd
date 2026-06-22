@@ -78,6 +78,12 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_eq(_button_texts(hud.systems_nav), [
 		"Inventory", "Character", "Quests", "Map", "Journal", "Trade"
 	])
+	assert_false(hud.systems_body_label.visible)
+	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
+	assert_eq(_button_texts(hud.systems_category_row), ["All", "Gear", "Use", "Quest"])
+	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
+	assert_not_null(toolbox_row)
+	assert_true(toolbox_row.text.contains("Count 1"))
 	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
 	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
 	assert_true(hud.systems_character_label.text.contains("Weapon: Road Hatchet"))
@@ -86,12 +92,15 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	hud.set_systems_tab("quests")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
 	assert_true(hud.systems_subtitle_label.text.contains("Quests"))
+	assert_eq(_button_texts(hud.systems_category_row), ["Active", "Routes", "Rewards"])
+	assert_not_null(_button_containing(hud.systems_item_list, "The Missing Tools"))
 	assert_true(hud.systems_detail_label.text.contains("The Missing Tools"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Target Harrow Venn"))
 
 	hud.set_systems_tab("journal")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
 	assert_true(hud.systems_subtitle_label.text.contains("Journal"))
+	assert_not_null(_button_containing(hud.systems_item_list, "Recent Events"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Load Game"))
 
@@ -109,6 +118,8 @@ func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	assert_false(hud.systems_character_panel.visible)
 	assert_true(hud.systems_left_panel.visible)
 	assert_true(hud.systems_center_panel.visible)
+	assert_true(hud.systems_category_row.visible)
+	assert_true(hud.systems_item_list.visible)
 	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
 	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
 
@@ -173,7 +184,7 @@ func _sample_state() -> Dictionary:
 func _button_texts(parent: Node) -> Array:
 	var texts := []
 	for child in parent.get_children():
-		if child is Button:
+		if child is Button and child.visible:
 			texts.append(child.text)
 	return texts
 
@@ -186,7 +197,7 @@ func _press_nav(hud: RpgHud, text: String) -> void:
 
 func _button_containing(parent: Node, text: String) -> Button:
 	for child in parent.get_children():
-		if child is Button and child.text.contains(text):
+		if child is Button and child.visible and child.text.contains(text):
 			return child
 	return null
 

@@ -1,6 +1,7 @@
 class_name RpgHud
 extends DebugHud
 
+const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -28,6 +29,9 @@ var systems_center_panel: PanelContainer
 var systems_detail_panel: PanelContainer
 var systems_character_panel: PanelContainer
 var systems_bottom_panel: PanelContainer
+var systems_category_row: HBoxContainer
+var systems_item_list: VBoxContainer
+var systems_selected_row_id := ""
 
 
 func _build_ui() -> void:
@@ -206,16 +210,33 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_center_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_main_row.add_child(systems_center_panel)
 
+	var center_stack := VBoxContainer.new()
+	center_stack.name = "SystemsCenterStack"
+	center_stack.add_theme_constant_override("separation", 8)
+	_add_margin(systems_center_panel, center_stack, 12)
+
+	systems_category_row = HBoxContainer.new()
+	systems_category_row.name = "SystemsCategoryRow"
+	systems_category_row.add_theme_constant_override("separation", 6)
+	center_stack.add_child(systems_category_row)
+
 	systems_scroll = ScrollContainer.new()
 	systems_scroll.name = "SystemsScroll"
 	systems_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_add_margin(systems_center_panel, systems_scroll, 12)
+	center_stack.add_child(systems_scroll)
+
+	systems_item_list = VBoxContainer.new()
+	systems_item_list.name = "SystemsItemList"
+	systems_item_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	systems_item_list.add_theme_constant_override("separation", 8)
+	systems_scroll.add_child(systems_item_list)
 
 	systems_body_label = _new_label(15)
 	systems_body_label.name = "SystemsBody"
 	systems_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	systems_scroll.add_child(systems_body_label)
+	systems_body_label.visible = false
+	center_stack.add_child(systems_body_label)
 
 	systems_detail_panel = _new_panel("SystemsDetailPanel")
 	systems_detail_panel.custom_minimum_size = Vector2(232, 0)
@@ -478,8 +499,82 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		_systems_subtitle(systems_active_tab)
 	]
 	systems_resources_label.text = _systems_resource_text(state)
-	systems_detail_label.text = _systems_detail_text(state, systems_active_tab)
+	_refresh_systems_rows(state)
 	systems_character_label.text = _systems_character_text(state)
+
+
+func _refresh_systems_rows(state: Dictionary) -> void:
+	if not systems_item_list:
+		return
+	var rows := RpgSystemsRowBuilder.rows(state, systems_active_tab, message_log)
+	_refresh_category_row(systems_active_tab)
+	if not RpgSystemsRowBuilder.has_id(rows, systems_selected_row_id):
+		systems_selected_row_id = String(rows[0].get("id", "")) if not rows.is_empty() else ""
+	for index in range(rows.size()):
+		var row := rows[index]
+		var button := _systems_row_button(index)
+		button.name = "SystemsRow_%s" % String(row.get("id", "")).to_pascal_case()
+		button.text = RpgSystemsRowBuilder.button_text(row)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.add_theme_font_size_override("font_size", 15)
+		var row_id := String(row.get("id", ""))
+		var selected := row_id == systems_selected_row_id
+		_apply_row_button_style(button, selected)
+		button.set_meta("row_id", row_id)
+		button.visible = true
+	for index in range(rows.size(), systems_item_list.get_child_count()):
+		systems_item_list.get_child(index).visible = false
+	if rows.is_empty():
+		var empty := _new_label(15)
+		empty.name = "SystemsEmptyRow"
+		empty.text = "Nothing to show here yet."
+		empty.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
+		systems_item_list.add_child(empty)
+		systems_detail_label.text = _systems_detail_text(state, systems_active_tab)
+	else:
+		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
+		systems_detail_label.text = String(selected_row.get("detail", ""))
+
+
+func _systems_row_button(index: int) -> Button:
+	if index < systems_item_list.get_child_count():
+		var existing := systems_item_list.get_child(index)
+		if existing is Button:
+			return existing
+	var button := _new_button("", Vector2(0, 68))
+	button.pressed.connect(func() -> void: _select_systems_row(String(button.get_meta("row_id", ""))))
+	systems_item_list.add_child(button)
+	return button
+
+
+func _refresh_category_row(tab_id: String) -> void:
+	if not systems_category_row:
+		return
+	var labels := RpgSystemsRowBuilder.category_labels(tab_id)
+	for index in range(labels.size()):
+		var button: Button
+		if index < systems_category_row.get_child_count():
+			button = systems_category_row.get_child(index) as Button
+		else:
+			button = _new_button("", Vector2(64, 38))
+			button.focus_mode = Control.FOCUS_NONE
+			systems_category_row.add_child(button)
+		button.text = String(labels[index])
+		button.visible = true
+		button.disabled = index != 0
+		button.button_pressed = index == 0
+		button.add_theme_font_size_override("font_size", 13)
+		button.custom_minimum_size = Vector2(64, 38)
+	for index in range(labels.size(), systems_category_row.get_child_count()):
+		systems_category_row.get_child(index).visible = false
+
+
+func _select_systems_row(row_id: String) -> void:
+	if row_id.is_empty():
+		return
+	systems_selected_row_id = row_id
+	_refresh_systems_chrome(_state_snapshot())
 
 
 func _refresh_systems_actions(state: Dictionary) -> void:
@@ -648,10 +743,33 @@ func _apply_button_style(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 
+func _apply_row_button_style(button: Button, selected: bool) -> void:
+	var base := Color(0.045, 0.043, 0.036, 0.92)
+	var border := Color(0.72, 0.56, 0.32, 0.68)
+	var font := Color(0.96, 0.90, 0.78)
+	if selected:
+		base = Color(0.10, 0.17, 0.08, 0.96)
+		border = Color(0.70, 1.0, 0.46, 0.86)
+		font = Color(0.82, 1.0, 0.58)
+	button.add_theme_color_override("font_color", font)
+	button.add_theme_stylebox_override("normal", _button_style_with_border(base, border))
+	button.add_theme_stylebox_override(
+		"hover", _button_style_with_border(Color(0.12, 0.16, 0.10, 0.98), border)
+	)
+	button.add_theme_stylebox_override(
+		"pressed", _button_style_with_border(Color(0.15, 0.20, 0.11, 0.98), border)
+	)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
 func _button_style(color: Color) -> StyleBoxFlat:
+	return _button_style_with_border(color, Color(0.72, 0.56, 0.32, 0.68))
+
+
+func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
-	style.border_color = Color(0.72, 0.56, 0.32, 0.68)
+	style.border_color = border_color
 	style.set_border_width_all(1)
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
