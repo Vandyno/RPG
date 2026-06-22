@@ -2,7 +2,9 @@ class_name RpgHud
 extends DebugHud
 
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
+const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
+const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
@@ -367,6 +369,15 @@ func _build_target_panel() -> void:
 	target_list = nodes["list"]
 
 
+func _build_context_action_panel() -> void:
+	var nodes := RpgContextActionPanelBuilder.build(
+		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
+		Callable(self, "_new_label")
+	)
+	context_action_panel = nodes["panel"]
+	context_action_buttons = nodes["buttons"]
+
+
 func _build_touch_controls() -> void:
 	var move_nodes := RpgMovePadBuilder.build(
 		root, Callable(self, "_on_move_pad_gui_input"), MOVE_KNOB_SIZE
@@ -492,6 +503,10 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 		prompt_panel.visible = false
 	_layout_systems_panel(viewport_size, compact)
 	_layout_content_panel(viewport_size, compact)
+	RpgContextActionPanelBuilder.apply_layout(
+		context_action_panel, context_action_buttons, visible_context_action_count,
+		viewport_size, compact, HUD_MARGIN
+	)
 	RpgTargetPanelBuilder.apply_layout(target_panel, target_list, viewport_size, compact, HUD_MARGIN)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
@@ -614,7 +629,7 @@ func _refresh_player_status(state: Dictionary) -> void:
 	if not status_label or not health_label or not level_badge_label:
 		return
 	var progression_text := String(state.get("progression", "Level 1"))
-	var level := _level_from_progression(progression_text)
+	var level := RpgSystemsTextBuilder.level_from_progression(progression_text)
 	level_badge_label.text = str(level)
 	var lines: Array[String] = ["Adventurer", progression_text]
 	var legacy_status := HudTextBuilder.status_text(state)
@@ -635,12 +650,12 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		return
 	systems_title_label.text = _rpg_location_name(state)
 	systems_subtitle_label.text = "%s - %s" % [
-		_systems_title(systems_active_tab),
-		_systems_subtitle(systems_active_tab)
+		RpgSystemsTextBuilder.title(systems_active_tab),
+		RpgSystemsTextBuilder.subtitle(systems_active_tab)
 	]
-	systems_resources_label.text = _systems_resource_text(state)
+	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	_refresh_systems_rows(state)
-	systems_character_label.text = _systems_character_text(state)
+	systems_character_label.text = RpgSystemsTextBuilder.character_text(state)
 
 
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -671,7 +686,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		empty.text = "Nothing to show here yet."
 		empty.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 		systems_item_list.add_child(empty)
-		systems_detail_label.text = _systems_detail_text(state, systems_active_tab)
+		systems_detail_label.text = RpgSystemsTextBuilder.detail_text(state, systems_active_tab)
 	else:
 		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
@@ -752,6 +767,35 @@ func _refresh_target_picker(state: Dictionary) -> void:
 		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
 
+
+func _refresh_context_actions(state: Dictionary) -> void:
+	if not context_action_buttons:
+		return
+	if _has_open_overlay_panel():
+		visible_context_action_count = 0
+		context_action_panel.visible = false
+		return
+	var context_mode := state.has("context_actions")
+	var actions := _array_field(state.get("context_actions" if context_mode else "combat_actions", []))
+	visible_context_action_count = RpgContextActionPanelBuilder.refresh(
+		context_action_buttons, actions, Callable(self, "_new_button"),
+		Callable(self, "_apply_row_button_style"),
+		func(action_id: String, is_context: bool) -> void: _emit_quick_action(action_id, is_context),
+		context_mode,
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	)
+	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
+	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
+	context_action_panel.visible = visible_context_action_count > 0
+
+
+func _emit_quick_action(action_id: String, context_mode: bool) -> void:
+	if context_mode:
+		context_action_selected.emit(action_id)
+	else:
+		combat_action_selected.emit(action_id)
+
+
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()
 	if move_pad:
@@ -760,124 +804,6 @@ func _sync_content_overlay_chrome() -> void:
 		action_buttons.visible = not content_open
 	if message_panel and content_open:
 		message_panel.visible = false
-
-
-func _systems_title(tab_id: String) -> String:
-	return {
-		"inventory": "Inventory",
-		"character": "Character",
-		"quests": "Quests",
-		"map": "Map",
-		"journal": "Journal",
-		"trade": "Trade"
-	}.get(tab_id, "Menu")
-
-
-func _systems_subtitle(tab_id: String) -> String:
-	return {
-		"inventory": "Gear, supplies, and valuables.",
-		"character": "Training, health, equipment, and effects.",
-		"quests": "Active work and nearby objectives.",
-		"map": "Known places, routes, and nearby leads.",
-		"journal": "Time, reputation, and recent events.",
-		"trade": "Buy and sell with the selected merchant."
-	}.get(tab_id, "Briarwatch")
-
-
-func _systems_resource_text(state: Dictionary) -> String:
-	var inventory := String(state.get("inventory", "empty"))
-	var gold := _count_named_entry(inventory, "Gold Coin")
-	var time := String(state.get("time", "Day 1, 08:00"))
-	return "Gold %d     %s" % [gold, _short_time(time)]
-
-
-func _systems_detail_text(state: Dictionary, tab_id: String) -> String:
-	var detail := ""
-	match tab_id:
-		"inventory":
-			detail = _first_non_empty(
-				String(state.get("inventory_details", "")),
-				"No carried item details yet."
-			)
-		"character":
-			detail = _first_non_empty(
-				String(state.get("progression_details", "")),
-				String(state.get("progression", "Level 1"))
-			)
-		"quests":
-			detail = _quest_detail_text(state)
-		"map":
-			detail = _first_non_empty(
-				String(state.get("location_details", "")),
-				String(state.get("locations", "No known places."))
-			)
-		"journal":
-			detail = _first_non_empty(String(state.get("factions", "")), "No reputation notes.")
-		"trade":
-			detail = _first_non_empty(String(state.get("trade", "")), "No trader selected.")
-	return detail
-
-
-func _systems_character_text(state: Dictionary) -> String:
-	var lines: Array[String] = []
-	lines.append(String(state.get("player_health", "Health unknown")))
-	lines.append(String(state.get("progression", "Level 1")))
-	lines.append("")
-	lines.append(String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty")))
-	var statuses := String(state.get("statuses", "none"))
-	if statuses != "none":
-		lines.append("")
-		lines.append("Effects: %s" % statuses)
-	return "\n".join(lines)
-
-
-func _quest_detail_text(state: Dictionary) -> String:
-	var quests := _array_field(state.get("quests", []))
-	if quests.is_empty():
-		return "No active quests."
-	var lines: Array[String] = []
-	for quest in quests:
-		lines.append(String(quest))
-	var directions := String(state.get("quest_directions", "none"))
-	if directions != "none" and not directions.is_empty():
-		lines.append("")
-		lines.append(directions)
-	return "\n".join(lines)
-
-
-func _first_non_empty(value: String, fallback: String) -> String:
-	var stripped := value.strip_edges()
-	if stripped.is_empty() or stripped == "none":
-		return fallback
-	return stripped
-
-
-func _short_time(time: String) -> String:
-	var phase_start := time.find(" (")
-	if phase_start >= 0:
-		time = time.substr(0, phase_start)
-	return time.replace("Day ", "D")
-
-
-func _count_named_entry(summary: String, item_name: String) -> int:
-	for raw_part in summary.split(",", false):
-		var part := raw_part.strip_edges()
-		if not part.begins_with(item_name):
-			continue
-		var marker := part.rfind("x")
-		if marker >= 0 and marker + 1 < part.length():
-			return maxi(0, int(part.substr(marker + 1)))
-	return 0
-
-
-func _level_from_progression(text: String) -> int:
-	var expression := RegEx.new()
-	if expression.compile("Level\\s+(\\d+)") != OK:
-		return 1
-	var result := expression.search(text)
-	if not result:
-		return 1
-	return maxi(1, int(result.get_string(1)))
 
 
 func _apply_panel_style(panel: Control) -> void:

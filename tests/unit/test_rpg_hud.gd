@@ -142,6 +142,41 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+
+	var context_actions: Array[String] = []
+	var combat_actions: Array[String] = []
+	hud.context_action_selected.connect(
+		func(action_id: String) -> void: context_actions.append(action_id)
+	)
+	hud.combat_action_selected.connect(
+		func(action_id: String) -> void: combat_actions.append(action_id)
+	)
+
+	hud._refresh_context_actions(
+		{"context_actions": [{"id": "dialogue:accept", "text": "I'll find it."}]}
+	)
+	assert_true(hud.context_action_panel.visible)
+	assert_eq(
+		(hud.context_action_panel.find_child("QuickActionTitle", true, false) as Label).text,
+		"Quick Actions"
+	)
+	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
+	assert_true(_rect_inside(_anchored_rect(hud.context_action_panel, Vector2(640, 360)), screen))
+	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
+	assert_not_null(accept)
+	accept.pressed.emit()
+	assert_eq(context_actions, ["dialogue:accept"])
+
+	hud._refresh_context_actions({"combat_actions": [{"id": "guard", "text": "Guard"}]})
+	var guard := _button_containing(hud.context_action_buttons, "Guard")
+	assert_not_null(guard)
+	guard.pressed.emit()
+	assert_eq(combat_actions, ["guard"])
+
+
 func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))

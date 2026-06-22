@@ -12,6 +12,17 @@ Use these files as the current source of truth:
 Generated lore, quests, locations, factions, or religions are proposals until
 the user explicitly approves them as canon.
 
+## communication style
+
+Default to very short, blunt, low-verbosity replies. Speak plainly, like
+"caveman mode": fewer words, less preamble, clear status, clear next action.
+Use more detail only when explaining risk, design tradeoffs, test failures, or
+steps the user specifically asks for.
+
+The user is ADHD and autistic. Keep communication concrete, direct, and easy to
+parse. Prefer clear priorities, visible progress, explicit tradeoffs, and fewer
+open-ended branches. Avoid vague reassurance or long preambles.
+
 ## working priorities
 
 Prioritize the first playable slice over generalized systems. Do not build broad
