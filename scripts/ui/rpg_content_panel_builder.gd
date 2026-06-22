@@ -173,27 +173,27 @@ static func apply_layout(
 		content_panel.offset_top = -viewport_size.y + hud_margin
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(108, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(92, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(46, 46) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(172, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(232, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(172, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(232, 0) if compact else Vector2(0, 0)
 	if preview_panel and compact:
 		preview_panel.visible = false
 	elif preview_panel:
 		preview_panel.custom_minimum_size = Vector2(220, 0)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 14 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 18 if compact else 22)
 	if kind_label:
-		kind_label.add_theme_font_size_override("font_size", 12 if compact else 14)
+		kind_label.add_theme_font_size_override("font_size", 14 if compact else 14)
 	if body_label:
-		body_label.add_theme_font_size_override("font_size", 15 if compact else 17)
+		body_label.add_theme_font_size_override("font_size", 22 if compact else 17)
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():
 			if child is Button:
-				child.custom_minimum_size = Vector2(0, 38) if compact else Vector2(0, 46)
-				child.add_theme_font_size_override("font_size", 12 if compact else 14)
+				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
+				child.add_theme_font_size_override("font_size", 14 if compact else 14)

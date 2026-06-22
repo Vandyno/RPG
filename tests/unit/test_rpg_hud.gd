@@ -372,6 +372,13 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	assert_true(hud.content_identity_panel.visible)
 	assert_true(hud.content_portrait_panel.visible)
 	assert_false(hud.content_preview_panel.visible)
+	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 92.0)
+	assert_gte(hud.content_right_stack.custom_minimum_size.x, 232.0)
+	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 22)
+	var accept_button := _button_containing(hud.content_choice_list, "Accept") as Button
+	assert_not_null(accept_button)
+	assert_gte(accept_button.custom_minimum_size.y, 46.0)
+	assert_gte(accept_button.get_theme_font_size("font_size"), 14)
 
 
 func _new_hud() -> RpgHud:
