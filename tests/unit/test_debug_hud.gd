@@ -225,6 +225,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_false(hud.is_systems_panel_visible())
 	assert_true(hud.is_content_card_visible())
 	assert_eq(hud.primary_action_button.text, "Close")
+	assert_eq(hud.content_kind_label.text, "Notice")
 	assert_eq(hud.content_title_label.text, "Road Notice")
 	assert_true(hud.content_body_label.text.contains("Boundary stones"))
 	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)

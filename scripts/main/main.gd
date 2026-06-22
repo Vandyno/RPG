@@ -412,7 +412,7 @@ func _interact_readable(entity) -> void:
 	var body := String(readable.get("body", ""))
 	active_content_choices.clear()
 	if hud:
-		hud.show_content_card(title, body)
+		hud.show_content_card(title, body, [], "readable")
 	event_bus.post_message("Read %s." % title)
 
 
@@ -569,7 +569,7 @@ func _show_dialogue_line(line: Dictionary) -> void:
 	for choice in choices:
 		active_content_choices[String(choice.get("id", ""))] = choice
 	if hud:
-		hud.show_content_card(speaker, text, choices)
+		hud.show_content_card(speaker, text, choices, "dialogue")
 	event_bus.post_message("%s: %s" % [speaker, text])
 
 
@@ -589,7 +589,7 @@ func _handle_content_choice_selected(choice_id: String) -> void:
 			hud.hide_content_card()
 	else:
 		if hud:
-			hud.show_content_card(String(result.get("text", "Choice")), response)
+			hud.show_content_card(String(result.get("text", "Choice")), response, [], "response")
 		event_bus.post_message(response)
 	_update_nearby()
 

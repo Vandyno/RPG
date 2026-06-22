@@ -18,6 +18,7 @@ const ButtonTextFormatter = preload("res://scripts/ui/button_text_formatter.gd")
 const HoldActionButton = preload("res://scripts/ui/hold_action_button.gd")
 const HudLayoutMetrics = preload("res://scripts/ui/hud_layout_metrics.gd")
 const HudTextBuilder = preload("res://scripts/ui/hud_text_builder.gd")
+const ContentCardPresenter = preload("res://scripts/ui/content_card_presenter.gd")
 const SystemsActionBuilder = preload("res://scripts/ui/systems_action_builder.gd")
 const TargetUiTextBuilder = preload("res://scripts/ui/target_ui_text_builder.gd")
 const MOVE_PAD_SIZE := Vector2(166, 160)
@@ -61,6 +62,7 @@ var systems_tab_buttons: Dictionary = {}
 var systems_active_tab := "inventory"
 var content_panel: PanelContainer
 var content_scroll: ScrollContainer
+var content_kind_label: Label
 var content_title_label: Label
 var content_body_label: Label
 var content_choice_list: VBoxContainer
@@ -201,13 +203,14 @@ func get_systems_tab() -> String:
 	return systems_active_tab
 
 
-func show_content_card(title: String, body: String, choices: Array = []) -> void:
+func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	if systems_panel:
 		systems_panel.visible = false
 	if target_panel:
 		target_panel.visible = false
 	if context_action_panel:
 		context_action_panel.visible = false
+	content_kind_label.text = ContentCardPresenter.kind_text(kind)
 	content_title_label.text = title
 	content_body_label.text = body
 	_refresh_content_choices(choices)
@@ -552,53 +555,20 @@ func _build_touch_controls() -> void:
 
 
 func _build_content_panel() -> void:
-	content_panel = _new_panel("ContentPanel")
-	content_panel.anchor_left = 0.5
-	content_panel.anchor_right = 0.5
-	content_panel.anchor_top = 0.5
-	content_panel.anchor_bottom = 0.5
-	content_panel.offset_left = -280
-	content_panel.offset_top = -164
-	content_panel.offset_right = 280
-	content_panel.offset_bottom = 164
-	content_panel.visible = false
-	root.add_child(content_panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_top", 16)
-	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_bottom", 16)
-	content_panel.add_child(margin)
-
-	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 12)
-	margin.add_child(stack)
-
-	content_title_label = _new_label(20)
-	stack.add_child(content_title_label)
-
-	content_scroll = ScrollContainer.new()
-	content_scroll.name = "ContentScroll"
-	content_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stack.add_child(content_scroll)
-
-	content_body_label = _new_label(16)
-	content_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_scroll.add_child(content_body_label)
-
-	content_choice_list = VBoxContainer.new()
-	content_choice_list.name = "ContentChoices"
-	content_choice_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_choice_list.add_theme_constant_override("separation", 6)
-	stack.add_child(content_choice_list)
-
-	var close := _new_button("Close", Vector2(120, 50))
-	close.size_flags_horizontal = Control.SIZE_SHRINK_END
-	close.pressed.connect(hide_content_card)
-	stack.add_child(close)
+	var nodes := ContentCardPresenter.build(
+		root,
+		Callable(self, "_new_panel"),
+		Callable(self, "_add_margin"),
+		Callable(self, "_new_label"),
+		Callable(self, "_new_button"),
+		Callable(self, "hide_content_card")
+	)
+	content_panel = nodes["panel"]
+	content_kind_label = nodes["kind_label"]
+	content_title_label = nodes["title_label"]
+	content_scroll = nodes["scroll"]
+	content_body_label = nodes["body_label"]
+	content_choice_list = nodes["choice_list"]
 
 
 func _add_hold_button(parent: Control, text: String, action: String, position: Vector2) -> void:
@@ -932,14 +902,8 @@ func _refresh_target_picker(state: Dictionary) -> void:
 func _refresh_content_choices(choices: Array) -> void:
 	if not content_choice_list:
 		return
-	content_choice_list.visible = UiActionButtons.refresh(
-		content_choice_list,
-		choices,
-		self,
-		"content_choice_selected",
-		"choice_id",
-		Vector2(0, 50),
-		14
+	content_choice_list.visible = ContentCardPresenter.refresh_choices(
+		content_choice_list, choices, self
 	)
 
 func _refresh_systems_actions(state: Dictionary) -> void:

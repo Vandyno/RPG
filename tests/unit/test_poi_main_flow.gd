@@ -14,6 +14,7 @@ func test_town_hall_job_board_shows_place_card() -> void:
 	)
 	main._handle_interact_requested()
 
+	assert_eq(main.hud.content_kind_label.text, "Place")
 	assert_true(main.hud.content_title_label.text.contains("Warden's Job Board"))
 	assert_true(main.hud.content_body_label.text.contains("town hall"))
 	assert_not_null(_button_containing(main.hud.content_choice_list, "Take Road Patrol Job"))
@@ -64,6 +65,7 @@ func test_shop_poi_opens_trade_panel_directly() -> void:
 
 	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
 	assert_true(main.hud.is_content_card_visible())
+	assert_eq(main.hud.content_kind_label.text, "Place")
 	assert_true(main.hud.content_body_label.text.contains("wooden shop"))
 	assert_false(main.hud.is_systems_panel_visible())
 	main.hud.hide_content_card()
@@ -100,6 +102,7 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 
 	_select_entity(main, "poi_harrow_forge")
 	main._handle_interact_requested()
+	assert_eq(main.hud.content_kind_label.text, "Place")
 	assert_true(main.hud.content_body_label.text.contains("repair, crafting, upgrade"))
 	assert_null(_button_containing(main.hud.content_choice_list, "Sharpen Road Hatchet"))
 	main.hud.hide_content_card()
@@ -160,6 +163,7 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	take_job_button.pressed.emit()
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
+	assert_eq(main.hud.content_kind_label.text, "Result")
 	assert_true(main.hud.content_body_label.text.contains("road thug west of Briarwatch"))
 	main.hud.hide_content_card()
 
@@ -181,6 +185,7 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	assert_eq(main.factions.get_reputation("faction_marches_of_velcor"), 2)
 	assert_eq(main.progression.experience, 18)
 	assert_true(main.hud.is_content_card_visible())
+	assert_eq(main.hud.content_kind_label.text, "Result")
 	assert_true(main.hud.content_body_label.text.contains("road clear"))
 	assert_true(main.hud.log_label.text.contains("road clear"))
 

@@ -291,14 +291,17 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.world_state.has_flag("flag_briarwatch_notice_read"))
 	assert_not_null(main.entities.get_entity("object_warden_cache"))
 	assert_true(main.hud.is_content_card_visible())
+	assert_eq(main.hud.content_kind_label.text, "Readable")
 
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "inactive")
+	assert_eq(main.hud.content_kind_label.text, "Dialogue")
 	assert_true(main.hud.content_body_label.text.contains("need my old toolbox"))
 	_choose_content(main, "I'll find it.")
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
 	assert_true(main.hud.is_content_card_visible())
+	assert_eq(main.hud.content_kind_label.text, "Result")
 
 	_select_entity(main, "pickup_old_toolbox")
 	main._handle_interact_requested()

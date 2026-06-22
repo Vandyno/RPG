@@ -70,7 +70,7 @@ static func interact(
 	for action in actions:
 		active_choices[String(action.get("id", ""))] = action
 	if hud:
-		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions)
+		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions, "place")
 
 
 static func inspect(
@@ -88,7 +88,7 @@ static func inspect(
 	for action in actions:
 		active_choices[String(action.get("id", ""))] = action
 	if hud:
-		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions)
+		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions, "place")
 
 
 static func _body_text(entity) -> String:
