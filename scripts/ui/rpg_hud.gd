@@ -7,6 +7,7 @@ const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_build
 const RpgContentChoiceBuilder = preload("res://scripts/ui/rpg_content_choice_builder.gd")
 const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
+const RpgStatusTextBuilder = preload("res://scripts/ui/rpg_status_text_builder.gd")
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
@@ -663,13 +664,7 @@ func _refresh_player_status(state: Dictionary) -> void:
 	var progression_text := String(state.get("progression", "Level 1"))
 	var level := RpgSystemsTextBuilder.level_from_progression(progression_text)
 	level_badge_label.text = str(level)
-	var lines: Array[String] = ["Adventurer", progression_text]
-	var legacy_status := HudTextBuilder.status_text(state)
-	var legacy_lines := legacy_status.split("\n", false)
-	if legacy_lines.size() > 1:
-		for index in range(1, legacy_lines.size()):
-			lines.append(legacy_lines[index])
-	status_label.text = "\n".join(lines)
+	status_label.text = "\n".join(RpgStatusTextBuilder.lines(state, progression_text))
 	health_label.text = "Health %d/%d" % [
 		int(health_bar.value),
 		int(health_bar.max_value)
