@@ -58,6 +58,35 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+
+	assert_not_null(hud.move_pad.get_node("MovePadOuterRing"))
+	assert_not_null(hud.move_pad.get_node("MovePadInnerWell"))
+	assert_not_null(hud.move_pad.get_node("MoveKnob"))
+	for child in hud.move_pad.get_children():
+		assert_false(child is Button, "RPG movement pad should not expose debug D-pad buttons.")
+
+	var vectors: Array[Vector2] = []
+	hud.move_vector_changed.connect(func(direction: Vector2) -> void: vectors.append(direction))
+	var press := InputEventMouseButton.new()
+	press.pressed = true
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.position = Vector2(128, 128)
+	hud._on_move_pad_gui_input(press)
+	assert_eq(hud.get_touch_move_vector(), Vector2(1, 1).normalized())
+	assert_eq(vectors[0], Vector2(1, 1).normalized())
+
+	var release := InputEventMouseButton.new()
+	release.pressed = false
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = Vector2(128, 128)
+	hud._on_move_pad_gui_input(release)
+	assert_eq(hud.get_touch_move_vector(), Vector2.ZERO)
+	assert_eq(vectors[-1], Vector2.ZERO)
+
+
 func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))

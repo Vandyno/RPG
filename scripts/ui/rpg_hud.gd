@@ -3,6 +3,7 @@ extends DebugHud
 
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
+const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -355,31 +356,11 @@ func _add_nav_button(text: String, callback: Callable) -> void:
 
 
 func _build_touch_controls() -> void:
-	move_pad = Panel.new()
-	move_pad.name = "MovePad"
-	_apply_panel_style(move_pad)
-	move_pad.anchor_top = 1.0
-	move_pad.anchor_bottom = 1.0
-	move_pad.offset_left = 18
-	move_pad.offset_top = -172
-	move_pad.offset_right = 184
-	move_pad.offset_bottom = -12
-	move_pad.mouse_filter = Control.MOUSE_FILTER_STOP
-	move_pad.gui_input.connect(_on_move_pad_gui_input)
-	root.add_child(move_pad)
-
-	move_knob = ColorRect.new()
-	move_knob.name = "MoveKnob"
-	move_knob.color = Color(0.86, 0.78, 0.58, 0.55)
-	move_knob.custom_minimum_size = MOVE_KNOB_SIZE
-	move_knob.size = MOVE_KNOB_SIZE
-	move_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	move_pad.add_child(move_knob)
-
-	_add_hold_button(move_pad, "move_up", Vector2(54, 6))
-	_add_hold_button(move_pad, "move_left", Vector2(6, 54))
-	_add_hold_button(move_pad, "move_right", Vector2(102, 54))
-	_add_hold_button(move_pad, "move_down", Vector2(54, 102))
+	var move_nodes := RpgMovePadBuilder.build(
+		root, Callable(self, "_on_move_pad_gui_input"), MOVE_KNOB_SIZE
+	)
+	move_pad = move_nodes["move_pad"]
+	move_knob = move_nodes["move_knob"]
 	_update_move_knob()
 
 	action_buttons = HBoxContainer.new()
