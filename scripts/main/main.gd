@@ -23,7 +23,7 @@ const CombatManagerScript = preload("res://scripts/managers/combat_manager.gd")
 const EquipmentManagerScript = preload("res://scripts/managers/equipment_manager.gd")
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const SaveManagerScript = preload("res://scripts/managers/save_manager.gd")
-const DebugHudScript = preload("res://scripts/ui/debug_hud.gd")
+const RpgHudScript = preload("res://scripts/ui/rpg_hud.gd")
 const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
 const MainDebugState = preload("res://scripts/main/main_debug_state.gd")
@@ -219,8 +219,8 @@ func _bootstrap() -> void:
 	add_child(save_manager)
 	save_manager.setup(event_bus, MainSaveProviders.build(self))
 
-	hud = DebugHudScript.new()
-	hud.name = "DebugHud"
+	hud = RpgHudScript.new()
+	hud.name = "RpgHud"
 	add_child(hud)
 	hud.setup(event_bus, Callable(self, "get_debug_state"))
 	hud.interact_pressed.connect(_handle_interact_requested)
