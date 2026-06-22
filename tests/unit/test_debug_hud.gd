@@ -363,6 +363,9 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 		(hud.move_pad.get_node("MoveRightButton") as Button).custom_minimum_size,
 		DebugHud.COMPACT_MOVE_BUTTON_SIZE
 	)
+	assert_eq((hud.move_pad.get_node("MoveUpButton") as Button).text, String.chr(8593))
+	assert_eq((hud.move_pad.get_node("MoveRightButton") as Button).text, String.chr(8594))
+	assert_eq((hud.move_pad.get_node("MoveRightButton") as Button).tooltip_text, "Move east")
 	var prompt_rect := _rect_for_right_anchored_panel(hud.prompt_panel, Vector2(640, 360))
 	assert_false(hud.prompt_panel.visible)
 	assert_lte(prompt_rect.size.x, 204.0)
@@ -584,8 +587,10 @@ func test_hud_releases_held_move_actions_when_removed() -> void:
 	var hud := DebugHud.new()
 	add_child(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
-	var up_button := _button_with_text(hud.move_pad, "Up")
+	var up_button := hud.move_pad.get_node("MoveUpButton") as Button
 	assert_not_null(up_button)
+	assert_eq(up_button.text, String.chr(8593))
+	assert_eq(up_button.tooltip_text, "Move north")
 
 	up_button.button_down.emit()
 	assert_true(Input.is_action_pressed("move_up"))

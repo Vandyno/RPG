@@ -21,6 +21,7 @@ const HudTextBuilder = preload("res://scripts/ui/hud_text_builder.gd")
 const ContentCardPresenter = preload("res://scripts/ui/content_card_presenter.gd")
 const SystemsActionBuilder = preload("res://scripts/ui/systems_action_builder.gd")
 const TargetUiTextBuilder = preload("res://scripts/ui/target_ui_text_builder.gd")
+const TouchControlStyle = preload("res://scripts/ui/touch_control_style.gd")
 const MOVE_PAD_SIZE := Vector2(166, 160)
 const COMPACT_MOVE_PAD_SIZE := Vector2(128, 128)
 const COMPACT_MOVE_BUTTON_SIZE := Vector2(42, 42)
@@ -106,12 +107,10 @@ func setup(bus, state_provider: Callable) -> void:
 	event_bus.combat_resolved.connect(func(_result: Dictionary) -> void: refresh())
 	refresh()
 
-
 func _exit_tree() -> void:
 	_release_all_held_actions()
 	if touch_move_vector != Vector2.ZERO:
 		set_touch_move_vector(Vector2.ZERO)
-
 
 func refresh() -> void:
 	if not status_label or not get_state.is_valid():
@@ -129,7 +128,6 @@ func refresh() -> void:
 	_refresh_systems_actions(state)
 	_refresh_context_actions(state)
 	_refresh_target_picker(state)
-
 
 func toggle_debug() -> void:
 	visible_debug = not visible_debug
@@ -522,10 +520,10 @@ func _build_touch_controls() -> void:
 	move_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	move_pad.add_child(move_knob)
 
-	_add_hold_button(move_pad, "Up", "move_up", Vector2(54, 6))
-	_add_hold_button(move_pad, "Left", "move_left", Vector2(6, 54))
-	_add_hold_button(move_pad, "Right", "move_right", Vector2(102, 54))
-	_add_hold_button(move_pad, "Down", "move_down", Vector2(54, 102))
+	_add_hold_button(move_pad, "move_up", Vector2(54, 6))
+	_add_hold_button(move_pad, "move_left", Vector2(6, 54))
+	_add_hold_button(move_pad, "move_right", Vector2(102, 54))
+	_add_hold_button(move_pad, "move_down", Vector2(54, 102))
 	_update_move_knob()
 
 	action_buttons = HBoxContainer.new()
@@ -580,10 +578,12 @@ func _build_content_panel() -> void:
 	content_choice_list = nodes["choice_list"]
 
 
-func _add_hold_button(parent: Control, text: String, action: String, position: Vector2) -> void:
-	var button := _new_button(text, BUTTON_SIZE)
+func _add_hold_button(parent: Control, action: String, position: Vector2) -> void:
+	var button := _new_button(TouchControlStyle.direction_label(action), BUTTON_SIZE)
 	button.name = "%sButton" % action.to_pascal_case()
 	button.position = position
+	button.tooltip_text = TouchControlStyle.direction_tooltip(action)
+	TouchControlStyle.apply_direction_button_style(button, PANEL_BORDER)
 	button.button_down.connect(func() -> void: _press_hold_action(action))
 	button.button_up.connect(func() -> void: _release_hold_action(action))
 	parent.add_child(button)
@@ -799,7 +799,7 @@ func _set_move_pad_layout(compact: bool) -> void:
 			child.custom_minimum_size = button_size
 			child.size = button_size
 			child.position = positions.get(child.name, child.position)
-			child.add_theme_font_size_override("font_size", 12 if compact else 15)
+			child.add_theme_font_size_override("font_size", 18 if compact else 20)
 	_update_move_knob()
 
 func _move_button_positions(compact: bool) -> Dictionary:
