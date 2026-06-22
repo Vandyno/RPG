@@ -66,7 +66,7 @@ static func refresh(
 		button.text = text
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(128, 46) if compact else Vector2(150, 50)
+		button.custom_minimum_size = Vector2(142, 52) if compact else Vector2(150, 50)
 		button.add_theme_font_size_override("font_size", 12 if compact else 13)
 		row_style.call(button, _is_recommended(action_id, text))
 		button.set_meta("action_id", action_id)
@@ -88,11 +88,13 @@ static func apply_layout(
 ) -> void:
 	if not panel:
 		return
-	var width := minf(520.0 if not compact else 344.0, viewport_size.x - hud_margin * 2.0)
-	var bottom_gap := 84.0 if not compact else 74.0
-	var row_count := ceili(float(maxi(1, visible_count)) / (2.0 if compact else 3.0))
-	var height := 44.0 + float(row_count) * (53.0 if compact else 57.0)
-	height = clampf(height, 98.0 if compact else 104.0, 184.0 if compact else 172.0)
+	var width := minf(520.0, viewport_size.x - hud_margin * 2.0)
+	if compact:
+		width = minf(480.0, viewport_size.x - 152.0)
+	var bottom_gap := 84.0 if not compact else 78.0
+	var row_count := ceili(float(maxi(1, visible_count)) / 3.0)
+	var height := 44.0 + float(row_count) * (59.0 if compact else 57.0)
+	height = clampf(height, 104.0 if compact else 104.0, 184.0 if compact else 172.0)
 	panel.offset_left = -width - hud_margin
 	panel.offset_right = -hud_margin
 	panel.offset_bottom = -bottom_gap

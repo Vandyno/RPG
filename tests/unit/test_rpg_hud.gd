@@ -114,7 +114,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
-	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Next", "Talk", "Menu"])
+	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Target", "Talk", "Menu"])
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
 		hud.inventory_action_button.custom_minimum_size.x
@@ -156,7 +156,14 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	)
 
 	hud._refresh_context_actions(
-		{"context_actions": [{"id": "dialogue:accept", "text": "I'll find it."}]}
+		{
+			"context_actions":
+			[
+				{"id": "dialogue:accept", "text": "I'll find it."},
+				{"id": "forge:sharpen", "text": "Sharpen Road Hatchet"},
+				{"id": "trade:shop_crossroads_peddler", "text": "Trade"}
+			]
+		}
 	)
 	assert_true(hud.context_action_panel.visible)
 	assert_eq(
@@ -164,9 +171,15 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 		"Quick Actions"
 	)
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
-	assert_true(_rect_inside(_anchored_rect(hud.context_action_panel, Vector2(640, 360)), screen))
+	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(640, 360))
+	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
+	assert_true(_rect_inside(quick_rect, screen))
+	assert_gte(quick_rect.size.x, 470.0)
+	assert_false(quick_rect.intersects(action_rect), "Quick actions should not cover main commands.")
 	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
 	assert_not_null(accept)
+	assert_gte(accept.custom_minimum_size.x, 142.0)
+	assert_gte(accept.custom_minimum_size.y, 52.0)
 	accept.pressed.emit()
 	assert_eq(context_actions, ["dialogue:accept"])
 

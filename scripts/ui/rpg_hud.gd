@@ -650,6 +650,16 @@ func _refresh_player_status(state: Dictionary) -> void:
 	_refresh_systems_chrome(state)
 
 
+func _refresh_target_action_button(state: Dictionary) -> void:
+	super._refresh_target_action_button(state)
+	if not target_action_button:
+		return
+	target_action_button.text = "Close" if is_target_picker_visible() else "Target"
+	target_action_button.add_theme_font_size_override(
+		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
+	)
+
+
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
 		return
