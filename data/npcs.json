@@ -1,0 +1,20 @@
+{
+  "npc_harrow_venn": {
+    "id": "npc_harrow_venn",
+    "name": "Harrow Venn",
+    "role": "Frontier blacksmith",
+    "location": "prototype_crossroads",
+    "faction": "faction_marches_of_velcor",
+    "quest_id": "quest_missing_tools",
+    "dialogue_id": "dialogue_harrow_venn"
+  },
+  "npc_maera_pike": {
+    "id": "npc_maera_pike",
+    "name": "Maera Pike",
+    "role": "Road peddler",
+    "location": "prototype_crossroads",
+    "faction": "faction_marches_of_velcor",
+    "dialogue_id": "dialogue_maera_pike",
+    "shop_id": "shop_crossroads_peddler"
+  }
+}

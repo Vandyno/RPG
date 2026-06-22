@@ -1,0 +1,14 @@
+{
+  "faction_marches_of_velcor": {
+    "id": "faction_marches_of_velcor",
+    "name": "Marches of Velcor",
+    "description": "The roadward towns, farmholds, and trade families of Velcor's human heartland.",
+    "starting_reputation": 0
+  },
+  "faction_road_bandits": {
+    "id": "faction_road_bandits",
+    "name": "Road Bandits",
+    "description": "Loose gangs preying on the old trade roads and border tracks.",
+    "starting_reputation": 0
+  }
+}

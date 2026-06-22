@@ -1,0 +1,16 @@
+{
+  "readable_briarwatch_notice": {
+    "id": "readable_briarwatch_notice",
+    "title": "Road Notice",
+    "type": "sign",
+    "author": "Briarwatch Warden",
+    "body": "Boundary stones are not to be moved. Report fresh cuts beyond the marked grove.",
+    "effects_on_read": [
+      {
+        "type": "set_flag",
+        "flag_id": "flag_briarwatch_notice_read",
+        "value": true
+      }
+    ]
+  }
+}

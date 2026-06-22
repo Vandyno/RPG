@@ -1,0 +1,132 @@
+{
+  "dialogue_harrow_venn": {
+    "id": "dialogue_harrow_venn",
+    "lines": [
+      {
+        "id": "start_missing_tools",
+        "speaker": "Harrow Venn",
+        "text": "If you want work, I need my old toolbox back. Bandits dropped it somewhere east of the road.",
+        "conditions": [
+          {
+            "type": "quest_state",
+            "quest_id": "quest_missing_tools",
+            "state": "inactive"
+          }
+        ],
+        "choices": [
+          {
+            "id": "accept_missing_tools",
+            "text": "I'll find it.",
+            "response": "Good. Look for the brass latch near the east road.",
+            "effects": [
+              {
+                "type": "start_quest",
+                "quest_id": "quest_missing_tools"
+              }
+            ]
+          },
+          {
+            "id": "decline_missing_tools",
+            "text": "Not right now.",
+            "response": "Suit yourself. The road will still need steady hands later."
+          }
+        ]
+      },
+      {
+        "id": "complete_missing_tools",
+        "speaker": "Harrow Venn",
+        "text": "That's mine. Good work. Take these coins and my thanks.",
+        "conditions": [
+          {
+            "type": "quest_state",
+            "quest_id": "quest_missing_tools",
+            "state": "active"
+          },
+          {
+            "type": "has_item",
+            "item_id": "item_old_toolbox",
+            "count": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "remove_item",
+            "item_id": "item_old_toolbox",
+            "count": 1
+          },
+          {
+            "type": "complete_quest",
+            "quest_id": "quest_missing_tools"
+          },
+          {
+            "type": "set_flag",
+            "flag_id": "flag_blacksmith_tools_returned",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "after_complete_missing_tools",
+        "speaker": "Harrow Venn",
+        "text": "Road feels safer already. Folk will hear you helped.",
+        "conditions": [
+          {
+            "type": "quest_state",
+            "quest_id": "quest_missing_tools",
+            "state": "completed"
+          },
+          {
+            "type": "faction_reputation_at_least",
+            "faction_id": "faction_marches_of_velcor",
+            "reputation": 5
+          }
+        ]
+      },
+      {
+        "id": "active_missing_tools",
+        "speaker": "Harrow Venn",
+        "text": "The toolbox should be nearby. Look for the brass latch.",
+        "conditions": [
+          {
+            "type": "quest_state",
+            "quest_id": "quest_missing_tools",
+            "state": "active"
+          }
+        ]
+      }
+    ]
+  },
+  "dialogue_maera_pike": {
+    "id": "dialogue_maera_pike",
+    "lines": [
+      {
+        "id": "shop_closed_after_hours",
+        "speaker": "Maera Pike",
+        "text": "Road goods wait for daylight. I count stock by lamplight, not by trust.",
+        "conditions": [
+          {
+            "type": "time_hour_between",
+            "start_hour": 18,
+            "end_hour": 8
+          }
+        ]
+      },
+      {
+        "id": "notice_read_greeting",
+        "speaker": "Maera Pike",
+        "text": "Saw the warden's notice, did you? Keep to the marked road and check the trade tab if you need safer supplies.",
+        "conditions": [
+          {
+            "type": "read_readable",
+            "readable_id": "readable_briarwatch_notice"
+          }
+        ]
+      },
+      {
+        "id": "shop_greeting",
+        "speaker": "Maera Pike",
+        "text": "Road goods, fair enough for honest trouble. Check the trade tab if you have coin."
+      }
+    ]
+  }
+}

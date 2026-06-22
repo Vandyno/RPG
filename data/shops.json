@@ -1,0 +1,18 @@
+{
+  "shop_crossroads_peddler": {
+    "id": "shop_crossroads_peddler",
+    "name": "Crossroads Peddler",
+    "open_hour": 8,
+    "close_hour": 18,
+    "stock": [
+      {
+        "item_id": "item_roadside_draught",
+        "price": 8
+      },
+      {
+        "item_id": "item_traveler_buckler",
+        "price": 18
+      }
+    ]
+  }
+}

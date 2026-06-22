@@ -1,0 +1,67 @@
+{
+  "item_gold_coin": {
+    "id": "item_gold_coin",
+    "name": "Gold Coin",
+    "description": "A stamped trade coin accepted across the Marches.",
+    "type": "currency",
+    "stackable": true,
+    "max_stack": 999,
+    "value": 1,
+    "tags": ["currency"]
+  },
+  "item_old_toolbox": {
+    "id": "item_old_toolbox",
+    "name": "Old Toolbox",
+    "description": "A heavy wooden toolbox stamped with Harrow Venn's maker's mark. The lock has been broken, but most of the tools are still inside.",
+    "type": "quest_item",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 0,
+    "tags": ["quest"]
+  },
+  "item_roadside_draught": {
+    "id": "item_roadside_draught",
+    "name": "Roadside Draught",
+    "description": "A bitter green tonic carried by travellers who expect trouble on the road.",
+    "type": "consumable",
+    "stackable": true,
+    "max_stack": 5,
+    "value": 12,
+    "tags": ["consumable", "healing"],
+    "consume_on_use": true,
+    "effects_on_use": [
+      {
+        "type": "heal_player",
+        "amount": 35
+      },
+      {
+        "type": "apply_status",
+        "status_id": "status_road_focus"
+      }
+    ]
+  },
+  "item_road_hatchet": {
+    "id": "item_road_hatchet",
+    "name": "Road Hatchet",
+    "description": "A short iron hatchet balanced for clearing brush or ending a roadside argument.",
+    "type": "weapon",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 18,
+    "tags": ["weapon"],
+    "equipment_slot": "weapon",
+    "damage_bonus": 4
+  },
+  "item_traveler_buckler": {
+    "id": "item_traveler_buckler",
+    "name": "Traveler Buckler",
+    "description": "A scarred round shield light enough to carry all day and sturdy enough to turn a desperate blow.",
+    "type": "shield",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 16,
+    "tags": ["shield"],
+    "equipment_slot": "offhand",
+    "guard_counter_multiplier": 0.25
+  }
+}

@@ -1,0 +1,400 @@
+extends GutTest
+
+const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
+const ContentDatabase = preload("res://scripts/data/content_database.gd")
+const WorldStateManager = preload("res://scripts/managers/world_state_manager.gd")
+const ReadableManager = preload("res://scripts/managers/readable_manager.gd")
+const EquipmentManager = preload("res://scripts/managers/equipment_manager.gd")
+const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const WorldStreamingManager = preload("res://scripts/managers/world_streaming_manager.gd")
+const EventBus = preload("res://scripts/core/event_bus.gd")
+
+
+class ReadableContentStub:
+	var readables: Dictionary = {
+		"readable_known": {"id": "readable_known", "title": "Known"},
+		"readable_reward":
+		{
+			"id": "readable_reward",
+			"title": "Reward",
+			"effects_on_read": [{"type": "add_item", "item_id": "item_gold_coin", "count": 1}]
+		}
+	}
+
+	func get_readable(readable_id: String) -> Dictionary:
+		return readables.get(readable_id, {})
+
+
+func test_inventory_add_remove_and_save_load() -> void:
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.add_item("item_gold_coin", 5)
+	inventory.add_item("item_gold_coin", 3)
+	assert_eq(inventory.get_count("item_gold_coin"), 8)
+	assert_true(inventory.remove_item("item_gold_coin", 4))
+	assert_eq(inventory.get_count("item_gold_coin"), 4)
+	assert_false(inventory.remove_item("item_gold_coin", 5))
+
+	var loaded := InventoryManager.new()
+	add_child_autofree(loaded)
+	loaded.load_save_data(inventory.get_save_data())
+	assert_eq(loaded.get_count("item_gold_coin"), 4)
+
+
+func test_inventory_respects_content_item_contract() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.setup(null, content)
+
+	assert_false(inventory.add_item("missing_item", 1))
+	assert_true(inventory.add_item("item_old_toolbox", 1))
+	assert_false(inventory.add_item("item_old_toolbox", 1))
+	assert_eq(inventory.get_count("item_old_toolbox"), 1)
+	assert_true(inventory.add_item("item_gold_coin", 1200))
+	assert_eq(inventory.get_count("item_gold_coin"), 999)
+	assert_false(inventory.add_item("item_gold_coin", 1))
+
+	var loaded := InventoryManager.new()
+	add_child_autofree(loaded)
+	loaded.setup(null, content)
+	loaded.load_save_data(
+		{
+			"items":
+			[
+				{"item_id": "missing_item", "count": 5},
+				{"item_id": "item_old_toolbox", "count": 7},
+				{"item_id": "item_gold_coin", "count": 1200}
+			]
+		}
+	)
+
+	assert_eq(loaded.items, {"item_old_toolbox": 1, "item_gold_coin": 999})
+
+
+func test_inventory_load_ignores_invalid_entries() -> void:
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+
+	inventory.load_save_data(
+		{
+			"items":
+			[
+				{"item_id": "", "count": 5},
+				{"item_id": "item_zero", "count": 0},
+				{"item_id": "item_negative", "count": -2},
+				{"item_id": "item_text", "count": "3"},
+				{"item_id": "item_gold_coin", "count": 3}
+			]
+		}
+	)
+
+	assert_eq(inventory.items, {"item_gold_coin": 3})
+
+
+func test_inventory_load_ignores_malformed_items_field() -> void:
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.add_item("item_old", 2)
+
+	inventory.load_save_data({"items": "bad"})
+
+	assert_eq(inventory.items, {})
+
+
+func test_inventory_sanitizes_malformed_live_counts_for_queries_and_save() -> void:
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.items = {"item_gold_coin": "many", "item_old_toolbox": -2, "item_arrow": 3, "": 5}
+
+	assert_eq(inventory.get_count("item_gold_coin"), 0)
+	assert_eq(inventory.get_count("item_old_toolbox"), 0)
+	assert_eq(inventory.get_count("item_arrow"), 3)
+	assert_false(inventory.has_item("item_gold_coin"))
+
+	var save_data := inventory.get_save_data()
+
+	assert_eq(save_data, {"items": [{"item_id": "item_arrow", "count": 3}]})
+
+
+func test_equipment_equip_unequip_modifiers_and_save_load() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.setup(null, content)
+	inventory.add_item("item_road_hatchet", 1)
+	inventory.add_item("item_traveler_buckler", 1)
+	var equipment := EquipmentManager.new()
+	add_child_autofree(equipment)
+	equipment.setup(null, content, inventory)
+
+	assert_true(equipment.equip_item("item_road_hatchet"))
+	assert_true(equipment.equip_item("item_traveler_buckler"))
+	assert_false(equipment.equip_item("item_missing"))
+	assert_false(equipment.equip_item("item_road_hatchet"))
+	assert_eq(equipment.get_equipped_item("weapon"), "item_road_hatchet")
+	assert_eq(equipment.get_player_damage_bonus(), 4)
+	assert_eq(equipment.guarded_counter_multiplier(0.5), 0.25)
+	assert_true(equipment.get_summary().contains("Weapon: Road Hatchet"))
+	assert_true(equipment.unequip_slot("weapon"))
+	assert_eq(equipment.get_player_damage_bonus(), 0)
+
+	equipment.equip_item("item_road_hatchet")
+	var loaded := EquipmentManager.new()
+	add_child_autofree(loaded)
+	loaded.setup(null, content, inventory)
+	loaded.load_save_data(equipment.get_save_data())
+
+	assert_eq(loaded.get_equipped_item("weapon"), "item_road_hatchet")
+	assert_eq(loaded.get_equipped_item("offhand"), "item_traveler_buckler")
+
+
+func test_equipment_load_ignores_invalid_missing_or_unowned_items() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.setup(bus, content)
+	inventory.add_item("item_traveler_buckler", 1)
+	var equipment := EquipmentManager.new()
+	add_child_autofree(equipment)
+	equipment.setup(bus, content, inventory)
+
+	equipment.load_save_data(
+		{
+			"equipped":
+			{
+				"weapon": "item_road_hatchet",
+				"offhand": "item_traveler_buckler",
+				"body": "item_gold_coin",
+				"bad_slot": "item_traveler_buckler"
+			}
+		}
+	)
+
+	assert_eq(equipment.get_equipped_item("weapon"), "")
+	assert_eq(equipment.get_equipped_item("offhand"), "item_traveler_buckler")
+	assert_eq(equipment.get_save_data(), {"equipped": {"offhand": "item_traveler_buckler"}})
+	inventory.remove_item("item_traveler_buckler", 1)
+	assert_eq(equipment.get_equipped_item("offhand"), "")
+
+
+func test_world_state_flags_and_save_load() -> void:
+	var world_state := WorldStateManager.new()
+	add_child_autofree(world_state)
+	world_state.set_flag("flag_test", true)
+	world_state.discover_location("location_test")
+	assert_true(world_state.has_flag("flag_test"))
+
+	var loaded := WorldStateManager.new()
+	add_child_autofree(loaded)
+	loaded.load_save_data(world_state.get_save_data())
+	assert_true(loaded.has_flag("flag_test"))
+	assert_true(loaded.discovered_locations.has("location_test"))
+
+
+func test_world_state_discover_location_reports_only_new_locations() -> void:
+	var event_bus := EventBus.new()
+	add_child_autofree(event_bus)
+	var discovered: Array[String] = []
+	event_bus.location_discovered.connect(
+		func(location_id: String) -> void: discovered.append(location_id)
+	)
+	var world_state := WorldStateManager.new()
+	add_child_autofree(world_state)
+	world_state.setup(event_bus)
+
+	assert_true(world_state.discover_location("location_test"))
+	assert_false(world_state.discover_location("location_test"))
+	assert_false(world_state.discover_location(""))
+
+	assert_eq(world_state.discovered_locations, {"location_test": true})
+	assert_eq(discovered, ["location_test"])
+
+
+func test_world_state_load_ignores_blank_flags_and_locations() -> void:
+	var world_state := WorldStateManager.new()
+	add_child_autofree(world_state)
+
+	world_state.load_save_data(
+		{"flags": {"": true, "flag_valid": true}, "discovered_locations": ["", "location_valid"]}
+	)
+
+	assert_eq(world_state.flags, {"flag_valid": true})
+	assert_eq(world_state.discovered_locations, {"location_valid": true})
+
+
+func test_world_state_load_ignores_malformed_fields() -> void:
+	var world_state := WorldStateManager.new()
+	add_child_autofree(world_state)
+	world_state.set_flag("old_flag", true)
+	world_state.discover_location("old_location")
+
+	world_state.load_save_data({"flags": "bad", "discovered_locations": 12})
+
+	assert_eq(world_state.flags, {})
+	assert_eq(world_state.discovered_locations, {})
+
+	world_state.load_save_data(
+		{
+			"flags":
+			{
+				"flag_valid": false,
+				"flag_string_true": "true",
+				"flag_string_false": "false",
+				"flag_number": 1
+			},
+			"discovered_locations": ["location_valid"]
+		}
+	)
+
+	assert_eq(world_state.flags, {"flag_valid": false})
+	assert_eq(world_state.discovered_locations, {"location_valid": true})
+
+
+func test_world_state_has_flag_requires_true_boolean() -> void:
+	var world_state := WorldStateManager.new()
+	add_child_autofree(world_state)
+
+	world_state.flags = {
+		"flag_true": true, "flag_false": false, "flag_string": "true", "flag_number": 1
+	}
+
+	assert_true(world_state.has_flag("flag_true"))
+	assert_false(world_state.has_flag("flag_false"))
+	assert_false(world_state.has_flag("flag_string"))
+	assert_false(world_state.has_flag("flag_number"))
+
+
+func test_readable_load_ignores_blank_and_unknown_readables() -> void:
+	var readables := ReadableManager.new()
+	add_child_autofree(readables)
+	readables.setup(null, ReadableContentStub.new(), Callable())
+
+	readables.load_save_data(
+		{
+			"read": ["", "readable_missing", "readable_known"],
+			"discovered": ["readable_known", "readable_missing"]
+		}
+	)
+
+	assert_eq(readables.read, {"readable_known": true})
+	assert_eq(readables.discovered, {"readable_known": true})
+
+
+func test_readable_load_ignores_malformed_fields() -> void:
+	var readables := ReadableManager.new()
+	add_child_autofree(readables)
+	readables.setup(null, ReadableContentStub.new(), Callable())
+	readables.read_readable("readable_known")
+
+	readables.load_save_data({"read": "bad", "discovered": 7})
+
+	assert_eq(readables.read, {})
+	assert_eq(readables.discovered, {})
+
+
+func test_readable_effects_run_only_on_first_read() -> void:
+	var readables := ReadableManager.new()
+	add_child_autofree(readables)
+	var applied_effects: Array[Dictionary] = []
+	readables.setup(
+		null,
+		ReadableContentStub.new(),
+		func(effect: Dictionary) -> void: applied_effects.append(effect)
+	)
+
+	assert_false(readables.has_read("readable_reward"))
+	assert_eq(readables.read_readable("readable_reward").get("id", ""), "readable_reward")
+	assert_eq(readables.read_readable("readable_reward").get("id", ""), "readable_reward")
+
+	assert_true(readables.has_read("readable_reward"))
+	assert_eq(applied_effects.size(), 1)
+	assert_eq(applied_effects[0].get("item_id", ""), "item_gold_coin")
+
+
+func test_chunk_entity_removed_persists() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+	chunks.mark_entity_removed("entity_test", Vector2i(3, 4))
+	chunks.mark_object_opened("container_test", Vector2i(3, 4))
+	assert_true(chunks.is_entity_removed("entity_test", Vector2i(3, 4)))
+	assert_true(chunks.is_object_opened("container_test", Vector2i(3, 4)))
+
+	var loaded := ChunkManager.new()
+	add_child_autofree(loaded)
+	loaded.load_save_data(chunks.get_save_data())
+	assert_true(loaded.is_entity_removed("entity_test", Vector2i(3, 4)))
+	assert_true(loaded.is_object_opened("container_test", Vector2i(3, 4)))
+
+
+func test_chunk_load_ignores_invalid_removed_entities() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	chunks.load_save_data(
+		{
+			"surface:0:0":
+			{
+				"removed_entities": ["", "entity_test", "entity_test"],
+				"modified_objects":
+				{
+					"": {"opened": true},
+					"closed": {"opened": false},
+					"bad": "open",
+					"container_test": {"opened": true}
+				}
+			},
+			"surface:1:0": {"removed_entities": "bad"},
+			"surface:2:0": {"removed_entities": []},
+			"broken": "not a chunk"
+		}
+	)
+
+	assert_eq(
+		chunks.modified_chunks,
+		{
+			"surface:0:0":
+			{
+				"removed_entities": ["entity_test"],
+				"modified_objects": {"container_test": {"opened": true}}
+			}
+		}
+	)
+
+
+func test_roads_override_noise_and_stay_walkable() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	assert_eq(chunks.get_tile_kind(Vector2i.ZERO), "road")
+	assert_true(chunks.is_walkable(Vector2i.ZERO))
+	assert_eq(chunks.get_tile_kind(Vector2i(0, 7)), "road")
+	assert_true(chunks.is_walkable(Vector2i(0, 7)))
+
+
+func test_spawn_has_nearby_blocked_collision_tile() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	assert_eq(chunks.get_tile_kind(Vector2i(1, 2)), "water")
+	assert_false(chunks.is_walkable(Vector2i(1, 2)))
+
+
+func test_streaming_loads_enough_chunks_for_small_tile_scale() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+	var streamer := WorldStreamingManager.new()
+	add_child_autofree(streamer)
+	streamer.setup(null, chunks)
+
+	streamer.update_center(Vector2i.ZERO)
+
+	assert_eq(streamer.get_loaded_chunk_keys().size(), 25)

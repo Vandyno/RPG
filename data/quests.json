@@ -1,0 +1,76 @@
+{
+  "quest_briarwatch_road_patrol": {
+    "id": "quest_briarwatch_road_patrol",
+    "title": "Briarwatch Road Patrol",
+    "description": "A town-board job asking for the road thug near Briarwatch to be driven off.",
+    "initial_state": "inactive",
+    "start_stage": "posted",
+    "stages": {
+      "posted": {
+        "objectives": {
+          "clear_thug": {
+            "text": "Defeat the road thug threatening Briarwatch's west road.",
+            "target_id": "enemy_road_thug"
+          }
+        }
+      }
+    },
+    "rewards": [
+      {
+        "type": "add_item",
+        "item_id": "item_gold_coin",
+        "count": 8
+      },
+      {
+        "type": "change_reputation",
+        "faction_id": "faction_marches_of_velcor",
+        "amount": 2
+      },
+      {
+        "type": "add_experience",
+        "amount": 8
+      }
+    ]
+  },
+  "quest_missing_tools": {
+    "id": "quest_missing_tools",
+    "title": "The Missing Tools",
+    "description": "Harrow Venn's tools were stolen near the old road.",
+    "initial_state": "inactive",
+    "start_stage": "started",
+    "stages": {
+      "started": {
+        "objectives": {
+          "find_toolbox": {
+            "text": "Find Harrow's old toolbox near the road.",
+            "target_id": "pickup_old_toolbox"
+          }
+        }
+      },
+      "found_toolbox": {
+        "objectives": {
+          "return_toolbox": {
+            "text": "Return the toolbox to Harrow Venn.",
+            "target_id": "npc_harrow_venn_world"
+          }
+        }
+      }
+    },
+    "rewards": [
+      {
+        "type": "add_item",
+        "item_id": "item_gold_coin",
+        "count": 25
+      },
+      {
+        "type": "change_reputation",
+        "faction_id": "faction_marches_of_velcor",
+        "amount": 5
+      },
+      {
+        "type": "add_experience",
+        "amount": 20
+      }
+    ]
+  }
+}

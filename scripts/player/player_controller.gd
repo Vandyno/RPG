@@ -1,0 +1,216 @@
+class_name PlayerController
+extends Node2D
+
+const GridMath = preload("res://scripts/core/grid_math.gd")
+
+const COLLISION_RADIUS := 10.0
+const MAX_COLLISION_STEP := 8.0
+const BLOCKED_MESSAGE_INTERVAL := 0.35
+const DEFAULT_MAX_HEALTH := 100
+
+var event_bus
+var chunk_manager
+var global_tile := Vector2i.ZERO
+var move_speed := 220.0
+var blocked_message_cooldown := 0.0
+var max_health := DEFAULT_MAX_HEALTH
+var health := DEFAULT_MAX_HEALTH
+var external_move_vector := Vector2.ZERO
+var facing_direction := Vector2.DOWN
+
+
+func setup(bus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
+	event_bus = bus
+	chunk_manager = chunks
+	set_global_tile(start_tile)
+
+
+func _process(delta: float) -> void:
+	blocked_message_cooldown = maxf(0.0, blocked_message_cooldown - delta)
+	var direction := _read_direction()
+	if direction != Vector2.ZERO:
+		try_move(direction, delta)
+
+
+func try_move(direction: Vector2, delta: float = 1.0) -> void:
+	var normalized_direction := direction.normalized()
+	if normalized_direction == Vector2.ZERO or delta <= 0.0:
+		return
+	facing_direction = normalized_direction
+	var remaining_distance := move_speed * delta
+	while remaining_distance > 0.0:
+		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
+		var motion := normalized_direction * step_distance
+		if not _try_move_step(motion):
+			_post_blocked_message()
+			return
+		remaining_distance -= step_distance
+
+
+func _try_move_step(motion: Vector2) -> bool:
+	var next_position := position + motion
+	if _can_stand_at(next_position):
+		set_world_position(next_position)
+		return true
+
+	var horizontal_position := position + Vector2(motion.x, 0.0)
+	if not is_zero_approx(motion.x) and _can_stand_at(horizontal_position):
+		set_world_position(horizontal_position)
+		return true
+
+	var vertical_position := position + Vector2(0.0, motion.y)
+	if not is_zero_approx(motion.y) and _can_stand_at(vertical_position):
+		set_world_position(vertical_position)
+		return true
+
+	return false
+
+
+func set_global_tile(tile: Vector2i) -> void:
+	set_world_position(_center_of_tile(tile))
+
+
+func set_world_position(world_position: Vector2) -> void:
+	position = world_position
+	var new_tile := GridMath.world_to_tile(position)
+	if new_tile != global_tile:
+		global_tile = new_tile
+		if event_bus:
+			event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
+	else:
+		global_tile = new_tile
+	queue_redraw()
+
+
+func get_save_data() -> Dictionary:
+	return {
+		"global_tile": [global_tile.x, global_tile.y],
+		"world_position": [position.x, position.y],
+		"chunk_coord":
+		[GridMath.tile_to_chunk(global_tile).x, GridMath.tile_to_chunk(global_tile).y],
+		"world_layer": "surface",
+		"stats": {},
+		"health": health,
+		"max_health": max_health
+	}
+
+
+func load_save_data(data: Dictionary) -> void:
+	max_health = maxi(1, int(data.get("max_health", DEFAULT_MAX_HEALTH)))
+	set_health(int(data.get("health", max_health)))
+	var world_position := _numeric_pair(data.get("world_position", []))
+	if not world_position.is_empty():
+		var loaded_position := Vector2(float(world_position[0]), float(world_position[1]))
+		if _can_stand_at(loaded_position):
+			set_world_position(loaded_position)
+			return
+	var tile_array := _numeric_pair(data.get("global_tile", [0, 0]))
+	if tile_array.is_empty():
+		tile_array = [0, 0]
+	var loaded_tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
+	var loaded_tile_position := _center_of_tile(loaded_tile)
+	if _can_stand_at(loaded_tile_position):
+		set_world_position(loaded_tile_position)
+	else:
+		set_world_position(_center_of_tile(Vector2i.ZERO))
+
+
+func apply_damage(amount: int) -> int:
+	if amount <= 0:
+		return health
+	set_health(health - amount)
+	return health
+
+
+func heal(amount: int) -> int:
+	if amount <= 0:
+		return health
+	set_health(health + amount)
+	return health
+
+
+func set_health(value: int) -> void:
+	var next_health := clampi(value, 0, max_health)
+	if health == next_health:
+		return
+	health = next_health
+	if event_bus:
+		event_bus.player_health_changed.emit(health, max_health)
+
+
+func set_external_move_vector(value: Vector2) -> void:
+	external_move_vector = value.limit_length(1.0)
+
+
+func set_facing_direction(value: Vector2) -> void:
+	if value.length() > 0.01:
+		facing_direction = value.normalized()
+
+
+func get_facing_direction() -> Vector2:
+	return facing_direction
+
+
+func _read_direction() -> Vector2:
+	var direction := external_move_vector
+	if Input.is_action_pressed("move_up"):
+		direction.y -= 1.0
+	if Input.is_action_pressed("move_down"):
+		direction.y += 1.0
+	if Input.is_action_pressed("move_left"):
+		direction.x -= 1.0
+	if Input.is_action_pressed("move_right"):
+		direction.x += 1.0
+	return direction.limit_length(1.0)
+
+
+func _can_stand_at(world_position: Vector2) -> bool:
+	if not chunk_manager:
+		return true
+	var samples := [
+		Vector2.ZERO,
+		Vector2(COLLISION_RADIUS, 0.0),
+		Vector2(-COLLISION_RADIUS, 0.0),
+		Vector2(0.0, COLLISION_RADIUS),
+		Vector2(0.0, -COLLISION_RADIUS),
+		Vector2(COLLISION_RADIUS, COLLISION_RADIUS),
+		Vector2(COLLISION_RADIUS, -COLLISION_RADIUS),
+		Vector2(-COLLISION_RADIUS, COLLISION_RADIUS),
+		Vector2(-COLLISION_RADIUS, -COLLISION_RADIUS)
+	]
+	for sample_offset in samples:
+		var sampled_tile := GridMath.world_to_tile(world_position + sample_offset)
+		if not chunk_manager.is_walkable(sampled_tile):
+			return false
+	return true
+
+
+func _post_blocked_message() -> void:
+	if blocked_message_cooldown > 0.0:
+		return
+	blocked_message_cooldown = BLOCKED_MESSAGE_INTERVAL
+	if event_bus:
+		event_bus.post_message("The path is blocked.")
+
+
+func _numeric_pair(value: Variant) -> Array:
+	if not value is Array or value.size() < 2:
+		return []
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return []
+	return [value[0], value[1]]
+
+
+func _center_of_tile(tile: Vector2i) -> Vector2:
+	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
+
+
+func _is_number(value: Variant) -> bool:
+	return value is int or value is float
+
+
+func _draw() -> void:
+	draw_circle(Vector2.ZERO, 12.0, Color(0.92, 0.36, 0.24))
+	draw_circle(Vector2.ZERO, 12.0, Color(0.05, 0.03, 0.02), false, 2.0)
+	draw_line(Vector2.ZERO, facing_direction * 14.0, Color(1.0, 0.84, 0.56), 2.0)
+	draw_circle(Vector2(4, -4), 3.0, Color(1.0, 0.84, 0.56))

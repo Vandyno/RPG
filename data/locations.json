@@ -1,0 +1,30 @@
+{
+  "location_briarwatch_crossroads": {
+    "id": "location_briarwatch_crossroads",
+    "name": "Briarwatch Crossroads",
+    "type": "roadside_landmark",
+    "region": "Marches of Velcor",
+    "description": "A worn crossroads where the Briarwatch road meets the old trade track."
+  },
+  "location_briarwatch_square": {
+    "id": "location_briarwatch_square",
+    "name": "Briarwatch Square",
+    "type": "town_center",
+    "region": "Marches of Velcor",
+    "description": "A compact town green with a notice post, muddy cart ruts, and enough open ground for travellers to gather before choosing a road."
+  },
+  "location_harrow_forge": {
+    "id": "location_harrow_forge",
+    "name": "Harrow's Forge",
+    "type": "crafting_poi",
+    "region": "Marches of Velcor",
+    "description": "A working roadside forge with a low awning, tool racks, and a blackened stump used as a quick repair bench."
+  },
+  "location_maera_stall": {
+    "id": "location_maera_stall",
+    "name": "Maera's Stall",
+    "type": "trade_poi",
+    "region": "Marches of Velcor",
+    "description": "A canvas-fronted peddler stall stacked with travel goods, spare cord, sealed jars, and weatherproof map scraps."
+  }
+}

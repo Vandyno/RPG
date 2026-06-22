@@ -1,0 +1,982 @@
+extends Node2D
+
+const GridMath = preload("res://scripts/core/grid_math.gd")
+const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator.gd")
+const EventBusScript = preload("res://scripts/core/event_bus.gd")
+const EffectRunnerScript = preload("res://scripts/core/effect_runner.gd")
+const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const ContentDatabaseScript = preload("res://scripts/data/content_database.gd")
+const WorldStateManagerScript = preload("res://scripts/managers/world_state_manager.gd")
+const InventoryManagerScript = preload("res://scripts/managers/inventory_manager.gd")
+const QuestManagerScript = preload("res://scripts/managers/quest_manager.gd")
+const FactionManagerScript = preload("res://scripts/managers/faction_manager.gd")
+const ProgressionManagerScript = preload("res://scripts/managers/progression_manager.gd")
+const StatusEffectManagerScript = preload("res://scripts/managers/status_effect_manager.gd")
+const TimeManagerScript = preload("res://scripts/managers/time_manager.gd")
+const ShopManagerScript = preload("res://scripts/managers/shop_manager.gd")
+const ReadableManagerScript = preload("res://scripts/managers/readable_manager.gd")
+const DialogueManagerScript = preload("res://scripts/managers/dialogue_manager.gd")
+const ChunkManagerScript = preload("res://scripts/managers/chunk_manager.gd")
+const WorldStreamingManagerScript = preload("res://scripts/managers/world_streaming_manager.gd")
+const EntityManagerScript = preload("res://scripts/managers/entity_manager.gd")
+const CombatManagerScript = preload("res://scripts/managers/combat_manager.gd")
+const EquipmentManagerScript = preload("res://scripts/managers/equipment_manager.gd")
+const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
+const SaveManagerScript = preload("res://scripts/managers/save_manager.gd")
+const DebugHudScript = preload("res://scripts/ui/debug_hud.gd")
+const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
+const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
+const MainDebugState = preload("res://scripts/main/main_debug_state.gd")
+const MainSaveProviders = preload("res://scripts/main/main_save_providers.gd")
+const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
+const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
+
+var event_bus
+var condition_evaluator
+var effect_runner
+var content
+var world_state
+var inventory
+var quests
+var factions
+var progression
+var statuses
+var time
+var shops
+var readables
+var dialogues
+var chunks
+var streamer
+var entities
+var combat
+var equipment
+var player
+var save_manager
+var hud
+var camera: Camera2D
+var active_interaction_id := ""
+var target_cycle_index := 0
+var selected_target_id := ""
+var manual_target_locked := false
+var auto_interact_target_id := ""
+var auto_interact_previous_distance := INF
+var auto_interact_stuck_seconds := 0.0
+var auto_move_active := false
+var auto_move_destination := Vector2.ZERO
+var auto_move_previous_distance := INF
+var auto_move_stuck_seconds := 0.0
+var auto_move_path: Array = []
+var auto_move_path_index := 0
+var active_content_choices: Dictionary = {}
+var guarding_next_attack := false
+
+
+func _ready() -> void:
+	_bootstrap()
+	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	MainInputRouter.handle_event(self, event)
+
+
+func _process(delta: float) -> void:
+	if camera and player:
+		camera.global_position = player.global_position
+	MainInputRouter.update_auto_interaction(self, delta)
+	_update_location_discoveries()
+	_update_nearby()
+
+
+func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
+	return effect_runner.apply(effect, emit_feedback)
+
+
+func get_debug_state() -> Dictionary:
+	return MainDebugState.build(self)
+
+
+func _bootstrap() -> void:
+	event_bus = EventBusScript.new()
+	event_bus.name = "EventBus"
+	add_child(event_bus)
+
+	content = ContentDatabaseScript.new()
+	content.name = "ContentDatabase"
+	add_child(content)
+	content.load_all()
+
+	world_state = WorldStateManagerScript.new()
+	world_state.name = "WorldStateManager"
+	add_child(world_state)
+	world_state.setup(event_bus)
+
+	inventory = InventoryManagerScript.new()
+	inventory.name = "InventoryManager"
+	add_child(inventory)
+	inventory.setup(event_bus, content)
+
+	quests = QuestManagerScript.new()
+	quests.name = "QuestManager"
+	add_child(quests)
+	quests.setup(event_bus, content)
+
+	factions = FactionManagerScript.new()
+	factions.name = "FactionManager"
+	add_child(factions)
+	factions.setup(event_bus, content)
+
+	progression = ProgressionManagerScript.new()
+	progression.name = "ProgressionManager"
+	add_child(progression)
+	progression.setup(event_bus)
+
+	statuses = StatusEffectManagerScript.new()
+	statuses.name = "StatusEffectManager"
+	add_child(statuses)
+	statuses.setup(event_bus, content)
+
+	time = TimeManagerScript.new()
+	time.name = "TimeManager"
+	add_child(time)
+	time.setup(event_bus)
+
+	effect_runner = EffectRunnerScript.new()
+	effect_runner.setup(
+		world_state,
+		quests,
+		inventory,
+		content,
+		null,
+		factions,
+		progression,
+		time,
+		statuses,
+		event_bus
+	)
+
+	readables = ReadableManagerScript.new()
+	readables.name = "ReadableManager"
+	add_child(readables)
+	readables.setup(event_bus, content, Callable(self, "apply_effect"))
+
+	condition_evaluator = ConditionEvaluatorScript.new()
+	condition_evaluator.setup(
+		world_state, quests, inventory, readables, factions, progression, time
+	)
+
+	dialogues = DialogueManagerScript.new()
+	dialogues.name = "DialogueManager"
+	add_child(dialogues)
+	dialogues.setup(content, condition_evaluator, effect_runner)
+
+	chunks = ChunkManagerScript.new()
+	chunks.name = "ChunkManager"
+	add_child(chunks)
+
+	streamer = WorldStreamingManagerScript.new()
+	streamer.name = "WorldStreamingManager"
+	add_child(streamer)
+	streamer.setup(event_bus, chunks)
+
+	entities = EntityManagerScript.new()
+	entities.name = "EntityManager"
+	add_child(entities)
+	entities.setup(event_bus, content, chunks, condition_evaluator)
+
+	equipment = EquipmentManagerScript.new()
+	equipment.name = "EquipmentManager"
+	add_child(equipment)
+	equipment.setup(event_bus, content, inventory)
+
+	shops = ShopManagerScript.new()
+	shops.name = "ShopManager"
+	add_child(shops)
+	shops.setup(event_bus, content, inventory, equipment, time)
+
+	combat = CombatManagerScript.new()
+	combat.name = "CombatManager"
+	add_child(combat)
+	combat.setup(event_bus, equipment, progression, statuses)
+
+	player = PlayerControllerScript.new()
+	player.name = "Player"
+	add_child(player)
+	player.setup(event_bus, chunks, Vector2i.ZERO)
+	effect_runner.player = player
+
+	camera = Camera2D.new()
+	camera.name = "Camera2D"
+	camera.zoom = Vector2(2.0, 2.0)
+	camera.enabled = true
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 8.0
+	add_child(camera)
+
+	save_manager = SaveManagerScript.new()
+	save_manager.name = "SaveManager"
+	add_child(save_manager)
+	save_manager.setup(event_bus, MainSaveProviders.build(self))
+
+	hud = DebugHudScript.new()
+	hud.name = "DebugHud"
+	add_child(hud)
+	hud.setup(event_bus, Callable(self, "get_debug_state"))
+	hud.interact_pressed.connect(_handle_interact_requested)
+	hud.cycle_target_pressed.connect(_handle_cycle_target_requested)
+	hud.target_selected.connect(_handle_target_selected)
+	hud.target_used.connect(_handle_target_used)
+	hud.content_choice_selected.connect(_handle_content_choice_selected)
+	hud.content_card_closed.connect(_handle_content_card_closed)
+	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
+	hud.combat_action_selected.connect(_handle_combat_action_selected)
+	hud.context_action_selected.connect(_handle_context_action_selected)
+	hud.save_pressed.connect(_handle_save_requested)
+	hud.load_pressed.connect(_handle_load_requested)
+	hud.move_vector_changed.connect(player.set_external_move_vector)
+
+	event_bus.player_tile_changed.connect(_on_player_tile_changed)
+	streamer.update_center(player.global_tile)
+
+
+func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
+	streamer.update_center(global_tile)
+
+
+func _update_nearby() -> void:
+	var nearby = _get_nearby_entity()
+	var nearby_entities := _get_nearby_entities()
+	MainWorldGuidance.sync(self, nearby_entities)
+	if nearby:
+		var entity_id: String = nearby.get_entity_id()
+		entities.set_highlighted_entity(entity_id)
+		if active_interaction_id != entity_id:
+			active_interaction_id = entity_id
+			event_bus.interaction_available.emit(entity_id)
+	else:
+		entities.set_highlighted_entity("")
+		if not active_interaction_id.is_empty():
+			active_interaction_id = ""
+			event_bus.interaction_cleared.emit()
+	_refresh_hud()
+
+
+func _update_location_discoveries() -> void:
+	for entity in entities.get_entities_world(
+		player.global_position, _max_location_discovery_radius(), "location"
+	):
+		var location_id := String(entity.data.get("location_id", ""))
+		var radius := _positive_float_field(
+			entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+		)
+		if player.global_position.distance_to(entity.global_position) > radius:
+			continue
+		if world_state.discover_location(location_id):
+			event_bus.post_message("Discovered %s." % entity.get_display_name())
+
+
+func _max_location_discovery_radius() -> float:
+	var radius := EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+	for entry in content.world_objects:
+		if String(entry.get("kind", "")) == "location":
+			radius = maxf(
+				radius,
+				_positive_float_field(
+					entry, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+				)
+			)
+	return radius
+
+
+func _handle_interact_requested() -> void:
+	MainInputRouter.handle_interact_requested(self)
+
+
+func _handle_cycle_target_requested() -> void:
+	if hud and hud.is_content_card_visible():
+		hud.hide_content_card()
+	if hud and (hud.is_systems_panel_visible() or hud.is_target_picker_visible()):
+		if _close_open_overlay_panel():
+			return
+	elif _close_open_overlay_panel():
+		return
+	var nearby_entities := _get_nearby_entities()
+	if nearby_entities.size() < 2:
+		event_bus.post_message("No alternate target nearby.")
+		return
+	selected_target_id = InteractionTargetSelector.next_id(
+		nearby_entities, selected_target_id, target_cycle_index, player.global_position,
+		player.get_facing_direction()
+	)
+	target_cycle_index = _index_of_target_id(nearby_entities, selected_target_id)
+	manual_target_locked = true
+	var entity = _get_nearby_entity()
+	if entity:
+		event_bus.post_message("Targeting %s." % entity.get_display_name())
+	_update_nearby()
+
+
+func _handle_target_selected(entity_id: String) -> void:
+	_select_nearby_target(entity_id, true)
+
+
+func _handle_target_used(entity_id: String) -> void:
+	if _select_nearby_target(entity_id, false):
+		_handle_interact_requested()
+
+
+func _select_nearby_target(entity_id: String, post_targeting_message: bool) -> bool:
+	var nearby_entities := _get_nearby_entities()
+	var selected_index := _index_of_target_id(nearby_entities, entity_id)
+	if selected_index < 0:
+		if hud:
+			hud.hide_target_picker()
+		event_bus.post_message("Target is no longer nearby.")
+		manual_target_locked = false
+		_update_nearby()
+		return false
+	target_cycle_index = selected_index
+	selected_target_id = entity_id
+	manual_target_locked = true
+	var entity = nearby_entities[selected_index]
+	if hud:
+		hud.hide_target_picker()
+	if post_targeting_message:
+		event_bus.post_message("Targeting %s." % entity.get_display_name())
+	_update_nearby()
+	return true
+
+
+func _handle_save_requested() -> void:
+	_close_open_overlay_panel(false)
+	save_manager.save_game()
+
+
+func _handle_load_requested() -> void:
+	_close_open_overlay_panel(false)
+	save_manager.load_game()
+
+
+func _close_open_overlay_panel(consume_action: bool = true) -> bool:
+	if not hud:
+		return false
+	var closed := false
+	if hud.is_content_card_visible():
+		hud.hide_content_card()
+		active_content_choices.clear()
+		closed = true
+	if hud.is_systems_panel_visible():
+		hud.hide_systems_panel()
+		closed = true
+	if hud.is_target_picker_visible():
+		hud.hide_target_picker()
+		closed = true
+	return closed and consume_action
+
+
+func _interact() -> void:
+	var entity = _get_nearby_entity()
+	if not entity:
+		event_bus.post_message("Nothing nearby to interact with.")
+		return
+	match entity.get_kind():
+		"readable":
+			_interact_readable(entity)
+		"pickup":
+			_interact_pickup(entity)
+		"container":
+			_interact_container(entity)
+		"door":
+			_interact_container(entity)
+		"poi":
+			PoiInteraction.interact_with_main(entity, self)
+		"npc":
+			_interact_npc(entity)
+		"enemy":
+			_interact_enemy(entity)
+		"rest":
+			_interact_rest(entity)
+		_:
+			event_bus.post_message("You inspect %s." % entity.get_display_name())
+
+
+func _interact_readable(entity) -> void:
+	var readable_id := String(entity.data.get("readable_id", ""))
+	var readable: Dictionary = readables.read_readable(readable_id)
+	if readable.is_empty():
+		event_bus.post_message("The writing is too weathered to read.")
+		return
+	var title := String(readable.get("title", "Readable"))
+	var body := String(readable.get("body", ""))
+	active_content_choices.clear()
+	if hud:
+		hud.show_content_card(title, body)
+	event_bus.post_message("Read %s." % title)
+
+
+func _interact_pickup(entity) -> void:
+	var item_id := String(entity.data.get("item_id", ""))
+	var count := _positive_int_field(entity.data, "count", 1)
+	var pickup_effects := _array_field(entity.data.get("effects_on_pickup", []))
+	if not inventory.add_item(item_id, count):
+		event_bus.post_message("Could not pick up %s." % entity.get_display_name())
+		return
+	entities.remove_entity(entity.get_entity_id())
+	var item: Dictionary = content.get_item(item_id)
+	event_bus.post_message("Picked up %s." % String(item.get("name", item_id)))
+	for effect in pickup_effects:
+		if effect is Dictionary:
+			apply_effect(effect)
+	_update_nearby()
+
+
+func _interact_container(entity) -> void:
+	var entity_id: String = entity.get_entity_id()
+	if chunks.is_object_opened(entity_id, entity.global_tile):
+		event_bus.post_message("%s is already open." % entity.get_display_name())
+		return
+	var locked_text := ObjectInteractionRules.access_locked_text(entity.data, condition_evaluator)
+	if not locked_text.is_empty():
+		event_bus.post_message(locked_text)
+		return
+	var opened := false
+	for effect in _array_field(entity.data.get("effects_on_open", [])):
+		if effect is Dictionary and apply_effect(effect):
+			opened = true
+	chunks.mark_object_opened(entity_id, entity.global_tile)
+	if opened:
+		event_bus.post_message("Opened %s." % entity.get_display_name())
+	else:
+		event_bus.post_message("%s is empty." % entity.get_display_name())
+	_update_nearby()
+
+
+func _interact_npc(entity) -> void:
+	var npc_id := String(entity.data.get("npc_id", ""))
+	var npc: Dictionary = content.get_npc(npc_id)
+	var result: Dictionary = dialogues.resolve_dialogue(
+		String(npc.get("dialogue_id", "")), String(npc.get("name", entity.get_display_name()))
+	)
+	if result.is_empty():
+		event_bus.post_message("%s has nothing to say." % entity.get_display_name())
+		return
+	_show_dialogue_line(result)
+	_update_nearby()
+
+
+func _interact_enemy(entity) -> void:
+	var defeat_effects := _array_field(entity.data.get("effects_on_defeat", []))
+	var result: Dictionary = combat.attack_entity(entity, guarding_next_attack)
+	guarding_next_attack = false
+	if bool(result.get("defeated", false)):
+		combat.clear_entity(entity.get_entity_id())
+		entities.remove_entity(entity.get_entity_id())
+		event_bus.post_message("Defeated %s." % result.get("name", "enemy"))
+		for effect in defeat_effects:
+			if effect is Dictionary:
+				apply_effect(effect, false)
+		var reward_text: String = effect_runner.describe_effects(defeat_effects)
+		if not reward_text.is_empty():
+			event_bus.post_message("Rewards: %s." % reward_text)
+		_update_nearby()
+		return
+	var counter_damage := _non_negative_int_value(result.get("counter_damage", 0), 0)
+	if counter_damage > 0:
+		player.apply_damage(counter_damage)
+		if player.health <= 0:
+			_handle_player_defeated(String(result.get("name", "enemy")))
+			return
+	event_bus.post_message(_combat_hit_message(result, counter_damage))
+
+func _handle_combat_action_selected(action_id: String) -> void:
+	match action_id:
+		"attack":
+			_handle_interact_requested()
+		"guard":
+			_handle_guard_requested()
+		_:
+			event_bus.post_message("Unknown combat action.")
+
+func _handle_context_action_selected(action_id: String) -> void:
+	MainContextActions.handle(self, action_id)
+
+
+func _handle_guard_requested() -> void:
+	var entity = _get_nearby_entity()
+	if not entity or entity.get_kind() != "enemy":
+		event_bus.post_message("No enemy to guard against.")
+		guarding_next_attack = false
+		return
+	guarding_next_attack = true
+	event_bus.post_message("Guarding against %s." % entity.get_display_name())
+	_refresh_hud()
+
+
+func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
+	var message := (
+		"Hit %s for %d. %d/%d HP remains. Took %d."
+		% [
+			result.get("name", "enemy"),
+			_non_negative_int_value(result.get("damage", 0), 0),
+			_non_negative_int_value(result.get("health", 0), 0),
+			_positive_int_value(result.get("max_health", 1), 1),
+			counter_damage
+		]
+	)
+	if bool(result.get("guarded", false)):
+		message += " Guard reduced the counter."
+	return message
+
+
+func _handle_player_defeated(source_name: String) -> void:
+	event_bus.player_defeated.emit(source_name)
+	player.set_global_tile(Vector2i.ZERO)
+	player.heal(player.max_health)
+	target_cycle_index = 0
+	selected_target_id = ""
+	manual_target_locked = false
+	guarding_next_attack = false
+	event_bus.post_message("You fall to %s, then recover at the roadside campfire." % source_name)
+
+
+func _interact_rest(entity) -> void:
+	var before: int = player.health
+	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
+	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
+	player.heal(heal_amount)
+	if time:
+		time.advance_hours(rest_hours)
+	if player.health == before:
+		event_bus.post_message(
+			"%s is warm. You rest until %s." % [entity.get_display_name(), time.get_summary()]
+		)
+		return
+	event_bus.post_message(
+		(
+			"Rested at %s until %s. Health %d/%d."
+			% [entity.get_display_name(), time.get_summary(), player.health, player.max_health]
+		)
+	)
+
+
+func _show_dialogue_line(line: Dictionary) -> void:
+	var speaker := String(line.get("speaker", "Speaker"))
+	var text := String(line.get("text", ""))
+	var choices := _dialogue_choices(line)
+	active_content_choices.clear()
+	for choice in choices:
+		active_content_choices[String(choice.get("id", ""))] = choice
+	if hud:
+		hud.show_content_card(speaker, text, choices)
+	event_bus.post_message("%s: %s" % [speaker, text])
+
+
+func _handle_content_choice_selected(choice_id: String) -> void:
+	if not active_content_choices.has(choice_id):
+		event_bus.post_message("That choice is no longer available.")
+		if hud:
+			hud.hide_content_card()
+		active_content_choices.clear()
+		return
+	var choice: Dictionary = active_content_choices[choice_id]
+	active_content_choices.clear()
+	var result: Dictionary = dialogues.apply_choice(choice)
+	var response := String(result.get("response", ""))
+	if response.is_empty():
+		if hud:
+			hud.hide_content_card()
+	else:
+		if hud:
+			hud.show_content_card(String(result.get("text", "Choice")), response)
+		event_bus.post_message(response)
+	_update_nearby()
+
+
+func _handle_content_card_closed() -> void:
+	active_content_choices.clear()
+
+
+func _handle_inventory_item_selected(item_id: String) -> void:
+	MainSystemsActions.handle(self, item_id)
+
+
+func _handle_wait_action(hours: int) -> void:
+	if not time or not time.advance_hours(hours):
+		event_bus.post_message("Could not wait right now.")
+	else:
+		event_bus.post_message("Waited %dh. %s." % [hours, time.get_summary()])
+	_refresh_hud()
+
+
+func _use_inventory_item(item_id: String) -> void:
+	var item: Dictionary = content.get_item(item_id)
+	if item.is_empty() or not inventory.has_item(item_id):
+		event_bus.post_message("That item is no longer available.")
+		_refresh_hud()
+		return
+	var applied := false
+	for effect in _array_field(item.get("effects_on_use", [])):
+		if effect is Dictionary and apply_effect(effect):
+			applied = true
+	if not applied:
+		event_bus.post_message("%s has no effect right now." % String(item.get("name", item_id)))
+		_refresh_hud()
+		return
+	if bool(item.get("consume_on_use", false)):
+		inventory.remove_item(item_id, 1)
+	event_bus.post_message("Used %s." % String(item.get("name", item_id)))
+	_refresh_hud()
+
+
+func _handle_equip_item(item_id: String) -> void:
+	var item: Dictionary = content.get_item(item_id)
+	if item.is_empty() or not inventory.has_item(item_id) or not equipment.equip_item(item_id):
+		event_bus.post_message("Could not equip that item.")
+		_refresh_hud()
+		return
+	event_bus.post_message("Equipped %s." % String(item.get("name", item_id)))
+	_refresh_hud()
+
+
+func _handle_unequip_slot(slot_id: String) -> void:
+	var item_id: String = equipment.get_equipped_item(slot_id)
+	var item: Dictionary = content.get_item(item_id)
+	if item_id.is_empty() or not equipment.unequip_slot(slot_id):
+		event_bus.post_message("Nothing equipped there.")
+		_refresh_hud()
+		return
+	event_bus.post_message("Unequipped %s." % String(item.get("name", item_id)))
+	_refresh_hud()
+
+
+func _handle_train_stat(stat_id: String) -> void:
+	var stat_label: String = progression.get_stat_label(stat_id)
+	if not progression.spend_point(stat_id):
+		event_bus.post_message("Could not train %s." % stat_label)
+		_refresh_hud()
+		return
+	event_bus.post_message("Trained %s." % stat_label)
+	_refresh_hud()
+
+
+func _handle_buy_item(item_id: String) -> void:
+	var shop_id: String = _current_shop_id()
+	var item: Dictionary = content.get_item(item_id)
+	var price: int = shops.buy_price(shop_id, item_id)
+	if shop_id.is_empty() or item.is_empty() or not shops.buy_item(shop_id, item_id):
+		event_bus.post_message("Could not buy that.")
+		_refresh_hud()
+		return
+	var item_name: String = String(item.get("name", item_id))
+	var gold_count: int = inventory.get_count("item_gold_coin")
+	event_bus.post_message(
+		"Bought %s. Spent %dg. Gold: %d."
+		% [item_name, price, gold_count]
+	)
+	_update_nearby()
+
+
+func _handle_sell_item(item_id: String) -> void:
+	var item: Dictionary = content.get_item(item_id)
+	var price: int = shops.sell_price(item_id)
+	if item.is_empty() or not shops.sell_item(item_id, _current_shop_id()):
+		event_bus.post_message("Could not sell that.")
+		_refresh_hud()
+		return
+	var item_name: String = String(item.get("name", item_id))
+	var gold_count: int = inventory.get_count("item_gold_coin")
+	event_bus.post_message(
+		"Sold %s. Gained %dg. Gold: %d."
+		% [item_name, price, gold_count]
+	)
+	_update_nearby()
+
+
+func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
+	var choices: Array[Dictionary] = []
+	for choice in _array_field(line.get("choices", [])):
+		if choice is Dictionary:
+			choices.append(choice)
+	return choices
+
+
+func _inventory_text() -> String:
+	if inventory.items.is_empty():
+		return "empty"
+	var parts: Array[String] = []
+	for item_id in _sorted_inventory_ids():
+		var item: Dictionary = content.get_item(item_id)
+		var count: int = inventory.get_count(item_id)
+		if count > 0:
+			parts.append("%s x%d" % [String(item.get("name", item_id)), count])
+	return "empty" if parts.is_empty() else ", ".join(parts)
+
+
+func _inventory_details_text() -> String:
+	if inventory.items.is_empty():
+		return ""
+	var lines: Array[String] = []
+	for item_id in _sorted_inventory_ids():
+		var item: Dictionary = content.get_item(item_id)
+		var count: int = inventory.get_count(item_id)
+		if count <= 0:
+			continue
+		var name := String(item.get("name", item_id))
+		var description := String(item.get("description", ""))
+		lines.append(
+			(
+				"%s x%d" % [name, count]
+				if description.is_empty()
+				else "%s x%d: %s" % [name, count, description]
+			)
+		)
+	return "\n".join(lines)
+
+
+func _inventory_actions_data() -> Array[Dictionary]:
+	var actions: Array[Dictionary] = []
+	for item_id in _sorted_inventory_ids():
+		var item: Dictionary = content.get_item(item_id)
+		var has_use := not _array_field(item.get("effects_on_use", [])).is_empty()
+		var slot := String(item.get("equipment_slot", ""))
+		var count: int = inventory.get_count(item_id)
+		if item.is_empty() or count <= 0 or (not has_use and slot.is_empty()):
+			continue
+		var item_name := String(item.get("name", item_id))
+		if has_use:
+			actions.append({"id": "use:%s" % item_id, "text": "Use %s" % item_name, "count": count})
+		if not slot.is_empty():
+			var equipped_item_id: String = equipment.get_equipped_item(slot)
+			var action_id := (
+				"unequip:%s" % slot if equipped_item_id == item_id else "equip:%s" % item_id
+			)
+			var action_text := (
+				"Unequip %s" % item_name if equipped_item_id == item_id else "Equip %s" % item_name
+			)
+			actions.append({"id": action_id, "text": action_text})
+	return actions
+
+
+func _sorted_inventory_ids() -> Array:
+	var item_ids: Array = inventory.items.keys()
+	item_ids.sort()
+	return item_ids
+
+
+func _progression_actions_data() -> Array[Dictionary]:
+	var actions: Array[Dictionary] = []
+	if progression.skill_points <= 0:
+		return actions
+	for stat_id in progression.get_trainable_stat_ids():
+		actions.append(
+			{
+				"id": "train:%s" % stat_id,
+				"text": "Train %s" % progression.get_stat_label(stat_id),
+				"count": progression.skill_points
+			}
+		)
+	return actions
+
+
+func _trade_text(shop_id: String) -> String:
+	return "No trader selected." if shop_id.is_empty() else shops.get_shop_summary(shop_id)
+
+
+func _trade_actions_data(shop_id: String) -> Array[Dictionary]:
+	var actions: Array[Dictionary] = []
+	if not shop_id.is_empty():
+		actions.append_array(shops.get_buy_actions(shop_id))
+		actions.append_array(shops.get_sell_actions(shop_id))
+	return actions
+
+
+func _target_detail_text(entity) -> String:
+	var detail := "Object"
+	match entity.get_kind():
+		"readable":
+			detail = _readable_detail_text(entity)
+		"pickup":
+			detail = _pickup_detail_text(entity)
+		"container":
+			detail = ObjectInteractionRules.container_detail(entity, chunks, condition_evaluator)
+		"door":
+			detail = ObjectInteractionRules.access_detail(
+				entity, chunks, condition_evaluator, "Door"
+			)
+		"poi":
+			detail = PoiInteraction.detail(entity)
+		"npc":
+			detail = _npc_detail_text(entity)
+		"enemy":
+			detail = _enemy_detail_text(entity)
+		"rest":
+			detail = _rest_detail_text(entity)
+	return detail
+
+
+func _readable_detail_text(entity) -> String:
+	var readable: Dictionary = content.get_readable(String(entity.data.get("readable_id", "")))
+	return "Readable: %s" % String(readable.get("title", entity.get_display_name()))
+
+
+func _pickup_detail_text(entity) -> String:
+	var item_id := String(entity.data.get("item_id", ""))
+	var item: Dictionary = content.get_item(item_id)
+	var count := _positive_int_field(entity.data, "count", 1)
+	return "Pickup: %s x%d" % [String(item.get("name", item_id)), count]
+
+
+func _npc_detail_text(entity) -> String:
+	var npc: Dictionary = content.get_npc(String(entity.data.get("npc_id", "")))
+	var quest_id := String(npc.get("quest_id", ""))
+	var faction_id := String(npc.get("faction", ""))
+	var parts: Array[String] = [String(npc.get("role", "NPC"))]
+	if not quest_id.is_empty():
+		parts.append("quest %s" % quests.get_quest_state(quest_id))
+	if not faction_id.is_empty():
+		var faction: Dictionary = content.get_faction(faction_id)
+		parts.append(
+			"%s %+d" % [String(faction.get("name", faction_id)), factions.get_reputation(faction_id)]
+		)
+	if not String(npc.get("shop_id", "")).is_empty():
+		parts.append("trader")
+	return ", ".join(parts)
+
+
+func _enemy_detail_text(entity) -> String:
+	var health: int = combat.get_entity_health(entity)
+	var max_health := _positive_int_field(
+		entity.data, "max_health", CombatManagerScript.DEFAULT_MAX_HEALTH
+	)
+	var attack_damage := _non_negative_int_field(
+		entity.data, "attack_damage", CombatManagerScript.DEFAULT_ENEMY_DAMAGE
+	)
+	return (
+		"Enemy HP %d/%d, counter %d%s"
+		% [health, max_health, attack_damage, ", guarding" if guarding_next_attack else ""]
+	)
+
+
+func _rest_detail_text(entity) -> String:
+	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
+	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
+	return "Rest: heals %d, advances %dh" % [heal_amount, rest_hours]
+
+
+func _nearby_entities_text() -> String:
+	var nearby_entities := _ranked_nearby_entities()
+	if nearby_entities.is_empty():
+		return "none"
+	var names: Array[String] = []
+	for entity in nearby_entities:
+		var name: String = entity.get_display_name()
+		names.append("*%s*" % name if entity.get_entity_id() == selected_target_id else name)
+	return ", ".join(names)
+
+func _nearby_targets_data() -> Array[Dictionary]:
+	var nearby_entities := _ranked_nearby_entities()
+	var targets: Array[Dictionary] = []
+	for entity in nearby_entities:
+		targets.append(
+			{
+				"id": entity.get_entity_id(),
+				"kind": entity.get_kind(),
+				"name": entity.get_display_name(),
+				"detail": _target_detail_text(entity),
+				"navigation": entities.get_navigation_hint(player.global_position, entity),
+				"selected": entity.get_entity_id() == selected_target_id
+			}
+		)
+	return targets
+
+func _combat_actions_data(entity) -> Array:
+	if not entity or entity.get_kind() != "enemy":
+		return []
+	var attack := {"id": "attack", "text": "Attack"}
+	return [attack] if guarding_next_attack else [attack, {"id": "guard", "text": "Guard"}]
+
+func _get_nearby_entity():
+	var nearby_entities := _get_nearby_entities()
+	var facing: Vector2 = (
+		player.get_facing_direction()
+		if player and player.has_method("get_facing_direction")
+		else Vector2.ZERO
+	)
+	var selection := InteractionTargetSelector.select(
+		nearby_entities, selected_target_id, manual_target_locked, player.global_position, facing
+	)
+	target_cycle_index = int(selection.get("index", 0))
+	selected_target_id = String(selection.get("id", ""))
+	manual_target_locked = bool(selection.get("manual", false))
+	return selection.get("entity")
+
+
+func _get_nearby_entities() -> Array:
+	return entities.get_interactables_world(player.global_position)
+
+func _ranked_nearby_entities() -> Array:
+	return InteractionTargetSelector.ranked_targets(
+		_get_nearby_entities(), player.global_position, player.get_facing_direction()
+	)
+
+func _current_shop_id() -> String:
+	return _shop_id_for_entity(_get_nearby_entity())
+
+func _shop_id_for_entity(entity) -> String:
+	if not entity:
+		return ""
+	if entity.get_kind() == "poi":
+		return String(entity.data.get("shop_id", ""))
+	if entity.get_kind() != "npc":
+		return ""
+	var npc: Dictionary = content.get_npc(String(entity.data.get("npc_id", "")))
+	return String(npc.get("shop_id", ""))
+
+
+func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:
+	if entity_id.is_empty():
+		return -1
+	for index in range(nearby_entities.size()):
+		if nearby_entities[index].get_entity_id() == entity_id:
+			return index
+	return -1
+
+func _array_field(value: Variant) -> Array:
+	return value if value is Array else []
+
+
+func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
+	return _positive_int_value(source.get(field_id, fallback), fallback)
+
+func _positive_int_value(value: Variant, fallback: int) -> int:
+	if not _is_number(value):
+		return maxi(1, fallback)
+	return maxi(1, int(value))
+
+
+func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
+	return _non_negative_int_value(source.get(field_id, fallback), fallback)
+
+
+func _non_negative_int_value(value: Variant, fallback: int) -> int:
+	if not _is_number(value):
+		return maxi(0, fallback)
+	return maxi(0, int(value))
+
+
+func _positive_float_field(source: Dictionary, field_id: String, fallback: float) -> float:
+	var value: Variant = source.get(field_id, fallback)
+	if not _is_number(value):
+		return maxf(1.0, fallback)
+	return maxf(1.0, float(value))
+
+
+func _refresh_hud() -> void:
+	if hud:
+		hud.refresh()
+
+
+func _is_number(value: Variant) -> bool:
+	return value is int or value is float
