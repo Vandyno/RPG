@@ -328,9 +328,9 @@
   },
   {
     "id": "object_roadside_campfire",
-    "name": "Roadside Campfire",
+    "name": "Bridge Campfire",
     "kind": "rest",
-    "global_tile": [0, 5],
+    "global_tile": [-1, 4],
     "heal_amount": 100,
     "rest_hours": 8
   },

@@ -75,12 +75,12 @@ func test_compact_landscape_shows_only_selected_world_hint() -> void:
 
 func test_compact_selected_world_hint_names_target_without_repeating_action() -> void:
 	assert_eq(
-		MainWorldGuidance._hint_text_for_width("Rest", "Roadside Campfire", true, 640.0),
-		"Roadside Campfire"
+		MainWorldGuidance._hint_text_for_width("Rest", "Bridge Campfire", true, 640.0),
+		"Bridge Campfire"
 	)
 	assert_eq(
-		MainWorldGuidance._hint_text_for_width("Rest", "Roadside Campfire", true, 1152.0),
-		"Rest Roadside Campfire"
+		MainWorldGuidance._hint_text_for_width("Rest", "Bridge Campfire", true, 1152.0),
+		"Rest Bridge Campfire"
 	)
 	assert_eq(
 		MainWorldGuidance._hint_text_for_width(

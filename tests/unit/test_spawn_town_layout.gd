@@ -14,9 +14,11 @@ func test_spawn_town_places_existing_content_in_logical_groups() -> void:
 	assert_eq(_tile(main, "poi_maera_stall"), Vector2i(3, -4))
 	assert_eq(_tile(main, "poi_briarwatch_square"), Vector2i(4, 5))
 	assert_eq(_tile(main, "object_road_notice"), Vector2i(2, 6))
+	assert_eq(_tile(main, "object_roadside_campfire"), Vector2i(-1, 4))
 	assert_eq(_tile(main, "pickup_old_toolbox"), Vector2i(-7, 1))
 	assert_eq(_tile(main, "enemy_road_thug"), Vector2i(-6, 1))
 	assert_eq(_tile(main, "object_road_cache"), Vector2i(-8, 2))
+	assert_eq(main.chunks.get_tile_kind(_tile(main, "object_roadside_campfire")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "pickup_old_toolbox")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "enemy_road_thug")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "object_road_cache")), "road")
@@ -37,6 +39,9 @@ func test_spawn_town_keeps_west_road_clear_for_missing_tools_quest() -> void:
 	add_child_autofree(main)
 
 	for tile in [Vector2i(-10, 1), Vector2i(-9, 1), Vector2i(-8, 1), Vector2i(-7, 1), Vector2i(-6, 1)]:
+		assert_eq(main.chunks.get_tile_kind(tile), "road")
+		assert_true(main.chunks.is_walkable(tile))
+	for tile in [Vector2i(-1, 4), Vector2i(0, 4)]:
 		assert_eq(main.chunks.get_tile_kind(tile), "road")
 		assert_true(main.chunks.is_walkable(tile))
 	assert_eq(main.chunks.get_tile_kind(Vector2i(-10, 3)), "wood_floor")

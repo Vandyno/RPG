@@ -224,7 +224,7 @@ func test_selected_world_hint_keeps_target_name_when_it_fits() -> void:
 
 	assert_true(campfire.action_hint_visible)
 	assert_true(campfire.action_hint_selected)
-	assert_eq(campfire.action_hint_text, "Rest Roadside Campfire")
+	assert_eq(campfire.action_hint_text, "Rest Bridge Campfire")
 
 
 func test_world_tap_approaches_and_interacts_with_far_target() -> void:

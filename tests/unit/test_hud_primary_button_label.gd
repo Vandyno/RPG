@@ -19,7 +19,7 @@ func test_primary_action_button_wraps_long_action_text() -> void:
 
 func test_compact_primary_action_button_names_target_for_short_actions() -> void:
 	assert_eq(
-		ButtonTextFormatter.compact_primary_action_label("Rest", "Roadside Campfire"),
+		ButtonTextFormatter.compact_primary_action_label("Rest", "Bridge Campfire"),
 		"Rest\nCampfire"
 	)
 	assert_eq(

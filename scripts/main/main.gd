@@ -556,7 +556,7 @@ func _handle_player_defeated(source_name: String) -> void:
 	selected_target_id = ""
 	manual_target_locked = false
 	guarding_next_attack = false
-	event_bus.post_message("You fall to %s, then recover at the roadside campfire." % source_name)
+	event_bus.post_message("You fall to %s, then recover at the bridge campfire." % source_name)
 
 
 func _interact_rest(entity) -> void:
