@@ -317,6 +317,12 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_false(draught_row.text.contains("Trade\nTrade"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Buy Roadside Draught"))
 
+	hud.set_systems_tab("character")
+	var training_row := _button_containing(hud.systems_item_list, "Training")
+	assert_not_null(training_row)
+	assert_false(training_row.text.contains("Training    Progression"))
+	assert_true(training_row.text.contains("Progression - "))
+
 
 func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	var hud := _new_hud()

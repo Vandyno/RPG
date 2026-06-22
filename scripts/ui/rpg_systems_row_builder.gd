@@ -39,12 +39,13 @@ static func button_text(row: Dictionary) -> String:
 	var title := String(row.get("title", "Entry"))
 	var subtitle := String(row.get("subtitle", ""))
 	var meta := String(row.get("meta", ""))
-	var line := title
-	if not meta.is_empty():
-		line = "%s    %s" % [title, meta]
+	if subtitle.is_empty() and meta.is_empty():
+		return title
 	if subtitle.is_empty():
-		return line
-	return "%s\n%s" % [line, subtitle]
+		return "%s\n%s" % [title, meta]
+	if meta.is_empty():
+		return "%s\n%s" % [title, subtitle]
+	return "%s\n%s - %s" % [title, meta, subtitle]
 
 
 static func selected_row(rows_data: Array[Dictionary], selected_row_id: String) -> Dictionary:
