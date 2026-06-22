@@ -46,3 +46,29 @@ func test_renderer_falls_back_for_non_numeric_chunk_coord() -> void:
 	renderer.setup({"chunk_coord": ["2", 0], "tiles": []})
 
 	assert_eq(renderer.position, Vector2.ZERO)
+
+
+func test_renderer_draws_all_seed_material_kinds() -> void:
+	var renderer := ChunkRenderer.new()
+	add_child_autofree(renderer)
+	var kinds := [
+		"grass",
+		"road",
+		"water",
+		"bridge",
+		"stone_wall",
+		"wood_wall",
+		"wood_floor",
+		"forest",
+		"hill"
+	]
+	var tiles: Array[Dictionary] = []
+	for index in range(kinds.size()):
+		tiles.append({"tile": [index, 0], "kind": kinds[index]})
+
+	renderer.setup({"chunk_coord": [0, 0], "tiles": tiles})
+
+	await wait_process_frames(2)
+
+	assert_eq(renderer.chunk_data.get("tiles", []).size(), kinds.size())
+	assert_eq(renderer._color_for_kind("bridge"), Color(0.50, 0.35, 0.20))
