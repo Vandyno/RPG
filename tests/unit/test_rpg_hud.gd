@@ -11,6 +11,8 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 
 	assert_eq(main.hud.name, "RpgHud")
 	assert_true(main.hud is RpgHud)
+	assert_eq(main.get_hud_state()["primary_action"], main.get_debug_state()["primary_action"])
+	assert_true(main.hud.get_state.get_method() == "get_hud_state")
 
 
 func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:

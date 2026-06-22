@@ -26,7 +26,7 @@ const SaveManagerScript = preload("res://scripts/managers/save_manager.gd")
 const RpgHudScript = preload("res://scripts/ui/rpg_hud.gd")
 const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
-const MainDebugState = preload("res://scripts/main/main_debug_state.gd")
+const MainHudState = preload("res://scripts/main/main_hud_state.gd")
 const MainSaveProviders = preload("res://scripts/main/main_save_providers.gd")
 const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
@@ -72,7 +72,6 @@ var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
 var guarding_next_attack := false
 
-
 func _ready() -> void:
 	_bootstrap()
 	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
@@ -88,14 +87,15 @@ func _process(delta: float) -> void:
 	_update_location_discoveries()
 	_update_nearby()
 
-
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
 
 
-func get_debug_state() -> Dictionary:
-	return MainDebugState.build(self)
+func get_hud_state() -> Dictionary:
+	return MainHudState.build(self)
 
+func get_debug_state() -> Dictionary:
+	return get_hud_state()
 
 func _bootstrap() -> void:
 	event_bus = EventBusScript.new()
@@ -222,7 +222,7 @@ func _bootstrap() -> void:
 	hud = RpgHudScript.new()
 	hud.name = "RpgHud"
 	add_child(hud)
-	hud.setup(event_bus, Callable(self, "get_debug_state"))
+	hud.setup(event_bus, Callable(self, "get_hud_state"))
 	hud.interact_pressed.connect(_handle_interact_requested)
 	hud.cycle_target_pressed.connect(_handle_cycle_target_requested)
 	hud.target_selected.connect(_handle_target_selected)
