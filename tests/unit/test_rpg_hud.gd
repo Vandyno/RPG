@@ -71,7 +71,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_gt(hud.systems_panel.z_index, hud.action_buttons.z_index)
 	assert_gte(menu_rect.size.x, 1100.0)
 	assert_gte(menu_rect.size.y, 600.0)
-	assert_eq(hud.systems_title_label.text, "Inventory")
+	assert_eq(hud.systems_title_label.text, "Briarwatch")
+	assert_true(hud.systems_subtitle_label.text.contains("Inventory"))
 	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
 	assert_eq(_button_texts(hud.systems_nav), [
@@ -83,12 +84,14 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
 
 	hud.set_systems_tab("quests")
-	assert_eq(hud.systems_title_label.text, "Quests")
+	assert_eq(hud.systems_title_label.text, "Briarwatch")
+	assert_true(hud.systems_subtitle_label.text.contains("Quests"))
 	assert_true(hud.systems_detail_label.text.contains("The Missing Tools"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Target Harrow Venn"))
 
 	hud.set_systems_tab("journal")
-	assert_eq(hud.systems_title_label.text, "Journal")
+	assert_eq(hud.systems_title_label.text, "Briarwatch")
+	assert_true(hud.systems_subtitle_label.text.contains("Journal"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Load Game"))
 

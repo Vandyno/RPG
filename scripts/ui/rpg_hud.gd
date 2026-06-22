@@ -120,6 +120,7 @@ func _build_status_panel() -> void:
 
 func _build_systems_panel() -> void:
 	systems_panel = _new_panel("SystemsPanel")
+	_apply_modal_panel_style(systems_panel)
 	systems_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	systems_panel.z_index = 100
 	systems_panel.visible = false
@@ -471,8 +472,11 @@ func _refresh_player_status(state: Dictionary) -> void:
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
 		return
-	systems_title_label.text = _systems_title(systems_active_tab)
-	systems_subtitle_label.text = _systems_subtitle(systems_active_tab)
+	systems_title_label.text = _rpg_location_name(state)
+	systems_subtitle_label.text = "%s - %s" % [
+		_systems_title(systems_active_tab),
+		_systems_subtitle(systems_active_tab)
+	]
 	systems_resources_label.text = _systems_resource_text(state)
 	systems_detail_label.text = _systems_detail_text(state, systems_active_tab)
 	systems_character_label.text = _systems_character_text(state)
@@ -610,6 +614,18 @@ func _apply_panel_style(panel: Control) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.035, 0.032, 0.026, 0.88)
 	style.border_color = Color(0.78, 0.61, 0.34, 0.70)
+	style.set_border_width_all(2)
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	panel.add_theme_stylebox_override("panel", style)
+
+
+func _apply_modal_panel_style(panel: Control) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.025, 0.023, 0.019, 0.96)
+	style.border_color = Color(0.86, 0.68, 0.38, 0.82)
 	style.set_border_width_all(2)
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
