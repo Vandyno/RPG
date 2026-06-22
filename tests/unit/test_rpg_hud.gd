@@ -58,6 +58,58 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var screen := Rect2(Vector2.ZERO, Vector2(1152, 648))
+	var menu_rect := _anchored_rect(hud.systems_panel, Vector2(1152, 648))
+	assert_true(hud.is_systems_panel_visible())
+	assert_true(_rect_inside(menu_rect, screen), "Systems menu should stay on screen.")
+	assert_gt(hud.systems_panel.z_index, hud.top_nav_panel.z_index)
+	assert_gt(hud.systems_panel.z_index, hud.action_buttons.z_index)
+	assert_gte(menu_rect.size.x, 1100.0)
+	assert_gte(menu_rect.size.y, 600.0)
+	assert_eq(hud.systems_title_label.text, "Inventory")
+	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
+	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
+	assert_eq(_button_texts(hud.systems_nav), [
+		"Inventory", "Character", "Quests", "Map", "Journal", "Trade"
+	])
+	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
+	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
+	assert_true(hud.systems_character_label.text.contains("Weapon: Road Hatchet"))
+	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
+
+	hud.set_systems_tab("quests")
+	assert_eq(hud.systems_title_label.text, "Quests")
+	assert_true(hud.systems_detail_label.text.contains("The Missing Tools"))
+	assert_not_null(_button_containing(hud.systems_action_list, "Target Harrow Venn"))
+
+	hud.set_systems_tab("journal")
+	assert_eq(hud.systems_title_label.text, "Journal")
+	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
+	assert_not_null(_button_containing(hud.systems_action_list, "Load Game"))
+
+
+func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.show_systems_panel("inventory")
+
+	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
+	var menu_rect := _anchored_rect(hud.systems_panel, Vector2(640, 360))
+	assert_true(_rect_inside(menu_rect, screen), "Compact systems menu should stay on screen.")
+	assert_gte(menu_rect.size.x, 600.0)
+	assert_false(hud.systems_detail_panel.visible)
+	assert_false(hud.systems_character_panel.visible)
+	assert_true(hud.systems_left_panel.visible)
+	assert_true(hud.systems_center_panel.visible)
+	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
+	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
+
+
 func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -97,12 +149,21 @@ func _sample_state() -> Dictionary:
 		"quests": ["The Missing Tools: Return the toolbox to Harrow Venn."],
 		"inventory": "Old Toolbox x1",
 		"inventory_details": "Old Toolbox x1: A heavy wooden toolbox.",
+		"inventory_actions":
+		[
+			{"id": "use:item_roadside_draught", "text": "Use Roadside Draught"},
+			{"id": "equip:item_road_hatchet", "text": "Equip Road Hatchet"}
+		],
 		"equipment": "Weapon: Road Hatchet\nOffhand: empty\nBody: empty",
 		"factions": "Marches of Velcor +5",
 		"progression": "Level 2  XP 10/40  Points 1",
+		"progression_details": "Level: 2\nXP: 10/40\nUnspent points: 1",
+		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}],
 		"time": "Day 1, 16:00 (Afternoon)",
 		"location_details": "Briarwatch Crossroads - Marches of Velcor",
-		"nearby_targets": []
+		"nearby_targets": [],
+		"quest_directions": "The Missing Tools: E 5.0t Harrow Venn",
+		"quest_target_actions": [{"id": "target:npc_harrow_venn_world", "text": "Target Harrow Venn"}]
 	}
 
 
@@ -167,3 +228,11 @@ func _bottom_left_rect(panel: Control, viewport_size: Vector2) -> Rect2:
 		Vector2(panel.offset_left, top),
 		Vector2(panel.offset_right - panel.offset_left, bottom - top)
 	)
+
+
+func _anchored_rect(panel: Control, viewport_size: Vector2) -> Rect2:
+	var left := panel.anchor_left * viewport_size.x + panel.offset_left
+	var right := panel.anchor_right * viewport_size.x + panel.offset_right
+	var top := panel.anchor_top * viewport_size.y + panel.offset_top
+	var bottom := panel.anchor_bottom * viewport_size.y + panel.offset_bottom
+	return Rect2(Vector2(left, top), Vector2(right - left, bottom - top))
