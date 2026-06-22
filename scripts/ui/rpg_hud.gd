@@ -2,6 +2,7 @@ class_name RpgHud
 extends DebugHud
 
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
+const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -33,6 +34,13 @@ var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
 var inventory_action_button: Button
+var content_identity_panel: PanelContainer
+var content_portrait_panel: Panel
+var content_text_panel: PanelContainer
+var content_right_stack: VBoxContainer
+var content_choice_panel: PanelContainer
+var content_preview_panel: PanelContainer
+var content_preview_label: Label
 
 
 func _build_ui() -> void:
@@ -47,9 +55,23 @@ func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
 	_refresh_player_status(state)
+	_sync_content_overlay_chrome()
 	if not location_banner_label:
 		return
 	location_banner_label.text = _rpg_location_name(state)
+
+
+func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
+	super.show_content_card(title, body, choices, kind)
+	_refresh_content_preview(choices, kind)
+	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
+	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
+	_sync_content_overlay_chrome()
+
+
+func hide_content_card() -> void:
+	super.hide_content_card()
+	_sync_content_overlay_chrome()
 
 
 func _refresh_health_bar(state: Dictionary) -> void:
@@ -401,6 +423,32 @@ func _build_touch_controls() -> void:
 	action_buttons.add_child(systems)
 
 
+func _build_content_panel() -> void:
+	var nodes := RpgContentPanelBuilder.build(
+		root,
+		Callable(self, "_new_panel"),
+		Callable(self, "_add_margin"),
+		Callable(self, "_new_label"),
+		Callable(self, "_new_button"),
+		Callable(self, "hide_content_card"),
+		Callable(self, "_apply_portrait_style"),
+		HUD_MARGIN
+	)
+	content_panel = nodes["panel"]
+	content_identity_panel = nodes["identity_panel"]
+	content_portrait_panel = nodes["portrait_panel"]
+	content_text_panel = nodes["text_panel"]
+	content_right_stack = nodes["right_stack"]
+	content_choice_panel = nodes["choice_panel"]
+	content_preview_panel = nodes["preview_panel"]
+	content_preview_label = nodes["preview_label"]
+	content_kind_label = nodes["kind_label"]
+	content_title_label = nodes["title_label"]
+	content_scroll = nodes["scroll"]
+	content_body_label = nodes["body_label"]
+	content_choice_list = nodes["choice_list"]
+
+
 func _set_action_button_layout(compact: bool) -> void:
 	if not action_buttons:
 		return
@@ -450,6 +498,7 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	if prompt_panel:
 		prompt_panel.visible = false
 	_layout_systems_panel(viewport_size, compact)
+	_layout_content_panel(viewport_size, compact)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 
@@ -549,6 +598,14 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 			button.add_theme_font_size_override("font_size", 11 if compact else 15)
 	if systems_bottom_panel:
 		systems_bottom_panel.custom_minimum_size = Vector2(0, 58) if compact else Vector2(0, 72)
+
+
+func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
+	RpgContentPanelBuilder.apply_layout(
+		content_panel, content_identity_panel, content_portrait_panel, content_right_stack,
+		content_choice_panel, content_preview_panel, content_title_label, content_kind_label,
+		content_body_label, content_choice_list, viewport_size, compact, HUD_MARGIN
+	)
 
 
 func _rpg_location_name(state: Dictionary) -> String:
@@ -674,6 +731,30 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 		systems_action_list, actions, self, "inventory_item_selected", "item_id",
 		Vector2(0, 48), 14, "No actions"
 	)
+
+
+func _refresh_content_preview(choices: Array, kind: String) -> void:
+	if not content_preview_label:
+		return
+	var kind_text := ContentCardPresenter.kind_text(kind)
+	var choice_count := 0
+	for choice in choices:
+		if choice is Dictionary and not String(choice.get("id", "")).is_empty():
+			choice_count += 1
+	if choice_count > 0:
+		content_preview_label.text = "%s - %d available choices." % [kind_text, choice_count]
+	else:
+		content_preview_label.text = "%s - close when finished." % kind_text
+
+
+func _sync_content_overlay_chrome() -> void:
+	var content_open := is_content_card_visible()
+	if move_pad:
+		move_pad.visible = not content_open
+	if action_buttons:
+		action_buttons.visible = not content_open
+	if message_panel and content_open:
+		message_panel.visible = false
 
 
 func _systems_title(tab_id: String) -> String:

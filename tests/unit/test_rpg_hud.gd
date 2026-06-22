@@ -90,6 +90,52 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+
+	var selected_choices: Array[String] = []
+	hud.content_choice_selected.connect(
+		func(choice_id: String) -> void: selected_choices.append(choice_id)
+	)
+	hud.show_content_card(
+		"Harrow Venn",
+		"Evening. You look like someone who gets their hands dirty.",
+		[
+			{"id": "ask_tools", "text": "Ask about tools"},
+			{"id": "leave", "text": "Leave"}
+		],
+		"dialogue"
+	)
+
+	assert_true(hud.is_content_card_visible())
+	assert_eq(hud.content_kind_label.text, "Dialogue")
+	assert_eq(hud.content_title_label.text, "Harrow Venn")
+	assert_true(hud.content_body_label.text.contains("hands dirty"))
+	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)
+	assert_true(hud.content_identity_panel.visible)
+	assert_false(hud.content_portrait_panel.visible)
+	assert_false(hud.content_preview_panel.visible)
+	assert_true(hud.content_preview_label.text.contains("2 available choices"))
+	assert_false(hud.move_pad.visible)
+	assert_false(hud.action_buttons.visible)
+	assert_false(hud.message_panel.visible)
+	assert_not_null(_button_containing(hud.content_choice_list, "Ask about tools"))
+
+	(_button_containing(hud.content_choice_list, "Ask about tools") as Button).pressed.emit()
+	assert_eq(selected_choices, ["ask_tools"])
+
+	var close_events: Array[String] = []
+	hud.content_card_closed.connect(func() -> void: close_events.append("closed"))
+	var close_button := hud.content_panel.find_child("ContentCloseButton", true, false) as Button
+	assert_not_null(close_button)
+	close_button.pressed.emit()
+	assert_false(hud.is_content_card_visible())
+	assert_true(hud.move_pad.visible)
+	assert_true(hud.action_buttons.visible)
+	assert_eq(close_events, ["closed"])
+
+
 func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -159,22 +205,35 @@ func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.show_content_card(
+		"Road Notice",
+		"Boundary stones are not to be moved.",
+		[{"id": "accept", "text": "Accept"}],
+		"readable"
+	)
 
 	assert_false(hud.prompt_panel.visible)
 	assert_false(hud.location_banner_panel.visible)
 	assert_false(hud.top_nav_panel.visible)
-	assert_true(hud.message_panel.visible)
+	assert_false(hud.message_panel.visible)
 
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var status_rect := _top_left_rect(hud.status_panel)
 	var message_rect := _top_left_rect(hud.message_panel)
 	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
 	var move_rect := _anchored_rect(hud.move_pad, Vector2(640, 360))
+	var content_rect := _anchored_rect(hud.content_panel, Vector2(640, 360))
 	assert_true(_rect_inside(status_rect, screen), "Compact status should stay on screen.")
 	assert_true(_rect_inside(message_rect, screen), "Compact messages should stay on screen.")
 	assert_true(_rect_inside(action_rect, screen), "Compact actions should stay on screen.")
+	assert_true(_rect_inside(content_rect, screen), "Compact content should stay on screen.")
 	assert_false(status_rect.intersects(message_rect), "Compact top panels should not overlap.")
 	assert_false(action_rect.intersects(move_rect), "Actions should not cover movement.")
+	assert_true(content_rect.intersects(action_rect), "Content should own the bottom action lane.")
+	assert_false(hud.action_buttons.visible)
+	assert_false(hud.move_pad.visible)
+	assert_true(hud.content_identity_panel.visible)
+	assert_false(hud.content_preview_panel.visible)
 
 
 func _new_hud() -> RpgHud:
