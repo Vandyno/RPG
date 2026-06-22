@@ -69,6 +69,12 @@ func refresh() -> void:
 	location_banner_label.text = _rpg_location_name(state)
 
 
+func toggle_debug() -> void:
+	visible_debug = false
+	if debug_panel:
+		debug_panel.visible = false
+
+
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
 	if content_portrait_label:

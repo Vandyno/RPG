@@ -28,6 +28,9 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.status_label.text.contains("Level 2"))
 	assert_true(hud.status_label.text.contains("Quest: The Missing Tools"))
 	assert_false(hud.status_label.text.contains("Briarwatch  Day"))
+	assert_false(hud.debug_panel.visible)
+	hud.toggle_debug()
+	assert_false(hud.debug_panel.visible)
 
 	var screen := Rect2(Vector2.ZERO, Vector2(1152, 648))
 	var status_rect := _top_left_rect(hud.status_panel)
