@@ -214,25 +214,23 @@ func _building_tile_kind(tile: Vector2i) -> String:
 
 func _building_rects() -> Array[Rect2i]:
 	return [
-		Rect2i(Vector2i(-9, 0), Vector2i(6, 5)),
+		Rect2i(Vector2i(-11, 3), Vector2i(4, 4)),
 		Rect2i(Vector2i(4, -1), Vector2i(5, 5)),
 		Rect2i(Vector2i(1, -7), Vector2i(5, 5)),
 		Rect2i(Vector2i(-6, -7), Vector2i(5, 5)),
 		Rect2i(Vector2i(1, 4), Vector2i(5, 4)),
-		Rect2i(Vector2i(9, -7), Vector2i(4, 5)),
-		Rect2i(Vector2i(-11, 5), Vector2i(4, 4))
+		Rect2i(Vector2i(9, -7), Vector2i(4, 5))
 	]
 
 
 func _building_door_tiles() -> Array[Vector2i]:
 	return [
-		Vector2i(-4, 1), Vector2i(-4, 2), Vector2i(-4, 3),
+		Vector2i(-10, 3), Vector2i(-9, 3), Vector2i(-8, 3),
 		Vector2i(4, -1), Vector2i(4, 0), Vector2i(4, 1), Vector2i(4, 2), Vector2i(4, 3),
 		Vector2i(2, -3), Vector2i(3, -3), Vector2i(4, -3), Vector2i(5, -3),
 		Vector2i(-5, -3), Vector2i(-4, -3), Vector2i(-3, -3), Vector2i(-2, -3),
 		Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 4), Vector2i(5, 4),
-		Vector2i(10, -3), Vector2i(11, -3), Vector2i(12, -3),
-		Vector2i(-10, 5), Vector2i(-9, 5), Vector2i(-8, 5)
+		Vector2i(10, -3), Vector2i(11, -3), Vector2i(12, -3)
 	]
 
 

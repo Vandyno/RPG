@@ -99,7 +99,7 @@ func test_world_tap_uses_forgiving_marker_pick_radius() -> void:
 	var toolbox = main.entities.get_entity("pickup_old_toolbox")
 
 	assert_not_null(toolbox)
-	assert_true(MainInputRouter.target_world(main, toolbox.global_position + Vector2(0.0, 34.0)))
+	assert_true(MainInputRouter.target_world(main, toolbox.global_position + Vector2(0.0, -34.0)))
 
 	assert_true(main.inventory.has_item("item_old_toolbox"))
 	assert_false(main.auto_move_active)

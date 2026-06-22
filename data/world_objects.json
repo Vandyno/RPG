@@ -149,7 +149,8 @@
     "id": "pickup_old_toolbox",
     "name": "Old Toolbox",
     "kind": "pickup",
-    "global_tile": [-5, 2],
+    "global_tile": [-7, 1],
+    "interaction_radius": 128,
     "item_id": "item_old_toolbox",
     "count": 1,
     "effects_on_pickup": [
@@ -189,8 +190,8 @@
     "id": "object_road_cache",
     "name": "Roadside Cache",
     "kind": "container",
-    "global_tile": [-7, 2],
-    "interaction_radius": 128,
+    "global_tile": [-8, 2],
+    "interaction_radius": 144,
     "effects_on_open": [
       {
         "type": "add_item",
@@ -247,7 +248,8 @@
     "id": "enemy_road_thug",
     "name": "Road Thug",
     "kind": "enemy",
-    "global_tile": [-4, 2],
+    "global_tile": [-6, 1],
+    "interaction_radius": 128,
     "max_health": 12,
     "damage_taken_per_hit": 6,
     "attack_damage": 4,
