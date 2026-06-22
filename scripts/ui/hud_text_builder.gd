@@ -45,7 +45,7 @@ static func debug_text(state: Dictionary) -> String:
 	var lines: Array[String] = []
 	lines.append("Debug")
 	lines.append("Move: WASD/Arrows or touch pad")
-	lines.append("Interact: E/Enter/Button  Next: T  Systems: J  Save: F5  Load: F9  Debug: F3")
+	lines.append("Interact: E/Enter/Button  Next: T  Menu: J  Save: F5  Load: F9  Debug: F3")
 	lines.append("")
 	lines.append("World: %s" % state.get("player_world", ""))
 	lines.append("Health: %s" % state.get("player_health", "unknown"))
@@ -73,10 +73,10 @@ static func systems_text(
 			return _systems_trade_text(state)
 		"quests":
 			return _systems_quests_text(state)
-		"world":
-			return _systems_world_text(state)
-		"log":
-			return _systems_log_text(message_log)
+		"map", "world":
+			return _systems_map_text(state)
+		"journal", "log":
+			return _systems_journal_text(state, message_log)
 		_:
 			return _systems_inventory_text(state)
 
@@ -119,56 +119,57 @@ static func _systems_quests_text(state: Dictionary) -> String:
 	var lines: Array[String] = ["Quests"]
 	var quests := _array_field(state.get("quests", []))
 	if quests.is_empty():
-		lines.append("Quest: none")
+		lines.append("No active quests.")
 	else:
-		lines.append("Quest:")
+		lines.append("Active:")
 		for quest in quests:
 			lines.append("- %s" % String(quest))
 	var quest_directions := String(state.get("quest_directions", "none"))
 	if quest_directions != "none":
 		lines.append("")
-		lines.append("Quest Targets:")
+		lines.append("Routes:")
 		lines.append(quest_directions)
-	lines.append("")
-	lines.append("Target: %s" % state.get("nearby", "none"))
-	var detail := String(state.get("target_detail", ""))
-	if not detail.is_empty():
-		lines.append("Detail: %s" % detail)
-	lines.append("Nearby: %s" % state.get("nearby_all", "none"))
-	lines.append("Directions:")
-	lines.append(String(state.get("navigation", "none")))
 	return "\n".join(lines)
 
 
-static func _systems_world_text(state: Dictionary) -> String:
-	var lines: Array[String] = ["World"]
-	lines.append(String(state.get("time_details", state.get("time", ""))))
-	lines.append("Position: %s" % state.get("player_world", ""))
-	lines.append(
-		"Tile: %s  Chunk: %s" % [state.get("player_tile", ""), state.get("player_chunk", "")]
-	)
-	lines.append("Terrain: %s" % state.get("terrain", "unknown"))
-	lines.append("Loaded chunks: %d" % _non_negative_int_field(state, "loaded_chunk_count", 0))
-	lines.append("Progression: %s" % state.get("progression", "Level 1"))
-	lines.append("")
-	lines.append("Directions:")
-	lines.append(String(state.get("navigation", "none")))
-	lines.append("")
-	lines.append("Flags: %s" % state.get("flags", "none"))
-	lines.append("Locations: %s" % state.get("locations", "none"))
+static func _systems_map_text(state: Dictionary) -> String:
+	var lines: Array[String] = ["Map"]
+	lines.append("Now: %s" % state.get("time", "Day 1, 08:00"))
+	var locations := String(state.get("locations", "none"))
+	if locations == "none" or locations.is_empty():
+		lines.append("Known places: none")
+	else:
+		lines.append("Known places: %s" % locations)
 	var location_details := String(state.get("location_details", ""))
 	if not location_details.is_empty() and location_details != "none":
-		lines.append("Location Details:")
+		lines.append("")
+		lines.append("Place Notes:")
 		lines.append(location_details)
-	lines.append("Factions:")
-	lines.append(String(state.get("factions", "none")))
+	var quest_directions := String(state.get("quest_directions", "none"))
+	if quest_directions != "none":
+		lines.append("")
+		lines.append("Quest Routes:")
+		lines.append(quest_directions)
+	var navigation := String(state.get("navigation", "none"))
+	if navigation != "none":
+		lines.append("")
+		lines.append("Nearby:")
+		lines.append(navigation)
 	return "\n".join(lines)
 
 
-static func _systems_log_text(message_log: Array[String]) -> String:
-	var lines: Array[String] = ["Log"]
+static func _systems_journal_text(state: Dictionary, message_log: Array[String]) -> String:
+	var lines: Array[String] = ["Journal"]
+	lines.append(String(state.get("time_details", state.get("time", ""))))
+	var factions := String(state.get("factions", "none"))
+	if factions != "none":
+		lines.append("")
+		lines.append("Reputation:")
+		lines.append(factions)
+	lines.append("")
+	lines.append("Recent Events:")
 	if message_log.is_empty():
-		lines.append("Recent: none")
+		lines.append("none")
 	else:
 		for message in message_log:
 			lines.append("- %s" % message)

@@ -766,7 +766,7 @@ func _world_object_id_exists(object_id: String) -> bool:
 
 
 func _supported_system_tabs() -> Array[String]:
-	return ["inventory", "character", "trade", "quests", "world", "log"]
+	return ["inventory", "character", "trade", "quests", "map", "journal", "world", "log"]
 
 
 func _is_number(value: Variant) -> bool:

@@ -16,11 +16,17 @@ func test_actions_for_tab_routes_each_system_tab() -> void:
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "character")[0]["id"], "train:might")
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "trade")[0]["id"], "buy:item")
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "quests")[0]["id"], "target:npc")
+	assert_eq(SystemsActionBuilder.actions_for_tab(state, "map")[0]["id"], "target:npc")
+	assert_eq(SystemsActionBuilder.actions_for_tab(state, "world")[0]["id"], "target:npc")
 
-	var world_actions := SystemsActionBuilder.actions_for_tab(state, "world")
-	assert_eq(world_actions[0]["id"], "wait:1")
-	assert_eq(world_actions[1]["id"], "save:game")
-	assert_eq(world_actions[2]["id"], "load:game")
+	var journal_actions := SystemsActionBuilder.actions_for_tab(state, "journal")
+	assert_eq(journal_actions[0]["id"], "wait:1")
+	assert_eq(journal_actions[1]["id"], "save:game")
+	assert_eq(journal_actions[2]["id"], "load:game")
+	var log_actions := SystemsActionBuilder.actions_for_tab(state, "log")
+	assert_eq(log_actions[0]["id"], "wait:1")
+	assert_eq(log_actions[1]["id"], "save:game")
+	assert_eq(log_actions[2]["id"], "load:game")
 
 
 func test_actions_for_tab_sanitizes_malformed_fields() -> void:

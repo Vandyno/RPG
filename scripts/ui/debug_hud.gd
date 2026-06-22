@@ -29,7 +29,7 @@ const CONTEXT_ACTION_H_SEPARATION := 8.0
 const CONTEXT_ACTION_V_SEPARATION := 8.0
 const CONTEXT_ACTION_MARGIN := 6.0
 const HOLD_ACTIONS := ["move_up", "move_down", "move_left", "move_right"]
-const SYSTEMS_TAB_IDS := ["inventory", "character", "trade", "quests", "world", "log"]
+const SYSTEMS_TAB_IDS := ["inventory", "character", "trade", "quests", "map", "journal"]
 const PANEL_COLOR := Color(0.06, 0.08, 0.07, 0.78)
 const PANEL_BORDER := Color(0.86, 0.78, 0.58, 0.38)
 var event_bus
@@ -150,8 +150,9 @@ func show_systems_panel(tab_id: String = "") -> void:
 	if target_panel:
 		target_panel.visible = false
 	systems_panel.visible = true
-	if SYSTEMS_TAB_IDS.has(tab_id):
-		systems_active_tab = tab_id
+	var normalized_tab := _normalize_systems_tab(tab_id)
+	if SYSTEMS_TAB_IDS.has(normalized_tab):
+		systems_active_tab = normalized_tab
 		_refresh_systems_tabs()
 	refresh()
 
@@ -188,9 +189,10 @@ func is_target_picker_visible() -> bool:
 
 
 func set_systems_tab(tab_id: String) -> void:
-	if not SYSTEMS_TAB_IDS.has(tab_id):
+	var normalized_tab := _normalize_systems_tab(tab_id)
+	if not SYSTEMS_TAB_IDS.has(normalized_tab):
 		return
-	systems_active_tab = tab_id
+	systems_active_tab = normalized_tab
 	_refresh_systems_tabs()
 	refresh()
 
@@ -446,11 +448,11 @@ func _build_systems_panel() -> void:
 	systems_tabs.add_theme_constant_override("separation", 4)
 	stack.add_child(systems_tabs)
 	_add_systems_tab("inventory", "Items")
-	_add_systems_tab("character", "Char")
+	_add_systems_tab("character", "Hero")
 	_add_systems_tab("trade", "Trade")
 	_add_systems_tab("quests", "Quests")
-	_add_systems_tab("world", "World")
-	_add_systems_tab("log", "Log")
+	_add_systems_tab("map", "Map")
+	_add_systems_tab("journal", "Journal")
 
 	systems_scroll = ScrollContainer.new()
 	systems_scroll.name = "SystemsScroll"
@@ -543,7 +545,7 @@ func _build_touch_controls() -> void:
 	)
 	action_buttons.add_child(target_action_button)
 
-	var systems := _new_button("Systems", Vector2(92, 58))
+	var systems := _new_button("Menu", Vector2(92, 58))
 	systems.name = "SystemsButton"
 	systems.pressed.connect(toggle_systems)
 	action_buttons.add_child(systems)
@@ -800,7 +802,7 @@ func _set_action_button_layout(compact: bool) -> void:
 	var sizes := {
 		"InteractButton": Vector2(92, 52) if compact else Vector2(118, 58),
 		"TargetButton": Vector2(66, 52) if compact else Vector2(82, 58),
-		"SystemsButton": Vector2(76, 52) if compact else Vector2(92, 58)
+		"SystemsButton": Vector2(72, 52) if compact else Vector2(92, 58)
 	}
 	for child in action_buttons.get_children():
 		if child is Button:
@@ -983,9 +985,10 @@ func _on_message_posted(text: String) -> void:
 	while message_log.size() > MAX_MESSAGE_LOG:
 		message_log.remove_at(0)
 	refresh()
-
 func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+func _normalize_systems_tab(tab_id: String) -> String:
+	return {"world": "map", "log": "journal"}.get(tab_id, tab_id)
 
 func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
 	var value: Variant = source.get(field_id, fallback)
