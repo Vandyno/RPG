@@ -41,10 +41,19 @@ static func build(
 
 	var portrait_panel := Panel.new()
 	portrait_panel.name = "ContentPortrait"
-	portrait_panel.custom_minimum_size = Vector2(0, 0)
-	portrait_panel.visible = false
+	portrait_panel.custom_minimum_size = Vector2(70, 70)
+	portrait_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	portrait_panel.visible = true
 	portrait_style.call(portrait_panel)
 	identity_stack.add_child(portrait_panel)
+
+	var portrait_label: Label = new_label.call(20)
+	portrait_label.name = "ContentPortraitInitials"
+	portrait_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	portrait_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	portrait_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	portrait_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
+	portrait_panel.add_child(portrait_label)
 
 	var title_label: Label = new_label.call(22)
 	title_label.name = "ContentTitle"
@@ -121,6 +130,7 @@ static func build(
 		"choice_panel": choice_panel,
 		"preview_panel": preview_panel,
 		"preview_label": preview_label,
+		"portrait_label": portrait_label,
 		"kind_label": kind_label,
 		"title_label": title_label,
 		"scroll": scroll,
@@ -163,9 +173,10 @@ static func apply_layout(
 		content_panel.offset_top = -viewport_size.y + hud_margin
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(96, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(108, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
-		portrait_panel.visible = false
+		portrait_panel.visible = true
+		portrait_panel.custom_minimum_size = Vector2(46, 46) if compact else Vector2(70, 70)
 	if right_stack:
 		right_stack.custom_minimum_size = Vector2(172, 0) if compact else Vector2(286, 0)
 	if choice_panel:

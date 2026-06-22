@@ -223,7 +223,8 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_true(hud.content_body_label.text.contains("hands dirty"))
 	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)
 	assert_true(hud.content_identity_panel.visible)
-	assert_false(hud.content_portrait_panel.visible)
+	assert_true(hud.content_portrait_panel.visible)
+	assert_eq(hud.content_portrait_label.text, "HV")
 	assert_true(hud.content_preview_panel.visible)
 	assert_true(hud.content_preview_label.text.contains("I'll find it."))
 	assert_true(hud.content_preview_label.text.contains("Starts quest"))
@@ -361,6 +362,7 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	assert_false(hud.action_buttons.visible)
 	assert_false(hud.move_pad.visible)
 	assert_true(hud.content_identity_panel.visible)
+	assert_true(hud.content_portrait_panel.visible)
 	assert_false(hud.content_preview_panel.visible)
 
 
