@@ -153,24 +153,29 @@ static func apply_layout(
 	content_panel.offset_left = hud_margin
 	content_panel.offset_right = -hud_margin
 	content_panel.offset_bottom = -8 if compact else -12
-	content_panel.offset_top = -164 if compact else -214
+	content_panel.offset_top = -276 if compact else -214
+	content_panel.custom_minimum_size = (
+		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 268)
+		if compact
+		else Vector2.ZERO
+	)
 	if content_panel.offset_top < -viewport_size.y + hud_margin:
 		content_panel.offset_top = -viewport_size.y + hud_margin
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(120, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(96, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = false
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(150, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(172, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(150, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(172, 0) if compact else Vector2(0, 0)
 	if preview_panel and compact:
 		preview_panel.visible = false
 	elif preview_panel:
 		preview_panel.custom_minimum_size = Vector2(220, 0)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 13 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 14 if compact else 22)
 	if kind_label:
 		kind_label.add_theme_font_size_override("font_size", 12 if compact else 14)
 	if body_label:

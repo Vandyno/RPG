@@ -25,7 +25,7 @@ static func refresh(
 		button.disabled = false
 		button.visible = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 48) if compact else Vector2(0, 58)
+		button.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 58)
 		button.add_theme_font_size_override("font_size", 12 if compact else 14)
 		button.set_meta("choice_id", choice_id)
 		row_style.call(button, _is_recommended(choice))

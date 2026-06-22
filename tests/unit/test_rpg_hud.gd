@@ -330,6 +330,7 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	assert_true(_rect_inside(message_rect, screen), "Compact messages should stay on screen.")
 	assert_true(_rect_inside(action_rect, screen), "Compact actions should stay on screen.")
 	assert_true(_rect_inside(content_rect, screen), "Compact content should stay on screen.")
+	assert_gte(content_rect.size.y, 260.0)
 	assert_false(status_rect.intersects(message_rect), "Compact top panels should not overlap.")
 	assert_false(action_rect.intersects(move_rect), "Actions should not cover movement.")
 	assert_true(content_rect.intersects(action_rect), "Content should own the bottom action lane.")
