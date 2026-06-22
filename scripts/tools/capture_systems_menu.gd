@@ -12,6 +12,7 @@ func _capture() -> void:
 	var width := _positive_arg(args, 0, 1152)
 	var height := _positive_arg(args, 1, 648)
 	var output_path := _string_arg(args, 2, "res://reports/systems_menu.png")
+	var tab_id := _string_arg(args, 3, "inventory")
 
 	root.size = Vector2i(width, height)
 	var main := Main.new()
@@ -19,8 +20,13 @@ func _capture() -> void:
 	await process_frame
 	await process_frame
 
+	if tab_id == "trade":
+		main.player.set_global_tile(Vector2i(3, -5))
+		main.selected_target_id = "npc_maera_pike_world"
+		main.manual_target_locked = true
+		main._update_nearby()
 	main.hud._apply_layout_for_size(Vector2(width, height))
-	main.hud.show_systems_panel("inventory")
+	main.hud.show_systems_panel(tab_id)
 	await process_frame
 	await process_frame
 

@@ -312,10 +312,11 @@ func _build_systems_bottom_bar(parent: BoxContainer) -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_add_margin(systems_bottom_panel, scroll, 8)
 
-	systems_action_list = VBoxContainer.new()
+	systems_action_list = HFlowContainer.new()
 	systems_action_list.name = "SystemsActions"
 	systems_action_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	systems_action_list.add_theme_constant_override("separation", 6)
+	systems_action_list.add_theme_constant_override("h_separation", 8)
+	systems_action_list.add_theme_constant_override("v_separation", 6)
 	scroll.add_child(systems_action_list)
 
 
@@ -608,6 +609,9 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 			button.add_theme_font_size_override("font_size", 11 if compact else 15)
 	if systems_bottom_panel:
 		systems_bottom_panel.custom_minimum_size = Vector2(0, 58) if compact else Vector2(0, 72)
+	if systems_action_list is HFlowContainer:
+		systems_action_list.add_theme_constant_override("h_separation", 6 if compact else 8)
+		systems_action_list.add_theme_constant_override("v_separation", 5 if compact else 6)
 
 
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
@@ -737,9 +741,10 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 	if not systems_action_list:
 		return
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
+	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	systems_action_list.visible = UiActionButtons.refresh(
 		systems_action_list, actions, self, "inventory_item_selected", "item_id",
-		Vector2(0, 48), 14, "No actions"
+		Vector2(118, 44) if compact else Vector2(156, 48), 13 if compact else 14, "No actions"
 	)
 
 

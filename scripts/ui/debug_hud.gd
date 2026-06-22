@@ -61,7 +61,7 @@ var systems_panel: PanelContainer
 var systems_tabs: HBoxContainer
 var systems_scroll: ScrollContainer
 var systems_body_label: Label
-var systems_action_list: VBoxContainer
+var systems_action_list: Container
 var systems_tab_buttons: Dictionary = {}
 var systems_active_tab := "inventory"
 var content_panel: PanelContainer

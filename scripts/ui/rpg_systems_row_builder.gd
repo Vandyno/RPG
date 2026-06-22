@@ -218,16 +218,61 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
 	var trade_text := String(state.get("trade", "No trader selected."))
-	for line in trade_text.split("\n", false):
-		var stripped := line.strip_edges()
-		if stripped.is_empty():
-			continue
+	var lines := _non_empty_lines(trade_text)
+	if not lines.is_empty() and not lines[0].contains(":") and not lines[0].begins_with("-"):
+		var merchant_name := lines[0]
+		var hours := ""
+		var gold := ""
+		var closed := false
+		var sell_text := ""
+		rows_data.append({
+			"id": "trade_merchant",
+			"title": merchant_name,
+			"subtitle": "Selected merchant",
+			"meta": "Merchant",
+			"detail": trade_text
+		})
+		for index in range(1, lines.size()):
+			var line := lines[index]
+			if line.begins_with("Hours:"):
+				hours = _text_after_colon(line, "").strip_edges()
+			elif line == "Closed now.":
+				closed = true
+			elif line.begins_with("Gold:"):
+				gold = _text_after_colon(line, "").strip_edges()
+			elif line.begins_with("Sell:"):
+				sell_text = _text_after_colon(line, "none").strip_edges()
+			elif line.begins_with("- "):
+				var stock_text := line.substr(2).strip_edges()
+				var item_name := _title_before_colon(stock_text)
+				var price := _text_after_colon(stock_text, "").strip_edges()
+				rows_data.append({
+					"id": "trade_stock_%d" % rows_data.size(),
+					"title": item_name,
+					"subtitle": "Available to buy",
+					"meta": price,
+					"detail": "%s\nPrice: %s\n\n%s" % [item_name, price, merchant_name]
+				})
+		var merchant_subtitle := _trade_merchant_subtitle(hours, gold, closed)
+		if not merchant_subtitle.is_empty():
+			rows_data[0]["subtitle"] = merchant_subtitle
+		if sell_text == "none":
+			rows_data.append({
+				"id": "trade_sell_empty",
+				"title": "Nothing to Sell",
+				"subtitle": "No carried goods the merchant wants.",
+				"meta": "Sell",
+				"detail": "No sellable carried items."
+			})
+		if rows_data.size() > 1:
+			return rows_data
+	for line in lines:
 		rows_data.append({
 			"id": "trade_%d" % rows_data.size(),
-			"title": _title_before_colon(stripped),
-			"subtitle": _text_after_colon(stripped, "Trade"),
+			"title": _title_before_colon(line),
+			"subtitle": _text_after_colon(line, "Trade"),
 			"meta": "Trade",
-			"detail": stripped
+			"detail": line
 		})
 	if rows_data.is_empty():
 		rows_data.append({
@@ -238,6 +283,26 @@ static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": "No trader selected."
 		})
 	return rows_data
+
+
+static func _trade_merchant_subtitle(hours: String, gold: String, closed: bool) -> String:
+	var parts: Array[String] = []
+	if not hours.is_empty():
+		parts.append("Open %s" % hours)
+	if not gold.is_empty():
+		parts.append("Gold %s" % gold)
+	if closed:
+		parts.append("Closed now")
+	return " - ".join(parts)
+
+
+static func _non_empty_lines(value: String) -> Array[String]:
+	var result: Array[String] = []
+	for raw_line in value.split("\n", false):
+		var line := raw_line.strip_edges()
+		if not line.is_empty():
+			result.append(line)
+	return result
 
 
 static func _summary_entries(summary: String) -> Array[Dictionary]:

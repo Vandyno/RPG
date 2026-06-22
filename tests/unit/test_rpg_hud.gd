@@ -261,6 +261,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
+	assert_true(hud.systems_action_list is HFlowContainer)
 	assert_eq(_button_texts(hud.systems_category_row), ["All", "Gear", "Use", "Quest"])
 	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
 	assert_not_null(toolbox_row)
@@ -285,6 +286,15 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Load Game"))
 
+	hud.set_systems_tab("trade")
+	assert_eq(_button_texts(hud.systems_category_row), ["Stock", "Buy", "Sell"])
+	assert_not_null(_button_containing(hud.systems_item_list, "Crossroads Peddler"))
+	var draught_row := _button_containing(hud.systems_item_list, "Roadside Draught")
+	assert_not_null(draught_row)
+	assert_true(draught_row.text.contains("8g"))
+	assert_false(draught_row.text.contains("Trade\nTrade"))
+	assert_not_null(_button_containing(hud.systems_action_list, "Buy Roadside Draught"))
+
 
 func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	var hud := _new_hud()
@@ -303,6 +313,7 @@ func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	assert_true(hud.systems_item_list.visible)
 	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
 	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
+	assert_true(hud.systems_action_list is HFlowContainer)
 
 
 func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
@@ -373,6 +384,17 @@ func _sample_state() -> Dictionary:
 		"progression_details": "Level: 2\nXP: 10/40\nUnspent points: 1",
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}],
 		"time": "Day 1, 16:00 (Afternoon)",
+		"trade":
+		(
+			"Crossroads Peddler\n"
+			+ "Hours: 08:00-18:00\n"
+			+ "Gold: 25\n\n"
+			+ "Stock:\n"
+			+ "- Roadside Draught: 8g\n"
+			+ "- Traveler Buckler: 18g\n\n"
+			+ "Sell: none"
+		),
+		"trade_actions": [{"id": "buy:item_roadside_draught", "text": "Buy Roadside Draught (8g)"}],
 		"location_details": "Briarwatch Crossroads - Marches of Velcor",
 		"nearby_targets":
 		[
