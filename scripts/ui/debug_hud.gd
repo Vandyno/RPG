@@ -457,9 +457,14 @@ func _build_systems_panel() -> void:
 	_add_systems_tab("inventory", "Items")
 	_add_systems_tab("character", "Hero")
 	_add_systems_tab("trade", "Trade")
-	_add_systems_tab("quests", "Quests")
+	_add_systems_tab("quests", "Quest")
 	_add_systems_tab("map", "Map")
-	_add_systems_tab("journal", "Journal")
+	_add_systems_tab("journal", "Log")
+	var close := _new_button("X", Vector2(42, 40))
+	close.name = "SystemsCloseButton"
+	close.tooltip_text = "Close menu"
+	close.pressed.connect(hide_systems_panel)
+	systems_tabs.add_child(close)
 
 	systems_scroll = ScrollContainer.new()
 	systems_scroll.name = "SystemsScroll"
@@ -480,7 +485,7 @@ func _build_systems_panel() -> void:
 
 
 func _add_systems_tab(tab_id: String, text: String) -> void:
-	var button := _new_button(text, Vector2(52, 40))
+	var button := _new_button(text, Vector2(44, 40))
 	button.toggle_mode = true
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(func() -> void: set_systems_tab(tab_id))
@@ -685,7 +690,6 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	message_panel.visible = message_right - message_left >= MESSAGE_MIN_WIDTH
 	HudLayoutMetrics.apply_log_label(log_label, compact_actions)
 	refresh()
-
 func _set_status_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	var line_count := status_label.text.count("\n") + 1 if status_label else 4
 	var metrics := HudLayoutMetrics.status_panel(viewport_size, line_count, HUD_MARGIN, compact)
@@ -695,7 +699,6 @@ func _set_status_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	status_panel.offset_bottom = HUD_MARGIN + float(metrics.get("height", 136.0))
 	status_label.add_theme_font_size_override("font_size", int(metrics.get("status_font_size", 15)))
 	health_label.visible = bool(metrics.get("show_health_label", true))
-
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	var prompt_width := minf(240.0 if not compact else 204.0, viewport_size.x - HUD_MARGIN * 2.0)
 	prompt_panel.visible = not compact
@@ -767,7 +770,6 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 		viewport_size.y
 	)
 	context_action_panel.offset_bottom = context_action_panel.offset_top + context_height
-
 func _set_action_button_layout(compact: bool) -> void:
 	if not action_buttons:
 		return
@@ -815,7 +817,6 @@ func _move_button_positions(compact: bool) -> Dictionary:
 		"MoveDownButton": Vector2(54, 102)
 	}
 
-
 func _refresh_primary_action_button(state: Dictionary) -> void:
 	if primary_action_button:
 		var action_text := String(state.get("primary_action", "Interact"))
@@ -830,7 +831,6 @@ func _refresh_primary_action_button(state: Dictionary) -> void:
 			else ButtonTextFormatter.primary_action_label(action_text)
 		)
 		primary_action_button.tooltip_text = action_text
-
 
 func _refresh_target_action_button(state: Dictionary) -> void:
 	if not target_action_button:

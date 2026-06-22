@@ -129,8 +129,14 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	)
 	(hud.systems_action_list.get_child(0) as Button).pressed.emit()
 	assert_eq(selected_items, ["use:item_roadside_draught"])
-	assert_eq(hud.systems_tabs.get_child_count(), 6)
+	assert_eq(hud.systems_tabs.get_child_count(), 7)
 	assert_true(hud.systems_tab_buttons["inventory"].button_pressed)
+	var close_menu_button := hud.systems_tabs.get_node("SystemsCloseButton") as Button
+	assert_not_null(close_menu_button)
+	assert_eq(close_menu_button.tooltip_text, "Close menu")
+	close_menu_button.pressed.emit()
+	assert_false(hud.is_systems_panel_visible())
+	hud.toggle_systems()
 
 	hud.set_systems_tab("character")
 	assert_true(hud.systems_tab_buttons["character"].button_pressed)
