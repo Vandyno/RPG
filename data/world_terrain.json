@@ -1,0 +1,188 @@
+{
+  "areas": [
+    {
+      "id": "area_briarwatch_spawn_town",
+      "name": "Briarwatch Spawn Town",
+      "bounds": {
+        "min": [-12, -10],
+        "max": [14, 10]
+      },
+      "default_kind": "grass",
+      "regions": [
+        {
+          "id": "briarwatch_west_east_road",
+          "kind": "road",
+          "rect": {
+            "position": [-12, 1],
+            "size": [27, 2]
+          }
+        },
+        {
+          "id": "briarwatch_north_south_road",
+          "kind": "road",
+          "rect": {
+            "position": [2, -10],
+            "size": [2, 21]
+          }
+        },
+        {
+          "id": "briarwatch_square",
+          "kind": "road",
+          "rect": {
+            "position": [-1, -1],
+            "size": [7, 6]
+          }
+        },
+        {
+          "id": "west_road_hall_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [-11, 3],
+            "size": [4, 4]
+          }
+        },
+        {
+          "id": "east_forge_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [4, -1],
+            "size": [5, 5]
+          }
+        },
+        {
+          "id": "maera_shop_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [1, -7],
+            "size": [5, 5]
+          }
+        },
+        {
+          "id": "northwest_house_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [-6, -7],
+            "size": [5, 5]
+          }
+        },
+        {
+          "id": "town_hall_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [1, 4],
+            "size": [5, 4]
+          }
+        },
+        {
+          "id": "northeast_house_floor",
+          "kind": "wood_floor",
+          "rect": {
+            "position": [9, -7],
+            "size": [4, 5]
+          }
+        },
+        {
+          "id": "west_road_hall_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [-11, 3],
+            "size": [4, 4]
+          },
+          "border_only": true
+        },
+        {
+          "id": "east_forge_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [4, -1],
+            "size": [5, 5]
+          },
+          "border_only": true
+        },
+        {
+          "id": "maera_shop_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [1, -7],
+            "size": [5, 5]
+          },
+          "border_only": true
+        },
+        {
+          "id": "northwest_house_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [-6, -7],
+            "size": [5, 5]
+          },
+          "border_only": true
+        },
+        {
+          "id": "town_hall_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [1, 4],
+            "size": [5, 4]
+          },
+          "border_only": true
+        },
+        {
+          "id": "northeast_house_walls",
+          "kind": "wood_wall",
+          "rect": {
+            "position": [9, -7],
+            "size": [4, 5]
+          },
+          "border_only": true
+        },
+        {
+          "id": "building_doorways",
+          "kind": "wood_floor",
+          "tiles": [
+            [-10, 3], [-9, 3], [-8, 3],
+            [4, -1], [4, 0], [4, 1], [4, 2], [4, 3],
+            [2, -3], [3, -3], [4, -3], [5, -3],
+            [-5, -3], [-4, -3], [-3, -3], [-2, -3],
+            [2, 4], [3, 4], [4, 4], [5, 4],
+            [10, -3], [11, -3], [12, -3]
+          ]
+        },
+        {
+          "id": "briarwatch_river",
+          "kind": "water",
+          "rect": {
+            "position": [-4, -10],
+            "size": [2, 21]
+          }
+        },
+        {
+          "id": "briarwatch_bridge",
+          "kind": "bridge",
+          "rect": {
+            "position": [-4, -2],
+            "size": [2, 7]
+          }
+        },
+        {
+          "id": "briarwatch_stone_wall",
+          "kind": "stone_wall",
+          "rect": {
+            "position": [-12, -10],
+            "size": [27, 21]
+          },
+          "border_only": true
+        },
+        {
+          "id": "town_gates",
+          "kind": "road",
+          "tiles": [
+            [-12, 0], [-12, 1],
+            [14, 0], [14, 1],
+            [2, -10], [3, -10],
+            [2, 10], [3, 10]
+          ]
+        }
+      ]
+    }
+  ]
+}

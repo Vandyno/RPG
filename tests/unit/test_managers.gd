@@ -384,6 +384,8 @@ func test_spawn_town_uses_authored_tiles_and_walkability() -> void:
 	assert_true(chunks.is_walkable(Vector2i(-3, 0)))
 	assert_eq(chunks.get_tile_kind(Vector2i(-12, -10)), "stone_wall")
 	assert_false(chunks.is_walkable(Vector2i(-12, -10)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-12, 2)), "stone_wall")
+	assert_false(chunks.is_walkable(Vector2i(-12, 2)))
 	assert_eq(chunks.get_tile_kind(Vector2i(-12, 0)), "road")
 	assert_true(chunks.is_walkable(Vector2i(-12, 0)))
 	assert_eq(chunks.get_tile_kind(Vector2i(8, -1)), "wood_wall")

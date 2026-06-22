@@ -11,6 +11,7 @@ var factions: Dictionary = {}
 var shops: Dictionary = {}
 var status_effects: Dictionary = {}
 var world_objects: Array[Dictionary] = []
+var world_terrain: Dictionary = {}
 
 
 func load_all() -> void:
@@ -24,6 +25,7 @@ func load_all() -> void:
 	shops = _load_dictionary("res://data/shops.json")
 	status_effects = _load_dictionary("res://data/status_effects.json")
 	world_objects = _load_array("res://data/world_objects.json")
+	world_terrain = _load_dictionary("res://data/world_terrain.json")
 
 
 func get_item(item_id: String) -> Dictionary:
@@ -74,6 +76,7 @@ func validate_all() -> Array[String]:
 	_validate_shops(errors)
 	_validate_status_effects(errors)
 	_validate_world_objects(errors)
+	_validate_world_terrain(errors)
 	return errors
 
 
@@ -444,6 +447,99 @@ func _validate_world_objects(errors: Array[String]) -> void:
 		_validate_condition_list(entry, "open_conditions", "world object %s" % object_id, errors)
 
 
+func _validate_world_terrain(errors: Array[String]) -> void:
+	if world_terrain.is_empty():
+		return
+	var areas_value: Variant = world_terrain.get("areas", [])
+	var areas := _array_field(areas_value)
+	if not areas_value is Array or areas.is_empty():
+		errors.append("World terrain must define at least one area.")
+		return
+	var seen_ids: Dictionary = {}
+	for area_value in areas:
+		if not area_value is Dictionary:
+			errors.append("World terrain has malformed area.")
+			continue
+		var area: Dictionary = area_value
+		var area_id := String(area.get("id", ""))
+		var owner := "World terrain area %s" % area_id
+		if area_id.is_empty():
+			errors.append("World terrain area is missing id.")
+		elif seen_ids.has(area_id):
+			errors.append("Duplicate world terrain area id %s." % area_id)
+		seen_ids[area_id] = true
+		_validate_terrain_bounds(area.get("bounds", {}), owner, errors)
+		_validate_terrain_kind(area, "default_kind", owner, errors)
+		_validate_terrain_regions(area, owner, errors)
+
+
+func _validate_terrain_regions(
+	area: Dictionary, owner: String, errors: Array[String]
+) -> void:
+	var regions_value: Variant = area.get("regions", [])
+	var regions := _array_field(regions_value)
+	if not regions_value is Array or regions.is_empty():
+		errors.append("%s must define regions." % owner)
+		return
+	var seen_ids: Dictionary = {}
+	for region_value in regions:
+		if not region_value is Dictionary:
+			errors.append("%s has malformed region." % owner)
+			continue
+		var region: Dictionary = region_value
+		var region_id := String(region.get("id", ""))
+		var region_owner := "%s region %s" % [owner, region_id]
+		if region_id.is_empty():
+			errors.append("%s has region with missing id." % owner)
+		elif seen_ids.has(region_id):
+			errors.append("%s has duplicate region id %s." % [owner, region_id])
+		seen_ids[region_id] = true
+		_validate_terrain_kind(region, "kind", region_owner, errors)
+		var has_rect := region.has("rect")
+		var has_tiles := region.has("tiles")
+		if not has_rect and not has_tiles:
+			errors.append("%s must define rect or tiles." % region_owner)
+		if has_rect:
+			_validate_terrain_rect(region.get("rect", {}), region_owner, errors)
+		if has_tiles:
+			_validate_terrain_tiles(region.get("tiles", []), region_owner, errors)
+
+
+func _validate_terrain_bounds(value: Variant, owner: String, errors: Array[String]) -> void:
+	var bounds := _dictionary_field(value)
+	if bounds.is_empty():
+		errors.append("%s must define bounds." % owner)
+		return
+	_validate_numeric_pair(bounds.get("min", []), "%s bounds min" % owner, errors)
+	_validate_numeric_pair(bounds.get("max", []), "%s bounds max" % owner, errors)
+
+
+func _validate_terrain_rect(value: Variant, owner: String, errors: Array[String]) -> void:
+	var rect := _dictionary_field(value)
+	if rect.is_empty():
+		errors.append("%s rect must be a dictionary." % owner)
+		return
+	_validate_numeric_pair(rect.get("position", []), "%s rect position" % owner, errors)
+	_validate_positive_pair(rect.get("size", []), "%s rect size" % owner, errors)
+
+
+func _validate_terrain_tiles(value: Variant, owner: String, errors: Array[String]) -> void:
+	var tiles := _array_field(value)
+	if not value is Array or tiles.is_empty():
+		errors.append("%s tiles must be a non-empty array." % owner)
+		return
+	for tile in tiles:
+		_validate_numeric_pair(tile, "%s tile" % owner, errors)
+
+
+func _validate_terrain_kind(
+	entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+) -> void:
+	var kind := String(entry.get(field_id, ""))
+	if not _supported_terrain_kinds().has(kind):
+		errors.append("%s has unsupported terrain kind %s." % [owner, kind])
+
+
 func _validate_effect_list(
 	entry: Dictionary, field_id: String, owner: String, errors: Array[String]
 ) -> void:
@@ -636,11 +732,26 @@ func _validate_keyed_id(
 
 func _validate_global_tile(entry: Dictionary, owner: String, errors: Array[String]) -> void:
 	var tile: Variant = entry.get("global_tile", [])
-	if not (tile is Array) or tile.size() < 2:
-		errors.append("%s must have global_tile [x, y]." % owner)
+	_validate_numeric_pair(tile, "%s global_tile" % owner, errors)
+
+
+func _validate_numeric_pair(value: Variant, owner: String, errors: Array[String]) -> void:
+	if not (value is Array) or value.size() < 2:
+		errors.append("%s must be [x, y]." % owner)
 		return
-	if not _is_number(tile[0]) or not _is_number(tile[1]):
-		errors.append("%s global_tile values must be numeric." % owner)
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		errors.append("%s values must be numeric." % owner)
+
+
+func _validate_positive_pair(value: Variant, owner: String, errors: Array[String]) -> void:
+	if not (value is Array) or value.size() < 2:
+		errors.append("%s must be [width, height]." % owner)
+		return
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		errors.append("%s values must be numeric." % owner)
+		return
+	if float(value[0]) <= 0.0 or float(value[1]) <= 0.0:
+		errors.append("%s values must be positive." % owner)
 
 
 func _validate_required_positive_number(
@@ -767,6 +878,20 @@ func _world_object_id_exists(object_id: String) -> bool:
 
 func _supported_system_tabs() -> Array[String]:
 	return ["inventory", "character", "trade", "quests", "map", "journal", "world", "log"]
+
+
+func _supported_terrain_kinds() -> Array[String]:
+	return [
+		"grass",
+		"water",
+		"bridge",
+		"stone_wall",
+		"wood_wall",
+		"wood_floor",
+		"forest",
+		"hill",
+		"road"
+	]
 
 
 func _is_number(value: Variant) -> bool:

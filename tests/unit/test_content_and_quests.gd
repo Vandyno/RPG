@@ -25,6 +25,7 @@ func test_content_database_loads_seed_content() -> void:
 	assert_false(content.shops.is_empty())
 	assert_false(content.status_effects.is_empty())
 	assert_false(content.world_objects.is_empty())
+	assert_false(content.world_terrain.is_empty())
 	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
 	assert_eq(
 		content.get_location("location_briarwatch_crossroads").get("name"), "Briarwatch Crossroads"

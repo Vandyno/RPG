@@ -3,14 +3,32 @@ extends Node
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
 
-const SPAWN_TOWN_MIN := Vector2i(-12, -10)
-const SPAWN_TOWN_MAX := Vector2i(14, 10)
-const RIVER_X := [-4, -3]
-const BRIDGE_Y := [-2, -1, 0, 1, 2, 3, 4]
-const GATE_WIDTH := [0, 1]
+const AUTHORED_TERRAIN_PATH := "res://data/world_terrain.json"
 const BLOCKED_TILE_KINDS := ["water", "stone_wall", "wood_wall"]
 
+var authored_areas: Array[Dictionary] = []
 var modified_chunks: Dictionary = {}
+
+
+func _init() -> void:
+	load_authored_terrain(AUTHORED_TERRAIN_PATH)
+
+
+func load_authored_terrain(path: String) -> void:
+	authored_areas.clear()
+	if not FileAccess.file_exists(path):
+		push_warning("Missing authored terrain file: %s" % path)
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not parsed is Dictionary:
+		push_warning("Expected dictionary JSON at %s" % path)
+		return
+	for area_value in _array_field(parsed.get("areas", [])):
+		if not area_value is Dictionary:
+			continue
+		var area := _sanitized_area(area_value)
+		if not area.is_empty():
+			authored_areas.append(area)
 
 
 func get_chunk_data(chunk_coord: Vector2i, layer: String = "surface") -> Dictionary:
@@ -25,9 +43,9 @@ func get_chunk_data(chunk_coord: Vector2i, layer: String = "surface") -> Diction
 
 
 func get_tile_kind(global_tile: Vector2i) -> String:
-	var town_kind := _spawn_town_tile_kind(global_tile)
-	if not town_kind.is_empty():
-		return town_kind
+	var authored_kind := _authored_tile_kind(global_tile)
+	if not authored_kind.is_empty():
+		return authored_kind
 
 	if global_tile.x == 0 or global_tile.y == 0 or global_tile.x == global_tile.y:
 		return "road"
@@ -134,104 +152,95 @@ func _hash_noise(tile: Vector2i) -> int:
 	return value
 
 
-func _spawn_town_tile_kind(tile: Vector2i) -> String:
-	var result := ""
-	if not _is_in_spawn_town(tile):
-		return result
-	if _is_town_gate(tile):
-		result = "road"
-	elif _is_town_wall(tile):
-		result = "stone_wall"
-	elif _is_town_bridge(tile):
-		result = "bridge"
-	elif _is_town_river(tile):
-		result = "water"
-	else:
-		var building_kind := _building_tile_kind(tile)
-		if not building_kind.is_empty():
-			result = building_kind
-		elif _is_town_path(tile):
-			result = "road"
-		else:
-			result = "grass"
-	return result
-
-
-func _is_in_spawn_town(tile: Vector2i) -> bool:
-	return (
-		tile.x >= SPAWN_TOWN_MIN.x
-		and tile.x <= SPAWN_TOWN_MAX.x
-		and tile.y >= SPAWN_TOWN_MIN.y
-		and tile.y <= SPAWN_TOWN_MAX.y
-	)
-
-
-func _is_town_wall(tile: Vector2i) -> bool:
-	return (
-		tile.x == SPAWN_TOWN_MIN.x
-		or tile.x == SPAWN_TOWN_MAX.x
-		or tile.y == SPAWN_TOWN_MIN.y
-		or tile.y == SPAWN_TOWN_MAX.y
-	)
-
-
-func _is_town_gate(tile: Vector2i) -> bool:
-	return (
-		(tile.x == SPAWN_TOWN_MIN.x and GATE_WIDTH.has(tile.y))
-		or (tile.x == SPAWN_TOWN_MAX.x and GATE_WIDTH.has(tile.y))
-		or (tile.y == SPAWN_TOWN_MIN.y and [2, 3].has(tile.x))
-		or (tile.y == SPAWN_TOWN_MAX.y and [2, 3].has(tile.x))
-	)
-
-
-func _is_town_river(tile: Vector2i) -> bool:
-	return RIVER_X.has(tile.x)
-
-
-func _is_town_bridge(tile: Vector2i) -> bool:
-	return _is_town_river(tile) and BRIDGE_Y.has(tile.y)
-
-
-func _is_town_path(tile: Vector2i) -> bool:
-	return (
-		([1, 2].has(tile.y) and tile.x >= SPAWN_TOWN_MIN.x and tile.x <= SPAWN_TOWN_MAX.x)
-		or ([2, 3].has(tile.x) and tile.y >= SPAWN_TOWN_MIN.y and tile.y <= SPAWN_TOWN_MAX.y)
-		or (tile.x >= -1 and tile.x <= 5 and tile.y >= -1 and tile.y <= 4)
-	)
-
-
-func _building_tile_kind(tile: Vector2i) -> String:
-	for rect in _building_rects():
-		if not rect.has_point(tile):
+func _authored_tile_kind(tile: Vector2i) -> String:
+	for area in authored_areas:
+		var bounds: Rect2i = area.get("bounds", Rect2i())
+		if not bounds.has_point(tile):
 			continue
-		if _building_door_tiles().has(tile):
-			return "wood_floor"
-		if _is_rect_edge(tile, rect):
-			return "wood_wall"
-		return "wood_floor"
+		var kind := String(area.get("default_kind", "grass"))
+		for region in _array_field(area.get("regions", [])):
+			var region_kind := _region_kind_at(region, tile)
+			if not region_kind.is_empty():
+				kind = region_kind
+		return kind
 	return ""
 
 
-func _building_rects() -> Array[Rect2i]:
-	return [
-		Rect2i(Vector2i(-11, 3), Vector2i(4, 4)),
-		Rect2i(Vector2i(4, -1), Vector2i(5, 5)),
-		Rect2i(Vector2i(1, -7), Vector2i(5, 5)),
-		Rect2i(Vector2i(-6, -7), Vector2i(5, 5)),
-		Rect2i(Vector2i(1, 4), Vector2i(5, 4)),
-		Rect2i(Vector2i(9, -7), Vector2i(4, 5))
-	]
+func _region_kind_at(region: Dictionary, tile: Vector2i) -> String:
+	var kind := String(region.get("kind", ""))
+	if kind.is_empty():
+		return ""
+	var tiles: Array = region.get("tiles", [])
+	if tiles.has(tile):
+		return kind
+	var rect: Rect2i = region.get("rect", Rect2i())
+	if rect.size == Vector2i.ZERO or not rect.has_point(tile):
+		return ""
+	if bool(region.get("border_only", false)) and not _is_rect_edge(tile, rect):
+		return ""
+	return kind
 
 
-func _building_door_tiles() -> Array[Vector2i]:
-	return [
-		Vector2i(-10, 3), Vector2i(-9, 3), Vector2i(-8, 3),
-		Vector2i(4, -1), Vector2i(4, 0), Vector2i(4, 1), Vector2i(4, 2), Vector2i(4, 3),
-		Vector2i(2, -3), Vector2i(3, -3), Vector2i(4, -3), Vector2i(5, -3),
-		Vector2i(-5, -3), Vector2i(-4, -3), Vector2i(-3, -3), Vector2i(-2, -3),
-		Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 4), Vector2i(5, 4),
-		Vector2i(10, -3), Vector2i(11, -3), Vector2i(12, -3)
-	]
+func _sanitized_area(source: Dictionary) -> Dictionary:
+	var bounds := _bounds_from_dictionary(source.get("bounds", {}))
+	if bounds.size == Vector2i.ZERO:
+		return {}
+	var regions: Array[Dictionary] = []
+	for region_value in _array_field(source.get("regions", [])):
+		if not region_value is Dictionary:
+			continue
+		var region := _sanitized_region(region_value)
+		if not region.is_empty():
+			regions.append(region)
+	return {
+		"id": String(source.get("id", "")),
+		"bounds": bounds,
+		"default_kind": String(source.get("default_kind", "grass")),
+		"regions": regions
+	}
+
+
+func _sanitized_region(source: Dictionary) -> Dictionary:
+	var kind := String(source.get("kind", ""))
+	if kind.is_empty():
+		return {}
+	var region := {
+		"id": String(source.get("id", "")),
+		"kind": kind,
+		"border_only": bool(source.get("border_only", false)),
+		"rect": _rect_from_dictionary(source.get("rect", {})),
+		"tiles": _tiles_from_array(source.get("tiles", []))
+	}
+	if (region["rect"] as Rect2i).size == Vector2i.ZERO and (region["tiles"] as Array).is_empty():
+		return {}
+	return region
+
+
+func _bounds_from_dictionary(value: Variant) -> Rect2i:
+	var source := _dictionary_field(value)
+	var min_tile := _vector2i_from_pair(source.get("min", []), Vector2i.ZERO)
+	var max_tile := _vector2i_from_pair(source.get("max", []), Vector2i.ZERO)
+	if max_tile.x < min_tile.x or max_tile.y < min_tile.y:
+		return Rect2i()
+	return Rect2i(min_tile, max_tile - min_tile + Vector2i.ONE)
+
+
+func _rect_from_dictionary(value: Variant) -> Rect2i:
+	var source := _dictionary_field(value)
+	var position := _vector2i_from_pair(source.get("position", []), Vector2i.ZERO)
+	var size := _vector2i_from_pair(source.get("size", []), Vector2i.ZERO)
+	if size.x <= 0 or size.y <= 0:
+		return Rect2i()
+	return Rect2i(position, size)
+
+
+func _tiles_from_array(value: Variant) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for tile_value in _array_field(value):
+		var tile := _vector2i_from_pair(tile_value, Vector2i.ZERO)
+		if not result.has(tile):
+			result.append(tile)
+	return result
 
 
 func _is_rect_edge(tile: Vector2i, rect: Rect2i) -> bool:
@@ -244,6 +253,14 @@ func _is_rect_edge(tile: Vector2i, rect: Rect2i) -> bool:
 	)
 
 
+func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
+	if not value is Array or value.size() < 2:
+		return fallback
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return fallback
+	return Vector2i(int(value[0]), int(value[1]))
+
+
 func _array_field(value: Variant) -> Array:
 	if value is Array:
 		return value
@@ -254,6 +271,10 @@ func _dictionary_field(value: Variant) -> Dictionary:
 	if value is Dictionary:
 		return value
 	return {}
+
+
+func _is_number(value: Variant) -> bool:
+	return value is int or value is float
 
 
 func _sanitized_modified_objects(value: Variant) -> Dictionary:

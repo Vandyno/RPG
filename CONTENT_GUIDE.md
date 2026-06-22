@@ -154,6 +154,72 @@ the player to click on a sign, NPC, or object.
 
 ---
 
+# Authored Terrain
+
+Implemented authored terrain lives in `data/world_terrain.json`.
+
+Use it for town geometry, roads, rivers, bridges, walls, floors, and other
+terrain that should be deliberately placed instead of procedurally generated.
+`ChunkManager` applies the areas in this file before using procedural fallback
+terrain outside authored spaces.
+
+The current shape is intentionally small:
+
+- `areas`: top-level array of authored regions.
+- `bounds`: inclusive tile rectangle using `min` and `max`.
+- `default_kind`: tile kind used inside the bounds before regions are applied.
+- `regions`: ordered paint operations. Later regions override earlier ones.
+- `rect`: rectangle paint with `position` and `size`.
+- `border_only`: optional boolean for walls or building outlines.
+- `tiles`: explicit tile list for gates, doors, small fixes, or landmarks.
+
+Supported early tile kinds:
+
+- `grass`
+- `road`
+- `water`
+- `bridge`
+- `stone_wall`
+- `wood_wall`
+- `wood_floor`
+- `forest`
+- `hill`
+
+Example:
+
+```json
+{
+  "id": "area_briarwatch_spawn_town",
+  "bounds": {
+    "min": [-12, -10],
+    "max": [14, 10]
+  },
+  "default_kind": "grass",
+  "regions": [
+    {
+      "id": "town_wall",
+      "kind": "stone_wall",
+      "rect": {
+        "position": [-12, -10],
+        "size": [27, 21]
+      },
+      "border_only": true
+    },
+    {
+      "id": "west_gate",
+      "kind": "road",
+      "tiles": [[-12, 0], [-12, 1]]
+    }
+  ]
+}
+```
+
+Terrain data is content, so it should stay stable, readable, and validated.
+Prefer moving terrain in `world_terrain.json` over adding one-off tile checks in
+code.
+
+---
+
 # NPCs
 
 NPCs should have:

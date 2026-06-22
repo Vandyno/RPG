@@ -180,6 +180,7 @@ Owns chunk data access.
 Responsibilities:
 
 - load chunk definitions
+- load authored terrain regions from `data/world_terrain.json`
 - cache active chunk data
 - expose tile data
 - expose object/entity placements
@@ -1171,3 +1172,36 @@ Follow-up:
 
 - Add time-based conditions, NPC schedules, and lighting once those systems need
   them.
+
+---
+
+# ADR-0007: Authored Terrain Regions For Spawn Town
+
+Date: Early vertical-slice town pass
+
+Decision:
+
+The spawn-town terrain is described in `data/world_terrain.json` as ordered
+authored regions. `ChunkManager` still generates chunk tile arrays at runtime,
+but it now checks authored terrain before falling back to procedural wilderness
+roads, water, forests, hills, and grass.
+
+Context:
+
+Briarwatch needs to become an authored RPG town rather than a hardcoded test
+yard. Terrain should be adjustable as content data so roads, walls, rivers,
+bridges, buildings, and later districts can be moved without rewriting chunk
+logic.
+
+Consequences:
+
+- Town geometry can be iterated through content data.
+- Tests can verify authored terrain, walkability, and reachability separately
+  from procedural wilderness fallback.
+- Future tooling can replace or generate the same data shape without changing
+  runtime chunk APIs.
+
+Follow-up:
+
+- Expand terrain authoring when interiors, dungeons, or larger authored
+  landmarks need more tile layers or object palettes.
