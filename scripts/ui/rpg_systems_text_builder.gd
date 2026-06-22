@@ -70,6 +70,29 @@ static func character_text(state: Dictionary) -> String:
 	return "\n".join(lines)
 
 
+static func character_rows(state: Dictionary) -> Array[Dictionary]:
+	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
+	var statuses := String(state.get("statuses", "none"))
+	return [
+		{
+			"title": "Vitals",
+			"value": String(state.get("player_health", "Health unknown"))
+		},
+		{
+			"title": "Training",
+			"value": String(state.get("progression", "Level 1"))
+		},
+		{
+			"title": "Equipment",
+			"value": equipment
+		},
+		{
+			"title": "Effects",
+			"value": "None" if statuses == "none" else statuses
+		}
+	]
+
+
 static func level_from_progression(text: String) -> int:
 	var expression := RegEx.new()
 	if expression.compile("Level\\s+(\\d+)") != OK:

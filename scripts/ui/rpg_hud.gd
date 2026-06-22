@@ -34,6 +34,7 @@ var systems_left_panel: PanelContainer
 var systems_center_panel: PanelContainer
 var systems_detail_panel: PanelContainer
 var systems_character_panel: PanelContainer
+var systems_character_rows: VBoxContainer
 var systems_bottom_panel: PanelContainer
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
@@ -298,8 +299,15 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	character_title.text = "Adventurer"
 	character_stack.add_child(character_title)
 
+	systems_character_rows = VBoxContainer.new()
+	systems_character_rows.name = "SystemsCharacterRows"
+	systems_character_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	systems_character_rows.add_theme_constant_override("separation", 7)
+	character_stack.add_child(systems_character_rows)
+
 	systems_character_label = _new_label(14)
 	systems_character_label.name = "SystemsCharacter"
+	systems_character_label.visible = false
 	systems_character_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	character_stack.add_child(systems_character_label)
 
@@ -690,6 +698,7 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	_refresh_systems_rows(state)
 	systems_character_label.text = RpgSystemsTextBuilder.character_text(state)
+	_refresh_systems_character_rows(state)
 
 
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -724,6 +733,38 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	else:
 		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
+
+
+func _refresh_systems_character_rows(state: Dictionary) -> void:
+	if not systems_character_rows:
+		return
+	var rows := RpgSystemsTextBuilder.character_rows(state)
+	for index in range(rows.size()):
+		var row := rows[index]
+		var button := _systems_character_row(index)
+		button.text = "%s\n%s" % [String(row.get("title", "")), String(row.get("value", ""))]
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.custom_minimum_size = Vector2(0, 58)
+		button.add_theme_font_size_override("font_size", 13)
+		_apply_row_button_style(button, false)
+		button.visible = true
+	for index in range(rows.size(), systems_character_rows.get_child_count()):
+		systems_character_rows.get_child(index).visible = false
+
+
+func _systems_character_row(index: int) -> Button:
+	if index < systems_character_rows.get_child_count():
+		var existing := systems_character_rows.get_child(index)
+		if existing is Button:
+			return existing
+	var button := _new_button("", Vector2(0, 58))
+	button.name = "SystemsCharacterRow_%d" % index
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	systems_character_rows.add_child(button)
+	return button
 
 
 func _systems_row_button(index: int) -> Button:
@@ -854,10 +895,7 @@ func _apply_panel_style(panel: Control) -> void:
 	style.bg_color = Color(0.035, 0.032, 0.026, 0.88)
 	style.border_color = Color(0.78, 0.61, 0.34, 0.70)
 	style.set_border_width_all(2)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
 
@@ -866,10 +904,7 @@ func _apply_modal_panel_style(panel: Control) -> void:
 	style.bg_color = Color(0.025, 0.023, 0.019, 0.96)
 	style.border_color = Color(0.86, 0.68, 0.38, 0.82)
 	style.set_border_width_all(2)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
 
@@ -930,10 +965,7 @@ func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFla
 	style.bg_color = color
 	style.border_color = border_color
 	style.set_border_width_all(1)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.set_corner_radius_all(4)
 	return style
 
 
@@ -942,10 +974,7 @@ func _apply_portrait_style(panel: Panel) -> void:
 	style.bg_color = Color(0.11, 0.095, 0.075, 0.96)
 	style.border_color = Color(0.86, 0.70, 0.42, 0.85)
 	style.set_border_width_all(2)
-	style.corner_radius_top_left = 38
-	style.corner_radius_top_right = 38
-	style.corner_radius_bottom_left = 38
-	style.corner_radius_bottom_right = 38
+	style.set_corner_radius_all(38)
 	panel.add_theme_stylebox_override("panel", style)
 
 
@@ -954,10 +983,7 @@ func _apply_badge_style(label: Label) -> void:
 	style.bg_color = Color(0.055, 0.048, 0.038, 0.98)
 	style.border_color = Color(0.86, 0.70, 0.42, 0.90)
 	style.set_border_width_all(2)
-	style.corner_radius_top_left = 13
-	style.corner_radius_top_right = 13
-	style.corner_radius_bottom_left = 13
-	style.corner_radius_bottom_right = 13
+	style.set_corner_radius_all(13)
 	label.add_theme_stylebox_override("normal", style)
 	label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
 

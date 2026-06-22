@@ -282,7 +282,13 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(toolbox_row.text.contains("Count 1"))
 	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
 	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
+	assert_false(hud.systems_character_label.visible)
 	assert_true(hud.systems_character_label.text.contains("Weapon: Road Hatchet"))
+	assert_not_null(_button_containing(hud.systems_character_rows, "Vitals"))
+	assert_not_null(_button_containing(hud.systems_character_rows, "Training"))
+	var equipment_row := _button_containing(hud.systems_character_rows, "Equipment")
+	assert_not_null(equipment_row)
+	assert_true(equipment_row.text.contains("Weapon: Road Hatchet"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
 
 	hud.set_systems_tab("quests")
