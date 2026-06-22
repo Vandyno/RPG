@@ -338,6 +338,19 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	assert_eq(hud.log_label.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_gt(640.0 + hud.action_buttons.offset_left, hud.move_pad.offset_right)
 	assert_eq(hud.action_buttons.offset_top, -68.0)
+	var compact_move_rect := _rect_for_bottom_left_anchored_panel(
+		hud.move_pad, Vector2(640, 360)
+	)
+	assert_eq(compact_move_rect.size, DebugHud.COMPACT_MOVE_PAD_SIZE)
+	assert_lte(compact_move_rect.end.x, 146.0)
+	assert_false(
+		compact_move_rect.intersects(_center_play_rect(Vector2(640, 360))),
+		"Compact move pad should stay out of the centered play space."
+	)
+	assert_eq(
+		(hud.move_pad.get_node("MoveRightButton") as Button).custom_minimum_size,
+		DebugHud.COMPACT_MOVE_BUTTON_SIZE
+	)
 	var prompt_rect := _rect_for_right_anchored_panel(hud.prompt_panel, Vector2(640, 360))
 	assert_false(hud.prompt_panel.visible)
 	assert_lte(prompt_rect.size.x, 204.0)
@@ -747,6 +760,15 @@ func _rect_for_bottom_right_anchored_panel(panel: Control, viewport_size: Vector
 	return Rect2(
 		Vector2(left, top),
 		Vector2(panel.offset_right - panel.offset_left, panel.offset_bottom - panel.offset_top)
+	)
+
+
+func _rect_for_bottom_left_anchored_panel(panel: Control, viewport_size: Vector2) -> Rect2:
+	var top := viewport_size.y + panel.offset_top
+	var bottom := viewport_size.y + panel.offset_bottom
+	return Rect2(
+		Vector2(panel.offset_left, top),
+		Vector2(panel.offset_right - panel.offset_left, bottom - top)
 	)
 
 

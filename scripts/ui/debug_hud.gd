@@ -22,6 +22,9 @@ const ContentCardPresenter = preload("res://scripts/ui/content_card_presenter.gd
 const SystemsActionBuilder = preload("res://scripts/ui/systems_action_builder.gd")
 const TargetUiTextBuilder = preload("res://scripts/ui/target_ui_text_builder.gd")
 const MOVE_PAD_SIZE := Vector2(166, 160)
+const COMPACT_MOVE_PAD_SIZE := Vector2(128, 128)
+const COMPACT_MOVE_BUTTON_SIZE := Vector2(42, 42)
+const MOVE_KNOB_SIZE := Vector2(20, 20)
 const HUD_MARGIN := 12.0
 const MESSAGE_MIN_WIDTH := 160.0
 const MAX_MESSAGE_LOG := 24
@@ -71,6 +74,7 @@ var move_knob: ColorRect
 var action_buttons: HBoxContainer
 var primary_action_button: Button
 var target_action_button: Button
+var move_pad_size := MOVE_PAD_SIZE
 var touch_move_vector := Vector2.ZERO
 var held_actions: Dictionary = {}
 var visible_context_action_count := 0
@@ -508,8 +512,8 @@ func _build_touch_controls() -> void:
 	move_knob = ColorRect.new()
 	move_knob.name = "MoveKnob"
 	move_knob.color = Color(0.86, 0.78, 0.58, 0.55)
-	move_knob.custom_minimum_size = Vector2(20, 20)
-	move_knob.size = Vector2(20, 20)
+	move_knob.custom_minimum_size = MOVE_KNOB_SIZE
+	move_knob.size = MOVE_KNOB_SIZE
 	move_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	move_pad.add_child(move_knob)
 
@@ -573,6 +577,7 @@ func _build_content_panel() -> void:
 
 func _add_hold_button(parent: Control, text: String, action: String, position: Vector2) -> void:
 	var button := _new_button(text, BUTTON_SIZE)
+	button.name = "%sButton" % action.to_pascal_case()
 	button.position = position
 	button.button_down.connect(func() -> void: _press_hold_action(action))
 	button.button_up.connect(func() -> void: _release_hold_action(action))
@@ -617,17 +622,17 @@ func _on_move_pad_gui_input(event: InputEvent) -> void:
 
 
 func _update_touch_direction_from_local(local_position: Vector2) -> void:
-	var center := MOVE_PAD_SIZE * 0.5
-	var radius := minf(MOVE_PAD_SIZE.x, MOVE_PAD_SIZE.y) * 0.5
+	var center := move_pad_size * 0.5
+	var radius := minf(move_pad_size.x, move_pad_size.y) * 0.5
 	set_touch_move_vector((local_position - center) / radius)
 
 
 func _update_move_knob() -> void:
 	if not move_knob:
 		return
-	var center := MOVE_PAD_SIZE * 0.5
-	var radius := minf(MOVE_PAD_SIZE.x, MOVE_PAD_SIZE.y) * 0.27
-	move_knob.position = center + touch_move_vector * radius - Vector2(10, 10)
+	var center := move_pad_size * 0.5
+	var radius := minf(move_pad_size.x, move_pad_size.y) * 0.27
+	move_knob.position = center + touch_move_vector * radius - MOVE_KNOB_SIZE * 0.5
 
 
 func _apply_responsive_layout() -> void:
@@ -646,6 +651,7 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	applied_layout_size = viewport_size
 	var compact_actions := viewport_size.x < 980.0 or viewport_size.y < 540.0
 	_set_status_panel_layout(viewport_size, compact_actions)
+	_set_move_pad_layout(compact_actions)
 	_set_action_button_layout(compact_actions)
 	_set_overlay_panel_layout(viewport_size, compact_actions)
 	var action_width := HudLayoutMetrics.button_row_width(
@@ -680,7 +686,6 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	HudLayoutMetrics.apply_log_label(log_label, compact_actions)
 	refresh()
 
-
 func _set_status_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	var line_count := status_label.text.count("\n") + 1 if status_label else 4
 	var metrics := HudLayoutMetrics.status_panel(viewport_size, line_count, HUD_MARGIN, compact)
@@ -690,7 +695,6 @@ func _set_status_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	status_panel.offset_bottom = HUD_MARGIN + float(metrics.get("height", 136.0))
 	status_label.add_theme_font_size_override("font_size", int(metrics.get("status_font_size", 15)))
 	health_label.visible = bool(metrics.get("show_health_label", true))
-
 
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	var prompt_width := minf(240.0 if not compact else 204.0, viewport_size.x - HUD_MARGIN * 2.0)
@@ -764,7 +768,6 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	)
 	context_action_panel.offset_bottom = context_action_panel.offset_top + context_height
 
-
 func _set_action_button_layout(compact: bool) -> void:
 	if not action_buttons:
 		return
@@ -778,6 +781,39 @@ func _set_action_button_layout(compact: bool) -> void:
 		if child is Button:
 			child.custom_minimum_size = sizes.get(child.name, BUTTON_SIZE)
 			child.add_theme_font_size_override("font_size", 13 if compact else 15)
+
+func _set_move_pad_layout(compact: bool) -> void:
+	if not move_pad:
+		return
+	move_pad_size = COMPACT_MOVE_PAD_SIZE if compact else MOVE_PAD_SIZE
+	move_pad.offset_left = 18
+	move_pad.offset_top = -move_pad_size.y - HUD_MARGIN
+	move_pad.offset_right = move_pad.offset_left + move_pad_size.x
+	move_pad.offset_bottom = -HUD_MARGIN
+	var button_size := COMPACT_MOVE_BUTTON_SIZE if compact else BUTTON_SIZE
+	var positions := _move_button_positions(compact)
+	for child in move_pad.get_children():
+		if child is Button:
+			child.custom_minimum_size = button_size
+			child.size = button_size
+			child.position = positions.get(child.name, child.position)
+			child.add_theme_font_size_override("font_size", 12 if compact else 15)
+	_update_move_knob()
+
+func _move_button_positions(compact: bool) -> Dictionary:
+	if compact:
+		return {
+			"MoveUpButton": Vector2(43, 6),
+			"MoveLeftButton": Vector2(6, 43),
+			"MoveRightButton": Vector2(80, 43),
+			"MoveDownButton": Vector2(43, 80)
+		}
+	return {
+		"MoveUpButton": Vector2(54, 6),
+		"MoveLeftButton": Vector2(6, 54),
+		"MoveRightButton": Vector2(102, 54),
+		"MoveDownButton": Vector2(54, 102)
+	}
 
 
 func _refresh_primary_action_button(state: Dictionary) -> void:
