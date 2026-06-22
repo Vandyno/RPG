@@ -189,7 +189,16 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 		"Harrow Venn",
 		"Evening. You look like someone who gets their hands dirty.",
 		[
-			{"id": "ask_tools", "text": "Ask about tools"},
+			{
+				"id": "ask_tools",
+				"text": "Ask about tools",
+				"response": "Harrow needs the old toolbox from the west road."
+			},
+			{
+				"id": "accept_tools",
+				"text": "I'll find it.",
+				"effects": [{"type": "start_quest", "quest_id": "quest_missing_tools"}]
+			},
 			{"id": "leave", "text": "Leave"}
 		],
 		"dialogue"
@@ -202,14 +211,21 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)
 	assert_true(hud.content_identity_panel.visible)
 	assert_false(hud.content_portrait_panel.visible)
-	assert_false(hud.content_preview_panel.visible)
-	assert_true(hud.content_preview_label.text.contains("2 available choices"))
+	assert_true(hud.content_preview_panel.visible)
+	assert_true(hud.content_preview_label.text.contains("I'll find it."))
+	assert_true(hud.content_preview_label.text.contains("Starts quest"))
 	assert_false(hud.move_pad.visible)
 	assert_false(hud.action_buttons.visible)
 	assert_false(hud.message_panel.visible)
-	assert_not_null(_button_containing(hud.content_choice_list, "Ask about tools"))
+	var ask_button := _button_containing(hud.content_choice_list, "Ask about tools")
+	assert_not_null(ask_button)
+	assert_true(ask_button.text.contains("Learn more before acting."))
+	var accept_button := _button_containing(hud.content_choice_list, "I'll find it.")
+	assert_not_null(accept_button)
+	assert_true(accept_button.text.contains("Starts quest"))
+	assert_true((accept_button as Button).text.contains("\n"))
 
-	(_button_containing(hud.content_choice_list, "Ask about tools") as Button).pressed.emit()
+	ask_button.pressed.emit()
 	assert_eq(selected_choices, ["ask_tools"])
 
 	var close_events: Array[String] = []

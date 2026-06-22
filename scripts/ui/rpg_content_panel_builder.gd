@@ -94,22 +94,23 @@ static func build(
 	choice_list.add_theme_constant_override("separation", 6)
 	choice_scroll.add_child(choice_list)
 
+	var close: Button = new_button.call("Leave", Vector2(0, 46))
+	close.name = "ContentCloseButton"
+	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	close.pressed.connect(close_callback)
+	right_stack.add_child(close)
+
 	var preview_panel: PanelContainer = new_panel.call("ContentPreviewPanel")
-	preview_panel.custom_minimum_size = Vector2(0, 58)
+	preview_panel.custom_minimum_size = Vector2(220, 0)
+	preview_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	preview_panel.visible = false
-	right_stack.add_child(preview_panel)
+	outer.add_child(preview_panel)
 
 	var preview_label: Label = new_label.call(13)
 	preview_label.name = "ContentPreview"
 	preview_label.text = "Choose a response or close."
 	preview_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	add_margin.call(preview_panel, preview_label, 8)
-
-	var close: Button = new_button.call("Leave", Vector2(0, 46))
-	close.name = "ContentCloseButton"
-	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	close.pressed.connect(close_callback)
-	right_stack.add_child(close)
 
 	return {
 		"panel": panel,
@@ -164,8 +165,10 @@ static func apply_layout(
 		right_stack.custom_minimum_size = Vector2(150, 0) if compact else Vector2(286, 0)
 	if choice_panel:
 		choice_panel.custom_minimum_size = Vector2(150, 0) if compact else Vector2(0, 0)
-	if preview_panel:
+	if preview_panel and compact:
 		preview_panel.visible = false
+	elif preview_panel:
+		preview_panel.custom_minimum_size = Vector2(220, 0)
 	if title_label:
 		title_label.add_theme_font_size_override("font_size", 13 if compact else 22)
 	if kind_label:

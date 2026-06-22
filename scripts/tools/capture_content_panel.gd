@@ -25,9 +25,20 @@ func _capture() -> void:
 		"Evening. You look like someone who gets their hands dirty.\n\nWhat can I do for you?",
 		[
 			{"id": "ask_tools", "text": "Ask about tools"},
-			{"id": "turn_in_toolbox", "text": "Turn in Toolbox"},
-			{"id": "forge_services", "text": "Forge Services"},
-			{"id": "leave", "text": "Leave"}
+			{
+				"id": "turn_in_toolbox",
+				"text": "Turn in Toolbox",
+				"effects": [
+					{"type": "complete_quest", "quest_id": "quest_missing_tools"},
+					{"type": "add_experience", "amount": 120}
+				],
+				"response": "Harrow weighs the old toolbox in both hands and nods."
+			},
+			{
+				"id": "forge_services",
+				"text": "Forge Services",
+				"subtitle": "Craft, repair, and improve gear."
+			}
 		],
 		"dialogue"
 	)

@@ -4,6 +4,7 @@ extends DebugHud
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
+const RpgContentChoiceBuilder = preload("res://scripts/ui/rpg_content_choice_builder.gd")
 const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
@@ -742,18 +743,26 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 	)
 
 
+func _refresh_content_choices(choices: Array) -> void:
+	if not content_choice_list:
+		return
+	content_choice_list.visible = RpgContentChoiceBuilder.refresh(
+		content_choice_list,
+		choices,
+		Callable(self, "_new_button"),
+		Callable(self, "_apply_row_button_style"),
+		self,
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	)
+
+
 func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if not content_preview_label:
 		return
-	var kind_text := ContentCardPresenter.kind_text(kind)
-	var choice_count := 0
-	for choice in choices:
-		if choice is Dictionary and not String(choice.get("id", "")).is_empty():
-			choice_count += 1
-	if choice_count > 0:
-		content_preview_label.text = "%s - %d available choices." % [kind_text, choice_count]
-	else:
-		content_preview_label.text = "%s - close when finished." % kind_text
+	content_preview_label.text = RpgContentChoiceBuilder.preview_text(choices, kind)
+	if content_preview_panel:
+		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		content_preview_panel.visible = not compact and not content_preview_label.text.is_empty()
 
 
 func _refresh_target_picker(state: Dictionary) -> void:
