@@ -35,17 +35,18 @@ func _draw() -> void:
 	var subtitle_size := 9 if size.y < 52.0 else 11
 	var text_x := icon_rect.end.x + 10.0
 	var text_width := maxf(0.0, size.x - text_x - 10.0)
+	var fitted_title := _fit_line(choice_title, text_width, font, title_size)
 	draw_string(
 		font,
 		Vector2(text_x, 22.0),
-		choice_title,
+		fitted_title,
 		HORIZONTAL_ALIGNMENT_LEFT,
 		text_width,
 		title_size,
 		Color(0.98, 0.92, 0.78, 0.98)
 	)
 	if not choice_subtitle.is_empty():
-		var subtitle := _fit_subtitle(choice_subtitle, text_width)
+		var subtitle := _fit_line(choice_subtitle, text_width, font, subtitle_size)
 		draw_string(
 			font,
 			Vector2(text_x, size.y - 10.0),
@@ -70,10 +71,24 @@ func _draw_centered_text() -> void:
 	)
 
 
-func _fit_subtitle(value: String, text_width: float) -> String:
-	if text_width >= 170.0 or value.length() <= 26:
+func _fit_line(value: String, text_width: float, font: Font, font_size: int) -> String:
+	if _line_width(value, font, font_size) <= text_width:
 		return value
-	return "%s..." % value.substr(0, 23).strip_edges()
+	var suffix := "..."
+	var suffix_width := _line_width(suffix, font, font_size)
+	if suffix_width >= text_width:
+		return suffix
+	var best := ""
+	for index in range(1, value.length() + 1):
+		var candidate := value.substr(0, index).strip_edges()
+		if _line_width(candidate, font, font_size) + suffix_width > text_width:
+			break
+		best = candidate
+	return "%s%s" % [best, suffix]
+
+
+func _line_width(value: String, font: Font, font_size: int) -> float:
+	return font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
 func _draw_icon(rect: Rect2, color: Color) -> void:

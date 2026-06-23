@@ -134,6 +134,16 @@ func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	assert_false(forge.text.begins_with("S  "))
 
 
+func test_compact_dialogue_choice_text_fits_available_width() -> void:
+	var button := RpgContentChoiceButton.new()
+	add_child_autofree(button)
+	var font := button.get_theme_default_font()
+	var fitted := button._fit_line("Craft, repair, and improve gear.", 94.0, font, 11)
+
+	assert_true(fitted.ends_with("..."))
+	assert_lte(button._line_width(fitted, font, 11), 94.0)
+
+
 func test_content_identity_icon_matches_content_kind() -> void:
 	var hud := _new_hud()
 	var art := hud.content_portrait_panel.find_child(
