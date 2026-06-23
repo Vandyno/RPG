@@ -720,7 +720,7 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_false(hud.content_preview_reward_label.visible)
 	assert_true(hud.content_preview_label.text.contains("Choose this response."))
 	assert_false(hud.content_preview_title_label.text.is_empty())
-	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 86.0)
+	assert_gte(hud.content_identity_panel.custom_minimum_size.x, 108.0)
 	assert_gte(hud.content_right_stack.custom_minimum_size.x, 190.0)
 	assert_lte(hud.content_body_label.get_theme_font_size("font_size"), 16)
 	assert_lte(hud.content_preview_label.get_theme_font_size("font_size"), 10)

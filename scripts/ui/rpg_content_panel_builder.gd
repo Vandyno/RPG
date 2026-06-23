@@ -208,7 +208,7 @@ static func apply_layout(
 		text_panel.size_flags_stretch_ratio = 1.0
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(78, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(108, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(34, 34) if compact else Vector2(70, 70)
