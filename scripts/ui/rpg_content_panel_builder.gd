@@ -80,6 +80,9 @@ static func build(
 
 	var body_label: Label = new_label.call(17)
 	body_label.name = "ContentBody"
+	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body_label.clip_text = true
+	body_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(body_label)
@@ -133,6 +136,7 @@ static func build(
 	var preview_label: Label = new_label.call(13)
 	preview_label.name = "ContentPreview"
 	preview_label.text = "Choose a response or close."
+	preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	preview_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	preview_stack.add_child(preview_label)
 
@@ -194,31 +198,37 @@ static func apply_layout(
 	)
 	if content_panel.offset_top < -viewport_size.y + hud_margin:
 		content_panel.offset_top = -viewport_size.y + hud_margin
+	_place_preview_panel(content_panel, right_stack, preview_panel, compact)
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(96, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(100, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(212, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(150, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(212, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(150, 0) if compact else Vector2(0, 0)
 	if preview_panel:
-		preview_panel.visible = false if compact else preview_panel.visible
-		preview_panel.custom_minimum_size = Vector2(0, 0) if compact else Vector2(220, 0)
+		preview_panel.custom_minimum_size = Vector2(150, 30) if compact else Vector2(220, 0)
+		preview_panel.size_flags_vertical = (
+			Control.SIZE_SHRINK_BEGIN if compact else Control.SIZE_EXPAND_FILL
+		)
 	if title_label:
 		title_label.add_theme_font_size_override("font_size", 13 if compact else 22)
 	if kind_label:
 		kind_label.add_theme_font_size_override("font_size", 11 if compact else 14)
 	if body_label:
+		body_label.custom_minimum_size = Vector2.ZERO
 		body_label.add_theme_font_size_override("font_size", 18 if compact else 17)
 	if preview_title_label:
 		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
 	var preview_label := preview_panel.find_child("ContentPreview", true, false) as Label
 	if preview_label:
+		preview_label.visible = not compact
 		preview_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 	if preview_reward_label:
+		preview_reward_label.visible = not compact
 		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
@@ -226,6 +236,27 @@ static func apply_layout(
 			if child is Button:
 				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
 				child.add_theme_font_size_override("font_size", 13 if compact else 14)
+
+
+static func _place_preview_panel(
+	content_panel: PanelContainer,
+	right_stack: VBoxContainer,
+	preview_panel: PanelContainer,
+	compact: bool
+) -> void:
+	if not content_panel or not right_stack or not preview_panel:
+		return
+	var dialogue_row := content_panel.find_child("ContentDialogueRow", true, false) as HBoxContainer
+	if not dialogue_row:
+		return
+	var target_parent: Node = right_stack if compact else dialogue_row
+	if preview_panel.get_parent() != target_parent:
+		preview_panel.get_parent().remove_child(preview_panel)
+		target_parent.add_child(preview_panel)
+	if compact:
+		right_stack.move_child(preview_panel, 0)
+	else:
+		dialogue_row.move_child(preview_panel, dialogue_row.get_child_count() - 1)
 
 
 static func apply_mode(
