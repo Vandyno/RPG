@@ -360,16 +360,6 @@ func _build_top_nav() -> void:
 	_add_nav_button("Q\nQuests", func() -> void: show_systems_panel("quests"))
 	_add_nav_button("J\nJournal", func() -> void: show_systems_panel("journal"))
 	_add_nav_button("M\nMap", func() -> void: show_systems_panel("map"))
-	target_action_button = _new_button("T\nTarget", NAV_BUTTON_SIZE)
-	target_action_button.name = "TargetButton"
-	target_action_button.focus_mode = Control.FOCUS_NONE
-	target_action_button.tooltip_text = "Tap to cycle target. Hold for target list."
-	HoldActionButton.bind(
-		target_action_button,
-		Callable(self, "_press_target_control"),
-		Callable(self, "_hold_target_control")
-	)
-	top_nav_buttons.add_child(target_action_button)
 	_add_nav_button("=\nMenu", toggle_systems)
 
 func _add_nav_button(text: String, callback: Callable) -> void:
@@ -410,6 +400,17 @@ func _build_touch_controls() -> void:
 	action_buttons = action_nodes["cluster"]
 	primary_action_button = action_nodes["primary"]
 	ability_slot_buttons = action_nodes["ability_buttons"]
+	var utility_buttons := action_nodes["utility_buttons"] as Dictionary
+	(utility_buttons["inventory"] as Button).pressed.connect(
+		func() -> void: show_systems_panel("inventory")
+	)
+	target_action_button = utility_buttons["target"] as Button
+	HoldActionButton.bind(
+		target_action_button,
+		Callable(self, "_press_target_control"),
+		Callable(self, "_hold_target_control")
+	)
+	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
 
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
@@ -456,7 +457,6 @@ func _add_systems_tab(tab_id: String, text: String) -> void:
 	elif systems_tabs:
 		systems_tabs.add_child(button)
 	systems_tab_buttons[tab_id] = button
-
 
 func _refresh_systems_tabs() -> void:
 	for tab_id in systems_tab_buttons:
@@ -891,7 +891,7 @@ func _sync_content_overlay_chrome() -> void:
 	if move_pad:
 		move_pad.visible = not overlay_open
 	if action_buttons:
-		action_buttons.visible = not overlay_open
+		action_buttons.visible = not content_open
 	if message_panel and overlay_open:
 		message_panel.visible = false
 

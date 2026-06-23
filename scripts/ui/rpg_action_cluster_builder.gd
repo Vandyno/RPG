@@ -22,6 +22,25 @@ static func build(
 	cluster.add_theme_constant_override("separation", 8)
 	root.add_child(cluster)
 
+	var utility_stack := VBoxContainer.new()
+	utility_stack.name = "UtilityButtonStack"
+	utility_stack.add_theme_constant_override("separation", 5)
+	utility_stack.custom_minimum_size = Vector2(64, 100)
+	utility_stack.size_flags_vertical = Control.SIZE_SHRINK_END
+	cluster.add_child(utility_stack)
+
+	var utility_buttons := {}
+	for data in [
+		{"id": "inventory", "text": "I\nInv", "tooltip": "Inventory"},
+		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."},
+		{"id": "menu", "text": "=\nMenu", "tooltip": "Menu"}
+	]:
+		var utility := _utility_button(
+			String(data["text"]), String(data["id"]), String(data["tooltip"]), Vector2(56, 56)
+		)
+		utility_stack.add_child(utility)
+		utility_buttons[String(data["id"])] = utility
+
 	var ability_stack := VBoxContainer.new()
 	ability_stack.name = "AbilityButtonStack"
 	ability_stack.add_theme_constant_override("separation", 5)
@@ -49,6 +68,7 @@ static func build(
 	return {
 		"cluster": cluster,
 		"ability_buttons": ability_buttons,
+		"utility_buttons": utility_buttons,
 		"primary": primary
 	}
 
@@ -77,14 +97,24 @@ static func apply_layout(
 			else:
 				_apply_command_style(child, false, compact)
 		elif child is VBoxContainer:
+			var utility_stack := child.name == "UtilityButtonStack"
 			child.add_theme_constant_override("separation", 4 if compact else 6)
-			child.custom_minimum_size = Vector2(52, 164) if compact else Vector2(64, 204)
+			var stack_size := Vector2(52, 164) if compact else Vector2(64, 204)
+			if utility_stack:
+				stack_size = Vector2(42, 140) if compact else Vector2(54, 180)
+			child.custom_minimum_size = stack_size
 			for nested in child.get_children():
 				if nested is Button:
-					nested.custom_minimum_size = Vector2(48, 48) if compact else Vector2(64, 64)
+					var button_size := Vector2(48, 48) if compact else Vector2(64, 64)
+					if utility_stack:
+						button_size = Vector2(40, 40) if compact else Vector2(52, 52)
+					nested.custom_minimum_size = button_size
 					nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
-					_apply_command_style(nested, false, compact)
+					if utility_stack:
+						_apply_utility_style(nested, compact)
+					else:
+						_apply_command_style(nested, false, compact)
 
 
 static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> void:
@@ -117,6 +147,21 @@ static func _aim_joystick(
 	joystick.set_meta("action_role", "secondary")
 	joystick.set_meta("action_shape", "round_secondary")
 	return joystick
+
+
+static func _utility_button(
+	text: String, action_kind: String, tooltip: String, size: Vector2
+) -> Button:
+	var button := Button.new()
+	button.name = "%sButton" % action_kind.to_pascal_case()
+	button.text = text
+	button.custom_minimum_size = size
+	button.tooltip_text = tooltip
+	button.focus_mode = Control.FOCUS_NONE
+	button.set_meta("action_kind", action_kind)
+	button.set_meta("action_role", "utility")
+	button.set_meta("action_shape", "round_utility")
+	return button
 
 
 static func _slot_index_text(slot_id: String) -> String:
@@ -158,6 +203,36 @@ static func _apply_command_style(button: Button, primary: bool, compact: bool) -
 			Color(0.19, 0.17, 0.09, 0.98) if primary else Color(0.16, 0.20, 0.10, 0.98),
 			Color(1.0, 0.86, 0.48, 1.0),
 			radius
+		)
+	)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
+static func _apply_utility_style(button: Button, compact: bool) -> void:
+	button.set_meta("action_shape", "round_utility")
+	button.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
+	button.add_theme_stylebox_override(
+		"normal",
+		_round_style(
+			Color(0.035, 0.032, 0.026, 0.94),
+			Color(0.76, 0.62, 0.38, 0.72),
+			22 if compact else 28
+		)
+	)
+	button.add_theme_stylebox_override(
+		"hover",
+		_round_style(
+			Color(0.10, 0.12, 0.075, 0.96),
+			Color(0.86, 0.70, 0.42, 0.86),
+			22 if compact else 28
+		)
+	)
+	button.add_theme_stylebox_override(
+		"pressed",
+		_round_style(
+			Color(0.16, 0.18, 0.09, 0.98),
+			Color(1.0, 0.86, 0.48, 1.0),
+			22 if compact else 28
 		)
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())

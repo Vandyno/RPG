@@ -32,7 +32,7 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.top_nav_panel.visible)
 	assert_eq(
 		_button_texts(hud.top_nav_buttons),
-		["Q\nQuests", "J\nJournal", "M\nMap", "T\nTarget", "=\nMenu"]
+		["Q\nQuests", "J\nJournal", "M\nMap", "=\nMenu"]
 	)
 	assert_true(hud.status_label.text.contains("Adventurer"))
 	assert_true(hud.status_label.text.contains("Level 2"))
@@ -71,12 +71,6 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	_press_nav(hud, "Map")
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "map")
-
-	hud.hide_systems_panel()
-	var target_events: Array[String] = []
-	hud.cycle_target_pressed.connect(func() -> void: target_events.append("cycle"))
-	_press_nav(hud, "Target")
-	assert_eq(target_events, ["cycle"])
 
 	hud.hide_systems_panel()
 	_press_nav(hud, "Menu")
@@ -154,7 +148,7 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_true(row.text.contains("Road Notice"))
 	row.pressed.emit()
 	assert_eq(used_targets, ["npc_harrow_venn_world"])
-	assert_false(hud.action_buttons.visible)
+	assert_true(hud.action_buttons.visible)
 	assert_false(hud.move_pad.visible)
 
 	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
@@ -208,8 +202,9 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	var ability := hud.ability_slot_buttons["ability_1"] as RpgAimJoystick
 	assert_not_null(ability)
 	assert_eq(ability.get_meta("action_kind"), "ability_1")
-	assert_eq(hud.action_buttons.get_child_count(), 2)
+	assert_eq(hud.action_buttons.get_child_count(), 3)
 	assert_true(hud.action_buttons.get_child(0) is VBoxContainer)
+	assert_true(hud.action_buttons.get_child(1) is VBoxContainer)
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
 		ability.custom_minimum_size.x
@@ -229,7 +224,22 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 			aim_events.append({"action_id": action_id, "direction": direction})
 	)
 
-	_press_nav(hud, "Menu")
+	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
+	assert_not_null(utility_stack)
+	var inventory := utility_stack.find_child("InventoryButton", true, false) as Button
+	var target := utility_stack.find_child("TargetButton", true, false) as Button
+	var menu := utility_stack.find_child("MenuButton", true, false) as Button
+	assert_not_null(inventory)
+	assert_not_null(target)
+	assert_not_null(menu)
+	assert_eq(hud.target_action_button, target)
+
+	inventory.pressed.emit()
+	assert_true(hud.is_systems_panel_visible())
+	assert_eq(hud.get_systems_tab(), "inventory")
+
+	hud.hide_systems_panel()
+	menu.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
 
 	hud.hide_systems_panel()
@@ -240,7 +250,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(aim_events[0]["direction"], Vector2.RIGHT)
 	assert_eq(interact_events, [])
 
-	hud.target_action_button.pressed.emit()
+	target.pressed.emit()
 	assert_eq(cycle_events, ["cycle"])
 	ability._start_aim(Vector2.ZERO)
 	ability._finish_aim(Vector2(0, -32))
