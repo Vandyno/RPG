@@ -29,14 +29,17 @@ func _gui_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	var has_label := not text.strip_edges().is_empty()
-	var center := Vector2(size.x * 0.5, size.y * (0.40 if has_label else 0.5))
-	var radius := minf(size.x, size.y) * (0.29 if has_label else 0.34)
+	var center := Vector2(size.x * 0.5, size.y * (0.39 if has_label else 0.5))
+	var radius := minf(size.x, size.y) * (0.34 if has_label else 0.39)
 	var knob := center + aim_vector * radius
-	draw_circle(center, radius, Color(0.02, 0.018, 0.014, 0.64))
-	draw_arc(center, radius, 0.0, TAU, 48, Color(0.84, 0.66, 0.36, 0.82), 2.0)
+	draw_circle(center, radius * 1.08, Color(0.0, 0.0, 0.0, 0.34))
+	draw_circle(center, radius, Color(0.02, 0.018, 0.014, 0.72))
+	draw_arc(center, radius, 0.0, TAU, 56, Color(0.90, 0.72, 0.42, 0.92), 2.0)
+	draw_arc(center, radius * 0.58, 0.0, TAU, 48, Color(0.90, 0.72, 0.42, 0.28), 1.0)
 	if aim_vector.length() > 0.05:
 		draw_line(center, knob, Color(1.0, 0.80, 0.40, 0.78), 2.0)
-	draw_circle(knob, radius * 0.32, Color(0.90, 0.73, 0.40, 0.72))
+	draw_circle(knob, radius * 0.34, Color(0.95, 0.78, 0.42, 0.82))
+	draw_arc(knob, radius * 0.34, 0.0, TAU, 32, Color(1.0, 0.91, 0.58, 0.68), 1.0)
 	_draw_label()
 
 

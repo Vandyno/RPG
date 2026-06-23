@@ -3,10 +3,7 @@ extends RefCounted
 
 
 static func build(
-	root: Control,
-	new_panel: Callable,
-	add_margin: Callable,
-	new_label: Callable
+	root: Control, new_panel: Callable, add_margin: Callable, new_label: Callable
 ) -> Dictionary:
 	var panel: PanelContainer = new_panel.call("ContextActionPanel")
 	panel.anchor_left = 1.0
@@ -24,7 +21,7 @@ static func build(
 
 	var title := new_label.call(13) as Label
 	title.name = "QuickActionTitle"
-	title.text = "Quick Actions"
+	title.text = "Actions"
 	title.add_theme_color_override("font_color", Color(0.86, 0.70, 0.42))
 	stack.add_child(title)
 
@@ -63,11 +60,11 @@ static func refresh(
 		if action_id.is_empty() or text.is_empty():
 			continue
 		var button := _button(container, button_index, new_button)
-		button.text = text
+		button.text = "%s\n%s" % [text, _subtitle(action_id, text)]
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(142, 52) if compact else Vector2(150, 50)
-		button.add_theme_font_size_override("font_size", 12 if compact else 13)
+		button.custom_minimum_size = Vector2(142, 56) if compact else Vector2(150, 56)
+		button.add_theme_font_size_override("font_size", 11 if compact else 12)
 		row_style.call(button, _is_recommended(action_id, text))
 		button.set_meta("action_id", action_id)
 		button.set_meta("context_mode", context_mode)
@@ -93,8 +90,8 @@ static func apply_layout(
 		width = minf(480.0, viewport_size.x - 152.0)
 	var bottom_gap := 210.0 if not compact else 164.0
 	var row_count := ceili(float(maxi(1, visible_count)) / 3.0)
-	var height := 44.0 + float(row_count) * (59.0 if compact else 57.0)
-	height = clampf(height, 104.0 if compact else 104.0, 184.0 if compact else 172.0)
+	var height := 46.0 + float(row_count) * (65.0 if compact else 63.0)
+	height = clampf(height, 112.0 if compact else 112.0, 196.0 if compact else 184.0)
 	panel.offset_left = -width - hud_margin
 	panel.offset_right = -hud_margin
 	panel.offset_bottom = -bottom_gap
@@ -138,3 +135,19 @@ static func _is_recommended(action_id: String, text: String) -> bool:
 		or text == "Guard"
 		or text.begins_with("Turn In")
 	)
+
+
+static func _subtitle(action_id: String, text: String) -> String:
+	if action_id.begins_with("dialogue:") or action_id.begins_with("line:"):
+		return "Dialogue"
+	if action_id.begins_with("poi:"):
+		return "Use nearby"
+	if action_id.begins_with("trade:"):
+		return "Merchant"
+	if action_id.begins_with("forge:"):
+		return "Service"
+	if text == "Guard":
+		return "Combat"
+	if text.begins_with("Turn In"):
+		return "Quest"
+	return "Nearby"

@@ -259,18 +259,21 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_true(hud.context_action_panel.visible)
 	assert_eq(
 		(hud.context_action_panel.find_child("QuickActionTitle", true, false) as Label).text,
-		"Quick Actions"
+		"Actions"
 	)
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(640, 360))
 	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
 	assert_true(_rect_inside(quick_rect, screen))
 	assert_gte(quick_rect.size.x, 470.0)
-	assert_false(quick_rect.intersects(action_rect), "Quick actions should not cover main commands.")
+	assert_false(
+		quick_rect.intersects(action_rect), "Quick actions should not cover main commands."
+	)
 	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
 	assert_not_null(accept)
+	assert_true(accept.text.contains("Dialogue"))
 	assert_gte(accept.custom_minimum_size.x, 142.0)
-	assert_gte(accept.custom_minimum_size.y, 52.0)
+	assert_gte(accept.custom_minimum_size.y, 56.0)
 	accept.pressed.emit()
 	assert_eq(context_actions, ["dialogue:accept"])
 
