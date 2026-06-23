@@ -125,7 +125,7 @@ static func apply_layout(
 		subtitle.visible = not compact
 	var close := target_panel.find_child("TargetCloseButton", true, false) as Button
 	if close:
-		close.visible = false
+		close.visible = compact
 	var title := target_panel.find_child("TargetTitle", true, false) as Label
 	if title:
 		title.add_theme_font_size_override("font_size", 16 if compact else 18)

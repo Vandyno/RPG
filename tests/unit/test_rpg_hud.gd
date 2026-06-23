@@ -139,12 +139,16 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_true(row.text.contains("Road Notice"))
 	row.pressed.emit()
 	assert_eq(used_targets, ["npc_harrow_venn_world"])
+	assert_false(hud.action_buttons.visible)
+	assert_false(hud.move_pad.visible)
 
 	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
 	assert_not_null(close)
-	assert_false(close.visible)
-	hud.target_action_button.pressed.emit()
+	assert_true(close.visible)
+	close.pressed.emit()
 	assert_false(hud.is_target_picker_visible())
+	assert_true(hud.action_buttons.visible)
+	assert_true(hud.move_pad.visible)
 
 
 func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:

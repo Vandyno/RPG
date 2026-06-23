@@ -887,13 +887,13 @@ func _emit_quick_action(action_id: String, context_mode: bool) -> void:
 
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()
+	var overlay_open := content_open or is_target_picker_visible()
 	if move_pad:
-		move_pad.visible = not content_open
+		move_pad.visible = not overlay_open
 	if action_buttons:
-		action_buttons.visible = not content_open
-	if message_panel and content_open:
+		action_buttons.visible = not overlay_open
+	if message_panel and overlay_open:
 		message_panel.visible = false
-
 
 func _apply_panel_style(panel: Control) -> void:
 	var style := StyleBoxFlat.new()
