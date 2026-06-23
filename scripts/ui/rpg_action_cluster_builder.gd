@@ -2,6 +2,7 @@ class_name RpgActionClusterBuilder
 extends RefCounted
 
 const HoldActionButton = preload("res://scripts/ui/hold_action_button.gd")
+const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
 
 
 static func build(
@@ -11,6 +12,7 @@ static func build(
 	cycle_target: Callable,
 	open_target_picker: Callable,
 	primary_action: Callable,
+	aim_action: Callable,
 	open_menu: Callable
 ) -> Dictionary:
 	var cluster := HBoxContainer.new()
@@ -39,11 +41,28 @@ static func build(
 	HoldActionButton.bind(target, cycle_target, open_target_picker)
 	cluster.add_child(target)
 
-	var primary: Button = _command_button(
-		new_button, "Interact", "primary", "Use current action", Vector2(136, 58)
+	var ability_stack := VBoxContainer.new()
+	ability_stack.name = "AbilityButtonStack"
+	ability_stack.add_theme_constant_override("separation", 5)
+	ability_stack.custom_minimum_size = Vector2(72, 100)
+	ability_stack.size_flags_vertical = Control.SIZE_SHRINK_END
+	cluster.add_child(ability_stack)
+
+	var ability_buttons := {}
+	for slot_id in ["ability_1", "ability_2", "ability_3"]:
+		var ability := _aim_joystick("Empty", slot_id, "Assigned spell", Vector2(72, 30), false)
+		ability.name = "%sButton" % slot_id.to_pascal_case()
+		ability.set_meta("ability_slot", slot_id)
+		ability.aimed.connect(aim_action)
+		ability_stack.add_child(ability)
+		ability_buttons[slot_id] = ability
+
+	var primary := _aim_joystick(
+		"Interact", "primary", "Aim or use current action", Vector2(136, 58), true
 	)
 	primary.name = "InteractButton"
 	primary.set_meta("action_role", "primary")
+	primary.aimed.connect(aim_action)
 	primary.pressed.connect(primary_action)
 	cluster.add_child(primary)
 
@@ -57,6 +76,7 @@ static func build(
 		"cluster": cluster,
 		"inventory": inventory,
 		"target": target,
+		"ability_buttons": ability_buttons,
 		"primary": primary,
 		"menu": menu
 	}
@@ -89,6 +109,30 @@ static func apply_layout(
 				_apply_command_style(child, true, compact)
 			else:
 				_apply_command_style(child, false, compact)
+		elif child is VBoxContainer:
+			child.add_theme_constant_override("separation", 4 if compact else 5)
+			child.custom_minimum_size = Vector2(58, 86) if compact else Vector2(72, 100)
+			for nested in child.get_children():
+				if nested is Button:
+					nested.custom_minimum_size = Vector2(58, 26) if compact else Vector2(72, 30)
+					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
+					_apply_command_style(nested, false, compact)
+
+
+static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> void:
+	for slot_id in buttons:
+		var button := buttons[slot_id] as Button
+		var slot_data := slots.get(slot_id, {}) as Dictionary
+		var spell_name := String(slot_data.get("name", ""))
+		var cost := int(slot_data.get("mana_cost", 0))
+		if spell_name.is_empty():
+			button.text = "Empty\n%s" % _slot_index_text(String(slot_id))
+			button.tooltip_text = "Empty ability slot"
+			button.set_meta("spell_id", "")
+		else:
+			button.text = "%s\n%d MP" % [spell_name, cost]
+			button.tooltip_text = "Cast %s" % spell_name
+			button.set_meta("spell_id", String(slot_data.get("spell_id", "")))
 
 
 static func _command_button(
@@ -106,6 +150,26 @@ static func _command_button(
 	button.set_meta("action_role", "secondary")
 	button.set_meta("action_shape", "round_secondary")
 	return button
+
+
+static func _aim_joystick(
+	text: String, action_kind: String, tooltip: String, size: Vector2, emit_press: bool
+) -> RpgAimJoystick:
+	var joystick := RpgAimJoystick.new()
+	joystick.text = text
+	joystick.custom_minimum_size = size
+	joystick.action_id = action_kind
+	joystick.emit_press_on_release = emit_press
+	joystick.tooltip_text = tooltip
+	joystick.focus_mode = Control.FOCUS_NONE
+	joystick.set_meta("action_kind", action_kind)
+	joystick.set_meta("action_role", "secondary")
+	joystick.set_meta("action_shape", "round_secondary")
+	return joystick
+
+
+static func _slot_index_text(slot_id: String) -> String:
+	return {"ability_1": "I", "ability_2": "II", "ability_3": "III"}.get(slot_id, "")
 
 
 static func _apply_command_style(button: Button, primary: bool, compact: bool) -> void:

@@ -5,6 +5,8 @@ const Main = preload("res://scripts/main/main.gd")
 const RpgHud = preload("res://scripts/ui/rpg_hud.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
+const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
+const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
 
 
 func test_main_uses_player_facing_rpg_hud() -> void:
@@ -72,6 +74,49 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 
 
+func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("spells")
+
+	assert_eq(hud.get_systems_tab(), "spells")
+	assert_eq(
+		_button_texts(hud.systems_nav),
+		["Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"]
+	)
+	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
+	assert_true(hud.systems_spell_slot_panel.visible)
+	assert_false(hud.systems_detail_equipment_panel.visible)
+	var fire := _button_containing(hud.systems_item_list, "Fire Blast")
+	assert_not_null(fire)
+	assert_true(fire.text.contains("Fire school"))
+	assert_true(hud.systems_detail_label.text.contains("Mana cost/drain: 5"))
+	assert_true(hud.systems_detail_label.text.contains("Range: 6 tiles"))
+
+
+func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("spells")
+	var emitted: Array[String] = []
+	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
+
+	var fire := _button_containing(hud.systems_item_list, "Fire Blast") as RpgInventoryItemButton
+	var slot := hud.systems_spell_slot_buttons["ability_1"] as RpgSpellSlot
+	assert_not_null(fire)
+	assert_not_null(slot)
+	var drag: Variant = fire._get_drag_data(Vector2.ZERO)
+	assert_true(slot._can_drop_data(Vector2.ZERO, drag))
+	slot._drop_data(Vector2.ZERO, drag)
+	assert_eq(emitted, ["assign_spell:spell_fire_blast:ability_1"])
+
+	hud.refresh()
+	var ability := hud.ability_slot_buttons["ability_1"] as Button
+	assert_true(ability.text.contains("Fire Blast"))
+	assert_true(ability.text.contains("5 MP"))
+	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
+
+
 func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -134,6 +179,10 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(hud.action_buttons.alignment, BoxContainer.ALIGNMENT_END)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
 	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
+	assert_true(hud.primary_action_button is RpgAimJoystick)
+	var ability := hud.ability_slot_buttons["ability_1"] as RpgAimJoystick
+	assert_not_null(ability)
+	assert_eq(ability.get_meta("action_kind"), "ability_1")
 	var inventory_action_button := hud.action_buttons.get_child(0) as Button
 	assert_eq(inventory_action_button.get_meta("action_role"), "secondary")
 	assert_eq(inventory_action_button.get_meta("action_kind"), "inventory")
@@ -151,6 +200,11 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	var cycle_events := []
 	hud.interact_pressed.connect(func() -> void: interact_events.append("interact"))
 	hud.cycle_target_pressed.connect(func() -> void: cycle_events.append("cycle"))
+	var aim_events: Array[Dictionary] = []
+	hud.aim_action_released.connect(
+		func(action_id: String, direction: Vector2) -> void:
+			aim_events.append({"action_id": action_id, "direction": direction})
+	)
 
 	inventory_action_button.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
@@ -162,6 +216,10 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 
 	hud.target_action_button.pressed.emit()
 	assert_eq(cycle_events, ["cycle"])
+	ability._start_aim(Vector2.ZERO)
+	ability._finish_aim(Vector2(0, -32))
+	assert_eq(aim_events[0]["action_id"], "ability_1")
+	assert_eq(aim_events[0]["direction"], Vector2.UP)
 
 	var menu_button := _button_containing(hud.action_buttons, "Menu")
 	assert_not_null(menu_button)
@@ -333,7 +391,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
 	assert_eq(_button_texts(hud.systems_nav), [
-		"Inventory", "Character", "Quests", "Map", "Journal", "Trade"
+		"Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
@@ -470,7 +528,6 @@ func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	assert_gte(menu_rect.size.x, 600.0)
 	assert_true(hud.systems_detail_panel.visible)
 	assert_false(hud.systems_character_panel.visible)
-	assert_false(hud.systems_inline_equipment_panel.visible)
 	assert_true(hud.systems_left_panel.visible)
 	assert_true(hud.systems_center_panel.visible)
 	assert_true(hud.systems_category_row.visible)
@@ -626,6 +683,33 @@ func _sample_state() -> Dictionary:
 			"necklace": {"label": "Necklace", "item_id": "", "item_name": ""},
 			"ring_1": {"label": "Ring 1", "item_id": "", "item_name": ""},
 			"ring_2": {"label": "Ring 2", "item_id": "", "item_name": ""}
+		},
+		"spells":
+		[
+			{
+				"spell_id": "spell_fire_blast",
+				"name": "Fire Blast",
+				"school": "Fire",
+				"icon": "F",
+				"mana_cost": 5,
+				"range": "6 tiles",
+				"behavior": "Launches a direct burst of flame at the selected target.",
+				"assigned_slot": "ability_1",
+				"assigned_label": "Ability I"
+			}
+		],
+		"spell_slots":
+		{
+			"ability_1":
+			{
+				"slot": "ability_1",
+				"slot_label": "Ability I",
+				"spell_id": "spell_fire_blast",
+				"name": "Fire Blast",
+				"mana_cost": 5
+			},
+			"ability_2": {"slot": "ability_2", "slot_label": "Ability II", "spell_id": ""},
+			"ability_3": {"slot": "ability_3", "slot_label": "Ability III", "spell_id": ""}
 		},
 		"factions": "Marches of Velcor +5",
 		"progression": "Level 2  XP 10/40  Points 1",

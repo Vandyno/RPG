@@ -12,6 +12,7 @@ var locations: Dictionary = {}
 var factions: Dictionary = {}
 var shops: Dictionary = {}
 var status_effects: Dictionary = {}
+var spells: Dictionary = {}
 var world_objects: Array[Dictionary] = []
 var world_terrain: Dictionary = {}
 
@@ -26,6 +27,7 @@ func load_all() -> void:
 	factions = _load_dictionary("res://data/factions.json")
 	shops = _load_dictionary("res://data/shops.json")
 	status_effects = _load_dictionary("res://data/status_effects.json")
+	spells = _load_dictionary("res://data/spells.json")
 	world_objects = _load_array("res://data/world_objects.json")
 	world_terrain = _load_dictionary("res://data/world_terrain.json")
 
@@ -66,6 +68,10 @@ func get_status_effect(status_id: String) -> Dictionary:
 	return status_effects.get(status_id, {})
 
 
+func get_spell(spell_id: String) -> Dictionary:
+	return spells.get(spell_id, {})
+
+
 func validate_all() -> Array[String]:
 	var errors: Array[String] = []
 	_validate_items(errors)
@@ -77,6 +83,7 @@ func validate_all() -> Array[String]:
 	_validate_locations(errors)
 	_validate_shops(errors)
 	_validate_status_effects(errors)
+	_validate_spells(errors)
 	_validate_world_objects(errors)
 	_validate_world_terrain(errors)
 	return errors
@@ -338,6 +345,22 @@ func _validate_status_effects(errors: Array[String]) -> void:
 		_validate_required_positive_number(status, "attack_charges", owner, errors)
 		_validate_optional_non_negative_number(status, "damage_bonus", owner, errors)
 		_validate_optional_positive_number(status, "guard_counter_multiplier", owner, errors)
+
+
+func _validate_spells(errors: Array[String]) -> void:
+	for spell_id in spells:
+		var spell: Dictionary = spells[spell_id]
+		var owner := "Spell %s" % spell_id
+		_validate_keyed_id(spell, String(spell_id), "Spell", errors)
+		if String(spell.get("name", "")).is_empty():
+			errors.append("%s is missing name." % owner)
+		if String(spell.get("school", "")).is_empty():
+			errors.append("%s is missing school." % owner)
+		_validate_required_positive_number(spell, "mana_cost", owner, errors)
+		if String(spell.get("range", "")).is_empty():
+			errors.append("%s is missing range." % owner)
+		if String(spell.get("behavior", "")).is_empty():
+			errors.append("%s is missing behavior." % owner)
 
 
 func _validate_world_objects(errors: Array[String]) -> void:

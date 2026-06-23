@@ -1,6 +1,8 @@
 class_name RpgHud
 extends HudShell
 
+signal aim_action_released(action_id: String, direction: Vector2)
+
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
@@ -15,6 +17,7 @@ const RpgSystemsCharacterPaneBuilder = preload(
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
+const RpgSpellSlotPanelBuilder = preload("res://scripts/ui/rpg_spell_slot_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(52, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -41,9 +44,10 @@ var systems_center_panel: PanelContainer
 var systems_detail_panel: PanelContainer
 var systems_character_panel: PanelContainer
 var systems_character_nodes := {}
+var systems_detail_equipment_panel: PanelContainer
 var systems_detail_equipment_nodes := {}
-var systems_inline_equipment_panel: PanelContainer
-var systems_inline_equipment_nodes := {}
+var systems_spell_slot_panel: PanelContainer
+var systems_spell_slot_buttons := {}
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
@@ -58,7 +62,7 @@ var content_preview_title_label: Label
 var content_preview_label: Label
 var content_preview_reward_label: Label
 var content_close_button: Button
-
+var ability_slot_buttons := {}
 
 func _build_ui() -> void:
 	super._build_ui()
@@ -67,13 +71,11 @@ func _build_ui() -> void:
 	_apply_responsive_layout()
 	refresh()
 
-
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	super._apply_layout_for_size(viewport_size)
 	var compact := viewport_size.x < 980.0 or viewport_size.y < 540.0
 	if action_buttons:
 		action_buttons.offset_top = -82 if compact else -106
-
 
 func refresh() -> void:
 	super.refresh()
@@ -84,12 +86,10 @@ func refresh() -> void:
 		return
 	location_banner_label.text = _rpg_location_name(state)
 
-
 func toggle_debug() -> void:
 	visible_debug = false
 	if debug_panel:
 		debug_panel.visible = false
-
 
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
@@ -101,11 +101,9 @@ func show_content_card(title: String, body: String, choices: Array = [], kind: S
 	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	_sync_content_overlay_chrome()
 
-
 func hide_content_card() -> void:
 	super.hide_content_card()
 	_sync_content_overlay_chrome()
-
 
 func show_systems_panel(tab_id: String = "") -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
@@ -269,6 +267,7 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_tabs.visible = false
 	systems_nav.add_child(systems_tabs)
 	_add_systems_tab("inventory", "Inventory")
+	_add_systems_tab("spells", "Spells")
 	_add_systems_tab("character", "Character")
 	_add_systems_tab("quests", "Quests")
 	_add_systems_tab("map", "Map")
@@ -307,15 +306,6 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_body_label.visible = false
 	center_stack.add_child(systems_body_label)
 
-	systems_inline_equipment_panel = _new_panel("SystemsInlineEquipmentPanel")
-	center_stack.add_child(systems_inline_equipment_panel)
-	systems_inline_equipment_nodes = RpgSystemsCharacterPaneBuilder.build_equipment_only(
-		systems_inline_equipment_panel, Callable(self, "_add_margin")
-	)
-	for slot in (systems_inline_equipment_nodes.get("equipment_slots", {}) as Dictionary).values():
-		if slot is RpgEquipmentSlot:
-			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
-
 	systems_action_list = systems_item_list
 
 	systems_detail_panel = _new_panel("SystemsDetailPanel")
@@ -335,15 +325,22 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_stack.add_child(systems_detail_label)
 
-	var detail_equipment_panel := PanelContainer.new()
-	detail_equipment_panel.name = "SystemsDetailEquipmentPanel"
-	detail_stack.add_child(detail_equipment_panel)
+	systems_detail_equipment_panel = PanelContainer.new()
+	systems_detail_equipment_panel.name = "SystemsDetailEquipmentPanel"
+	detail_stack.add_child(systems_detail_equipment_panel)
 	systems_detail_equipment_nodes = RpgSystemsCharacterPaneBuilder.build_equipment_only(
-		detail_equipment_panel, Callable(self, "_add_margin")
+		systems_detail_equipment_panel, Callable(self, "_add_margin")
 	)
 	for slot in (systems_detail_equipment_nodes.get("equipment_slots", {}) as Dictionary).values():
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
+
+	var spell_slot_nodes := RpgSpellSlotPanelBuilder.build(
+		detail_stack, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
+		Callable(self, "_apply_button_style"), Callable(self, "_on_spell_slot_dropped")
+	)
+	systems_spell_slot_panel = spell_slot_nodes["panel"]
+	systems_spell_slot_buttons = spell_slot_nodes["buttons"]
 
 	systems_character_panel = _new_panel("SystemsCharacterPanel")
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
@@ -432,13 +429,16 @@ func _build_touch_controls() -> void:
 		if not is_target_picker_visible():
 			toggle_target_picker()
 	var primary_action := func() -> void: interact_pressed.emit()
+	var aim_action := func(action_id: String, direction: Vector2) -> void:
+		aim_action_released.emit(action_id, direction)
 	var action_nodes := RpgActionClusterBuilder.build(
 		root, Callable(self, "_new_button"), open_inventory, cycle_target,
-		open_target_picker, primary_action, toggle_systems
+		open_target_picker, primary_action, aim_action, toggle_systems
 	)
 	action_buttons = action_nodes["cluster"]
 	target_action_button = action_nodes["target"]
 	primary_action_button = action_nodes["primary"]
+	ability_slot_buttons = action_nodes["ability_buttons"]
 
 
 func _build_content_panel() -> void:
@@ -591,11 +591,13 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_detail_panel:
 		systems_detail_panel.visible = true
 		systems_detail_panel.custom_minimum_size = Vector2(156, 0) if compact else Vector2(220, 0)
+	if systems_spell_slot_panel:
+		systems_spell_slot_panel.visible = systems_active_tab == "spells"
+	if systems_detail_equipment_panel:
+		systems_detail_equipment_panel.visible = systems_active_tab != "spells"
 	if systems_character_panel:
 		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
 		systems_character_panel.custom_minimum_size = Vector2(210, 0)
-	if systems_inline_equipment_panel:
-		systems_inline_equipment_panel.visible = false
 	if systems_resources_label:
 		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
 		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
@@ -670,13 +672,14 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	RpgSystemsCharacterPaneBuilder.refresh(
 		systems_detail_equipment_nodes, state, Callable(self, "_apply_row_button_style")
 	)
-	RpgSystemsCharacterPaneBuilder.refresh(
-		systems_inline_equipment_nodes, state, Callable(self, "_apply_row_button_style")
-	)
-	if systems_inline_equipment_panel:
-		systems_inline_equipment_panel.visible = false
-
-
+	var spell_value: Variant = state.get("spell_slots", {})
+	var spell_slots: Dictionary = spell_value if spell_value is Dictionary else {}
+	RpgSpellSlotPanelBuilder.refresh(systems_spell_slot_buttons, spell_slots)
+	RpgActionClusterBuilder.refresh_ability_buttons(ability_slot_buttons, spell_slots)
+	if systems_spell_slot_panel:
+		systems_spell_slot_panel.visible = systems_active_tab == "spells"
+	if systems_detail_equipment_panel:
+		systems_detail_equipment_panel.visible = systems_active_tab != "spells"
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
@@ -700,6 +703,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		button.set_meta("row_id", row_id)
 		button.set_meta("action_id", String(row.get("action_id", "")))
 		button.set_meta("item_id", String(row.get("item_id", "")))
+		button.set_meta("spell_id", String(row.get("spell_id", "")))
 		button.set_meta("equipment_slot", String(row.get("equipment_slot", "")))
 		button.visible = true
 	for index in range(rows.size(), systems_item_list.get_child_count()):
@@ -790,6 +794,12 @@ func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	inventory_item_selected.emit("equip_slot:%s:%s" % [item_id, slot_id])
 
 
+func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
+	if spell_id.is_empty() or slot_id.is_empty():
+		return
+	inventory_item_selected.emit("assign_spell:%s:%s" % [spell_id, slot_id])
+
+
 func _category_id_for_label(label: String) -> String:
 	return label.to_lower()
 
@@ -797,6 +807,7 @@ func _category_id_for_label(label: String) -> String:
 func _default_category_for_tab(tab_id: String) -> String:
 	return {
 		"inventory": "all",
+		"spells": "all",
 		"character": "overview",
 		"quests": "active",
 		"map": "known",

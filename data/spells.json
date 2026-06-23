@@ -1,0 +1,11 @@
+{
+	"spell_fire_blast": {
+		"id": "spell_fire_blast",
+		"name": "Fire Blast",
+		"school": "Fire",
+		"icon": "F",
+		"mana_cost": 5,
+		"range": "6 tiles",
+		"behavior": "Launches a direct burst of flame at the selected target."
+	}
+}

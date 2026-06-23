@@ -34,7 +34,7 @@ const CONTEXT_ACTION_H_SEPARATION := 8.0
 const CONTEXT_ACTION_V_SEPARATION := 8.0
 const CONTEXT_ACTION_MARGIN := 6.0
 const HOLD_ACTIONS := ["move_up", "move_down", "move_left", "move_right"]
-const SYSTEMS_TAB_IDS := ["inventory", "character", "trade", "quests", "map", "journal"]
+const SYSTEMS_TAB_IDS := ["inventory", "spells", "character", "trade", "quests", "map", "journal"]
 const PANEL_COLOR := Color(0.06, 0.08, 0.07, 0.78)
 const PANEL_BORDER := Color(0.86, 0.78, 0.58, 0.38)
 var event_bus

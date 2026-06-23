@@ -9,6 +9,7 @@ static func build(main) -> Dictionary:
 		"quests": main.quests,
 		"inventory": main.inventory,
 		"equipment": main.equipment,
+		"spells": main.spells,
 		"factions": main.factions,
 		"progression": main.progression,
 		"statuses": main.statuses,

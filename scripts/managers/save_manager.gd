@@ -9,6 +9,7 @@ const REQUIRED_PROVIDERS := [
 	"quests",
 	"inventory",
 	"equipment",
+	"spells",
 	"factions",
 	"progression",
 	"statuses",
@@ -39,6 +40,7 @@ func save_game() -> bool:
 		"quests": providers["quests"].get_save_data(),
 		"inventory": providers["inventory"].get_save_data(),
 		"equipment": providers["equipment"].get_save_data(),
+		"spells": providers["spells"].get_save_data(),
 		"factions": providers["factions"].get_save_data(),
 		"progression": providers["progression"].get_save_data(),
 		"statuses": providers["statuses"].get_save_data(),
@@ -83,6 +85,7 @@ func load_game() -> bool:
 	providers["quests"].load_save_data(_dictionary_section(parsed, "quests"))
 	providers["inventory"].load_save_data(_dictionary_section(parsed, "inventory"))
 	providers["equipment"].load_save_data(_dictionary_section(parsed, "equipment"))
+	providers["spells"].load_save_data(_dictionary_section(parsed, "spells"))
 	providers["factions"].load_save_data(_dictionary_section(parsed, "factions"))
 	providers["progression"].load_save_data(_dictionary_section(parsed, "progression"))
 	providers["statuses"].load_save_data(_dictionary_section(parsed, "statuses"))

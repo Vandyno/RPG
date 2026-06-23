@@ -6,6 +6,8 @@ static func rows(
 	state: Dictionary, tab_id: String, message_log: Array[String], category: String = "all"
 ) -> Array[Dictionary]:
 	match tab_id:
+		"spells":
+			return _spell_rows(state, category)
 		"character":
 			return _category_filtered_rows(_character_rows(state), category)
 		"quests":
@@ -23,6 +25,7 @@ static func rows(
 static func category_labels(tab_id: String) -> Array[String]:
 	var labels: Array = {
 		"inventory": ["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"],
+		"spells": ["All", "Fire", "Frost", "Storm", "Restoration", "Utility"],
 		"character": ["Overview", "Training", "Gear", "Effects"],
 		"quests": ["Active", "Routes", "Rewards"],
 		"map": ["Known", "Routes", "Nearby"],
@@ -171,6 +174,49 @@ static func _inventory_category_label(category: String) -> String:
 		"quest": "Quest",
 		"misc": "Misc"
 	}.get(category, "Inventory")
+
+
+static func _spell_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
+	for spell in _array_field(state.get("spells", [])):
+		if not spell is Dictionary:
+			continue
+		var school := String(spell.get("school", "Utility"))
+		if category != "all" and category != school.to_lower():
+			continue
+		var name := String(spell.get("name", "Spell"))
+		var spell_id := String(spell.get("spell_id", ""))
+		var assigned := String(spell.get("assigned_label", ""))
+		var assignment := "Unassigned" if assigned.is_empty() else "Assigned: %s" % assigned
+		rows_data.append({
+			"id": "spell_%s" % spell_id,
+			"spell_id": spell_id,
+			"title": name,
+			"subtitle": "%s school - %s" % [school, assignment],
+			"meta": "Cost %d MP" % int(spell.get("mana_cost", 0)),
+			"detail": _spell_detail(spell)
+		})
+	if rows_data.is_empty():
+		rows_data.append({
+			"id": "spells_empty_%s" % category,
+			"title": "No Spells",
+			"subtitle": "No known magic here.",
+			"meta": "Spells",
+			"detail": "No spells available."
+		})
+	return rows_data
+
+
+static func _spell_detail(spell: Dictionary) -> String:
+	var assigned := String(spell.get("assigned_label", ""))
+	return "\n".join([
+		String(spell.get("name", "Spell")),
+		"School: %s" % String(spell.get("school", "Utility")),
+		"Mana cost/drain: %d" % int(spell.get("mana_cost", 0)),
+		"Range: %s" % String(spell.get("range", "")),
+		"Behavior: %s" % String(spell.get("behavior", "")),
+		"Assigned: %s" % ("None" if assigned.is_empty() else assigned)
+	])
 
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:

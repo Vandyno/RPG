@@ -58,6 +58,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(int(parsed.get("version", 0)), 1)
 	assert_eq(int(parsed["player"]["health"]), 77)
 	assert_eq(parsed["equipment"]["equipped"]["weapon"], "item_road_hatchet")
+	assert_eq(parsed["spells"]["assigned"]["ability_1"], "spell_fire_blast")
 	assert_eq(int(parsed["factions"]["reputation"]["faction_marches_of_velcor"]), 5)
 	assert_eq(int(parsed["progression"]["level"]), 2)
 	assert_eq(int(parsed["progression"]["stats"]["might"]), 1)
@@ -75,6 +76,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(providers["inventory"].loaded_payload["items"][0]["item_id"], "coin")
 	assert_eq(int(providers["inventory"].loaded_payload["items"][0]["count"]), 3)
 	assert_eq(providers["equipment"].loaded_payload, {"equipped": {"weapon": "item_road_hatchet"}})
+	assert_eq(providers["spells"].loaded_payload, {"assigned": {"ability_1": "spell_fire_blast"}})
 	assert_eq(
 		int(providers["factions"].loaded_payload["reputation"]["faction_marches_of_velcor"]), 5
 	)
@@ -197,6 +199,7 @@ func test_malformed_save_sections_load_as_empty_dictionaries() -> void:
 	assert_eq(providers["quests"].loaded_payload, {})
 	assert_eq(providers["inventory"].loaded_payload, {})
 	assert_eq(providers["equipment"].loaded_payload, {})
+	assert_eq(providers["spells"].loaded_payload, {})
 	assert_eq(providers["factions"].loaded_payload, {})
 	assert_eq(providers["progression"].loaded_payload, {})
 	assert_eq(providers["statuses"].loaded_payload, {})
@@ -214,6 +217,7 @@ func _provider_set() -> Dictionary:
 		"quests": ProviderStub.new({"quest": {"state": "active"}}),
 		"inventory": ProviderStub.new({"items": [{"item_id": "coin", "count": 3}]}),
 		"equipment": ProviderStub.new({"equipped": {"weapon": "item_road_hatchet"}}),
+		"spells": ProviderStub.new({"assigned": {"ability_1": "spell_fire_blast"}}),
 		"factions": ProviderStub.new({"reputation": {"faction_marches_of_velcor": 5}}),
 		"progression":
 		ProviderStub.new({"level": 2, "experience": 7, "stats": {"might": 1, "grit": 0}}),

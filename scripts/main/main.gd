@@ -53,6 +53,7 @@ var streamer
 var entities
 var combat
 var equipment
+var spells
 var player
 var save_manager
 var hud
@@ -72,31 +73,22 @@ var auto_move_path: Array = []
 var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
 var guarding_next_attack := false
-
 func _ready() -> void:
 	_bootstrap()
 	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
-
-
 func _unhandled_input(event: InputEvent) -> void:
 	MainInputRouter.handle_event(self, event)
-
-
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(self, delta)
 	_update_location_discoveries()
 	_update_nearby()
-
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
-
-
 func get_hud_state() -> Dictionary:
 	return MainHudState.build(self)
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
-
 func _bootstrap() -> void:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
@@ -190,6 +182,11 @@ func _bootstrap() -> void:
 	add_child(equipment)
 	equipment.setup(event_bus, content, inventory)
 
+	spells = SpellManager.new()
+	spells.name = "SpellManager"
+	add_child(spells)
+	spells.setup(event_bus, content)
+
 	shops = ShopManagerScript.new()
 	shops.name = "ShopManager"
 	add_child(shops)
@@ -230,12 +227,15 @@ func _bootstrap() -> void:
 	hud.content_choice_selected.connect(_handle_content_choice_selected)
 	hud.content_card_closed.connect(_handle_content_card_closed)
 	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
+	hud.aim_action_released.connect(
+		func(action_id: String, direction: Vector2) -> void:
+			MainSystemsActions.handle_aim(self, action_id, direction)
+	)
 	hud.combat_action_selected.connect(_handle_combat_action_selected)
 	hud.context_action_selected.connect(_handle_context_action_selected)
 	hud.save_pressed.connect(_handle_save_requested)
 	hud.load_pressed.connect(_handle_load_requested)
 	hud.move_vector_changed.connect(player.set_external_move_vector)
-
 	event_bus.player_tile_changed.connect(_on_player_tile_changed)
 	streamer.update_center(player.global_tile)
 	_sync_camera_to_player()

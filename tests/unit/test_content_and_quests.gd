@@ -24,6 +24,7 @@ func test_content_database_loads_seed_content() -> void:
 	assert_false(content.factions.is_empty())
 	assert_false(content.shops.is_empty())
 	assert_false(content.status_effects.is_empty())
+	assert_false(content.spells.is_empty())
 	assert_false(content.world_objects.is_empty())
 	assert_false(content.world_terrain.is_empty())
 	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
@@ -33,6 +34,7 @@ func test_content_database_loads_seed_content() -> void:
 	)
 	assert_eq(content.get_dialogue("dialogue_harrow_venn").get("id"), "dialogue_harrow_venn")
 	assert_eq(content.get_faction("faction_marches_of_velcor").get("name"), "Marches of Velcor")
+	assert_eq(content.get_spell("spell_fire_blast").get("name"), "Fire Blast")
 	assert_eq(content.get_status_effect("status_road_focus").get("name"), "Road Focus")
 	assert_eq(content.validate_all(), [])
 

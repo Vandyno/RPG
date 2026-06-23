@@ -31,6 +31,8 @@ static func build(main) -> Dictionary:
 		"inventory_items": _inventory_items_data(main),
 		"inventory_details": main._inventory_details_text(),
 		"inventory_actions": main._inventory_actions_data(),
+		"spells": _spells_data(main),
+		"spell_slots": _spell_slots_data(main),
 		"trade": main._trade_text(shop_id),
 		"trade_actions": main._trade_actions_data(shop_id),
 		"equipment": main.equipment.get_summary(),
@@ -123,6 +125,68 @@ static func _equipment_slots_data(main) -> Dictionary:
 			"item_name": String(item.get("name", ""))
 		}
 	return slots
+
+
+static func _spells_data(main) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	var spell_ids: Array = main.content.spells.keys()
+	spell_ids.sort_custom(
+		func(a, b) -> bool:
+			var spell_a: Dictionary = main.content.get_spell(String(a))
+			var spell_b: Dictionary = main.content.get_spell(String(b))
+			var school_a := String(spell_a.get("school", ""))
+			var school_b := String(spell_b.get("school", ""))
+			if school_a == school_b:
+				return String(spell_a.get("name", a)) < String(spell_b.get("name", b))
+			return school_a < school_b
+	)
+	for spell_id in spell_ids:
+		var spell: Dictionary = main.content.get_spell(String(spell_id))
+		if spell.is_empty():
+			continue
+		entries.append(_spell_data(main, String(spell_id), spell))
+	return entries
+
+
+static func _spell_slots_data(main) -> Dictionary:
+	var slots := {}
+	for slot in main.spells.SLOTS:
+		var spell_id: String = main.spells.get_assigned_spell(slot)
+		var spell: Dictionary = main.content.get_spell(spell_id)
+		slots[slot] = _spell_data(main, spell_id, spell)
+		slots[slot]["slot"] = slot
+		slots[slot]["slot_label"] = _spell_slot_label(slot)
+	return slots
+
+
+static func _spell_data(main, spell_id: String, spell: Dictionary) -> Dictionary:
+	var assigned := _assigned_spell_slot(main, spell_id)
+	return {
+		"spell_id": spell_id,
+		"name": String(spell.get("name", "")),
+		"school": String(spell.get("school", "")),
+		"icon": String(spell.get("icon", "")),
+		"mana_cost": int(spell.get("mana_cost", 0)),
+		"range": String(spell.get("range", "")),
+		"behavior": String(spell.get("behavior", "")),
+		"assigned_slot": assigned,
+		"assigned_label": _spell_slot_label(assigned)
+	}
+
+
+static func _assigned_spell_slot(main, spell_id: String) -> String:
+	if spell_id.is_empty():
+		return ""
+	for slot in main.spells.SLOTS:
+		if main.spells.get_assigned_spell(slot) == spell_id:
+			return slot
+	return ""
+
+
+static func _spell_slot_label(slot_id: String) -> String:
+	return {"ability_1": "Ability I", "ability_2": "Ability II", "ability_3": "Ability III"}.get(
+		slot_id, ""
+	)
 
 
 static func _array_field(value: Variant) -> Array:

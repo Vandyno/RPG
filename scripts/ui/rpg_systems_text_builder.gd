@@ -5,6 +5,7 @@ extends RefCounted
 static func title(tab_id: String) -> String:
 	return {
 		"inventory": "Inventory",
+		"spells": "Spells",
 		"character": "Character",
 		"quests": "Quests",
 		"map": "Map",
@@ -16,6 +17,7 @@ static func title(tab_id: String) -> String:
 static func subtitle(tab_id: String) -> String:
 	return {
 		"inventory": "Gear, supplies, and valuables.",
+		"spells": "Known magic and assigned abilities.",
 		"character": "Training, health, equipment, and effects.",
 		"quests": "Active work and nearby objectives.",
 		"map": "Known places, routes, and nearby leads.",
@@ -38,6 +40,8 @@ static func detail_text(state: Dictionary, tab_id: String) -> String:
 				String(state.get("inventory_details", "")),
 				"No carried item details yet."
 			)
+		"spells":
+			return "Drag known spells into Ability I, II, or III."
 		"character":
 			return _first_non_empty(
 				String(state.get("progression_details", "")),
