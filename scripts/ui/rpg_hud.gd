@@ -69,9 +69,6 @@ func _build_ui() -> void:
 	refresh()
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	super._apply_layout_for_size(viewport_size)
-	# Keep this hook for RPG-specific layout after the base shell pass.
-	# Action cluster positioning lives in RpgActionClusterBuilder.
-	return
 
 func refresh() -> void:
 	super.refresh()
@@ -410,8 +407,6 @@ func _build_touch_controls() -> void:
 		Callable(self, "_press_target_control"),
 		Callable(self, "_hold_target_control")
 	)
-	# Top nav owns Menu; the action cluster stays combat-focused.
-
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
 		root,
@@ -558,10 +553,13 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_detail_panel:
 		systems_detail_panel.visible = true
 		systems_detail_panel.custom_minimum_size = Vector2(184, 0) if compact else Vector2(220, 0)
+	var char_tab := ["inventory", "character"].has(systems_active_tab)
+	# Right pane stays disabled until the systems layout can fit it without clipping.
+	var show_character_panel := false
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
-		systems_detail_equipment_panel.visible = ["inventory", "character"].has(systems_active_tab)
+		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
 		systems_detail_equipment_panel.custom_minimum_size = Vector2(0, 156 if compact else 176)
 		systems_detail_equipment_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	if systems_detail_label:
@@ -570,8 +568,8 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 			else Control.SIZE_EXPAND_FILL
 		)
 	if systems_character_panel:
-		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
-		systems_character_panel.custom_minimum_size = Vector2(210, 0)
+		systems_character_panel.visible = show_character_panel
+		systems_character_panel.custom_minimum_size = Vector2(280 if show_character_panel else 210, 0)
 	if systems_resources_label:
 		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
 		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
@@ -603,7 +601,6 @@ func _rpg_location_name(state: Dictionary) -> String:
 	var first := locations.split(",", false)[0].strip_edges()
 	return "Briarwatch" if first == "Briarwatch Crossroads" else first
 
-
 func _refresh_player_status(state: Dictionary) -> void:
 	if not status_label or not health_label or not level_badge_label:
 		return
@@ -627,7 +624,6 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	target_action_button.add_theme_font_size_override(
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)
-
 
 func _press_target_control() -> void:
 	if is_target_picker_visible():
@@ -668,7 +664,9 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
-		systems_detail_equipment_panel.visible = ["inventory", "character"].has(systems_active_tab)
+		var char_tab := ["inventory", "character"].has(systems_active_tab)
+		var show_character_panel := false
+		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
@@ -683,6 +681,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var button := _systems_row_button(index)
 		button.name = "SystemsRow_%s" % String(row.get("id", "")).to_pascal_case()
 		button.text = RpgSystemsRowBuilder.button_text(row)
+		button.clip_text = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_font_size_override("font_size", 15)
@@ -746,6 +745,7 @@ func _refresh_category_row(tab_id: String) -> void:
 			button.focus_mode = Control.FOCUS_NONE
 			systems_category_row.add_child(button)
 		button.text = String(labels[index])
+		button.clip_text = true
 		button.visible = true
 		var category_id := _category_id_for_label(String(labels[index]))
 		button.disabled = false
