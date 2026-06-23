@@ -20,6 +20,7 @@ func _capture() -> void:
 	await process_frame
 	await process_frame
 
+	_seed_player_facing_menu_state(main)
 	if tab_id == "trade":
 		main.player.set_global_tile(Vector2i(3, -5))
 		main.selected_target_id = "npc_maera_pike_world"
@@ -49,3 +50,23 @@ func _string_arg(args: PackedStringArray, index: int, fallback: String) -> Strin
 	if index >= args.size() or args[index].is_empty():
 		return fallback
 	return args[index]
+
+
+func _seed_player_facing_menu_state(main) -> void:
+	if not main.inventory:
+		return
+	main.inventory.add_item("item_old_toolbox", 1)
+	main.inventory.add_item("item_road_hatchet", 1)
+	main.inventory.add_item("item_traveler_buckler", 1)
+	main.inventory.add_item("item_river_mint", 2)
+	main.inventory.add_item("item_roadside_draught", 1)
+	main.inventory.add_item("item_gold_coin", 25)
+	if main.equipment:
+		main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")
+		main.equipment.equip_item_to_slot("item_traveler_buckler", "left_hand")
+	if main.spells:
+		main.spells.assign_spell_to_slot("spell_fire_blast", "ability_1")
+	if main.progression:
+		main.progression.add_experience(12)
+	if main.world_state:
+		main.world_state.discover_location("location_briarwatch_crossroads")
