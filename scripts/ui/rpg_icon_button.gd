@@ -34,9 +34,16 @@ func _draw() -> void:
 
 func _draw_top_icon(color: Color) -> void:
 	var icon_size := 20.0 if compact else 25.0
-	var icon_rect := Rect2(Vector2((size.x - icon_size) * 0.5, 6.0), Vector2(icon_size, icon_size))
+	var label_fits := size.y >= 44.0
+	var icon_y := 6.0 if label_fits else (size.y - icon_size) * 0.5
+	var icon_rect := Rect2(Vector2((size.x - icon_size) * 0.5, icon_y), Vector2(icon_size, icon_size))
 	_draw_icon_badge(icon_rect, color)
-	_draw_label(Vector2(4.0, size.y - (9.0 if compact else 11.0)), size.x - 8.0, 9 if compact else 12)
+	if label_fits:
+		_draw_label(
+			Vector2(4.0, size.y - (9.0 if compact else 11.0)),
+			size.x - 8.0,
+			9 if compact else 12
+		)
 
 
 func _draw_left_icon(color: Color) -> void:
