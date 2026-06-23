@@ -3,6 +3,7 @@ extends RefCounted
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
+const RpgPortraitSilhouette = preload("res://scripts/ui/rpg_portrait_silhouette.gd")
 
 
 static func build(
@@ -38,11 +39,13 @@ static func build(
 
 	var portrait_label: Label = new_label.call(18)
 	portrait_label.name = "SystemsCharacterPortraitInitials"
-	portrait_label.text = "A"
+	portrait_label.text = ""
+	portrait_label.visible = false
 	portrait_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	portrait_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	portrait_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	portrait.add_child(portrait_label)
+	_add_portrait_art(portrait)
 
 	var title_stack := VBoxContainer.new()
 	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -97,6 +100,13 @@ static func build(
 		"hidden_label": hidden_label,
 		"new_button": new_button
 	}
+
+
+static func _add_portrait_art(parent: Control) -> void:
+	var art := RpgPortraitSilhouette.new()
+	art.name = "SystemsCharacterPortraitSilhouette"
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(art)
 
 
 static func build_equipment_only(panel: PanelContainer, add_margin: Callable) -> Dictionary:

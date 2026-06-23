@@ -132,6 +132,10 @@ func _build_status_panel() -> void:
 	portrait_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_apply_portrait_style(portrait_panel)
 	row.add_child(portrait_panel)
+	var portrait_art := RpgPortraitSilhouette.new()
+	portrait_art.name = "PortraitSilhouette"
+	portrait_art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	portrait_panel.add_child(portrait_art)
 
 	level_badge_label = _new_label(15)
 	level_badge_label.name = "LevelBadge"
@@ -908,7 +912,6 @@ func _apply_panel_style(panel: Control) -> void:
 	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
-
 func _apply_modal_panel_style(panel: Control) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.025, 0.023, 0.019, 0.96)
@@ -917,12 +920,10 @@ func _apply_modal_panel_style(panel: Control) -> void:
 	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
-
 func _new_button(text: String, min_size: Vector2) -> Button:
 	var button := super._new_button(text, min_size)
 	_apply_button_style(button)
 	return button
-
 
 func _apply_button_style(button: Button) -> void:
 	button.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
@@ -982,7 +983,6 @@ func _apply_portrait_style(panel: Panel) -> void:
 	style.set_corner_radius_all(38)
 	panel.add_theme_stylebox_override("panel", style)
 
-
 func _apply_badge_style(label: Label) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.055, 0.048, 0.038, 0.98)
@@ -991,7 +991,6 @@ func _apply_badge_style(label: Label) -> void:
 	style.set_corner_radius_all(13)
 	label.add_theme_stylebox_override("normal", style)
 	label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
-
 
 func _set_margin_constants(margin: MarginContainer, value: int) -> void:
 	margin.add_theme_constant_override("margin_left", value)

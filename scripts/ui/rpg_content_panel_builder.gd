@@ -1,6 +1,8 @@
 class_name RpgContentPanelBuilder
 extends RefCounted
 
+const RpgPortraitSilhouette = preload("res://scripts/ui/rpg_portrait_silhouette.gd")
+
 
 static func build(
 	root: Control,
@@ -57,6 +59,7 @@ static func build(
 	portrait_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	portrait_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
 	portrait_panel.add_child(portrait_label)
+	_add_portrait_art(portrait_panel)
 
 	var title_label: Label = new_label.call(22)
 	title_label.name = "ContentTitle"
@@ -289,13 +292,14 @@ static func apply_mode(
 	portrait_label: Label,
 	choice_panel: PanelContainer,
 	close_button: Button,
-	title: String,
+	_title: String,
 	choices: Array,
 	kind: String
 ) -> void:
 	var normalized := kind.to_lower()
 	if portrait_label:
-		portrait_label.text = _identity_text(title, normalized)
+		portrait_label.text = ""
+		portrait_label.visible = false
 	if close_button:
 		var has_choices := _has_valid_choices(choices)
 		close_button.text = "Leave" if normalized == "dialogue" else "Close"
@@ -320,30 +324,11 @@ static func _place_close_button(
 	target_parent.add_child(close_button)
 
 
-static func _identity_text(title: String, kind: String) -> String:
-	match kind:
-		"dialogue":
-			return _initials_for_title(title)
-		"readable":
-			return "R"
-		"place":
-			return "P"
-		"response":
-			return "OK"
-	return _initials_for_title(title)
-
-
-static func _initials_for_title(title: String) -> String:
-	var parts := title.strip_edges().split(" ", false)
-	var letters: Array[String] = []
-	for part in parts:
-		var clean := String(part).strip_edges()
-		if clean.is_empty():
-			continue
-		letters.append(clean.substr(0, 1).to_upper())
-		if letters.size() >= 2:
-			break
-	return "?" if letters.is_empty() else "".join(letters)
+static func _add_portrait_art(parent: Control) -> void:
+	var art := RpgPortraitSilhouette.new()
+	art.name = "ContentPortraitSilhouette"
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(art)
 
 
 static func _has_valid_choices(choices: Array) -> bool:

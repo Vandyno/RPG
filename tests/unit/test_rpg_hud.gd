@@ -367,7 +367,7 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)
 	assert_true(hud.content_identity_panel.visible)
 	assert_true(hud.content_portrait_panel.visible)
-	assert_eq(hud.content_portrait_label.text, "HV")
+	assert_eq(hud.content_portrait_label.text, "")
 	assert_true(hud.content_preview_panel.visible)
 	var preview_title := hud.content_preview_panel.find_child(
 		"ContentPreviewTitle", true, false
@@ -422,7 +422,7 @@ func test_rpg_content_panel_uses_readable_mode_without_empty_choice_lane() -> vo
 
 	assert_true(hud.is_content_card_visible())
 	assert_eq(hud.content_kind_label.text, "Readable")
-	assert_eq(hud.content_portrait_label.text, "R")
+	assert_eq(hud.content_portrait_label.text, "")
 	assert_false(hud.content_choice_panel.visible)
 	var close_button := hud.content_panel.find_child("ContentCloseButton", true, false) as Button
 	assert_not_null(close_button)
