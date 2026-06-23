@@ -673,6 +673,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	var rows := RpgSystemsRowBuilder.rows(
 		state, systems_active_tab, message_log, systems_active_category
 	)
+	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	_refresh_category_row(systems_active_tab)
 	if not RpgSystemsRowBuilder.has_id(rows, systems_selected_row_id):
 		systems_selected_row_id = String(rows[0].get("id", "")) if not rows.is_empty() else ""
@@ -681,7 +682,8 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var button := _systems_row_button(index)
 		button.name = "SystemsRow_%s" % String(row.get("id", "")).to_pascal_case()
 		button.text = RpgSystemsRowBuilder.button_text(row)
-		button.clip_text = true
+		button.clip_text = false; button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.custom_minimum_size.y = 82 if compact else 68
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_font_size_override("font_size", 15)
@@ -707,14 +709,13 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
 
-
 func _systems_row_button(index: int) -> Button:
 	if index < systems_item_list.get_child_count():
 		var existing := systems_item_list.get_child(index)
 		if existing is Button:
 			return existing
 	var button := RpgInventoryItemButton.new()
-	button.custom_minimum_size = Vector2(0, 68)
+	button.custom_minimum_size = Vector2(0, 82 if applied_layout_size.x < 980.0 else 68)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
 	_apply_button_style(button)
@@ -785,8 +786,7 @@ func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
 	inventory_item_selected.emit("assign_spell:%s:%s" % [spell_id, slot_id])
 
 func _category_id_for_label(label: String) -> String:
-	return label.to_lower()
-
+	return "restoration" if label == "Restore" else label.to_lower()
 
 func _default_category_for_tab(tab_id: String) -> String:
 	return {

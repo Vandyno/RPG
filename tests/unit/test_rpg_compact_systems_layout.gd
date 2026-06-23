@@ -1,0 +1,100 @@
+extends GutTest
+
+
+func test_compact_system_rows_wrap_long_player_text() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.show_systems_panel("trade")
+
+	var row := _button_containing(hud.systems_item_list, "Roadside Draught")
+	assert_not_null(row)
+	assert_eq(row.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART)
+	assert_gte(row.custom_minimum_size.y, 82.0)
+	assert_true(row.text.contains("Crossroads Peddler"))
+
+
+func test_spell_categories_use_compact_readable_labels() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.show_systems_panel("spells")
+
+	var restore := _button_containing(hud.systems_category_row, "Restore")
+	assert_not_null(restore)
+	restore.pressed.emit()
+	assert_eq(hud.systems_active_category, "restoration")
+	assert_null(_button_containing(hud.systems_category_row, "Restoration"))
+
+
+func _new_hud() -> RpgHud:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var hud := RpgHud.new()
+	add_child_autofree(hud)
+	hud.setup(bus, Callable(self, "_sample_state"))
+	return hud
+
+
+func _sample_state() -> Dictionary:
+	return {
+		"player_health": "100/100",
+		"player_health_value": 100,
+		"player_max_health": 100,
+		"locations": "Briarwatch Crossroads",
+		"inventory": "Roadside Draught x1",
+		"inventory_items":
+		[
+			{
+				"item_id": "item_roadside_draught",
+				"name": "Roadside Draught",
+				"count": 1,
+				"type": "consumable",
+				"tags": ["consumable"],
+				"value": 12,
+				"weight": 0.3,
+				"description": "A bitter green tonic."
+			}
+		],
+		"spells":
+		[
+			{
+				"spell_id": "spell_fire_blast",
+				"name": "Fire Blast",
+				"school": "Fire",
+				"mana_cost": 5,
+				"range": "6 tiles",
+				"behavior": "Launches a direct burst of flame at the selected target.",
+				"assigned_label": "Ability I"
+			}
+		],
+		"spell_slots":
+		{
+			"ability_1":
+			{
+				"slot": "ability_1",
+				"slot_label": "Ability I",
+				"spell_id": "spell_fire_blast",
+				"name": "Fire Blast",
+				"mana_cost": 5
+			},
+			"ability_2": {"slot": "ability_2", "slot_label": "Ability II", "spell_id": ""},
+			"ability_3": {"slot": "ability_3", "slot_label": "Ability III", "spell_id": ""}
+		},
+		"trade":
+		(
+			"Crossroads Peddler\n"
+			+ "Hours: 08:00-18:00\n"
+			+ "Gold: 25\n\n"
+			+ "Stock:\n"
+			+ "- Roadside Draught: 8g\n\n"
+			+ "Sell: none"
+		),
+		"trade_actions": [{"id": "buy:item_roadside_draught", "text": "Buy Roadside Draught"}],
+		"time": "Day 1, 08:00"
+	}
+
+
+func _button_containing(parent: Node, text: String) -> Button:
+	for child in parent.get_children():
+		if child is Button and child.visible and child.text.contains(text):
+			return child
+	return null

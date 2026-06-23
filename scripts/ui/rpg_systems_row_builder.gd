@@ -25,7 +25,7 @@ static func rows(
 static func category_labels(tab_id: String) -> Array[String]:
 	var labels: Array = {
 		"inventory": ["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"],
-		"spells": ["All", "Fire", "Frost", "Storm", "Restoration", "Utility"],
+		"spells": ["All", "Fire", "Frost", "Storm", "Restore", "Utility"],
 		"character": ["Overview", "Training", "Gear", "Effects"],
 		"quests": ["Active", "Routes", "Rewards"],
 		"map": ["Known", "Routes", "Nearby"],
