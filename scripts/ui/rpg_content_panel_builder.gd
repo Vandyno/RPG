@@ -28,11 +28,14 @@ static func build(
 
 	var outer := HBoxContainer.new()
 	outer.name = "ContentDialogueRow"
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_theme_constant_override("separation", 8)
 	add_margin.call(panel, outer, 10)
 
 	var identity_panel: PanelContainer = new_panel.call("ContentIdentityPanel")
 	identity_panel.custom_minimum_size = Vector2(188, 0)
+	identity_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	outer.add_child(identity_panel)
 
 	var identity_stack := VBoxContainer.new()
@@ -84,6 +87,7 @@ static func build(
 	var right_stack := VBoxContainer.new()
 	right_stack.name = "ContentRightStack"
 	right_stack.custom_minimum_size = Vector2(286, 0)
+	right_stack.size_flags_horizontal = Control.SIZE_SHRINK_END
 	right_stack.add_theme_constant_override("separation", 8)
 	outer.add_child(right_stack)
 
@@ -186,27 +190,25 @@ static func apply_layout(
 	content_panel.offset_bottom = -8 if compact else -12
 	content_panel.offset_top = -328 if compact else -246
 	content_panel.custom_minimum_size = (
-		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 320)
-		if compact
-		else Vector2.ZERO
+		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 320) if compact else Vector2.ZERO
 	)
 	if content_panel.offset_top < -viewport_size.y + hud_margin:
 		content_panel.offset_top = -viewport_size.y + hud_margin
 	if identity_panel:
-		identity_panel.visible = not compact
-		identity_panel.custom_minimum_size = Vector2(0, 0) if compact else Vector2(188, 0)
+		identity_panel.visible = true
+		identity_panel.custom_minimum_size = Vector2(96, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(228, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(212, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(228, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(212, 0) if compact else Vector2(0, 0)
 	if preview_panel:
 		preview_panel.visible = false if compact else preview_panel.visible
 		preview_panel.custom_minimum_size = Vector2(0, 0) if compact else Vector2(220, 0)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 10 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 13 if compact else 22)
 	if kind_label:
 		kind_label.add_theme_font_size_override("font_size", 11 if compact else 14)
 	if body_label:
@@ -239,7 +241,9 @@ static func apply_mode(
 		portrait_label.text = _identity_text(title, normalized)
 	if close_button:
 		close_button.text = "Leave" if normalized == "dialogue" else "Close"
-		close_button.tooltip_text = "Leave conversation" if normalized == "dialogue" else "Close panel"
+		close_button.tooltip_text = (
+			"Leave conversation" if normalized == "dialogue" else "Close panel"
+		)
 		close_button.visible = not _has_valid_choices(choices)
 	if choice_panel:
 		choice_panel.visible = _has_valid_choices(choices)
