@@ -130,7 +130,7 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true(ability.text.contains("5"))
 	assert_true(ability.tooltip_text.contains("Fire Blast"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
-	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
+	assert_false((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
 
 func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:

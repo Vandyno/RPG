@@ -128,13 +128,15 @@ static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> v
 		var spell_name := String(slot_data.get("name", ""))
 		var cost := int(slot_data.get("mana_cost", 0))
 		if spell_name.is_empty():
-			button.text = "%s\nEmpty" % _slot_index_text(String(slot_id))
+			button.text = _slot_index_text(String(slot_id))
 			button.tooltip_text = "Empty ability slot"
 			button.set_meta("spell_id", "")
+			button.set_meta("ability_empty", true)
 		else:
 			button.text = "%s\n%d" % [_short_spell_label(spell_name), cost]
 			button.tooltip_text = "Cast %s" % spell_name
 			button.set_meta("spell_id", String(slot_data.get("spell_id", "")))
+			button.set_meta("ability_empty", false)
 
 
 static func _aim_joystick(
