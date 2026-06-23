@@ -497,7 +497,10 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(draught_row)
 	assert_true(draught_row.text.contains("8g"))
 	assert_false(draught_row.text.contains("Trade\nTrade"))
+	assert_null(_button_containing(hud.systems_item_list, "Nothing to Sell"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Buy Roadside Draught"))
+	_press_category(hud, "Sell")
+	assert_not_null(_button_containing(hud.systems_item_list, "Nothing to Sell"))
 	assert_false(hud.systems_detail_equipment_panel.visible)
 
 	hud.set_systems_tab("character")

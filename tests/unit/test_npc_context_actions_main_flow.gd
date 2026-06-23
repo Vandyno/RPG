@@ -112,6 +112,7 @@ func test_trade_feedback_reports_price_and_remaining_gold() -> void:
 	assert_eq(main.inventory.get_count("item_roadside_draught"), 1)
 	assert_true(main.hud.log_label.text.contains("Bought Roadside Draught. Spent 8g. Gold: 0."))
 
+	main.hud._select_systems_category("sell")
 	_button_containing(main.hud.systems_action_list, "Sell Roadside Draught").pressed.emit()
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 6)

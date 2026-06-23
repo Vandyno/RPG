@@ -629,7 +629,7 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 static func _category_filtered_rows(
 	rows_data: Array[Dictionary], category: String
 ) -> Array[Dictionary]:
-	var passthrough := ["all", "overview", "active", "known", "stock"]
+	var passthrough := ["all", "overview", "active", "known"]
 	if category.is_empty() or passthrough.has(category):
 		return rows_data
 	var filtered: Array[Dictionary] = []
@@ -668,9 +668,24 @@ static func _row_matches_category(row_text: String, category: String) -> bool:
 				or row_text.contains("load")
 			)
 		"system":
-			return row_text.contains("system") or row_text.contains("save") or row_text.contains("load")
+			return (
+				row_text.contains("system")
+				or row_text.contains("save")
+				or row_text.contains("load")
+			)
+		"stock":
+			return (
+				row_text.contains("trade_merchant")
+				or row_text.contains("trade_stock")
+				or row_text.contains("buy ")
+				or row_text.contains("available")
+			)
 		"buy":
-			return row_text.contains("stock") or row_text.contains("buy") or row_text.contains("available")
+			return (
+				row_text.contains("trade_stock")
+				or row_text.contains("buy ")
+				or row_text.contains("available")
+			)
 		"sell":
 			return row_text.contains("sell")
 	return row_text.contains(category)
