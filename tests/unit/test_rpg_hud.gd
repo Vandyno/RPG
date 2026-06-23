@@ -698,7 +698,7 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var status_rect := _top_left_rect(hud.status_panel)
-	var message_rect := _top_left_rect(hud.message_panel)
+	var message_rect := _anchored_rect(hud.message_panel, Vector2(640, 360))
 	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
 	var move_rect := _anchored_rect(hud.move_pad, Vector2(640, 360))
 	var content_rect := _anchored_rect(hud.content_panel, Vector2(640, 360))

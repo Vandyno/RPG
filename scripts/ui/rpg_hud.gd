@@ -464,7 +464,6 @@ func _refresh_systems_tabs() -> void:
 			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
 		)
 
-
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
 	if prompt_panel:
@@ -478,6 +477,7 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	RpgTargetPanelBuilder.apply_layout(target_panel, target_list, viewport_size, compact, HUD_MARGIN)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
+	_layout_message_panel(viewport_size, compact)
 
 func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	var size := COMPACT_STATUS_PANEL_SIZE if compact else STATUS_PANEL_SIZE
@@ -492,6 +492,17 @@ func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	health_label.add_theme_font_size_override("font_size", 11 if compact else 13)
 	health_label.visible = true
 
+func _layout_message_panel(viewport_size: Vector2, compact: bool) -> void:
+	if not compact or not message_panel or not move_pad or not action_buttons:
+		return
+	var action_left := viewport_size.x + action_buttons.offset_left
+	message_panel.anchor_top = 1.0
+	message_panel.anchor_bottom = 1.0
+	message_panel.offset_top = -62.0
+	message_panel.offset_bottom = -12.0
+	message_panel.offset_left = move_pad.offset_right + HUD_MARGIN
+	message_panel.offset_right = action_left - HUD_MARGIN
+	message_panel.visible = message_panel.offset_right - message_panel.offset_left >= MESSAGE_MIN_WIDTH
 func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	if not location_banner_panel:
 		return
@@ -631,11 +642,9 @@ func _press_target_control() -> void:
 	else:
 		cycle_target_pressed.emit()
 
-
 func _hold_target_control() -> void:
 	if not is_target_picker_visible():
 		toggle_target_picker()
-
 
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
@@ -812,7 +821,6 @@ func _systems_detail_title() -> String:
 
 func _refresh_systems_actions(_state: Dictionary) -> void: pass
 
-
 func _refresh_content_choices(choices: Array) -> void:
 	if not content_choice_list:
 		return
@@ -845,7 +853,6 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if content_preview_panel:
 		content_preview_panel.visible = not content_preview_label.text.is_empty()
 
-
 func _refresh_target_picker(state: Dictionary) -> void:
 	if not target_list or not target_panel.visible:
 		return
@@ -856,7 +863,6 @@ func _refresh_target_picker(state: Dictionary) -> void:
 		func(entity_id: String) -> void: target_used.emit(entity_id),
 		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
-
 
 func _refresh_context_actions(state: Dictionary) -> void:
 	if not context_action_buttons:
@@ -878,7 +884,6 @@ func _refresh_context_actions(state: Dictionary) -> void:
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = visible_context_action_count > 0
-
 
 func _emit_quick_action(action_id: String, context_mode: bool) -> void:
 	if context_mode:
@@ -926,7 +931,6 @@ func _apply_button_style(button: Button) -> void:
 	button.add_theme_stylebox_override("pressed", _button_style(Color(0.16, 0.20, 0.10, 0.98)))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-
 func _apply_row_button_style(button: Button, selected: bool) -> void:
 	var base := Color(0.045, 0.043, 0.036, 0.92)
 	var border := Color(0.72, 0.56, 0.32, 0.68)
@@ -945,7 +949,6 @@ func _apply_row_button_style(button: Button, selected: bool) -> void:
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-
 func _apply_primary_action_style(button: Button) -> void:
 	var border := Color(0.92, 0.76, 0.42, 0.92)
 	button.add_theme_color_override("font_color", Color(1.0, 0.92, 0.74))
@@ -960,10 +963,8 @@ func _apply_primary_action_style(button: Button) -> void:
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-
 func _button_style(color: Color) -> StyleBoxFlat:
 	return _button_style_with_border(color, Color(0.72, 0.56, 0.32, 0.68))
-
 
 func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -972,7 +973,6 @@ func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFla
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	return style
-
 
 func _apply_portrait_style(panel: Panel) -> void:
 	var style := StyleBoxFlat.new()
