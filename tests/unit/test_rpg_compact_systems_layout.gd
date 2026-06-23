@@ -96,6 +96,18 @@ func test_navigation_controls_use_icon_buttons() -> void:
 	assert_true((hud.systems_tab_buttons["inventory"] as RpgIconButton).compact)
 
 
+func test_action_cluster_utility_controls_use_icon_buttons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
+	assert_not_null(utility_stack)
+	for id in ["inventory", "target", "menu"]:
+		var button := utility_stack.find_child("%sButton" % id.to_pascal_case(), true, false)
+		assert_true(button is RpgIconButton)
+		assert_eq((button as RpgIconButton).icon_kind, id)
+		assert_eq((button as RpgIconButton).icon_layout, "top")
+
+
 func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))

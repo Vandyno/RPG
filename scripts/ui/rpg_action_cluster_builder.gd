@@ -2,6 +2,7 @@ class_name RpgActionClusterBuilder
 extends RefCounted
 
 const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
+const RpgIconButton = preload("res://scripts/ui/rpg_icon_button.gd")
 
 
 static func build(
@@ -99,6 +100,10 @@ static func apply_layout(
 				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
 				_apply_utility_style(nested, compact)
+				if nested is RpgIconButton:
+					var icon := String(nested.get_meta("action_kind", ""))
+					(nested as RpgIconButton).set_compact(compact)
+					(nested as RpgIconButton).setup_icon(icon, "top")
 
 	var ability_stack := cluster.find_child("AbilityButtonStack", true, false) as VBoxContainer
 	if ability_stack:
@@ -167,12 +172,13 @@ static func _aim_joystick(
 static func _utility_button(
 	text: String, action_kind: String, tooltip: String, size: Vector2
 ) -> Button:
-	var button := Button.new()
+	var button := RpgIconButton.new()
 	button.name = "%sButton" % action_kind.to_pascal_case()
 	button.text = text
 	button.custom_minimum_size = size
 	button.tooltip_text = tooltip
 	button.focus_mode = Control.FOCUS_NONE
+	button.setup_icon(action_kind, "top")
 	button.set_meta("action_kind", action_kind)
 	button.set_meta("action_role", "utility")
 	button.set_meta("action_shape", "round_utility")

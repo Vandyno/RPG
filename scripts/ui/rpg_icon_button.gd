@@ -73,6 +73,8 @@ func _draw_icon_badge(rect: Rect2, color: Color) -> void:
 			_draw_map(center, radius, color)
 		"menu":
 			_draw_menu(center, radius, color)
+		"target":
+			_draw_target(center, radius, color)
 		"inventory":
 			_draw_bag(center, radius, color)
 		"spells":
@@ -144,6 +146,15 @@ func _draw_map(center: Vector2, radius: float, color: Color) -> void:
 func _draw_menu(center: Vector2, radius: float, color: Color) -> void:
 	for y in [-0.55, 0.0, 0.55]:
 		draw_line(center + Vector2(-radius, radius * y), center + Vector2(radius, radius * y), color, 2.0)
+
+
+func _draw_target(center: Vector2, radius: float, color: Color) -> void:
+	draw_arc(center, radius, 0.0, TAU, 36, color, 1.8)
+	draw_circle(center, radius * 0.22, color)
+	draw_line(center + Vector2(-radius, 0), center + Vector2(-radius * 0.45, 0), color, 1.5)
+	draw_line(center + Vector2(radius * 0.45, 0), center + Vector2(radius, 0), color, 1.5)
+	draw_line(center + Vector2(0, -radius), center + Vector2(0, -radius * 0.45), color, 1.5)
+	draw_line(center + Vector2(0, radius * 0.45), center + Vector2(0, radius), color, 1.5)
 
 
 func _draw_bag(center: Vector2, radius: float, color: Color) -> void:
