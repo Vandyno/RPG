@@ -587,10 +587,10 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_main_row:
 		systems_main_row.add_theme_constant_override("separation", 6 if compact else 10)
 	if systems_left_panel:
-		systems_left_panel.custom_minimum_size = Vector2(116, 0) if compact else Vector2(176, 0)
+		systems_left_panel.custom_minimum_size = Vector2(92, 0) if compact else Vector2(176, 0)
 	if systems_detail_panel:
 		systems_detail_panel.visible = true
-		systems_detail_panel.custom_minimum_size = Vector2(156, 0) if compact else Vector2(220, 0)
+		systems_detail_panel.custom_minimum_size = Vector2(184, 0) if compact else Vector2(220, 0)
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
@@ -607,7 +607,7 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		systems_subtitle_label.add_theme_font_size_override("font_size", 11 if compact else 15)
 	for button in systems_tab_buttons.values():
 		if button is Button:
-			button.custom_minimum_size = Vector2(96, 40) if compact else Vector2(150, 54)
+			button.custom_minimum_size = Vector2(72, 38) if compact else Vector2(150, 54)
 			button.add_theme_font_size_override("font_size", 11 if compact else 15)
 	if systems_item_list:
 		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)

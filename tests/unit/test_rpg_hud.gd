@@ -533,9 +533,9 @@ func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	assert_true(hud.systems_center_panel.visible)
 	assert_true(hud.systems_category_row.visible)
 	assert_true(hud.systems_item_list.visible)
-	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
-	assert_lte(hud.systems_detail_panel.custom_minimum_size.x, 156.0)
-	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
+	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 92.0)
+	assert_gte(hud.systems_detail_panel.custom_minimum_size.x, 184.0)
+	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(72, 38))
 	assert_eq(hud.systems_action_list, hud.systems_item_list)
 
 
