@@ -30,7 +30,7 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.location_banner_panel.visible)
 	assert_eq(hud.location_banner_label.text, "Briarwatch")
 	assert_true(hud.top_nav_panel.visible)
-	assert_eq(_button_texts(hud.top_nav_buttons), ["Quests", "Journal", "Map", "Menu"])
+	assert_eq(_button_texts(hud.top_nav_buttons), ["Q\nQuests", "J\nJournal", "M\nMap", "=\nMenu"])
 	assert_true(hud.status_label.text.contains("Adventurer"))
 	assert_true(hud.status_label.text.contains("Level 2"))
 	assert_true(hud.status_label.text.contains("Quest: The Missing Tools"))

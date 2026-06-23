@@ -381,10 +381,10 @@ func _build_top_nav() -> void:
 	top_nav_buttons.add_theme_constant_override("separation", 6)
 	_add_margin(top_nav_panel, top_nav_buttons, 8)
 
-	_add_nav_button("Quests", func() -> void: show_systems_panel("quests"))
-	_add_nav_button("Journal", func() -> void: show_systems_panel("journal"))
-	_add_nav_button("Map", func() -> void: show_systems_panel("map"))
-	_add_nav_button("Menu", toggle_systems)
+	_add_nav_button("Q\nQuests", func() -> void: show_systems_panel("quests"))
+	_add_nav_button("J\nJournal", func() -> void: show_systems_panel("journal"))
+	_add_nav_button("M\nMap", func() -> void: show_systems_panel("map"))
+	_add_nav_button("=\nMenu", toggle_systems)
 
 
 func _add_nav_button(text: String, callback: Callable) -> void:
