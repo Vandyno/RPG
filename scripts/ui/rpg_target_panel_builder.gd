@@ -7,8 +7,8 @@ static func build(
 	new_panel: Callable,
 	add_margin: Callable,
 	new_label: Callable,
-	new_button: Callable,
-	close_callback: Callable
+	_new_button: Callable,
+	_close_callback: Callable
 ) -> Dictionary:
 	var panel: PanelContainer = new_panel.call("TargetPanel")
 	panel.anchor_left = 1.0
@@ -46,11 +46,6 @@ static func build(
 	subtitle.text = "Pick what your next command should use."
 	subtitle.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	title_stack.add_child(subtitle)
-
-	var close: Button = new_button.call("Close", Vector2(92, 40))
-	close.name = "TargetCloseButton"
-	close.pressed.connect(close_callback)
-	header.add_child(close)
 
 	var scroll := ScrollContainer.new()
 	scroll.name = "TargetScroll"
@@ -123,9 +118,6 @@ static func apply_layout(
 	var subtitle := target_panel.find_child("TargetSubtitle", true, false) as Label
 	if subtitle:
 		subtitle.visible = not compact
-	var close := target_panel.find_child("TargetCloseButton", true, false) as Button
-	if close:
-		close.visible = compact
 	var title := target_panel.find_child("TargetTitle", true, false) as Label
 	if title:
 		title.add_theme_font_size_override("font_size", 16 if compact else 18)

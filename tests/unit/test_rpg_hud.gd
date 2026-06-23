@@ -158,9 +158,9 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_false(hud.move_pad.visible)
 
 	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
-	assert_not_null(close)
-	assert_true(close.visible)
-	close.pressed.emit()
+	assert_null(close)
+	assert_eq(hud.target_action_button.text, "X\nClose")
+	hud.target_action_button.pressed.emit()
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
 	assert_true(hud.move_pad.visible)
