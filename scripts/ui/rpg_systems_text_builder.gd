@@ -38,7 +38,7 @@ static func detail_text(state: Dictionary, tab_id: String) -> String:
 		"inventory":
 			return _first_non_empty(
 				String(state.get("inventory_details", "")),
-				"No carried item details yet."
+				"Select an item to see details."
 			)
 		"spells":
 			return "Drag known spells into Ability I, II, or III."

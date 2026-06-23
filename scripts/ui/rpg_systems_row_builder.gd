@@ -98,8 +98,8 @@ static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictio
 	if rows_data.is_empty():
 		rows_data.append({
 			"id": "inventory_empty",
-			"title": "Empty Pack",
-			"subtitle": "No carried items.",
+			"title": "Pack Empty",
+			"subtitle": "Nothing in your pack.",
 			"meta": "Inventory",
 			"detail": "Your pack is empty."
 		})
@@ -145,7 +145,7 @@ static func _empty_inventory_category(category: String) -> Dictionary:
 		"title": "No %s" % label,
 		"subtitle": "Nothing in this category.",
 		"meta": label,
-		"detail": "No %s carried." % label.to_lower()
+		"detail": "No %s in your pack." % label.to_lower()
 	}
 
 
@@ -587,9 +587,9 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 			rows_data.append({
 				"id": "trade_sell_empty",
 				"title": "Nothing to Sell",
-				"subtitle": "No carried goods the merchant wants.",
+				"subtitle": "No sellable goods in your pack.",
 				"meta": "Sell",
-				"detail": "No sellable carried items."
+				"detail": "No sellable items in your pack."
 			})
 		for action in _array_field(state.get("trade_actions", [])):
 			if not action is Dictionary:
