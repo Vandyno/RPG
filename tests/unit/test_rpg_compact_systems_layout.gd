@@ -102,6 +102,26 @@ func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	assert_true(forge.text.begins_with("S  "))
 
 
+func test_desktop_quick_actions_do_not_cover_action_cluster() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud._refresh_context_actions(
+		{
+			"nearby": "Rest Bridge Campfire",
+			"context_actions":
+			[
+				{"id": "dialogue:accept", "text": "I'll find it."},
+				{"id": "poi:sharpen", "text": "Sharpen Road Hatchet"},
+				{"id": "trade:shop_crossroads_peddler", "text": "Trade"}
+			]
+		}
+	)
+
+	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(1152, 648))
+	for action_rect in _visible_button_rects(hud.action_buttons):
+		assert_false(quick_rect.intersects(action_rect))
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
@@ -175,3 +195,20 @@ func _button_containing(parent: Node, text: String) -> Button:
 		if child is Button and child.visible and child.text.contains(text):
 			return child
 	return null
+
+
+func _visible_button_rects(parent: Node) -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for child in parent.get_children():
+		if child is Button and child.visible:
+			rects.append((child as Button).get_global_rect())
+		rects.append_array(_visible_button_rects(child))
+	return rects
+
+
+func _anchored_rect(panel: Control, viewport_size: Vector2) -> Rect2:
+	var left := panel.anchor_left * viewport_size.x + panel.offset_left
+	var right := panel.anchor_right * viewport_size.x + panel.offset_right
+	var top := panel.anchor_top * viewport_size.y + panel.offset_top
+	var bottom := panel.anchor_bottom * viewport_size.y + panel.offset_bottom
+	return Rect2(Vector2(left, top), Vector2(right - left, bottom - top))

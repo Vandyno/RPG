@@ -29,7 +29,8 @@ static func build(
 	var utility_buttons := {}
 	for data in [
 		{"id": "inventory", "text": "I\nInv", "tooltip": "Inventory"},
-		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."}
+		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."},
+		{"id": "menu", "text": "=\nMenu", "tooltip": "Open systems menu"}
 	]:
 		var utility := _utility_button(
 			String(data["text"]), String(data["id"]), String(data["tooltip"]), Vector2(56, 56)
@@ -86,12 +87,12 @@ static func apply_layout(
 
 	var utility_row := cluster.find_child("UtilityButtonStack", true, false) as HBoxContainer
 	if utility_row:
-		utility_row.position = Vector2(66, 0) if compact else Vector2(104, 0)
-		utility_row.size = Vector2(124, 38) if compact else Vector2(148, 52)
+		utility_row.position = Vector2(44, 0) if compact else Vector2(52, 0)
+		utility_row.size = Vector2(146, 38) if compact else Vector2(218, 52)
 		utility_row.add_theme_constant_override("separation", 5 if compact else 6)
 		for nested in utility_row.get_children():
 			if nested is Button:
-				nested.custom_minimum_size = Vector2(54, 36) if compact else Vector2(68, 48)
+				nested.custom_minimum_size = Vector2(44, 36) if compact else Vector2(68, 48)
 				nested.size = nested.custom_minimum_size
 				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 				nested.add_theme_font_size_override("font_size", 8 if compact else 10)

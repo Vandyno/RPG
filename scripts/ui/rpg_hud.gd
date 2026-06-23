@@ -390,7 +390,6 @@ func _build_touch_controls() -> void:
 	move_pad = move_nodes["move_pad"]
 	move_knob = move_nodes["move_knob"]
 	_update_move_knob()
-
 	var aim_action := func(action_id: String, direction: Vector2) -> void:
 		aim_action_released.emit(action_id, direction)
 	var action_nodes := RpgActionClusterBuilder.build(root, aim_action)
@@ -399,8 +398,9 @@ func _build_touch_controls() -> void:
 	ability_slot_buttons = action_nodes["ability_buttons"]
 	var utility_buttons := action_nodes["utility_buttons"] as Dictionary
 	(utility_buttons["inventory"] as Button).pressed.connect(
-		func() -> void: show_systems_panel("inventory")
+		Callable(self, "show_systems_panel").bind("inventory")
 	)
+	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
 	target_action_button = utility_buttons["target"] as Button
 	HoldActionButton.bind(
 		target_action_button,

@@ -236,14 +236,16 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_not_null(utility_stack)
 	var inventory := utility_stack.find_child("InventoryButton", true, false) as Button
 	var target := utility_stack.find_child("TargetButton", true, false) as Button
-	assert_not_null(inventory)
+	var menu := utility_stack.find_child("MenuButton", true, false) as Button
 	assert_not_null(target)
-	assert_null(utility_stack.find_child("MenuButton", true, false))
 	assert_eq(hud.target_action_button, target)
 
 	inventory.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "inventory")
+	hud.hide_systems_panel()
+	menu.pressed.emit()
+	assert_true(hud.is_systems_panel_visible())
 
 	hud.hide_systems_panel()
 	var attack := hud.primary_action_button as RpgAimJoystick
