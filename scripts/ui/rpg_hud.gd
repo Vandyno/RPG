@@ -1,6 +1,7 @@
 class_name RpgHud
 extends HudShell
 signal aim_action_released(action_id: String, direction: Vector2)
+signal aim_action_held(action_id: String, direction: Vector2, delta: float)
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
@@ -144,17 +145,14 @@ func _build_status_panel() -> void:
 	level_badge_label.size = Vector2(26, 26)
 	_apply_badge_style(level_badge_label)
 	portrait_panel.add_child(level_badge_label)
-
 	var stack := VBoxContainer.new()
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stack.add_theme_constant_override("separation", 5)
 	row.add_child(stack)
-
 	status_label = _new_label(16)
 	status_label.name = "PlayerStatus"
 	status_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
 	stack.add_child(status_label)
-
 	health_bar = ProgressBar.new()
 	health_bar.custom_minimum_size = Vector2(0, 12)
 	health_bar.show_percentage = false
@@ -390,7 +388,9 @@ func _build_touch_controls() -> void:
 	_update_move_knob()
 	var aim_action := func(action_id: String, direction: Vector2) -> void:
 		aim_action_released.emit(action_id, direction)
-	var action_nodes := RpgActionClusterBuilder.build(root, aim_action)
+	var held_action := func(action_id: String, direction: Vector2, delta: float) -> void:
+		aim_action_held.emit(action_id, direction, delta)
+	var action_nodes := RpgActionClusterBuilder.build(root, aim_action, held_action)
 	action_buttons = action_nodes["cluster"]
 	primary_action_button = action_nodes["primary"]
 	ability_slot_buttons = action_nodes["ability_buttons"]
@@ -626,10 +626,12 @@ func _refresh_player_status(state: Dictionary) -> void:
 	status_label.text = "\n".join(RpgStatusTextBuilder.lines(
 		state, progression_text, applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	))
-	health_label.text = "Health %d/%d" % [
-		int(health_bar.value),
-		int(health_bar.max_value)
-	]
+	var health_text := "HP %d/%d" % [int(health_bar.value), int(health_bar.max_value)]
+	var mana := int(roundf(float(state.get("player_mana_value", 0.0))))
+	var max_mana := int(roundf(float(state.get("player_max_mana", 0.0))))
+	var mana_text := "MP %d/%d" % [mana, max_mana]
+	var separator := "\n" if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else "  "
+	health_label.text = "%s%s%s" % [health_text, separator, mana_text]
 	_refresh_systems_chrome(state)
 
 func _refresh_target_action_button(state: Dictionary) -> void:

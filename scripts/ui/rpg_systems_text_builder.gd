@@ -34,8 +34,9 @@ static func resource_text(state: Dictionary) -> String:
 	var time := String(state.get("time", "Day 1, 08:00"))
 	var carry := _carry_weight(_array_field(state.get("inventory_items", [])))
 	var capacity := maxf(1.0, float(state.get("carry_capacity", 90.0)))
-	return "Gold %d     Load %s/%s     %s" % [
-		gold, _format_weight(carry), _format_weight(capacity), _short_time(time)
+	var mana := String(state.get("player_mana", "0/0"))
+	return "Gold %d     MP %s     Load %s/%s     %s" % [
+		gold, mana, _format_weight(carry), _format_weight(capacity), _short_time(time)
 	]
 
 
@@ -69,7 +70,8 @@ static func detail_text(state: Dictionary, tab_id: String) -> String:
 
 static func character_text(state: Dictionary) -> String:
 	var lines: Array[String] = []
-	lines.append(String(state.get("player_health", "Health unknown")))
+	lines.append("Health %s" % String(state.get("player_health", "unknown")))
+	lines.append("Mana %s" % String(state.get("player_mana", "unknown")))
 	lines.append(String(state.get("progression", "Level 1")))
 	lines.append("")
 	lines.append(String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty")))
@@ -83,10 +85,12 @@ static func character_text(state: Dictionary) -> String:
 static func character_rows(state: Dictionary) -> Array[Dictionary]:
 	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
 	var statuses := String(state.get("statuses", "none"))
+	var health := String(state.get("player_health", "unknown"))
+	var mana := String(state.get("player_mana", "unknown"))
 	return [
 		{
 			"title": "Vitals",
-			"value": String(state.get("player_health", "Health unknown"))
+			"value": "Health %s\nMana %s" % [health, mana]
 		},
 		{
 			"title": "Training",

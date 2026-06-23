@@ -310,6 +310,9 @@ func _sample_state() -> Dictionary:
 		"player_health": "100/100",
 		"player_health_value": 100,
 		"player_max_health": 100,
+		"player_mana": "100/100",
+		"player_mana_value": 100,
+		"player_max_mana": 100,
 		"locations": "Briarwatch Crossroads",
 		"inventory": "Roadside Draught x1",
 		"inventory_items":
@@ -332,8 +335,9 @@ func _sample_state() -> Dictionary:
 				"name": "Fire Blast",
 				"school": "Fire",
 				"mana_cost": 5,
+				"mana_drain_per_second": 8,
 				"range": "6 tiles",
-				"behavior": "Launches a direct burst of flame at the selected target.",
+				"behavior": "Channels a short flamethrower in the aimed direction while held.",
 				"assigned_label": "Ability I"
 			}
 		],
@@ -345,7 +349,8 @@ func _sample_state() -> Dictionary:
 				"slot_label": "Ability I",
 				"spell_id": "spell_fire_blast",
 				"name": "Fire Blast",
-				"mana_cost": 5
+				"mana_cost": 5,
+				"mana_drain_per_second": 8
 			},
 			"ability_2": {"slot": "ability_2", "slot_label": "Ability II", "spell_id": ""},
 			"ability_3": {"slot": "ability_3", "slot_label": "Ability III", "spell_id": ""}

@@ -7,7 +7,8 @@ const RpgIconButton = preload("res://scripts/ui/rpg_icon_button.gd")
 
 static func build(
 	root: Control,
-	aim_action: Callable
+	aim_action: Callable,
+	held_action: Callable = Callable()
 ) -> Dictionary:
 	var cluster := Control.new()
 	cluster.name = "CombatJoystickCluster"
@@ -52,6 +53,8 @@ static func build(
 		ability.name = "%sButton" % slot_id.to_pascal_case()
 		ability.set_meta("ability_slot", slot_id)
 		ability.aimed.connect(aim_action)
+		if held_action.is_valid():
+			ability.aim_held.connect(held_action)
 		ability_stack.add_child(ability)
 		ability_buttons[slot_id] = ability
 
@@ -61,6 +64,8 @@ static func build(
 	primary.center_label = ""
 	primary.footer_label = "Attack"
 	primary.aimed.connect(aim_action)
+	if held_action.is_valid():
+		primary.aim_held.connect(held_action)
 	cluster.add_child(primary)
 
 	return {

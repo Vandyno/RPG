@@ -411,7 +411,7 @@ func test_full_spawn_yard_system_loop() -> void:
 	main._handle_interact_requested()
 	assert_eq(main.player.health, 100)
 	assert_eq(int(main.hud.health_bar.value), 100)
-	assert_eq(main.hud.health_label.text, "Health 100/100")
+	assert_eq(main.hud.health_label.text, "HP 100/100  MP 100/100")
 	assert_eq(main.hud.health_bar.tooltip_text, "Health: 100/100")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 	assert_null(main.entities.get_entity("enemy_road_thug"))

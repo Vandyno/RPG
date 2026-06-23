@@ -7,6 +7,7 @@ const COLLISION_RADIUS := 10.0
 const MAX_COLLISION_STEP := 8.0
 const BLOCKED_MESSAGE_INTERVAL := 0.35
 const DEFAULT_MAX_HEALTH := 100
+const DEFAULT_MAX_MANA := 100.0
 
 var event_bus
 var chunk_manager
@@ -15,6 +16,8 @@ var move_speed := 220.0
 var blocked_message_cooldown := 0.0
 var max_health := DEFAULT_MAX_HEALTH
 var health := DEFAULT_MAX_HEALTH
+var max_mana := DEFAULT_MAX_MANA
+var mana := DEFAULT_MAX_MANA
 var external_move_vector := Vector2.ZERO
 var facing_direction := Vector2.DOWN
 
@@ -91,13 +94,17 @@ func get_save_data() -> Dictionary:
 		"world_layer": "surface",
 		"stats": {},
 		"health": health,
-		"max_health": max_health
+		"max_health": max_health,
+		"mana": mana,
+		"max_mana": max_mana
 	}
 
 
 func load_save_data(data: Dictionary) -> void:
 	max_health = maxi(1, int(data.get("max_health", DEFAULT_MAX_HEALTH)))
 	set_health(int(data.get("health", max_health)))
+	max_mana = maxf(1.0, float(data.get("max_mana", DEFAULT_MAX_MANA)))
+	set_mana(float(data.get("mana", max_mana)))
 	var world_position := _numeric_pair(data.get("world_position", []))
 	if not world_position.is_empty():
 		var loaded_position := Vector2(float(world_position[0]), float(world_position[1]))
@@ -129,6 +136,21 @@ func heal(amount: int) -> int:
 	return health
 
 
+func spend_mana(amount: float) -> float:
+	if amount <= 0.0 or mana <= 0.0:
+		return 0.0
+	var spent := minf(amount, mana)
+	set_mana(mana - spent)
+	return spent
+
+
+func restore_mana(amount: float) -> float:
+	if amount <= 0.0:
+		return mana
+	set_mana(mana + amount)
+	return mana
+
+
 func set_health(value: int) -> void:
 	var next_health := clampi(value, 0, max_health)
 	if health == next_health:
@@ -136,6 +158,15 @@ func set_health(value: int) -> void:
 	health = next_health
 	if event_bus:
 		event_bus.player_health_changed.emit(health, max_health)
+
+
+func set_mana(value: float) -> void:
+	var next_mana := clampf(value, 0.0, max_mana)
+	if is_equal_approx(mana, next_mana):
+		return
+	mana = next_mana
+	if event_bus and event_bus.has_signal("player_mana_changed"):
+		event_bus.player_mana_changed.emit(mana, max_mana)
 
 
 func set_external_move_vector(value: Vector2) -> void:

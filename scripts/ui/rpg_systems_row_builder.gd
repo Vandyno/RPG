@@ -228,12 +228,13 @@ static func _spell_rows(state: Dictionary, category: String) -> Array[Dictionary
 		var assigned := String(spell.get("assigned_label", ""))
 		var assignment := "Unassigned" if assigned.is_empty() else "Assigned: %s" % assigned
 		var mana := int(spell.get("mana_cost", 0))
+		var drain := float(spell.get("mana_drain_per_second", mana))
 		rows_data.append({
 			"id": "spell_%s" % spell_id,
 			"spell_id": spell_id,
 			"title": name,
 			"subtitle": "%s school - %s" % [school, assignment],
-			"meta": "%d MP" % mana,
+			"meta": "%s MP/s" % _format_float(drain),
 			"detail": _spell_detail(spell)
 		})
 	if rows_data.is_empty():
@@ -249,10 +250,11 @@ static func _spell_rows(state: Dictionary, category: String) -> Array[Dictionary
 
 static func _spell_detail(spell: Dictionary) -> String:
 	var assigned := String(spell.get("assigned_label", ""))
+	var drain := float(spell.get("mana_drain_per_second", spell.get("mana_cost", 0)))
 	return "\n".join([
 		String(spell.get("name", "Spell")),
 		"School: %s" % String(spell.get("school", "Utility")),
-		"Mana cost/drain: %d" % int(spell.get("mana_cost", 0)),
+		"Mana cost/drain: %s per second" % _format_float(drain),
 		"Range: %s" % String(spell.get("range", "")),
 		"Behavior: %s" % String(spell.get("behavior", "")),
 		"Assigned slot: %s" % ("None" if assigned.is_empty() else assigned)
@@ -261,6 +263,7 @@ static func _spell_detail(spell: Dictionary) -> String:
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 	var health := String(state.get("player_health", "Health unknown"))
+	var mana := String(state.get("player_mana", "Mana unknown"))
 	var progression := String(state.get("progression", "Level 1"))
 	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
 	var statuses := String(state.get("statuses", "none"))
@@ -268,9 +271,11 @@ static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 		{
 			"id": "character_health",
 			"title": "Vitals",
-			"subtitle": "Health %s" % health,
+			"subtitle": "Health %s - Mana %s" % [health, mana],
 			"meta": "Vitals",
-			"detail": "Vitals\nCurrent Health: %s\nCondition: Stable" % health
+			"detail": "Vitals\nCurrent Health: %s\nCurrent Mana: %s\nCondition: Stable" % [
+				health, mana
+			]
 		},
 		{
 			"id": "character_progression",
@@ -929,6 +934,12 @@ static func _first_non_empty(value: String, fallback: String) -> String:
 
 
 static func _format_weight(value: float) -> String:
+	if is_equal_approx(value, roundf(value)):
+		return str(int(roundf(value)))
+	return "%.1f" % value
+
+
+static func _format_float(value: float) -> String:
 	if is_equal_approx(value, roundf(value)):
 		return str(int(roundf(value)))
 	return "%.1f" % value

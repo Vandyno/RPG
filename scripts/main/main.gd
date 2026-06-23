@@ -1,5 +1,4 @@
 extends Node2D
-
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator.gd")
 const EventBusScript = preload("res://scripts/core/event_bus.gd")
@@ -73,6 +72,8 @@ var auto_move_path: Array = []
 var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
 var guarding_next_attack := false
+var channeled_spell_damage_bank: Dictionary = {}
+var channeled_spell_empty_reported: Dictionary = {}
 func _ready() -> void:
 	_bootstrap()
 	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
@@ -93,27 +94,22 @@ func _bootstrap() -> void:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
 	add_child(event_bus)
-
 	content = ContentDatabaseScript.new()
 	content.name = "ContentDatabase"
 	add_child(content)
 	content.load_all()
-
 	world_state = WorldStateManagerScript.new()
 	world_state.name = "WorldStateManager"
 	add_child(world_state)
 	world_state.setup(event_bus)
-
 	inventory = InventoryManagerScript.new()
 	inventory.name = "InventoryManager"
 	add_child(inventory)
 	inventory.setup(event_bus, content)
-
 	quests = QuestManagerScript.new()
 	quests.name = "QuestManager"
 	add_child(quests)
 	quests.setup(event_bus, content)
-
 	factions = FactionManagerScript.new()
 	factions.name = "FactionManager"
 	add_child(factions)
@@ -230,6 +226,10 @@ func _bootstrap() -> void:
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
 			MainSystemsActions.handle_aim(self, action_id, direction)
+	)
+	hud.aim_action_held.connect(
+		func(action_id: String, direction: Vector2, delta: float) -> void:
+			MainSystemsActions.handle_aim_held(self, action_id, direction, delta)
 	)
 	hud.combat_action_selected.connect(_handle_combat_action_selected)
 	hud.context_action_selected.connect(_handle_context_action_selected)

@@ -1,6 +1,8 @@
 class_name RpgContextActionPanelBuilder
 extends RefCounted
 
+const RpgContentChoiceButton = preload("res://scripts/ui/rpg_content_choice_button.gd")
+
 
 static func build(
 	root: Control, new_panel: Callable, add_margin: Callable, new_label: Callable
@@ -62,12 +64,17 @@ static func refresh(
 		if action_id.is_empty() or text.is_empty():
 			continue
 		var button := _button(container, button_index, new_button)
-		button.text = "%s\n%s" % [text, _subtitle(action_id, text)]
+		var subtitle := _subtitle(action_id, text)
+		button.text = "%s\n%s" % [text, subtitle]
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(104, 46) if compact else Vector2(150, 56)
+		button.custom_minimum_size = Vector2(104, 50) if compact else Vector2(150, 58)
 		button.add_theme_font_size_override("font_size", 10 if compact else 12)
 		row_style.call(button, _is_recommended(action_id, text))
+		if button is RpgContentChoiceButton:
+			(button as RpgContentChoiceButton).set_choice_card(
+				_action_icon(action_id, text), text, subtitle
+			)
 		button.set_meta("action_id", action_id)
 		button.set_meta("context_mode", context_mode)
 		_bind_button(button, action_callback)
@@ -149,7 +156,14 @@ static func _button(container: HFlowContainer, index: int, new_button: Callable)
 		var existing := container.get_child(index)
 		if existing is Button:
 			return existing
-	var button := new_button.call("", Vector2(150, 50)) as Button
+	var button := RpgContentChoiceButton.new()
+	var styled := new_button.call("", Vector2(150, 50)) as Button
+	if styled:
+		button.add_theme_stylebox_override("normal", styled.get_theme_stylebox("normal"))
+		button.add_theme_stylebox_override("hover", styled.get_theme_stylebox("hover"))
+		button.add_theme_stylebox_override("pressed", styled.get_theme_stylebox("pressed"))
+		button.add_theme_stylebox_override("focus", styled.get_theme_stylebox("focus"))
+		styled.free()
 	button.focus_mode = Control.FOCUS_NONE
 	container.add_child(button)
 	return button
@@ -208,3 +222,19 @@ static func _subtitle(action_id: String, text: String) -> String:
 	if text.begins_with("Turn In"):
 		return "Quest"
 	return "Nearby"
+
+
+static func _action_icon(action_id: String, text: String) -> String:
+	if action_id.begins_with("dialogue:") or action_id.begins_with("line:"):
+		return "dialogue"
+	if action_id.begins_with("trade:"):
+		return "trade"
+	if action_id.begins_with("forge:") or text.contains("Sharpen"):
+		return "service"
+	if action_id.begins_with("poi:"):
+		return "action"
+	if text == "Guard":
+		return "service"
+	if text.begins_with("Turn In"):
+		return "quest"
+	return "action"

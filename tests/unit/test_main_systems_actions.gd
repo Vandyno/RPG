@@ -54,13 +54,22 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 	)
 
 
-func test_handle_aim_uses_assigned_spell_against_aimed_enemy() -> void:
+func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
+	var main := AimMainStub.new()
+
+	MainSystemsActions.handle_aim_held(main, "ability_1", Vector2.RIGHT, 0.625)
+
+	assert_eq(main.selected_id, "enemy_east")
+	assert_eq(main.player.mana, 95.0)
+	assert_eq(main.calls, ["message:Fire Blast burns Road Thug.", "hit:enemy_east", "refresh"])
+
+
+func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 	var main := AimMainStub.new()
 
 	MainSystemsActions.handle_aim(main, "ability_1", Vector2.RIGHT)
 
-	assert_eq(main.selected_id, "enemy_east")
-	assert_eq(main.calls, ["message:Fire Blast at Road Thug.", "hit:enemy_east", "refresh"])
+	assert_eq(main.calls, ["refresh"])
 
 
 func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
@@ -70,6 +79,16 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 
 	assert_eq(main.selected_id, "enemy_west")
 	assert_eq(main.calls, ["hit:enemy_west", "refresh"])
+
+
+func test_handle_aim_attack_swings_without_target() -> void:
+	var main := AimMainStub.new()
+	main.enemies.clear()
+
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+
+	assert_eq(main.player.facing_direction, Vector2.RIGHT)
+	assert_eq(main.calls, ["message:Swung east.", "refresh"])
 
 
 class MainStub:
@@ -130,6 +149,8 @@ class AimMainStub:
 	var content := AimContentStub.new()
 	var event_bus := AimBusStub.new(calls)
 	var player := AimPlayerStub.new()
+	var channeled_spell_damage_bank: Dictionary = {}
+	var channeled_spell_empty_reported: Dictionary = {}
 	var enemies := [
 		AimEntityStub.new("enemy_west", "River Ruffian", Vector2.LEFT * 48.0),
 		AimEntityStub.new("enemy_east", "Road Thug", Vector2.RIGHT * 48.0)
@@ -164,7 +185,13 @@ class AimContentStub:
 
 	func get_spell(spell_id: String) -> Dictionary:
 		if spell_id == "spell_fire_blast":
-			return {"id": spell_id, "name": "Fire Blast"}
+			return {
+				"id": spell_id,
+				"name": "Fire Blast",
+				"mana_cost": 5,
+				"mana_drain_per_second": 8,
+				"channel": true
+			}
 		return {}
 
 
@@ -184,6 +211,16 @@ class AimPlayerStub:
 	extends RefCounted
 
 	var global_position := Vector2.ZERO
+	var facing_direction := Vector2.DOWN
+	var mana := 100.0
+
+	func set_facing_direction(value: Vector2) -> void:
+		facing_direction = value.normalized()
+
+	func spend_mana(amount: float) -> float:
+		var spent := minf(amount, mana)
+		mana -= spent
+		return spent
 
 
 class AimEntityStub:

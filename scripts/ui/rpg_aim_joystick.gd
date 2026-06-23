@@ -2,6 +2,7 @@ class_name RpgAimJoystick
 extends Button
 
 signal aimed(action_id: String, direction: Vector2)
+signal aim_held(action_id: String, direction: Vector2, delta: float)
 
 var action_id := ""
 var emit_press_on_release := false
@@ -20,6 +21,12 @@ var active_touch_index := -1
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	flat = true
+	set_process(false)
+
+
+func _process(delta: float) -> void:
+	if dragging and aim_vector.length() > 0.1:
+		aim_held.emit(action_id, aim_vector, delta)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -120,6 +127,7 @@ func _start_aim(position: Vector2) -> void:
 	drag_origin = position
 	aim_vector = Vector2.ZERO
 	button_pressed = true
+	set_process(true)
 	queue_redraw()
 
 
@@ -130,6 +138,7 @@ func _finish_aim(position: Vector2) -> void:
 	dragging = false
 	active_touch_index = -1
 	button_pressed = false
+	set_process(false)
 	if not require_direction or aim_vector.length() > 0.1:
 		aimed.emit(action_id, aim_vector)
 	if emit_press_on_release:

@@ -142,6 +142,8 @@ func test_player_health_damage_heal_and_save_load() -> void:
 	assert_eq(player.health, 65)
 	player.heal(10)
 	assert_eq(player.health, 75)
+	player.spend_mana(12.5)
+	assert_almost_eq(player.mana, 87.5, 0.001)
 
 	var loaded := PlayerController.new()
 	add_child_autofree(loaded)
@@ -150,6 +152,8 @@ func test_player_health_damage_heal_and_save_load() -> void:
 
 	assert_eq(loaded.health, 75)
 	assert_eq(loaded.max_health, 100)
+	assert_almost_eq(loaded.mana, 87.5, 0.001)
+	assert_almost_eq(loaded.max_mana, 100.0, 0.001)
 
 
 func test_load_malformed_world_position_falls_back_to_global_tile() -> void:

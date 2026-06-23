@@ -21,6 +21,9 @@ static func build(main) -> Dictionary:
 		"player_health": "%d/%d" % [main.player.health, main.player.max_health],
 		"player_health_value": main.player.health,
 		"player_max_health": main.player.max_health,
+		"player_mana": "%d/%d" % [int(roundf(main.player.mana)), int(roundf(main.player.max_mana))],
+		"player_mana_value": main.player.mana,
+		"player_max_mana": main.player.max_mana,
 		"nearby": target_name,
 		"primary_action": _primary_action(main, nearby, auto_target),
 		"target_detail": target_detail,
@@ -169,6 +172,9 @@ static func _spell_data(main, spell_id: String, spell: Dictionary) -> Dictionary
 		"school": String(spell.get("school", "")),
 		"icon": String(spell.get("icon", "")),
 		"mana_cost": int(spell.get("mana_cost", 0)),
+		"mana_drain_per_second": float(
+			spell.get("mana_drain_per_second", spell.get("mana_cost", 0))
+		),
 		"range": String(spell.get("range", "")),
 		"behavior": String(spell.get("behavior", "")),
 		"assigned_slot": assigned,

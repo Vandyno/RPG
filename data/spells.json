@@ -5,7 +5,9 @@
 		"school": "Fire",
 		"icon": "F",
 		"mana_cost": 5,
+		"mana_drain_per_second": 8,
+		"channel": true,
 		"range": "6 tiles",
-		"behavior": "Launches a direct burst of flame at the selected target."
+		"behavior": "Channels a short flamethrower in the aimed direction while held."
 	}
 }

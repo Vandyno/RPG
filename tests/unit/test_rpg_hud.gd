@@ -1,5 +1,4 @@
 extends GutTest
-
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const Main = preload("res://scripts/main/main.gd")
 const RpgHud = preload("res://scripts/ui/rpg_hud.gd")
@@ -7,7 +6,6 @@ const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
 const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
-
 func test_main_uses_player_facing_rpg_hud() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -24,7 +22,6 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_false(main.get_hud_state().has("player_world"))
 	assert_true(main.get_debug_state().has("player_world"))
 	assert_true(main.hud.get_state.get_method() == "get_hud_state")
-
 
 func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	var hud := _new_hud()
@@ -59,7 +56,6 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_false(banner_rect.intersects(nav_rect), "Location should not cover nav.")
 	assert_false(nav_rect.intersects(message_rect), "Top nav should not cover messages.")
 
-
 func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -79,7 +75,6 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	hud.hide_systems_panel()
 	_press_nav(hud, "Menu")
 	assert_true(hud.is_systems_panel_visible())
-
 
 func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	var hud := _new_hud()
@@ -102,10 +97,10 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	var fire := _button_containing(hud.systems_item_list, "Fire Blast")
 	assert_not_null(fire)
 	assert_true(fire.text.contains("Fire school"))
-	assert_true(hud.systems_detail_label.text.contains("Mana cost/drain: 5"))
+	assert_true(hud.systems_detail_label.text.contains("Mana cost/drain: 8 per second"))
 	assert_true(hud.systems_detail_label.text.contains("Range: 6 tiles"))
+	assert_true(hud.systems_detail_label.text.contains("flamethrower"))
 	assert_true(hud.systems_detail_label.text.contains("Assigned slot:"))
-
 
 func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> void:
 	var hud := _new_hud()
@@ -749,6 +744,9 @@ func _sample_state() -> Dictionary:
 		"player_health": "76/100",
 		"player_health_value": 76,
 		"player_max_health": 100,
+		"player_mana": "100/100",
+		"player_mana_value": 100,
+		"player_max_mana": 100,
 		"terrain": "grass",
 		"nearby": "Harrow Venn",
 		"target_kind": "npc",
@@ -856,8 +854,9 @@ func _sample_state() -> Dictionary:
 				"school": "Fire",
 				"icon": "F",
 				"mana_cost": 5,
+				"mana_drain_per_second": 8,
 				"range": "6 tiles",
-				"behavior": "Launches a direct burst of flame at the selected target.",
+				"behavior": "Channels a short flamethrower in the aimed direction while held.",
 				"assigned_slot": "ability_1",
 				"assigned_label": "Ability I"
 			}
@@ -870,7 +869,8 @@ func _sample_state() -> Dictionary:
 				"slot_label": "Ability I",
 				"spell_id": "spell_fire_blast",
 				"name": "Fire Blast",
-				"mana_cost": 5
+				"mana_cost": 5,
+				"mana_drain_per_second": 8
 			},
 			"ability_2": {"slot": "ability_2", "slot_label": "Ability II", "spell_id": ""},
 			"ability_3": {"slot": "ability_3", "slot_label": "Ability III", "spell_id": ""}
