@@ -220,37 +220,44 @@ static func _spell_detail(spell: Dictionary) -> String:
 
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:
+	var health := String(state.get("player_health", "Health unknown"))
+	var progression := String(state.get("progression", "Level 1"))
+	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
+	var statuses := String(state.get("statuses", "none"))
 	var rows_data: Array[Dictionary] = [
 		{
 			"id": "character_health",
-			"title": "Health",
-			"subtitle": String(state.get("player_health", "Health unknown")),
+			"title": "Vitals",
+			"subtitle": "Health %s" % health,
 			"meta": "Vitals",
-			"detail": String(state.get("player_health", "Health unknown"))
+			"detail": "Vitals\nCurrent Health: %s\nCondition: Stable" % health
 		},
 		{
 			"id": "character_progression",
 			"title": "Training",
-			"subtitle": String(state.get("progression", "Level 1")),
+			"subtitle": progression,
 			"meta": "Progression",
 			"detail": _first_non_empty(
 				String(state.get("progression_details", "")),
-				String(state.get("progression", "Level 1"))
+				progression
 			)
 		},
 		{
 			"id": "character_equipment",
 			"title": "Equipment",
-			"subtitle": _first_line(String(state.get("equipment", "Weapon: empty"))),
+			"subtitle": _first_line(equipment),
 			"meta": "Gear",
-			"detail": String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
+			"detail": "Equipped Gear\n%s\n\nDrag gear onto body slots to equip." % equipment
 		},
 		{
 			"id": "character_effects",
 			"title": "Active Effects",
-			"subtitle": String(state.get("statuses", "none")),
+			"subtitle": "None" if statuses == "none" else statuses,
 			"meta": "Status",
-			"detail": _first_non_empty(String(state.get("status_details", "")), "Active effects: none")
+			"detail": _first_non_empty(
+				String(state.get("status_details", "")),
+				"No active effects."
+			)
 		}
 	]
 	var actions := _array_field(state.get("progression_actions", []))

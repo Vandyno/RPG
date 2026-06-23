@@ -503,11 +503,14 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	hud.set_systems_tab("character")
 	var training_row := _button_containing(hud.systems_item_list, "Training")
 	assert_not_null(training_row)
+	assert_not_null(_button_containing(hud.systems_item_list, "Vitals"))
+	assert_true(hud.systems_detail_label.text.contains("Current Health"))
 	assert_false(training_row.text.contains("Training    Progression"))
 	assert_true(training_row.text.contains("Progression - "))
 	_press_category(hud, "Gear")
 	assert_null(_button_containing(hud.systems_item_list, "Training"))
 	assert_not_null(_button_containing(hud.systems_item_list, "Equipment"))
+	assert_true(hud.systems_detail_label.text.contains("Drag gear onto body slots"))
 
 
 func test_rpg_equipment_slots_accept_dropped_items_and_route_equip_action() -> void:
