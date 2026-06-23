@@ -8,6 +8,9 @@ const RpgContentChoiceBuilder = preload("res://scripts/ui/rpg_content_choice_bui
 const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
 const RpgStatusTextBuilder = preload("res://scripts/ui/rpg_status_text_builder.gd")
+const RpgSystemsCharacterPaneBuilder = preload(
+	"res://scripts/ui/rpg_systems_character_pane_builder.gd"
+)
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
@@ -36,6 +39,7 @@ var systems_center_panel: PanelContainer
 var systems_detail_panel: PanelContainer
 var systems_character_panel: PanelContainer
 var systems_character_rows: VBoxContainer
+var systems_character_nodes := {}
 var systems_bottom_panel: PanelContainer
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
@@ -298,25 +302,12 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	systems_main_row.add_child(systems_character_panel)
 
-	var character_stack := VBoxContainer.new()
-	character_stack.add_theme_constant_override("separation", 8)
-	_add_margin(systems_character_panel, character_stack, 12)
-
-	var character_title := _new_label(17)
-	character_title.text = "Adventurer"
-	character_stack.add_child(character_title)
-
-	systems_character_rows = VBoxContainer.new()
-	systems_character_rows.name = "SystemsCharacterRows"
-	systems_character_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	systems_character_rows.add_theme_constant_override("separation", 7)
-	character_stack.add_child(systems_character_rows)
-
-	systems_character_label = _new_label(14)
-	systems_character_label.name = "SystemsCharacter"
-	systems_character_label.visible = false
-	systems_character_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	character_stack.add_child(systems_character_label)
+	systems_character_nodes = RpgSystemsCharacterPaneBuilder.build(
+		systems_character_panel, Callable(self, "_new_label"), Callable(self, "_new_button"),
+		Callable(self, "_add_margin"), Callable(self, "_apply_portrait_style")
+	)
+	systems_character_rows = systems_character_nodes["rows"]
+	systems_character_label = systems_character_nodes["hidden_label"]
 
 
 func _build_systems_bottom_bar(parent: BoxContainer) -> void:
@@ -699,7 +690,9 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	_refresh_systems_rows(state)
 	systems_character_label.text = RpgSystemsTextBuilder.character_text(state)
-	_refresh_systems_character_rows(state)
+	RpgSystemsCharacterPaneBuilder.refresh(
+		systems_character_nodes, state, Callable(self, "_apply_row_button_style")
+	)
 
 
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -734,38 +727,6 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	else:
 		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
-
-
-func _refresh_systems_character_rows(state: Dictionary) -> void:
-	if not systems_character_rows:
-		return
-	var rows := RpgSystemsTextBuilder.character_rows(state)
-	for index in range(rows.size()):
-		var row := rows[index]
-		var button := _systems_character_row(index)
-		button.text = "%s\n%s" % [String(row.get("title", "")), String(row.get("value", ""))]
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.custom_minimum_size = Vector2(0, 58)
-		button.add_theme_font_size_override("font_size", 13)
-		_apply_row_button_style(button, false)
-		button.visible = true
-	for index in range(rows.size(), systems_character_rows.get_child_count()):
-		systems_character_rows.get_child(index).visible = false
-
-
-func _systems_character_row(index: int) -> Button:
-	if index < systems_character_rows.get_child_count():
-		var existing := systems_character_rows.get_child(index)
-		if existing is Button:
-			return existing
-	var button := _new_button("", Vector2(0, 58))
-	button.name = "SystemsCharacterRow_%d" % index
-	button.focus_mode = Control.FOCUS_NONE
-	button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	systems_character_rows.add_child(button)
-	return button
 
 
 func _systems_row_button(index: int) -> Button:
