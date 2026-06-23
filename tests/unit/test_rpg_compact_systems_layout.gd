@@ -152,6 +152,23 @@ func test_desktop_inventory_categories_use_tight_widths() -> void:
 	assert_eq(ingredients.custom_minimum_size.x, 88.0)
 
 
+func test_ability_joysticks_need_drag_direction_before_casting() -> void:
+	var hud := _new_hud()
+	var events: Array[Dictionary] = []
+	hud.aim_action_released.connect(
+		func(action_id: String, direction: Vector2) -> void:
+			events.append({"action_id": action_id, "direction": direction})
+	)
+	var ability := hud.ability_slot_buttons["ability_1"] as RpgAimJoystick
+	ability._start_aim(Vector2.ZERO)
+	ability._finish_aim(Vector2(2, 2))
+	assert_true(events.is_empty())
+	ability._start_aim(Vector2.ZERO)
+	ability._finish_aim(Vector2(32, 0))
+	assert_eq(events[0]["action_id"], "ability_1")
+	assert_eq(events[0]["direction"], Vector2.RIGHT)
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)

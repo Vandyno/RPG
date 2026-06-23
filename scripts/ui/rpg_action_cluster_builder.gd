@@ -9,7 +9,7 @@ static func build(
 	aim_action: Callable
 ) -> Dictionary:
 	var cluster := Control.new()
-	cluster.name = "ActionButtons"
+	cluster.name = "CombatJoystickCluster"
 	cluster.anchor_left = 1.0
 	cluster.anchor_right = 1.0
 	cluster.anchor_top = 1.0
@@ -57,6 +57,8 @@ static func build(
 	var primary := _aim_joystick("Attack", "attack", "Aim attack", Vector2(156, 156), false)
 	primary.name = "InteractButton"
 	primary.set_meta("action_role", "primary")
+	primary.center_label = ""
+	primary.footer_label = "Attack"
 	primary.aimed.connect(aim_action)
 	cluster.add_child(primary)
 
@@ -77,18 +79,18 @@ static func apply_layout(
 ) -> void:
 	if not cluster:
 		return
-	var cluster_size := Vector2(190, 164) if compact else Vector2(270, 250)
+	var cluster_size := Vector2(220, 210) if compact else Vector2(310, 276)
 	cluster.offset_left = -cluster_size.x - 12
-	cluster.offset_top = -cluster_size.y - (30 if compact else 12)
+	cluster.offset_top = -cluster_size.y - (22 if compact else 12)
 	cluster.offset_right = -12
-	cluster.offset_bottom = -30 if compact else -12
+	cluster.offset_bottom = -22 if compact else -12
 	cluster.custom_minimum_size = cluster_size
 	cluster.size = cluster_size
 
 	var utility_row := cluster.find_child("UtilityButtonStack", true, false) as HBoxContainer
 	if utility_row:
-		utility_row.position = Vector2(44, 0) if compact else Vector2(52, 0)
-		utility_row.size = Vector2(146, 38) if compact else Vector2(218, 52)
+		utility_row.position = Vector2(64, 0) if compact else Vector2(82, 0)
+		utility_row.size = Vector2(156, 40) if compact else Vector2(228, 52)
 		utility_row.add_theme_constant_override("separation", 5 if compact else 6)
 		for nested in utility_row.get_children():
 			if nested is Button:
@@ -100,20 +102,20 @@ static func apply_layout(
 
 	var ability_stack := cluster.find_child("AbilityButtonStack", true, false) as VBoxContainer
 	if ability_stack:
-		ability_stack.position = Vector2(0, 18) if compact else Vector2(0, 32)
-		ability_stack.size = Vector2(46, 132) if compact else Vector2(62, 186)
-		ability_stack.add_theme_constant_override("separation", 5 if compact else 8)
+		ability_stack.position = Vector2(4, 44) if compact else Vector2(0, 42)
+		ability_stack.size = Vector2(58, 166) if compact else Vector2(72, 220)
+		ability_stack.add_theme_constant_override("separation", 8 if compact else 10)
 		for nested in ability_stack.get_children():
 			if nested is Button:
-				nested.custom_minimum_size = Vector2(42, 42) if compact else Vector2(54, 54)
+				nested.custom_minimum_size = Vector2(50, 50) if compact else Vector2(64, 64)
 				nested.size = nested.custom_minimum_size
 				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
 				_apply_command_style(nested, false, compact)
 
 	if primary:
-		primary.position = Vector2(62, 40) if compact else Vector2(86, 68)
-		primary.custom_minimum_size = Vector2(112, 112) if compact else Vector2(154, 154)
+		primary.position = Vector2(82, 72) if compact else Vector2(102, 80)
+		primary.custom_minimum_size = Vector2(126, 126) if compact else Vector2(170, 170)
 		primary.size = primary.custom_minimum_size
 		primary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		primary.add_theme_font_size_override("font_size", 11 if compact else 15)
@@ -126,17 +128,20 @@ static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> v
 		var button := buttons[slot_id] as Button
 		var slot_data := slots.get(slot_id, {}) as Dictionary
 		var spell_name := String(slot_data.get("name", ""))
+		var spell_icon := String(slot_data.get("icon", ""))
 		var cost := int(slot_data.get("mana_cost", 0))
 		if spell_name.is_empty():
 			button.text = _slot_index_text(String(slot_id))
 			button.tooltip_text = "Empty ability slot"
 			button.set_meta("spell_id", "")
 			button.set_meta("ability_empty", true)
+			_set_ability_joystick_labels(button, _slot_index_text(String(slot_id)), "", true)
 		else:
 			button.text = "%s\n%d" % [_short_spell_label(spell_name), cost]
 			button.tooltip_text = "Cast %s" % spell_name
 			button.set_meta("spell_id", String(slot_data.get("spell_id", "")))
 			button.set_meta("ability_empty", false)
+			_set_ability_joystick_labels(button, _spell_icon(spell_icon, spell_name), str(cost), false)
 
 
 static func _aim_joystick(
@@ -144,9 +149,13 @@ static func _aim_joystick(
 ) -> RpgAimJoystick:
 	var joystick := RpgAimJoystick.new()
 	joystick.text = text
+	joystick.center_label = text
+	joystick.footer_label = ""
+	joystick.use_text_as_footer = false
 	joystick.custom_minimum_size = size
 	joystick.action_id = action_kind
 	joystick.emit_press_on_release = emit_press
+	joystick.require_direction = true
 	joystick.tooltip_text = tooltip
 	joystick.focus_mode = Control.FOCUS_NONE
 	joystick.set_meta("action_kind", action_kind)
@@ -177,6 +186,23 @@ static func _slot_index_text(slot_id: String) -> String:
 static func _short_spell_label(spell_name: String) -> String:
 	var parts := spell_name.split(" ", false)
 	return String(parts[0]) if not parts.is_empty() else spell_name
+
+
+static func _spell_icon(icon: String, spell_name: String) -> String:
+	if not icon.strip_edges().is_empty():
+		return icon.strip_edges()
+	var label := _short_spell_label(spell_name)
+	return label.left(1).to_upper()
+
+
+static func _set_ability_joystick_labels(
+	button: Button, center_label: String, footer_label: String, empty_slot: bool
+) -> void:
+	if button is RpgAimJoystick:
+		var joystick := button as RpgAimJoystick
+		joystick.center_label = center_label
+		joystick.footer_label = footer_label
+		joystick.empty_slot = empty_slot
 
 
 static func _apply_command_style(button: Button, primary: bool, compact: bool) -> void:

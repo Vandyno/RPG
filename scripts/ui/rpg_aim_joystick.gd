@@ -5,6 +5,11 @@ signal aimed(action_id: String, direction: Vector2)
 
 var action_id := ""
 var emit_press_on_release := false
+var center_label := ""
+var footer_label := ""
+var empty_slot := false
+var require_direction := true
+var use_text_as_footer := true
 var drag_origin := Vector2.ZERO
 var aim_vector := Vector2.ZERO
 var dragging := false
@@ -41,16 +46,18 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _draw() -> void:
-	var has_label := not text.strip_edges().is_empty()
-	var center := Vector2(size.x * 0.5, size.y * (0.39 if has_label else 0.5))
-	var radius := minf(size.x, size.y) * (0.31 if has_label else 0.38)
+	var footer := _footer_text()
+	var has_footer := not footer.is_empty()
+	var center := Vector2(size.x * 0.5, size.y * (0.43 if has_footer else 0.5))
+	var radius := minf(size.x, size.y) * (0.34 if has_footer else 0.38)
 	var knob := center + aim_vector * radius
 	var rim := Color(0.90, 0.72, 0.42, 0.92)
 	var active := dragging or aim_vector.length() > 0.05
-	draw_circle(center, radius * 1.28, Color(0.0, 0.0, 0.0, 0.42))
-	draw_circle(center, radius * 1.07, Color(0.035, 0.031, 0.024, 0.84))
-	draw_arc(center, radius, 0.0, TAU, 64, rim, 2.4 if active else 1.8)
-	draw_arc(center, radius * 0.63, 0.0, TAU, 48, Color(0.90, 0.72, 0.42, 0.30), 1.0)
+	var alpha := 0.46 if empty_slot else 0.86
+	draw_circle(center, radius * 1.30, Color(0.0, 0.0, 0.0, 0.48))
+	draw_circle(center, radius * 1.08, Color(0.035, 0.031, 0.024, alpha))
+	draw_arc(center, radius, 0.0, TAU, 64, rim, 2.8 if active else 2.0)
+	draw_arc(center, radius * 0.63, 0.0, TAU, 48, Color(0.90, 0.72, 0.42, 0.32), 1.1)
 	for direction: Vector2 in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
 		var outer: Vector2 = center + direction * radius * 0.90
 		var inner: Vector2 = center + direction * radius * 0.70
@@ -60,11 +67,24 @@ func _draw() -> void:
 	draw_circle(knob, radius * 0.40, Color(0.95, 0.78, 0.42, 0.90 if active else 0.76))
 	draw_circle(knob, radius * 0.23, Color(0.08, 0.065, 0.045, 0.62))
 	draw_arc(knob, radius * 0.38, 0.0, TAU, 32, Color(1.0, 0.91, 0.58, 0.72), 1.0)
-	_draw_label()
+	_draw_center_label(center, radius)
+	_draw_footer_label(footer)
 
 
-func _draw_label() -> void:
-	var label := text.strip_edges()
+func _draw_center_label(center: Vector2, radius: float) -> void:
+	var label := center_label.strip_edges()
+	if label.is_empty():
+		return
+	var font := get_theme_default_font()
+	var font_size := 9 if size.y < 70.0 else 13
+	var y := center.y + font_size * 0.36
+	draw_string(
+		font, Vector2(center.x - radius, y), label, HORIZONTAL_ALIGNMENT_CENTER,
+		radius * 2.0, font_size, Color(1.0, 0.90, 0.60, 0.95)
+	)
+
+
+func _draw_footer_label(label: String) -> void:
 	if label.is_empty():
 		return
 	var font := get_theme_default_font()
@@ -99,7 +119,8 @@ func _finish_aim(position: Vector2) -> void:
 	dragging = false
 	active_touch_index = -1
 	button_pressed = false
-	aimed.emit(action_id, aim_vector)
+	if not require_direction or aim_vector.length() > 0.1:
+		aimed.emit(action_id, aim_vector)
 	if emit_press_on_release:
 		pressed.emit()
 	aim_vector = Vector2.ZERO
@@ -109,3 +130,10 @@ func _finish_aim(position: Vector2) -> void:
 func _direction_from(position: Vector2) -> Vector2:
 	var delta := position - drag_origin
 	return delta.normalized() if delta.length() > 8.0 else Vector2.ZERO
+
+
+func _footer_text() -> String:
+	var footer := footer_label.strip_edges()
+	if not footer.is_empty():
+		return footer
+	return text.strip_edges() if use_text_as_footer else ""
