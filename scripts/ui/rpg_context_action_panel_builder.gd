@@ -65,7 +65,7 @@ static func refresh(
 		button.text = "%s\n%s" % [text, _subtitle(action_id, text)]
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(142, 56) if compact else Vector2(150, 56)
+		button.custom_minimum_size = Vector2(104, 56) if compact else Vector2(150, 56)
 		button.add_theme_font_size_override("font_size", 11 if compact else 12)
 		row_style.call(button, _is_recommended(action_id, text))
 		button.set_meta("action_id", action_id)
@@ -106,16 +106,22 @@ static func apply_layout(
 	var width := minf(520.0, viewport_size.x - hud_margin * 2.0)
 	if compact:
 		width = minf(320.0, viewport_size.x - hud_margin * 2.0)
+		var compact_available := maxf(180.0, viewport_size.x - 380.0)
+		width = minf(width, compact_available)
 	var bottom_gap := 210.0 if not compact else 164.0
-	var column_count := 2 if compact and width < 430.0 else 3
+	var column_count := 1 if compact and width < 300.0 else 2 if compact and width < 430.0 else 3
 	var row_count := ceili(float(maxi(1, visible_count)) / float(column_count))
 	var height := 46.0 + float(row_count) * (65.0 if compact else 63.0)
-	height = clampf(height, 112.0 if compact else 112.0, 196.0 if compact else 184.0)
+	height = clampf(height, 112.0 if compact else 112.0, 235.0 if compact else 184.0)
 	if compact:
-		var left := minf(112.0, viewport_size.x - width - hud_margin)
+		var left_bound := 196.0
+		var right_bound := viewport_size.x - 230.0
+		width = minf(width, maxf(180.0, right_bound - left_bound))
+		var left := left_bound + maxf(0.0, right_bound - left_bound - width) * 0.5
+		left = clampf(left, hud_margin, viewport_size.x - width - hud_margin)
 		panel.offset_left = -viewport_size.x + left
 		panel.offset_right = panel.offset_left + width
-		panel.offset_bottom = -70.0
+		panel.offset_bottom = -hud_margin
 	else:
 		panel.offset_left = -width - hud_margin
 		panel.offset_right = -hud_margin

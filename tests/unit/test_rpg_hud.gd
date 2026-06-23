@@ -133,7 +133,6 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
 
-
 func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -153,6 +152,9 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_true(row.text.contains("Blacksmith"))
 	assert_true(row.text.contains("Road Notice"))
 	assert_true(row.tooltip_text.contains("Harrow Venn"))
+	var target_rect := _anchored_rect(hud.target_panel, Vector2(640, 360))
+	for action_rect in _visible_button_rects(hud.action_buttons):
+		assert_false(target_rect.intersects(action_rect))
 	row.pressed.emit()
 	assert_eq(used_targets, ["npc_harrow_venn_world"])
 	assert_true(hud.action_buttons.visible)
@@ -165,7 +167,6 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
 	assert_true(hud.move_pad.visible)
-
 
 func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:
 	var hud := _new_hud()
@@ -311,15 +312,13 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(640, 360))
 	assert_true(_rect_inside(quick_rect, screen))
-	assert_gte(quick_rect.size.x, 300.0)
 	for action_rect in _visible_button_rects(hud.action_buttons):
-		assert_false(
-			quick_rect.intersects(action_rect), "Quick actions should not cover main commands."
-		)
+		assert_false(quick_rect.intersects(action_rect))
+	assert_false(quick_rect.intersects(_anchored_rect(hud.move_pad, Vector2(640, 360))))
 	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
 	assert_not_null(accept)
 	assert_true(accept.text.contains("Dialogue"))
-	assert_gte(accept.custom_minimum_size.x, 142.0)
+	assert_gte(accept.custom_minimum_size.x, 104.0)
 	assert_gte(accept.custom_minimum_size.y, 56.0)
 	accept.pressed.emit()
 	assert_eq(context_actions, ["dialogue:accept"])
@@ -333,7 +332,6 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_not_null(guard)
 	guard.pressed.emit()
 	assert_eq(combat_actions, ["guard"])
-
 
 func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() -> void:
 	var hud := _new_hud()
@@ -654,6 +652,7 @@ func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	assert_true(hud.systems_left_panel.visible)
 	assert_true(hud.systems_center_panel.visible)
 	assert_true(hud.systems_category_row.visible)
+	assert_true(hud.systems_category_row is HFlowContainer)
 	assert_true(hud.systems_item_list.visible)
 	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 92.0)
 	assert_gte(hud.systems_detail_panel.custom_minimum_size.x, 184.0)
@@ -718,6 +717,7 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_true(hud.content_preview_panel.visible)
 	assert_eq(hud.content_preview_panel.get_parent(), hud.content_right_stack)
 	assert_true(hud.content_preview_label.visible)
+	assert_false(hud.content_preview_reward_label.visible)
 	assert_true(hud.content_preview_label.text.contains("Choose this response."))
 	assert_false(hud.content_preview_title_label.text.is_empty())
 	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 86.0)

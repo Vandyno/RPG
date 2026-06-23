@@ -19,7 +19,7 @@ static func build(
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
 	panel.offset_left = hud_margin
-	panel.offset_top = -246
+	panel.offset_top = -266
 	panel.offset_right = -hud_margin
 	panel.offset_bottom = -12
 	panel.visible = false
@@ -192,7 +192,7 @@ static func apply_layout(
 	content_panel.offset_left = hud_margin
 	content_panel.offset_right = -hud_margin
 	content_panel.offset_bottom = -8 if compact else -12
-	content_panel.offset_top = -328 if compact else -246
+	content_panel.offset_top = -328 if compact else -266
 	content_panel.custom_minimum_size = (
 		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 320) if compact else Vector2.ZERO
 	)
@@ -251,10 +251,10 @@ static func apply_layout(
 		if compact:
 			preview_label.custom_minimum_size = Vector2(0, 18)
 	if preview_reward_label:
-		preview_reward_label.visible = true
+		preview_reward_label.visible = not compact
 		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 		if compact:
-			preview_reward_label.custom_minimum_size = Vector2(0, 18)
+			preview_reward_label.custom_minimum_size = Vector2.ZERO
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():

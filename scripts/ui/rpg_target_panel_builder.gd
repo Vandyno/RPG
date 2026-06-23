@@ -109,10 +109,14 @@ static func apply_layout(
 	if not target_panel:
 		return
 	var width := minf(392.0 if compact else 340.0, viewport_size.x - hud_margin * 2.0)
-	target_panel.offset_left = -width - hud_margin
-	target_panel.offset_right = -hud_margin
-	var top := 76.0 if compact else 112.0
-	var bottom := viewport_size.y - 72.0 if compact else minf(430.0, viewport_size.y - hud_margin)
+	target_panel.anchor_left = 0.0 if compact else 1.0
+	target_panel.anchor_right = 0.0 if compact else 1.0
+	target_panel.offset_left = hud_margin if compact else -width - hud_margin
+	target_panel.offset_right = hud_margin + width if compact else -hud_margin
+	var top := 138.0 if compact else 112.0
+	var bottom := (
+		viewport_size.y - hud_margin if compact else minf(430.0, viewport_size.y - hud_margin)
+	)
 	if bottom - top < 174.0:
 		top = maxf(hud_margin, bottom - 174.0)
 	target_panel.offset_top = top

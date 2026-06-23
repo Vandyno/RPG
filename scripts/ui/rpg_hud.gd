@@ -46,7 +46,7 @@ var systems_detail_equipment_panel: PanelContainer
 var systems_detail_equipment_nodes := {}
 var systems_spell_slot_panel: PanelContainer
 var systems_spell_slot_buttons := {}
-var systems_category_row: HBoxContainer
+var systems_category_row: HFlowContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
 var systems_active_category := "all"
@@ -257,7 +257,7 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	center_stack.add_theme_constant_override("separation", 8)
 	_add_margin(systems_center_panel, center_stack, 12)
 
-	systems_category_row = HBoxContainer.new()
+	systems_category_row = HFlowContainer.new()
 	systems_category_row.name = "SystemsCategoryRow"
 	systems_category_row.add_theme_constant_override("separation", 6)
 	center_stack.add_child(systems_category_row)
