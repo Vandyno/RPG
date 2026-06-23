@@ -19,7 +19,7 @@ static func build(
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
 	panel.offset_left = hud_margin
-	panel.offset_top = -214
+	panel.offset_top = -246
 	panel.offset_right = -hud_margin
 	panel.offset_bottom = -12
 	panel.visible = false
@@ -95,6 +95,7 @@ static func build(
 	choice_scroll.name = "ContentChoiceScroll"
 	choice_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choice_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	choice_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	add_margin.call(choice_panel, choice_scroll, 8)
 
 	var choice_list := VBoxContainer.new()
@@ -183,7 +184,7 @@ static func apply_layout(
 	content_panel.offset_left = hud_margin
 	content_panel.offset_right = -hud_margin
 	content_panel.offset_bottom = -8 if compact else -12
-	content_panel.offset_top = -276 if compact else -214
+	content_panel.offset_top = -276 if compact else -246
 	content_panel.custom_minimum_size = (
 		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 268)
 		if compact
@@ -198,29 +199,27 @@ static func apply_layout(
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(46, 46) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(232, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(140, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(232, 0) if compact else Vector2(0, 0)
-	if preview_panel and compact:
-		preview_panel.visible = false
-	elif preview_panel:
-		preview_panel.custom_minimum_size = Vector2(220, 0)
+		choice_panel.custom_minimum_size = Vector2(140, 0) if compact else Vector2(0, 0)
+	if preview_panel:
+		preview_panel.custom_minimum_size = Vector2(112, 0) if compact else Vector2(220, 0)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 18 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 15 if compact else 22)
 	if kind_label:
 		kind_label.add_theme_font_size_override("font_size", 14 if compact else 14)
 	if body_label:
-		body_label.add_theme_font_size_override("font_size", 22 if compact else 17)
+		body_label.add_theme_font_size_override("font_size", 13 if compact else 17)
 	if preview_title_label:
-		preview_title_label.add_theme_font_size_override("font_size", 15)
+		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
 	if preview_reward_label:
-		preview_reward_label.add_theme_font_size_override("font_size", 13)
+		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():
 			if child is Button:
 				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
-				child.add_theme_font_size_override("font_size", 14 if compact else 14)
+				child.add_theme_font_size_override("font_size", 10 if compact else 14)
 
 
 static func apply_mode(
@@ -237,6 +236,7 @@ static func apply_mode(
 	if close_button:
 		close_button.text = "Leave" if normalized == "dialogue" else "Close"
 		close_button.tooltip_text = "Leave conversation" if normalized == "dialogue" else "Close panel"
+		close_button.visible = not _has_valid_choices(choices)
 	if choice_panel:
 		choice_panel.visible = _has_valid_choices(choices)
 

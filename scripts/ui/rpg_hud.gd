@@ -16,11 +16,11 @@ const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
-const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
+const COMPACT_NAV_BUTTON_SIZE := Vector2(52, 46)
 const LOCATION_BANNER_WIDTH := 344.0
 const LOCATION_BANNER_HEIGHT := 54.0
 const STATUS_PANEL_SIZE := Vector2(318, 116)
-const COMPACT_STATUS_PANEL_SIZE := Vector2(238, 88)
+const COMPACT_STATUS_PANEL_SIZE := Vector2(180, 88)
 const SYSTEMS_PANEL_MIN_SIZE := Vector2(600, 328)
 
 var location_banner_panel: PanelContainer
@@ -534,14 +534,11 @@ func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	if not location_banner_panel:
 		return
-	location_banner_panel.visible = not compact
-	if compact:
-		return
 	var nav_left := viewport_size.x + top_nav_panel.offset_left
 	var left_bound := status_panel.offset_right + HUD_MARGIN
 	var right_bound := nav_left - HUD_MARGIN
 	var available_width := right_bound - left_bound
-	location_banner_panel.visible = available_width >= 220.0
+	location_banner_panel.visible = available_width >= 140.0
 	if not location_banner_panel.visible:
 		return
 	var width := minf(LOCATION_BANNER_WIDTH, available_width)
@@ -558,9 +555,7 @@ func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 	if not top_nav_panel or not top_nav_buttons:
 		return
-	top_nav_panel.visible = not compact
-	if compact:
-		return
+	top_nav_panel.visible = true
 	var button_size := COMPACT_NAV_BUTTON_SIZE if compact else NAV_BUTTON_SIZE
 	for child in top_nav_buttons.get_children():
 		if child is Button:
@@ -594,15 +589,13 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_left_panel:
 		systems_left_panel.custom_minimum_size = Vector2(116, 0) if compact else Vector2(176, 0)
 	if systems_detail_panel:
-		systems_detail_panel.visible = not compact
-		systems_detail_panel.custom_minimum_size = Vector2(220, 0)
+		systems_detail_panel.visible = true
+		systems_detail_panel.custom_minimum_size = Vector2(156, 0) if compact else Vector2(220, 0)
 	if systems_character_panel:
 		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
 		systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	if systems_inline_equipment_panel:
-		systems_inline_equipment_panel.visible = (
-			compact and ["inventory", "character"].has(systems_active_tab)
-		)
+		systems_inline_equipment_panel.visible = false
 	if systems_resources_label:
 		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
 		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
@@ -626,7 +619,7 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 		content_choice_list, viewport_size, compact, HUD_MARGIN
 	)
 	if content_portrait_label:
-		content_portrait_label.add_theme_font_size_override("font_size", 14 if compact else 20)
+		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
 
 
 func _rpg_location_name(state: Dictionary) -> String:
@@ -681,10 +674,7 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		systems_inline_equipment_nodes, state, Callable(self, "_apply_row_button_style")
 	)
 	if systems_inline_equipment_panel:
-		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-		systems_inline_equipment_panel.visible = (
-			compact and ["inventory", "character"].has(systems_active_tab)
-		)
+		systems_inline_equipment_panel.visible = false
 
 
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -827,7 +817,9 @@ func _refresh_content_choices(choices: Array) -> void:
 		Callable(self, "_new_button"),
 		Callable(self, "_apply_row_button_style"),
 		self,
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0,
+		Callable(self, "hide_content_card"),
+		"Leave" if content_kind_label.text == "Dialogue" else "Close"
 	)
 
 
@@ -840,8 +832,7 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if content_preview_reward_label:
 		content_preview_reward_label.text = RpgContentChoiceBuilder.preview_rewards(choices)
 	if content_preview_panel:
-		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-		content_preview_panel.visible = not compact and not content_preview_label.text.is_empty()
+		content_preview_panel.visible = not content_preview_label.text.is_empty()
 
 
 func _refresh_target_picker(state: Dictionary) -> void:
@@ -882,7 +873,6 @@ func _emit_quick_action(action_id: String, context_mode: bool) -> void:
 		context_action_selected.emit(action_id)
 	else:
 		combat_action_selected.emit(action_id)
-
 
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()

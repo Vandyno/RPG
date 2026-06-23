@@ -98,7 +98,7 @@ static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictio
 			"title": "Empty Pack",
 			"subtitle": "No carried items.",
 			"meta": "Inventory",
-			"detail": "You are not carrying any loose items."
+			"detail": "Your pack is empty."
 		})
 	return rows_data
 

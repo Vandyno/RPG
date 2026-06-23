@@ -283,7 +283,10 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	var close_button := hud.content_panel.find_child("ContentCloseButton", true, false) as Button
 	assert_not_null(close_button)
 	assert_eq(close_button.text, "Leave")
-	close_button.pressed.emit()
+	assert_false(close_button.visible)
+	var leave_button := _button_containing(hud.content_choice_list, "Leave")
+	assert_not_null(leave_button)
+	leave_button.pressed.emit()
 	assert_false(hud.is_content_card_visible())
 	assert_true(hud.move_pad.visible)
 	assert_true(hud.action_buttons.visible)
@@ -456,7 +459,7 @@ func test_rpg_equipment_slots_accept_dropped_items_and_route_equip_action() -> v
 	assert_eq(emitted, ["equip_slot:item_road_hatchet:right_hand"])
 
 
-func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
+func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
 	hud.show_systems_panel("inventory")
@@ -465,18 +468,20 @@ func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	var menu_rect := _anchored_rect(hud.systems_panel, Vector2(640, 360))
 	assert_true(_rect_inside(menu_rect, screen), "Compact systems menu should stay on screen.")
 	assert_gte(menu_rect.size.x, 600.0)
-	assert_false(hud.systems_detail_panel.visible)
+	assert_true(hud.systems_detail_panel.visible)
 	assert_false(hud.systems_character_panel.visible)
+	assert_false(hud.systems_inline_equipment_panel.visible)
 	assert_true(hud.systems_left_panel.visible)
 	assert_true(hud.systems_center_panel.visible)
 	assert_true(hud.systems_category_row.visible)
 	assert_true(hud.systems_item_list.visible)
 	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
+	assert_lte(hud.systems_detail_panel.custom_minimum_size.x, 156.0)
 	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
 	assert_eq(hud.systems_action_list, hud.systems_item_list)
 
 
-func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
+func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
 	hud.show_content_card(
@@ -487,8 +492,8 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	)
 
 	assert_false(hud.prompt_panel.visible)
-	assert_false(hud.location_banner_panel.visible)
-	assert_false(hud.top_nav_panel.visible)
+	assert_true(hud.location_banner_panel.visible)
+	assert_true(hud.top_nav_panel.visible)
 	assert_false(hud.message_panel.visible)
 
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
@@ -509,14 +514,14 @@ func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
 	assert_false(hud.move_pad.visible)
 	assert_true(hud.content_identity_panel.visible)
 	assert_true(hud.content_portrait_panel.visible)
-	assert_false(hud.content_preview_panel.visible)
+	assert_true(hud.content_preview_panel.visible)
 	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 92.0)
-	assert_gte(hud.content_right_stack.custom_minimum_size.x, 232.0)
-	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 22)
+	assert_gte(hud.content_right_stack.custom_minimum_size.x, 140.0)
+	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 13)
 	var accept_button := _button_containing(hud.content_choice_list, "Accept") as Button
 	assert_not_null(accept_button)
 	assert_gte(accept_button.custom_minimum_size.y, 46.0)
-	assert_gte(accept_button.get_theme_font_size("font_size"), 14)
+	assert_gte(accept_button.get_theme_font_size("font_size"), 10)
 
 
 func _new_hud() -> RpgHud:

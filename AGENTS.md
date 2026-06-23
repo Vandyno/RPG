@@ -35,3 +35,8 @@ Focus on player pain points before polish for its own sake. The player does not
 need heavy hand-holding; they need systems that work, make sense, and respond
 intuitively to intent. Prefer making default actions, targeting, feedback, and
 world interactions feel natural over adding more explanatory UI.
+
+For UI work, remove redundant or legacy-shaped UI when current evidence shows it
+hurts the final layout. Do not preserve boxes, buttons, panels, or text just
+because existing tests or old structure expect them. Move actions into the
+player-facing flow that best matches `docs/ui/UI_TARGET.md`.

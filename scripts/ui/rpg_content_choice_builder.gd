@@ -8,7 +8,9 @@ static func refresh(
 	new_button: Callable,
 	row_style: Callable,
 	owner: Object,
-	compact: bool
+	compact: bool,
+	close_callback: Callable = Callable(),
+	close_text := ""
 ) -> bool:
 	var button_index := 0
 	for choice in choices:
@@ -25,11 +27,28 @@ static func refresh(
 		button.disabled = false
 		button.visible = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 58)
-		button.add_theme_font_size_override("font_size", 12 if compact else 14)
+		button.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 44)
+		button.add_theme_font_size_override("font_size", 10 if compact else 13)
 		button.set_meta("choice_id", choice_id)
-		row_style.call(button, _is_recommended(choice))
-		_bind_button(button, owner)
+		var closes := _choice_closes(choice)
+		button.set_meta("content_close_choice", closes)
+		row_style.call(button, _is_recommended(choice) and not closes)
+		_bind_button(button, owner, close_callback)
+		button_index += 1
+	if button_index > 0 and not close_text.is_empty() and not _has_close_choice(choices):
+		var close := _button(container, button_index, new_button)
+		close.text = close_text
+		close.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		close.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		close.disabled = false
+		close.visible = true
+		close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		close.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 44)
+		close.add_theme_font_size_override("font_size", 10 if compact else 13)
+		close.set_meta("choice_id", "")
+		close.set_meta("content_close_choice", true)
+		row_style.call(close, false)
+		_bind_button(close, owner, close_callback)
 		button_index += 1
 	for index in range(button_index, container.get_child_count()):
 		container.get_child(index).visible = false
@@ -91,21 +110,42 @@ static func _button(container: VBoxContainer, index: int, new_button: Callable) 
 	return button
 
 
-static func _bind_button(button: Button, owner: Object) -> void:
+static func _bind_button(button: Button, owner: Object, close_callback: Callable) -> void:
 	if bool(button.get_meta("content_choice_bound", false)):
 		return
 	button.set_meta("content_choice_bound", true)
 	button.pressed.connect(
 		func() -> void:
+			if bool(button.get_meta("content_close_choice", false)):
+				if close_callback.is_valid():
+					close_callback.call()
+				return
 			owner.emit_signal("content_choice_selected", String(button.get_meta("choice_id", "")))
 	)
 
 
 static func _button_text(choice: Dictionary) -> String:
+	if _choice_closes(choice):
+		return String(choice.get("text", ""))
 	var subtitle := _subtitle(choice)
 	if subtitle.is_empty():
 		return String(choice.get("text", ""))
 	return "%s\n%s" % [String(choice.get("text", "")), subtitle]
+
+
+static func _has_close_choice(choices: Array) -> bool:
+	for choice in choices:
+		if not choice is Dictionary:
+			continue
+		if _choice_closes(choice):
+			return true
+	return false
+
+
+static func _choice_closes(choice: Dictionary) -> bool:
+	var text := String(choice.get("text", "")).to_lower()
+	var choice_id := String(choice.get("id", "")).to_lower()
+	return text == "leave" or text == "close" or choice_id == "leave" or choice_id == "close"
 
 
 static func _subtitle(choice: Dictionary) -> String:
