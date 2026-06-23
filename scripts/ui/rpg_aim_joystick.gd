@@ -8,6 +8,7 @@ var emit_press_on_release := false
 var drag_origin := Vector2.ZERO
 var aim_vector := Vector2.ZERO
 var dragging := false
+var active_touch_index := -1
 
 
 func _ready() -> void:
@@ -22,6 +23,17 @@ func _gui_input(event: InputEvent) -> void:
 			_finish_aim(event.position)
 		accept_event()
 	elif event is InputEventMouseMotion and dragging:
+		aim_vector = _direction_from(event.position)
+		queue_redraw()
+		accept_event()
+	elif event is InputEventScreenTouch:
+		if event.pressed and active_touch_index == -1:
+			active_touch_index = event.index
+			_start_aim(event.position)
+		elif not event.pressed and event.index == active_touch_index:
+			_finish_aim(event.position)
+		accept_event()
+	elif event is InputEventScreenDrag and dragging and event.index == active_touch_index:
 		aim_vector = _direction_from(event.position)
 		queue_redraw()
 		accept_event()
@@ -83,6 +95,7 @@ func _finish_aim(position: Vector2) -> void:
 		return
 	aim_vector = _direction_from(position)
 	dragging = false
+	active_touch_index = -1
 	button_pressed = false
 	aimed.emit(action_id, aim_vector)
 	if emit_press_on_release:

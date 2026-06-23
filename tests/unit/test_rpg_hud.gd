@@ -247,6 +247,23 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(aim_events[1]["action_id"], "ability_1")
 	assert_eq(aim_events[1]["direction"], Vector2.UP)
 
+	var touch_press := InputEventScreenTouch.new()
+	touch_press.index = 0
+	touch_press.pressed = true
+	touch_press.position = Vector2.ZERO
+	ability._gui_input(touch_press)
+	var touch_drag := InputEventScreenDrag.new()
+	touch_drag.index = 0
+	touch_drag.position = Vector2(0, 32)
+	ability._gui_input(touch_drag)
+	var touch_release := InputEventScreenTouch.new()
+	touch_release.index = 0
+	touch_release.pressed = false
+	touch_release.position = Vector2(0, 32)
+	ability._gui_input(touch_release)
+	assert_eq(aim_events[2]["action_id"], "ability_1")
+	assert_eq(aim_events[2]["direction"], Vector2.DOWN)
+
 
 func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	var hud := _new_hud()
