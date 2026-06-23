@@ -199,18 +199,26 @@ static func apply_layout(
 	if content_panel.offset_top < -viewport_size.y + hud_margin:
 		content_panel.offset_top = -viewport_size.y + hud_margin
 	_place_preview_panel(content_panel, right_stack, preview_panel, compact)
+	var text_panel := content_panel.find_child("ContentTextPanel", true, false) as PanelContainer
+	if text_panel:
+		text_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		text_panel.size_flags_stretch_ratio = 1.0
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(100, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(86, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(150, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(190, 0) if compact else Vector2(286, 0)
+		right_stack.size_flags_horizontal = (
+			Control.SIZE_EXPAND_FILL if compact else Control.SIZE_SHRINK_END
+		)
+		right_stack.size_flags_stretch_ratio = 0.72 if compact else 1.0
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(150, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(190, 0) if compact else Vector2(0, 0)
 	if preview_panel:
-		preview_panel.custom_minimum_size = Vector2(150, 30) if compact else Vector2(220, 0)
+		preview_panel.custom_minimum_size = Vector2(190, 30) if compact else Vector2(220, 0)
 		preview_panel.size_flags_vertical = (
 			Control.SIZE_SHRINK_BEGIN if compact else Control.SIZE_EXPAND_FILL
 		)
@@ -234,8 +242,8 @@ static func apply_layout(
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():
 			if child is Button:
-				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
-				child.add_theme_font_size_override("font_size", 13 if compact else 14)
+				child.custom_minimum_size = Vector2(0, 36) if compact else Vector2(0, 46)
+				child.add_theme_font_size_override("font_size", 12 if compact else 14)
 
 
 static func _place_preview_panel(
