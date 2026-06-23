@@ -32,6 +32,7 @@ var level_badge_label: Label
 var systems_title_label: Label
 var systems_subtitle_label: Label
 var systems_resources_label: Label
+var systems_detail_title_label: Label
 var systems_detail_label: Label
 var systems_nav: VBoxContainer
 var systems_frame: MarginContainer
@@ -80,7 +81,6 @@ func refresh() -> void:
 	if not location_banner_label:
 		return
 	location_banner_label.text = _rpg_location_name(state)
-
 func toggle_debug() -> void:
 	visible_debug = false
 	if debug_panel:
@@ -94,23 +94,19 @@ func show_content_card(title: String, body: String, choices: Array = [], kind: S
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	_sync_content_overlay_chrome()
-
 func hide_content_card() -> void:
 	super.hide_content_card()
 	_sync_content_overlay_chrome()
-
 func show_systems_panel(tab_id: String = "") -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.show_systems_panel(tab_id)
-
 func set_systems_tab(tab_id: String) -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.set_systems_tab(tab_id)
-
 func _refresh_health_bar(state: Dictionary) -> void:
 	super._refresh_health_bar(state)
 	var fill := StyleBoxFlat.new()
@@ -122,7 +118,6 @@ func _refresh_health_bar(state: Dictionary) -> void:
 	fill.corner_radius_bottom_left = 3
 	fill.corner_radius_bottom_right = 3
 	health_bar.add_theme_stylebox_override("fill", fill)
-
 func _build_status_panel() -> void:
 	status_panel = _new_panel("StatusPanel")
 	status_panel.offset_left = 12
@@ -130,11 +125,9 @@ func _build_status_panel() -> void:
 	status_panel.offset_right = 330
 	status_panel.offset_bottom = 128
 	root.add_child(status_panel)
-
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	_add_margin(status_panel, row, 10)
-
 	portrait_panel = Panel.new()
 	portrait_panel.name = "PortraitPanel"
 	portrait_panel.custom_minimum_size = Vector2(74, 74)
@@ -174,7 +167,6 @@ func _build_status_panel() -> void:
 	background.corner_radius_bottom_right = 3
 	health_bar.add_theme_stylebox_override("background", background)
 	stack.add_child(health_bar)
-
 	health_label = _new_label(13)
 	health_label.name = "HealthValue"
 	health_label.add_theme_color_override("font_color", Color(0.95, 0.84, 0.70))
@@ -187,12 +179,10 @@ func _build_systems_panel() -> void:
 	systems_panel.z_index = 100
 	systems_panel.visible = false
 	root.add_child(systems_panel)
-
 	systems_frame = MarginContainer.new()
 	systems_frame.name = "SystemsFrame"
 	_set_margin_constants(systems_frame, 16)
 	systems_panel.add_child(systems_frame)
-
 	var outer := VBoxContainer.new()
 	outer.name = "SystemsOuter"
 	outer.add_theme_constant_override("separation", 10)
@@ -213,7 +203,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_stack.add_theme_constant_override("separation", 2)
 	top_bar.add_child(title_stack)
-
 	systems_title_label = _new_label(26)
 	systems_title_label.name = "SystemsTitle"
 	title_stack.add_child(systems_title_label)
@@ -222,7 +211,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	systems_subtitle_label.name = "SystemsSubtitle"
 	systems_subtitle_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	title_stack.add_child(systems_subtitle_label)
-
 	systems_resources_label = _new_label(17)
 	systems_resources_label.name = "SystemsResources"
 	systems_resources_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -305,9 +293,9 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	detail_stack.add_theme_constant_override("separation", 8)
 	_add_margin(systems_detail_panel, detail_stack, 12)
 
-	var detail_title := _new_label(17)
-	detail_title.text = "Details"
-	detail_stack.add_child(detail_title)
+	systems_detail_title_label = _new_label(17)
+	systems_detail_title_label.text = "Details"
+	detail_stack.add_child(systems_detail_title_label)
 
 	systems_detail_label = _new_label(14)
 	systems_detail_label.name = "SystemsDetail"
@@ -662,6 +650,8 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		RpgSystemsTextBuilder.subtitle(systems_active_tab)
 	]
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
+	if systems_detail_title_label:
+		systems_detail_title_label.text = _systems_detail_title()
 	_refresh_systems_rows(state)
 	RpgSystemsCharacterPaneBuilder.refresh(
 		systems_character_nodes, state, Callable(self, "_apply_row_button_style"),
@@ -809,6 +799,16 @@ func _default_category_for_tab(tab_id: String) -> String:
 		"trade": "stock"
 	}.get(tab_id, "all")
 
+func _systems_detail_title() -> String:
+	return {
+		"inventory": "Item Details",
+		"spells": "Spell Details",
+		"character": "Character Details",
+		"quests": "Quest Details",
+		"map": "Location Details",
+		"journal": "Journal Details",
+		"trade": "Trade Details"
+	}.get(systems_active_tab, "Details")
 
 func _refresh_systems_actions(_state: Dictionary) -> void: pass
 

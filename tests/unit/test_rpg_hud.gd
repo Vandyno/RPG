@@ -94,6 +94,7 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 		["I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"]
 	)
 	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
+	assert_eq(hud.systems_detail_title_label.text, "Spell Details")
 	assert_true(hud.systems_spell_slot_panel.visible)
 	assert_false(hud.systems_detail_equipment_panel.visible)
 	assert_eq(
@@ -486,6 +487,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	hud.set_systems_tab("quests")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
 	assert_true(hud.systems_subtitle_label.text.contains("Quests"))
+	assert_eq(hud.systems_detail_title_label.text, "Quest Details")
 	assert_eq(_button_texts(hud.systems_category_row), ["Active", "Routes", "Rewards"])
 	assert_not_null(_button_containing(hud.systems_item_list, "The Missing Tools"))
 	assert_true(hud.systems_detail_label.text.contains("The Missing Tools"))
@@ -493,6 +495,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 
 	hud.set_systems_tab("map")
 	assert_eq(_button_texts(hud.systems_category_row), ["Known", "Routes", "Nearby"])
+	assert_eq(hud.systems_detail_title_label.text, "Location Details")
 	var map_row := _button_containing(hud.systems_item_list, "Briarwatch Crossroads")
 	assert_not_null(map_row)
 	assert_true(map_row.text.contains("Known"))
@@ -503,6 +506,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	hud.set_systems_tab("journal")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
 	assert_true(hud.systems_subtitle_label.text.contains("Journal"))
+	assert_eq(hud.systems_detail_title_label.text, "Journal Details")
 	assert_eq(_button_texts(hud.systems_category_row), ["Recent", "Factions", "Time", "System"])
 	assert_not_null(_button_containing(hud.systems_item_list, "Recent Events"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Wait 1h"))
