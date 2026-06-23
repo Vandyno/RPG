@@ -89,6 +89,10 @@ static func refresh(
 		var button: Button = new_button.call(_target_text(target_data, compact), Vector2(0, 76))
 		button.name = "TargetRow_%s" % entity_id.to_pascal_case()
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.tooltip_text = _target_tooltip(target_data)
 		button.add_theme_font_size_override("font_size", 16 if compact else 13)
 		row_style.call(button, bool(target_data.get("selected", false)))
 		button.pressed.connect(func() -> void: target_callback.call(entity_id))
@@ -134,9 +138,6 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 		detail = _shorten(detail, 42)
 	if bool(target_data.get("selected", false)):
 		name = "Selected: %s" % name
-	var icon := _kind_icon(String(target_data.get("kind", "")))
-	if not icon.is_empty():
-		name = "%s  %s" % [icon, name]
 	var navigation := String(target_data.get("navigation", ""))
 	var lines: Array[String] = [name]
 	var role_line := kind
@@ -149,25 +150,12 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 	return "\n".join(lines)
 
 
-static func _kind_icon(kind: String) -> String:
-	match kind:
-		"npc":
-			return "T"
-		"enemy":
-			return "A"
-		"readable":
-			return "R"
-		"pickup":
-			return "P"
-		"container":
-			return "O"
-		"rest":
-			return "Z"
-		"poi":
-			return "U"
-		"door":
-			return "E"
-	return ""
+static func _target_tooltip(target_data: Dictionary) -> String:
+	var display_name := String(target_data.get("name", target_data.get("id", "Target")))
+	var kind := _kind_text(String(target_data.get("kind", "")))
+	var detail := _clean_detail(String(target_data.get("detail", "")))
+	var navigation := String(target_data.get("navigation", ""))
+	return "\n".join([display_name, kind, detail, navigation]).strip_edges()
 
 
 static func _shorten(text: String, max_chars: int) -> String:
