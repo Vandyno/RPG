@@ -237,8 +237,17 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_true(hud.content_portrait_panel.visible)
 	assert_eq(hud.content_portrait_label.text, "HV")
 	assert_true(hud.content_preview_panel.visible)
+	var preview_title := hud.content_preview_panel.find_child(
+		"ContentPreviewTitle", true, false
+	) as Label
+	var preview_rewards := hud.content_preview_panel.find_child(
+		"ContentPreviewRewards", true, false
+	) as Label
+	assert_not_null(preview_title)
+	assert_not_null(preview_rewards)
+	assert_eq(preview_title.text, "Quest: Missing Tools")
 	assert_true(hud.content_preview_label.text.contains("I'll find it."))
-	assert_true(hud.content_preview_label.text.contains("Starts quest"))
+	assert_true(preview_rewards.text.contains("Starts quest"))
 	assert_false(hud.move_pad.visible)
 	assert_false(hud.action_buttons.visible)
 	assert_false(hud.message_panel.visible)

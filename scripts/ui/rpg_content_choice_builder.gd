@@ -53,6 +53,33 @@ static func preview_text(choices: Array, kind: String) -> String:
 	return "\n".join(lines)
 
 
+static func preview_title(choices: Array, kind: String) -> String:
+	var choice := _preview_choice(choices)
+	if choice.is_empty():
+		return _kind_text(kind)
+	for effect in _array_field(choice.get("effects", [])):
+		if not effect is Dictionary:
+			continue
+		var effect_type := String(effect.get("type", ""))
+		if effect_type.ends_with("_quest") or effect_type == "set_quest_stage":
+			return "Quest: %s" % _title_from_id(String(effect.get("quest_id", "")))
+	return "Action Preview"
+
+
+static func preview_rewards(choices: Array) -> String:
+	var choice := _preview_choice(choices)
+	if choice.is_empty():
+		return ""
+	var parts: Array[String] = []
+	for effect in _array_field(choice.get("effects", [])):
+		if not effect is Dictionary:
+			continue
+		var text := _effect_text(effect)
+		if not text.is_empty():
+			parts.append(text)
+	return "\n".join(parts)
+
+
 static func _button(container: VBoxContainer, index: int, new_button: Callable) -> Button:
 	if index < container.get_child_count():
 		var existing := container.get_child(index)
@@ -178,6 +205,18 @@ static func _shorten(text: String, max_chars: int) -> String:
 	if text.length() <= max_chars:
 		return text
 	return "%s..." % text.substr(0, maxi(0, max_chars - 3)).strip_edges()
+
+
+static func _title_from_id(value: String) -> String:
+	var cleaned := value.strip_edges()
+	if cleaned.begins_with("quest_"):
+		cleaned = cleaned.substr(6)
+	if cleaned.is_empty():
+		return "Quest"
+	var words: Array[String] = []
+	for part in cleaned.split("_", false):
+		words.append(part.capitalize())
+	return " ".join(words)
 
 
 static func _array_field(value: Variant) -> Array:

@@ -115,11 +115,26 @@ static func build(
 	preview_panel.visible = false
 	outer.add_child(preview_panel)
 
+	var preview_stack := VBoxContainer.new()
+	preview_stack.name = "ContentPreviewStack"
+	preview_stack.add_theme_constant_override("separation", 7)
+	add_margin.call(preview_panel, preview_stack, 8)
+
+	var preview_title_label: Label = new_label.call(15)
+	preview_title_label.name = "ContentPreviewTitle"
+	preview_title_label.add_theme_color_override("font_color", Color(0.78, 1.0, 0.56))
+	preview_stack.add_child(preview_title_label)
+
 	var preview_label: Label = new_label.call(13)
 	preview_label.name = "ContentPreview"
 	preview_label.text = "Choose a response or close."
 	preview_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
-	add_margin.call(preview_panel, preview_label, 8)
+	preview_stack.add_child(preview_label)
+
+	var preview_reward_label: Label = new_label.call(13)
+	preview_reward_label.name = "ContentPreviewRewards"
+	preview_reward_label.add_theme_color_override("font_color", Color(0.96, 0.84, 0.54))
+	preview_stack.add_child(preview_reward_label)
 
 	return {
 		"panel": panel,
@@ -129,7 +144,9 @@ static func build(
 		"right_stack": right_stack,
 		"choice_panel": choice_panel,
 		"preview_panel": preview_panel,
+		"preview_title_label": preview_title_label,
 		"preview_label": preview_label,
+		"preview_reward_label": preview_reward_label,
 		"portrait_label": portrait_label,
 		"kind_label": kind_label,
 		"title_label": title_label,
@@ -149,6 +166,8 @@ static func apply_layout(
 	title_label: Label,
 	kind_label: Label,
 	body_label: Label,
+	preview_title_label: Label,
+	preview_reward_label: Label,
 	choice_list: VBoxContainer,
 	viewport_size: Vector2,
 	compact: bool,
@@ -191,6 +210,10 @@ static func apply_layout(
 		kind_label.add_theme_font_size_override("font_size", 14 if compact else 14)
 	if body_label:
 		body_label.add_theme_font_size_override("font_size", 22 if compact else 17)
+	if preview_title_label:
+		preview_title_label.add_theme_font_size_override("font_size", 15)
+	if preview_reward_label:
+		preview_reward_label.add_theme_font_size_override("font_size", 13)
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():

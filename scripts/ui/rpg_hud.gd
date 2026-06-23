@@ -52,7 +52,9 @@ var content_text_panel: PanelContainer
 var content_right_stack: VBoxContainer
 var content_choice_panel: PanelContainer
 var content_preview_panel: PanelContainer
+var content_preview_title_label: Label
 var content_preview_label: Label
+var content_preview_reward_label: Label
 
 
 func _build_ui() -> void:
@@ -457,7 +459,9 @@ func _build_content_panel() -> void:
 	content_right_stack = nodes["right_stack"]
 	content_choice_panel = nodes["choice_panel"]
 	content_preview_panel = nodes["preview_panel"]
+	content_preview_title_label = nodes["preview_title_label"]
 	content_preview_label = nodes["preview_label"]
+	content_preview_reward_label = nodes["preview_reward_label"]
 	content_kind_label = nodes["kind_label"]
 	content_title_label = nodes["title_label"]
 	content_scroll = nodes["scroll"]
@@ -628,7 +632,8 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	RpgContentPanelBuilder.apply_layout(
 		content_panel, content_identity_panel, content_portrait_panel, content_right_stack,
 		content_choice_panel, content_preview_panel, content_title_label, content_kind_label,
-		content_body_label, content_choice_list, viewport_size, compact, HUD_MARGIN
+		content_body_label, content_preview_title_label, content_preview_reward_label,
+		content_choice_list, viewport_size, compact, HUD_MARGIN
 	)
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 14 if compact else 20)
@@ -798,7 +803,11 @@ func _refresh_content_choices(choices: Array) -> void:
 func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if not content_preview_label:
 		return
+	if content_preview_title_label:
+		content_preview_title_label.text = RpgContentChoiceBuilder.preview_title(choices, kind)
 	content_preview_label.text = RpgContentChoiceBuilder.preview_text(choices, kind)
+	if content_preview_reward_label:
+		content_preview_reward_label.text = RpgContentChoiceBuilder.preview_rewards(choices)
 	if content_preview_panel:
 		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 		content_preview_panel.visible = not compact and not content_preview_label.text.is_empty()
