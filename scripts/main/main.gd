@@ -27,6 +27,7 @@ const RpgHudScript = preload("res://scripts/ui/rpg_hud.gd")
 const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
 const MainHudState = preload("res://scripts/main/main_hud_state.gd")
+const MainDebugState = preload("res://scripts/main/main_debug_state.gd")
 const MainSaveProviders = preload("res://scripts/main/main_save_providers.gd")
 const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
@@ -93,9 +94,8 @@ func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 
 func get_hud_state() -> Dictionary:
 	return MainHudState.build(self)
-
 func get_debug_state() -> Dictionary:
-	return get_hud_state()
+	return MainDebugState.build(self)
 
 func _bootstrap() -> void:
 	event_bus = EventBusScript.new()

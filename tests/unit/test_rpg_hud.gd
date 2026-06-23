@@ -13,6 +13,8 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_true(main.hud is RpgHud)
 	assert_eq(main.get_hud_state()["primary_action"], main.get_debug_state()["primary_action"])
 	assert_true(main.get_hud_state()["inventory_items"] is Array)
+	assert_false(main.get_hud_state().has("player_world"))
+	assert_true(main.get_debug_state().has("player_world"))
 	assert_true(main.hud.get_state.get_method() == "get_hud_state")
 
 
