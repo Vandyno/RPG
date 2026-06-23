@@ -134,7 +134,6 @@ func toggle_debug() -> void:
 	if debug_panel:
 		debug_panel.visible = visible_debug
 
-
 func toggle_systems() -> void:
 	if not systems_panel:
 		return
@@ -165,7 +164,6 @@ func hide_systems_panel() -> void:
 	if systems_panel:
 		systems_panel.visible = false
 		refresh()
-
 
 func is_systems_panel_visible() -> bool:
 	return systems_panel != null and systems_panel.visible
@@ -819,6 +817,8 @@ func _move_button_positions(compact: bool) -> Dictionary:
 
 func _refresh_primary_action_button(state: Dictionary) -> void:
 	if primary_action_button:
+		if String(primary_action_button.get_meta("action_kind", "")) == "attack":
+			primary_action_button.text = "Attack"; primary_action_button.tooltip_text = "Aim attack"; return
 		var action_text := String(state.get("primary_action", "Interact"))
 		if _has_open_overlay_panel() and not (target_panel and target_panel.visible):
 			action_text = "Close"

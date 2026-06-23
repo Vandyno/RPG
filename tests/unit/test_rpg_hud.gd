@@ -175,10 +175,11 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
-	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Target", "Talk", "Menu"])
+	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Target", "Attack", "Menu"])
 	assert_eq(hud.action_buttons.alignment, BoxContainer.ALIGNMENT_END)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
 	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
+	assert_eq(hud.primary_action_button.get_meta("action_kind"), "attack")
 	assert_true(hud.primary_action_button is RpgAimJoystick)
 	var ability := hud.ability_slot_buttons["ability_1"] as RpgAimJoystick
 	assert_not_null(ability)
@@ -211,15 +212,19 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(hud.get_systems_tab(), "inventory")
 
 	hud.hide_systems_panel()
-	hud.primary_action_button.pressed.emit()
-	assert_eq(interact_events, ["interact"])
+	var attack := hud.primary_action_button as RpgAimJoystick
+	attack._start_aim(Vector2.ZERO)
+	attack._finish_aim(Vector2(32, 0))
+	assert_eq(aim_events[0]["action_id"], "attack")
+	assert_eq(aim_events[0]["direction"], Vector2.RIGHT)
+	assert_eq(interact_events, [])
 
 	hud.target_action_button.pressed.emit()
 	assert_eq(cycle_events, ["cycle"])
 	ability._start_aim(Vector2.ZERO)
 	ability._finish_aim(Vector2(0, -32))
-	assert_eq(aim_events[0]["action_id"], "ability_1")
-	assert_eq(aim_events[0]["direction"], Vector2.UP)
+	assert_eq(aim_events[1]["action_id"], "ability_1")
+	assert_eq(aim_events[1]["direction"], Vector2.UP)
 
 	var menu_button := _button_containing(hud.action_buttons, "Menu")
 	assert_not_null(menu_button)

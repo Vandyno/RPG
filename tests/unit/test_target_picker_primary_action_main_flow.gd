@@ -10,7 +10,8 @@ func test_primary_action_uses_selected_target_when_target_picker_is_open() -> vo
 	main._handle_target_selected("object_road_notice")
 	main.hud.toggle_target_picker()
 	assert_true(main.hud.is_target_picker_visible())
-	assert_eq(main.hud.primary_action_button.text, "Read")
+	assert_eq(main.get_debug_state()["primary_action"], "Read")
+	assert_eq(main.hud.primary_action_button.text, "Attack")
 
 	main._handle_interact_requested()
 

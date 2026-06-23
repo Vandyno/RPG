@@ -28,14 +28,37 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _draw() -> void:
-	var center := size * 0.5
-	var radius := minf(size.x, size.y) * 0.34
+	var has_label := not text.strip_edges().is_empty()
+	var center := Vector2(size.x * 0.5, size.y * (0.40 if has_label else 0.5))
+	var radius := minf(size.x, size.y) * (0.29 if has_label else 0.34)
 	var knob := center + aim_vector * radius
 	draw_circle(center, radius, Color(0.02, 0.018, 0.014, 0.64))
 	draw_arc(center, radius, 0.0, TAU, 48, Color(0.84, 0.66, 0.36, 0.82), 2.0)
 	if aim_vector.length() > 0.05:
 		draw_line(center, knob, Color(1.0, 0.80, 0.40, 0.78), 2.0)
 	draw_circle(knob, radius * 0.32, Color(0.90, 0.73, 0.40, 0.72))
+	_draw_label()
+
+
+func _draw_label() -> void:
+	var label := text.strip_edges()
+	if label.is_empty():
+		return
+	var font := get_theme_default_font()
+	var font_size := 8 if size.y < 70.0 else 11
+	var lines := label.split("\n", false)
+	var line_height := font_size + 1
+	var y := size.y - float(lines.size() * line_height) - 3.0
+	for index in range(lines.size()):
+		draw_string(
+			font,
+			Vector2(0, y + float(index + 1) * line_height),
+			String(lines[index]),
+			HORIZONTAL_ALIGNMENT_CENTER,
+			size.x,
+			font_size,
+			Color(1.0, 0.90, 0.68, 0.95)
+		)
 
 
 func _start_aim(position: Vector2) -> void:

@@ -239,7 +239,7 @@ func test_world_tap_approaches_and_interacts_with_far_target() -> void:
 	assert_eq(main.get_debug_state()["nearby"], "Harrow Venn")
 	assert_eq(main.get_debug_state()["primary_action"], "Stop")
 	assert_true(main.hud.prompt_label.text.begins_with("Stop\nHarrow Venn"))
-	assert_eq(main.hud.primary_action_button.text, "Stop")
+	assert_eq(main.hud.primary_action_button.text, "Attack")
 	assert_true(main.hud.log_label.text.contains("Moving to Harrow Venn."))
 
 	for _i in range(90):
@@ -295,7 +295,7 @@ func test_world_tap_moves_to_empty_ground_without_target_menu() -> void:
 	assert_eq(main.get_debug_state()["nearby"], "Destination")
 	assert_eq(main.get_debug_state()["primary_action"], "Stop")
 	assert_true(main.hud.prompt_label.text.begins_with("Stop\nDestination"))
-	assert_eq(main.hud.primary_action_button.text, "Stop")
+	assert_eq(main.hud.primary_action_button.text, "Attack")
 	assert_false(main.manual_target_locked)
 	assert_false(main.entities.get_entity("npc_harrow_venn_world").action_hint_visible)
 

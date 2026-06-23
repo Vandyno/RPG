@@ -60,9 +60,11 @@ Required structure:
   - not four debug-labeled buttons
   - must stay out of the main play/targeting space
 - Bottom-right action cluster
-  - large primary action button, e.g. `Talk`, `Attack`, `Use`, `Open`, `Rest`
-  - secondary buttons for `Inventory`, `Target`, and `Menu`
-  - should present current selected target/action without requiring a target menu
+  - large attack aim joystick
+  - three smaller ability aim joysticks bound to assigned spell slots
+  - secondary controls for `Inventory`, `Target`, and `Menu`
+  - world interaction should come from taps, target hints, and context panels
+    instead of turning the attack joystick into `Talk`, `Use`, `Open`, or `Rest`
 - Bottom-center message strip
   - recent event feedback, e.g. `You feel well rested.`
   - short, legible, and non-modal

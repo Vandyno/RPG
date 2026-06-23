@@ -63,6 +63,15 @@ func test_handle_aim_uses_assigned_spell_against_aimed_enemy() -> void:
 	assert_eq(main.calls, ["message:Fire Blast at Road Thug.", "hit:enemy_east", "refresh"])
 
 
+func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
+	var main := AimMainStub.new()
+
+	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+
+	assert_eq(main.selected_id, "enemy_west")
+	assert_eq(main.calls, ["hit:enemy_west", "refresh"])
+
+
 class MainStub:
 	extends RefCounted
 

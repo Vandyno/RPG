@@ -40,8 +40,16 @@ static func handle(main, action_id: String) -> void:
 
 
 static func handle_aim(main, action_id: String, direction: Vector2) -> void:
+	var attack_action := action_id == "attack" or action_id == "primary"
 	var aimed_entity = _select_aimed_target(main, direction, action_id != "primary")
 	if action_id == "primary":
+		return
+	if attack_action:
+		if aimed_entity and aimed_entity.get_kind() == "enemy":
+			main._interact_enemy(aimed_entity)
+		else:
+			main.event_bus.post_message("Attack needs an enemy target.")
+		main._refresh_hud()
 		return
 	var spell_id: String = main.spells.get_assigned_spell(action_id) if main.spells else ""
 	var spell: Dictionary = main.content.get_spell(spell_id)
@@ -86,7 +94,13 @@ static func _handle_equip_item_to_slot(main, item_id: String, slot_id: String) -
 
 static func _select_aimed_target(main, direction: Vector2, enemies_only: bool):
 	if direction.length() <= 0.1:
-		return main._get_nearby_entity()
+		var nearby = main._get_nearby_entity()
+		if not enemies_only or (nearby and nearby.get_kind() == "enemy"):
+			return nearby
+		for entity in main._get_nearby_entities():
+			if entity.get_kind() == "enemy":
+				return entity
+		return null
 	var targets := []
 	for entity in main._get_nearby_entities():
 		if not enemies_only or entity.get_kind() == "enemy":

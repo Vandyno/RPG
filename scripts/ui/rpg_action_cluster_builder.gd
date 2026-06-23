@@ -11,7 +11,7 @@ static func build(
 	open_inventory: Callable,
 	cycle_target: Callable,
 	open_target_picker: Callable,
-	primary_action: Callable,
+	_primary_action: Callable,
 	aim_action: Callable,
 	open_menu: Callable
 ) -> Dictionary:
@@ -57,13 +57,10 @@ static func build(
 		ability_stack.add_child(ability)
 		ability_buttons[slot_id] = ability
 
-	var primary := _aim_joystick(
-		"Interact", "primary", "Aim or use current action", Vector2(136, 58), true
-	)
+	var primary := _aim_joystick("Attack", "attack", "Aim attack", Vector2(136, 58), false)
 	primary.name = "InteractButton"
 	primary.set_meta("action_role", "primary")
 	primary.aimed.connect(aim_action)
-	primary.pressed.connect(primary_action)
 	cluster.add_child(primary)
 
 	var menu: Button = _command_button(
@@ -185,9 +182,10 @@ static func _apply_command_style(button: Button, primary: bool, compact: bool) -
 		button.set_meta("action_shape", "round_primary")
 	else:
 		button.set_meta("action_shape", "round_secondary")
-	button.add_theme_color_override(
-		"font_color", Color(1.0, 0.92, 0.74) if primary else Color(0.96, 0.90, 0.78)
-	)
+	var font_color := Color(1.0, 0.92, 0.74) if primary else Color(0.96, 0.90, 0.78)
+	if button is RpgAimJoystick:
+		font_color = Color.TRANSPARENT
+	button.add_theme_color_override("font_color", font_color)
 	button.add_theme_stylebox_override("normal", _round_style(base, border, radius))
 	button.add_theme_stylebox_override(
 		"hover",
