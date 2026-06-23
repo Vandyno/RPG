@@ -219,12 +219,13 @@ static func _spell_rows(state: Dictionary, category: String) -> Array[Dictionary
 		var spell_id := String(spell.get("spell_id", ""))
 		var assigned := String(spell.get("assigned_label", ""))
 		var assignment := "Unassigned" if assigned.is_empty() else "Assigned: %s" % assigned
+		var mana := int(spell.get("mana_cost", 0))
 		rows_data.append({
 			"id": "spell_%s" % spell_id,
 			"spell_id": spell_id,
 			"title": name,
 			"subtitle": "%s school - %s" % [school, assignment],
-			"meta": "Cost %d MP" % int(spell.get("mana_cost", 0)),
+			"meta": "%d MP" % mana,
 			"detail": _spell_detail(spell)
 		})
 	if rows_data.is_empty():
@@ -246,7 +247,7 @@ static func _spell_detail(spell: Dictionary) -> String:
 		"Mana cost/drain: %d" % int(spell.get("mana_cost", 0)),
 		"Range: %s" % String(spell.get("range", "")),
 		"Behavior: %s" % String(spell.get("behavior", "")),
-		"Assigned: %s" % ("None" if assigned.is_empty() else assigned)
+		"Assigned slot: %s" % ("None" if assigned.is_empty() else assigned)
 	])
 
 

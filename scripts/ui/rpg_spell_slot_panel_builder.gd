@@ -15,16 +15,23 @@ static func build(
 	var panel: PanelContainer = new_panel.call("SystemsSpellSlotsPanel")
 	parent.add_child(panel)
 	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 6)
+	stack.add_theme_constant_override("separation", 7)
 	add_margin.call(panel, stack, 8)
+	var title := Label.new()
+	title.name = "SystemsSpellSlotTitle"
+	title.text = "Ability Slots"
+	title.add_theme_font_size_override("font_size", 13)
+	title.add_theme_color_override("font_color", Color(0.95, 0.82, 0.56))
+	stack.add_child(title)
 	var buttons := {}
 	for slot_id in SLOT_IDS:
 		var slot := RpgSpellSlot.new()
 		slot.setup_slot(slot_id)
-		slot.custom_minimum_size = Vector2(0, 44)
+		slot.custom_minimum_size = Vector2(0, 50)
 		slot.focus_mode = Control.FOCUS_NONE
 		slot.spell_dropped.connect(drop_callback)
 		button_style.call(slot)
+		slot.add_theme_font_size_override("font_size", 12)
 		stack.add_child(slot)
 		buttons[slot_id] = slot
 	return {"panel": panel, "buttons": buttons}

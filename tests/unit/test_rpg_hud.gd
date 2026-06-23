@@ -96,11 +96,16 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
 	assert_true(hud.systems_spell_slot_panel.visible)
 	assert_false(hud.systems_detail_equipment_panel.visible)
+	assert_eq(
+		(hud.systems_spell_slot_panel.find_child("SystemsSpellSlotTitle", true, false) as Label).text,
+		"Ability Slots"
+	)
 	var fire := _button_containing(hud.systems_item_list, "Fire Blast")
 	assert_not_null(fire)
 	assert_true(fire.text.contains("Fire school"))
 	assert_true(hud.systems_detail_label.text.contains("Mana cost/drain: 5"))
 	assert_true(hud.systems_detail_label.text.contains("Range: 6 tiles"))
+	assert_true(hud.systems_detail_label.text.contains("Assigned slot:"))
 
 
 func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> void:
