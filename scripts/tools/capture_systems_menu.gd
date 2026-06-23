@@ -66,6 +66,8 @@ func _seed_player_facing_menu_state(main) -> void:
 		main.equipment.equip_item_to_slot("item_traveler_buckler", "left_hand")
 	if main.spells:
 		main.spells.assign_spell_to_slot("spell_fire_blast", "ability_1")
+	if main.quests:
+		main.quests.start_quest("quest_missing_tools")
 	if main.progression:
 		main.progression.add_experience(12)
 	if main.world_state:
