@@ -210,11 +210,14 @@ static func apply_layout(
 		portrait_panel.visible = true
 		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(190, 0) if compact else Vector2(286, 0)
+		var has_choices := choice_panel and choice_panel.visible
+		right_stack.custom_minimum_size = (
+			Vector2(190, 0) if compact else Vector2(286, 0)
+		) if has_choices else Vector2(112 if compact else 124, 0)
 		right_stack.size_flags_horizontal = (
-			Control.SIZE_EXPAND_FILL if compact else Control.SIZE_SHRINK_END
+			Control.SIZE_EXPAND_FILL if compact and has_choices else Control.SIZE_SHRINK_END
 		)
-		right_stack.size_flags_stretch_ratio = 0.72 if compact else 1.0
+		right_stack.size_flags_stretch_ratio = (0.72 if compact else 1.0) if has_choices else 0.0
 	if choice_panel:
 		choice_panel.custom_minimum_size = Vector2(190, 0) if compact else Vector2(0, 0)
 	var choice_scroll := (
@@ -226,6 +229,8 @@ static func apply_layout(
 			ScrollContainer.SCROLL_MODE_AUTO if compact else ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		)
 	if preview_panel:
+		if choice_panel and not choice_panel.visible:
+			preview_panel.visible = false
 		preview_panel.custom_minimum_size = Vector2(190, 30) if compact else Vector2(220, 0)
 		preview_panel.size_flags_vertical = (
 			Control.SIZE_SHRINK_BEGIN if compact else Control.SIZE_EXPAND_FILL
