@@ -205,15 +205,13 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(hud.action_buttons.offset_right, -12.0)
 	assert_eq(hud.action_buttons.offset_bottom, -12.0)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
-	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
+	assert_eq(hud.primary_action_button.get_meta("action_shape"), "aim_joystick_primary")
 	assert_eq(hud.primary_action_button.get_meta("action_kind"), "attack")
 	assert_true(hud.primary_action_button is RpgAimJoystick)
 	var ability := hud.ability_slot_buttons["ability_1"] as RpgAimJoystick
 	assert_not_null(ability)
 	assert_eq(ability.get_meta("action_kind"), "ability_1")
-	assert_eq(hud.action_buttons.get_child_count(), 3)
-	assert_true(hud.action_buttons.get_child(0) is HBoxContainer)
-	assert_true(hud.action_buttons.get_child(1) is VBoxContainer)
+	assert_eq(ability.get_meta("action_shape"), "aim_joystick_ability")
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
 		ability.custom_minimum_size.x

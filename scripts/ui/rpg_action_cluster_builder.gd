@@ -76,7 +76,7 @@ static func apply_layout(
 ) -> void:
 	if not cluster:
 		return
-	var cluster_size := Vector2(208, 174) if compact else Vector2(300, 300)
+	var cluster_size := Vector2(190, 164) if compact else Vector2(270, 250)
 	cluster.offset_left = -cluster_size.x - 12
 	cluster.offset_top = -cluster_size.y - (30 if compact else 12)
 	cluster.offset_right = -12
@@ -86,8 +86,8 @@ static func apply_layout(
 
 	var utility_row := cluster.find_child("UtilityButtonStack", true, false) as HBoxContainer
 	if utility_row:
-		utility_row.position = Vector2(76, 0) if compact else Vector2(156, 92)
-		utility_row.size = Vector2(132, 38) if compact else Vector2(144, 52)
+		utility_row.position = Vector2(66, 0) if compact else Vector2(104, 0)
+		utility_row.size = Vector2(124, 38) if compact else Vector2(148, 52)
 		utility_row.add_theme_constant_override("separation", 5 if compact else 6)
 		for nested in utility_row.get_children():
 			if nested is Button:
@@ -99,20 +99,20 @@ static func apply_layout(
 
 	var ability_stack := cluster.find_child("AbilityButtonStack", true, false) as VBoxContainer
 	if ability_stack:
-		ability_stack.position = Vector2(0, 40) if compact else Vector2(0, 104)
-		ability_stack.size = Vector2(52, 132) if compact else Vector2(70, 190)
+		ability_stack.position = Vector2(0, 18) if compact else Vector2(0, 32)
+		ability_stack.size = Vector2(46, 132) if compact else Vector2(62, 186)
 		ability_stack.add_theme_constant_override("separation", 5 if compact else 8)
 		for nested in ability_stack.get_children():
 			if nested is Button:
-				nested.custom_minimum_size = Vector2(48, 40) if compact else Vector2(64, 56)
+				nested.custom_minimum_size = Vector2(42, 42) if compact else Vector2(54, 54)
 				nested.size = nested.custom_minimum_size
 				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
 				_apply_command_style(nested, false, compact)
 
 	if primary:
-		primary.position = Vector2(66, 54) if compact else Vector2(92, 132)
-		primary.custom_minimum_size = Vector2(122, 112) if compact else Vector2(170, 156)
+		primary.position = Vector2(62, 40) if compact else Vector2(86, 68)
+		primary.custom_minimum_size = Vector2(112, 112) if compact else Vector2(154, 154)
 		primary.size = primary.custom_minimum_size
 		primary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		primary.add_theme_font_size_override("font_size", 11 if compact else 15)
@@ -177,6 +177,9 @@ static func _short_spell_label(spell_name: String) -> String:
 
 
 static func _apply_command_style(button: Button, primary: bool, compact: bool) -> void:
+	if button is RpgAimJoystick:
+		_apply_joystick_style(button as RpgAimJoystick, primary)
+		return
 	var radius := 30 if compact else 36
 	var border := Color(0.86, 0.70, 0.42, 0.78)
 	var base := Color(0.035, 0.032, 0.026, 0.94)
@@ -208,6 +211,17 @@ static func _apply_command_style(button: Button, primary: bool, compact: bool) -
 			radius
 		)
 	)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
+static func _apply_joystick_style(button: RpgAimJoystick, primary: bool) -> void:
+	button.set_meta("action_shape", "aim_joystick_primary" if primary else "aim_joystick_ability")
+	button.add_theme_color_override("font_color", Color.TRANSPARENT)
+	button.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	button.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
+	button.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	button.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	button.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 

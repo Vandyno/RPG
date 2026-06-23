@@ -76,6 +76,32 @@ func test_spell_categories_use_compact_readable_labels() -> void:
 	assert_null(_button_containing(hud.systems_category_row, "Restoration"))
 
 
+func test_dialogue_choices_use_player_facing_action_icons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_content_card(
+		"Harrow Venn",
+		"What can I do for you?",
+		[
+			{"id": "ask", "text": "Ask about tools"},
+			{
+				"id": "turn_in",
+				"text": "Turn in Toolbox",
+				"effects": [{"type": "complete_quest", "quest_id": "quest_missing_tools"}]
+			},
+			{"id": "forge", "text": "Forge Services"}
+		],
+		"dialogue"
+	)
+
+	var ask := _button_containing(hud.content_choice_list, "Ask about tools") as Button
+	var turn_in := _button_containing(hud.content_choice_list, "Turn in Toolbox") as Button
+	var forge := _button_containing(hud.content_choice_list, "Forge Services") as Button
+	assert_true(ask.text.begins_with("D  "))
+	assert_true(turn_in.text.begins_with("Q  "))
+	assert_true(forge.text.begins_with("S  "))
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)

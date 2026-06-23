@@ -141,12 +141,30 @@ static func _bind_button(button: Button, owner: Object, close_callback: Callable
 
 
 static func _button_text(choice: Dictionary) -> String:
+	var prefix := _choice_icon(choice)
+	var title := String(choice.get("text", ""))
 	if _choice_closes(choice):
-		return String(choice.get("text", ""))
+		return title
 	var subtitle := _subtitle(choice)
 	if subtitle.is_empty():
-		return String(choice.get("text", ""))
-	return "%s\n%s" % [String(choice.get("text", "")), subtitle]
+		return "%s  %s" % [prefix, title]
+	return "%s  %s\n%s" % [prefix, title, subtitle]
+
+
+static func _choice_icon(choice: Dictionary) -> String:
+	if _choice_closes(choice):
+		return "X"
+	var text := String(choice.get("text", "")).to_lower()
+	var choice_id := String(choice.get("id", "")).to_lower()
+	if _effect_summary(choice.get("effects", [])).contains("quest") or text.begins_with("turn in"):
+		return "Q"
+	if text.contains("forge") or text.contains("service") or text.contains("sharpen"):
+		return "S"
+	if text.contains("trade") or choice_id.contains("trade"):
+		return "T"
+	if text.contains("ask") or not String(choice.get("response", "")).is_empty():
+		return "D"
+	return "A"
 
 
 static func _has_close_choice(choices: Array) -> bool:

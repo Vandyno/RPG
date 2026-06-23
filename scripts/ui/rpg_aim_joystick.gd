@@ -13,6 +13,7 @@ var active_touch_index := -1
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	flat = true
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -45,9 +46,10 @@ func _draw() -> void:
 	var radius := minf(size.x, size.y) * (0.31 if has_label else 0.38)
 	var knob := center + aim_vector * radius
 	var rim := Color(0.90, 0.72, 0.42, 0.92)
-	draw_circle(center, radius * 1.18, Color(0.0, 0.0, 0.0, 0.34))
-	draw_circle(center, radius * 1.03, Color(0.04, 0.034, 0.024, 0.76))
-	draw_arc(center, radius, 0.0, TAU, 56, rim, 2.0)
+	var active := dragging or aim_vector.length() > 0.05
+	draw_circle(center, radius * 1.28, Color(0.0, 0.0, 0.0, 0.42))
+	draw_circle(center, radius * 1.07, Color(0.035, 0.031, 0.024, 0.84))
+	draw_arc(center, radius, 0.0, TAU, 64, rim, 2.4 if active else 1.8)
 	draw_arc(center, radius * 0.63, 0.0, TAU, 48, Color(0.90, 0.72, 0.42, 0.30), 1.0)
 	for direction: Vector2 in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
 		var outer: Vector2 = center + direction * radius * 0.90
@@ -55,7 +57,7 @@ func _draw() -> void:
 		draw_line(inner, outer, Color(1.0, 0.86, 0.50, 0.48), 1.4)
 	if aim_vector.length() > 0.05:
 		draw_line(center, knob, Color(1.0, 0.80, 0.40, 0.78), 2.0)
-	draw_circle(knob, radius * 0.38, Color(0.95, 0.78, 0.42, 0.84))
+	draw_circle(knob, radius * 0.40, Color(0.95, 0.78, 0.42, 0.90 if active else 0.76))
 	draw_circle(knob, radius * 0.23, Color(0.08, 0.065, 0.045, 0.62))
 	draw_arc(knob, radius * 0.38, 0.0, TAU, 32, Color(1.0, 0.91, 0.58, 0.72), 1.0)
 	_draw_label()
