@@ -474,8 +474,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_detail_label.text.contains("Weight: 5"))
 	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
 	assert_not_null(hud.systems_detail_panel.find_child("SystemsDetailEquipmentSlots", true, false))
-	assert_true(hud.systems_detail_equipment_panel.visible)
-	assert_false(hud.systems_character_panel.visible)
+	assert_false(hud.systems_detail_equipment_panel.visible)
+	assert_true(hud.systems_character_panel.visible)
 	assert_not_null(hud.systems_character_panel.find_child("SystemsCharacterPortrait", true, false))
 	var right_hand := hud.systems_character_panel.find_child(
 		"EquipmentSlot_RightHand", true, false
@@ -583,8 +583,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_false(hud.systems_detail_equipment_panel.visible)
 
 	hud.set_systems_tab("character")
-	assert_false(hud.systems_character_panel.visible)
-	assert_true(hud.systems_detail_equipment_panel.visible)
+	assert_true(hud.systems_character_panel.visible)
+	assert_false(hud.systems_detail_equipment_panel.visible)
 	var training_row := _button_containing(hud.systems_item_list, "Training")
 	assert_not_null(training_row)
 	assert_not_null(_button_containing(hud.systems_item_list, "Vitals"))
@@ -597,14 +597,14 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_detail_label.text.contains("Drag gear onto body slots"))
 
 
-func test_rpg_systems_menu_avoids_clipped_right_character_pane_on_wide_desktop() -> void:
+func test_rpg_systems_menu_shows_right_character_pane_on_wide_desktop() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1920, 1080))
 	hud.show_systems_panel("inventory")
 
-	assert_false(hud.systems_character_panel.visible)
-	assert_true(hud.systems_detail_equipment_panel.visible)
-	var right_hand := hud.systems_detail_panel.find_child(
+	assert_true(hud.systems_character_panel.visible)
+	assert_false(hud.systems_detail_equipment_panel.visible)
+	var right_hand := hud.systems_character_panel.find_child(
 		"EquipmentSlot_RightHand", true, false
 	) as RpgEquipmentSlot
 	assert_not_null(right_hand)

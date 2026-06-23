@@ -12,10 +12,18 @@ static func build(
 	add_margin: Callable,
 	portrait_style: Callable
 ) -> Dictionary:
+	var scroll := ScrollContainer.new()
+	scroll.name = "SystemsCharacterScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_margin.call(panel, scroll, 12)
+
 	var stack := VBoxContainer.new()
 	stack.name = "SystemsCharacterStack"
 	stack.add_theme_constant_override("separation", 8)
-	add_margin.call(panel, stack, 12)
+	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(stack)
 
 	var header := HBoxContainer.new()
 	header.name = "SystemsCharacterHeader"
@@ -84,6 +92,7 @@ static func build(
 		"health_bar": health_bar,
 		"equipment_grid": equipment_grid,
 		"equipment_slots": equipment_slots,
+		"scroll": scroll,
 		"rows": rows,
 		"hidden_label": hidden_label,
 		"new_button": new_button

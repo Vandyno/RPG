@@ -563,8 +563,7 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		systems_detail_panel.visible = true
 		systems_detail_panel.custom_minimum_size = Vector2(184, 0) if compact else Vector2(220, 0)
 	var char_tab := ["inventory", "character"].has(systems_active_tab)
-	# Right pane stays disabled until the systems layout can fit it without clipping.
-	var show_character_panel := false
+	var show_character_panel := char_tab and not compact
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
@@ -578,7 +577,7 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		)
 	if systems_character_panel:
 		systems_character_panel.visible = show_character_panel
-		systems_character_panel.custom_minimum_size = Vector2(280 if show_character_panel else 210, 0)
+		systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	if systems_resources_label:
 		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
 		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
@@ -672,7 +671,8 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
 		var char_tab := ["inventory", "character"].has(systems_active_tab)
-		var show_character_panel := false
+		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		var show_character_panel := char_tab and not compact
 		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
