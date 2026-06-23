@@ -457,7 +457,6 @@ func _build_content_panel() -> void:
 	content_body_label = nodes["body_label"]
 	content_choice_list = nodes["choice_list"]
 
-
 func _set_action_button_layout(compact: bool) -> void:
 	RpgActionClusterBuilder.apply_layout(
 		action_buttons, primary_action_button, compact, BUTTON_SIZE,
@@ -488,6 +487,7 @@ func _refresh_systems_tabs() -> void:
 			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
 		)
 
+
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
 	if prompt_panel:
@@ -502,7 +502,6 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 
-
 func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	var size := COMPACT_STATUS_PANEL_SIZE if compact else STATUS_PANEL_SIZE
 	status_panel.offset_left = HUD_MARGIN
@@ -515,7 +514,6 @@ func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	status_label.add_theme_font_size_override("font_size", 13 if compact else 16)
 	health_label.add_theme_font_size_override("font_size", 11 if compact else 13)
 	health_label.visible = true
-
 
 func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	if not location_banner_panel:
@@ -582,6 +580,13 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
 		systems_detail_equipment_panel.visible = ["inventory", "character"].has(systems_active_tab)
+		systems_detail_equipment_panel.custom_minimum_size = Vector2(0, 156 if compact else 176)
+		systems_detail_equipment_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if systems_detail_label:
+		systems_detail_label.size_flags_vertical = (
+			Control.SIZE_SHRINK_BEGIN if systems_detail_equipment_panel.visible
+			else Control.SIZE_EXPAND_FILL
+		)
 	if systems_character_panel:
 		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
 		systems_character_panel.custom_minimum_size = Vector2(210, 0)
@@ -772,13 +777,11 @@ func _refresh_category_row(tab_id: String) -> void:
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
 
-
 func _select_systems_row(row_id: String) -> void:
 	if row_id.is_empty():
 		return
 	systems_selected_row_id = row_id
 	_refresh_systems_chrome(_state_snapshot())
-
 
 func _select_systems_category(category_id: String) -> void:
 	if category_id.is_empty():
@@ -787,18 +790,15 @@ func _select_systems_category(category_id: String) -> void:
 	systems_selected_row_id = ""
 	_refresh_systems_chrome(_state_snapshot())
 
-
 func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	if item_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit("equip_slot:%s:%s" % [item_id, slot_id])
 
-
 func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
 	if spell_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit("assign_spell:%s:%s" % [spell_id, slot_id])
-
 
 func _category_id_for_label(label: String) -> String:
 	return label.to_lower()

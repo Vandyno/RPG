@@ -586,8 +586,17 @@ func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	assert_eq(hud.systems_action_list, hud.systems_item_list)
 	var compact_neck := hud.systems_detail_panel.find_child("EquipmentSlot_Necklace", true, false)
 	var compact_right := hud.systems_detail_panel.find_child("EquipmentSlot_RightHand", true, false)
+	var compact_grid := hud.systems_detail_panel.find_child(
+		"SystemsDetailEquipmentSlots", true, false
+	) as GridContainer
+	assert_not_null(hud.systems_detail_panel.find_child("SystemsDetailEquipmentScroll", true, false))
+	assert_eq(compact_grid.columns, 2)
+	assert_gte(hud.systems_detail_equipment_panel.custom_minimum_size.y, 156.0)
+	assert_eq(hud.systems_detail_label.size_flags_vertical, Control.SIZE_SHRINK_BEGIN)
 	assert_eq((compact_neck as Button).text, "Neck\nEmpty")
 	assert_true((compact_right as Button).text.begins_with("R Hand\n"))
+	assert_gte((compact_right as Button).custom_minimum_size.x, 72.0)
+	assert_gte((compact_right as Button).custom_minimum_size.y, 52.0)
 
 
 func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:

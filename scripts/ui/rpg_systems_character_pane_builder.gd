@@ -82,6 +82,7 @@ static func build(
 		"portrait_label": portrait_label,
 		"subtitle": subtitle,
 		"health_bar": health_bar,
+		"equipment_grid": equipment_grid,
 		"equipment_slots": equipment_slots,
 		"rows": rows,
 		"hidden_label": hidden_label,
@@ -95,15 +96,26 @@ static func build_equipment_only(panel: PanelContainer, add_margin: Callable) ->
 	stack.add_theme_constant_override("separation", 6)
 	add_margin.call(panel, stack, 8)
 
+	var scroll := ScrollContainer.new()
+	scroll.name = "SystemsDetailEquipmentScroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stack.add_child(scroll)
+
 	var equipment_grid := GridContainer.new()
 	equipment_grid.name = "SystemsDetailEquipmentSlots"
 	equipment_grid.columns = 3
 	equipment_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	equipment_grid.add_theme_constant_override("h_separation", 6)
 	equipment_grid.add_theme_constant_override("v_separation", 6)
-	stack.add_child(equipment_grid)
+	scroll.add_child(equipment_grid)
 
-	return {"equipment_slots": _build_equipment_slots(equipment_grid), "panel": panel}
+	return {
+		"equipment_grid": equipment_grid,
+		"equipment_scroll": scroll,
+		"equipment_slots": _build_equipment_slots(equipment_grid),
+		"panel": panel
+	}
 
 
 static func refresh(
@@ -115,6 +127,7 @@ static func refresh(
 	if subtitle:
 		subtitle.text = String(state.get("progression", "Level 1"))
 	_refresh_health_bar(health_bar, String(state.get("player_health", "Health 0/0")))
+	_layout_equipment_grid(nodes, compact)
 	_refresh_equipment_slots(nodes, state, row_style, compact)
 	if not rows:
 		return
@@ -190,8 +203,18 @@ static func _refresh_equipment_slots(
 		var item_name := String(entry.get("item_name", ""))
 		slot.text = "%s\n%s" % [display_label, "Empty" if item_name.is_empty() else item_name]
 		slot.tooltip_text = "%s equipment slot" % label
-		slot.add_theme_font_size_override("font_size", 11)
+		slot.custom_minimum_size = Vector2(72, 52) if compact else Vector2(0, 44)
+		slot.add_theme_font_size_override("font_size", 10 if compact else 11)
 		row_style.call(slot, not item_name.is_empty())
+
+
+static func _layout_equipment_grid(nodes: Dictionary, compact: bool) -> void:
+	var grid := nodes.get("equipment_grid") as GridContainer
+	if not grid:
+		return
+	grid.columns = 2 if compact else 3
+	grid.add_theme_constant_override("h_separation", 5 if compact else 6)
+	grid.add_theme_constant_override("v_separation", 5 if compact else 6)
 
 
 static func _slot_display_label(slot_id: String, fallback: String, compact: bool) -> String:
