@@ -31,6 +31,7 @@ func test_selected_target_picker_row_uses_target_directly() -> void:
 	assert_not_null(selected_row)
 	assert_true(selected_row.text.contains("Read"))
 	assert_false(selected_row.text.contains("Read - Readable"))
+	assert_false(selected_row.text.contains("Selected:"))
 
 	selected_row.pressed.emit()
 
@@ -49,6 +50,7 @@ func test_unselected_target_picker_row_uses_target_directly() -> void:
 	var harrow_row := _button_containing(main.hud.target_list, "Harrow Venn")
 	assert_not_null(harrow_row)
 	assert_false(harrow_row.text.contains("Selected:"))
+	assert_false(bool(harrow_row.get_meta("selected_target", false)))
 
 	harrow_row.pressed.emit()
 
@@ -60,7 +62,11 @@ func test_unselected_target_picker_row_uses_target_directly() -> void:
 
 func _selected_button_containing(container: Control, text: String) -> Button:
 	for child in container.get_children():
-		if child is Button and child.text.contains("Selected:") and child.text.contains(text):
+		if (
+			child is Button
+			and child.text.contains(text)
+			and bool(child.get_meta("selected_target", false))
+		):
 			return child
 	return null
 

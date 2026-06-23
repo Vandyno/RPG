@@ -86,14 +86,15 @@ static func refresh(
 		var entity_id := String(target_data.get("id", ""))
 		if entity_id.is_empty():
 			continue
-		var button: Button = new_button.call(_target_text(target_data, compact), Vector2(0, 76))
+		var button: Button = new_button.call(_target_text(target_data, compact), Vector2(0, 68))
 		button.name = "TargetRow_%s" % entity_id.to_pascal_case()
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		button.tooltip_text = _target_tooltip(target_data)
-		button.add_theme_font_size_override("font_size", 16 if compact else 13)
+		button.add_theme_font_size_override("font_size", 14 if compact else 13)
+		button.set_meta("selected_target", bool(target_data.get("selected", false)))
 		row_style.call(button, bool(target_data.get("selected", false)))
 		button.pressed.connect(func() -> void: target_callback.call(entity_id))
 		target_list.add_child(button)
@@ -115,7 +116,7 @@ static func apply_layout(
 	target_panel.offset_right = hud_margin + width if compact else -hud_margin
 	var top := 138.0 if compact else 112.0
 	var bottom := (
-		viewport_size.y - hud_margin if compact else minf(430.0, viewport_size.y - hud_margin)
+		viewport_size.y - hud_margin if compact else minf(430.0, viewport_size.y - 270.0)
 	)
 	if bottom - top < 174.0:
 		top = maxf(hud_margin, bottom - 174.0)
@@ -140,8 +141,6 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 		detail = ""
 	if compact:
 		detail = _shorten(detail, 42)
-	if bool(target_data.get("selected", false)):
-		name = "Selected: %s" % name
 	var navigation := String(target_data.get("navigation", ""))
 	var lines: Array[String] = [name]
 	var role_line := kind

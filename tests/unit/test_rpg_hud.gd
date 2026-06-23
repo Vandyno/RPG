@@ -8,7 +8,6 @@ const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_butt
 const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
 const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
 
-
 func test_main_uses_player_facing_rpg_hud() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -147,6 +146,7 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_not_null(row)
 	assert_eq(row.alignment, HORIZONTAL_ALIGNMENT_LEFT)
 	assert_false(row.text.begins_with("T  "))
+	assert_false(row.text.contains("Selected:"))
 	assert_true(row.text.contains("Talk"))
 	assert_true(row.text.contains("Blacksmith"))
 	assert_true(row.text.contains("Road Notice"))

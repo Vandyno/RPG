@@ -122,6 +122,16 @@ func test_desktop_quick_actions_do_not_cover_action_cluster() -> void:
 		assert_false(quick_rect.intersects(action_rect))
 
 
+func test_desktop_target_picker_does_not_cover_action_cluster() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.toggle_target_picker()
+
+	var target_rect := _anchored_rect(hud.target_panel, Vector2(1152, 648))
+	for action_rect in _visible_button_rects(hud.action_buttons):
+		assert_false(target_rect.intersects(action_rect))
+
+
 func test_desktop_systems_character_pane_scrolls_when_visible() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
