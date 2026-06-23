@@ -7,15 +7,15 @@ static func rows(
 ) -> Array[Dictionary]:
 	match tab_id:
 		"character":
-			return _character_rows(state)
+			return _category_filtered_rows(_character_rows(state), category)
 		"quests":
-			return _quest_rows(state)
+			return _quest_rows(state, category)
 		"map":
-			return _map_rows(state)
+			return _map_rows(state, category)
 		"journal":
-			return _journal_rows(state, message_log)
+			return _category_filtered_rows(_journal_rows(state, message_log), category)
 		"trade":
-			return _trade_rows(state)
+			return _trade_rows(state, category)
 		_:
 			return _inventory_rows(state, category)
 
@@ -115,11 +115,19 @@ static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[
 		var count := maxi(0, int(item.get("count", 0)))
 		if name.is_empty() or count <= 0:
 			continue
+		var action := _action_for_item_id(
+			_array_field(state.get("inventory_actions", [])), String(item.get("item_id", ""))
+		)
+		var action_id := String(action.get("id", _inventory_action_id_for_item(item)))
+		var action_text := String(action.get("text", ""))
 		var item_type := _inventory_category_label(item_category)
 		var description := String(item.get("description", "No item details available."))
 		rows_data.append({
 			"id": "inventory_%s" % String(item.get("item_id", rows_data.size())),
-			"title": name,
+			"item_id": String(item.get("item_id", "")),
+			"action_id": action_id,
+			"equipment_slot": String(item.get("equipment_slot", "")),
+			"title": action_text if not action_text.is_empty() else name,
 			"subtitle": "Count %d" % count,
 			"meta": item_type,
 			"detail": "%s x%d\n\n%s" % [name, count, description]
@@ -166,7 +174,7 @@ static func _inventory_category_label(category: String) -> String:
 
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:
-	return [
+	var rows_data: Array[Dictionary] = [
 		{
 			"id": "character_health",
 			"title": "Health",
@@ -199,9 +207,18 @@ static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": _first_non_empty(String(state.get("status_details", "")), "Active effects: none")
 		}
 	]
+	var actions := _array_field(state.get("progression_actions", []))
+	if not actions.is_empty() and actions[0] is Dictionary:
+		rows_data[1]["title"] = String(actions[0].get("text", "Training"))
+		rows_data[1]["action_id"] = String(actions[0].get("id", ""))
+	return rows_data
 
 
-static func _quest_rows(state: Dictionary) -> Array[Dictionary]:
+static func _quest_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	if category == "routes":
+		return _quest_route_rows(state)
+	if category == "rewards":
+		return _quest_reward_rows(state)
 	var rows_data: Array[Dictionary] = []
 	for quest in _array_field(state.get("quests", [])):
 		var text := String(quest)
@@ -211,6 +228,20 @@ static func _quest_rows(state: Dictionary) -> Array[Dictionary]:
 			"subtitle": _text_after_colon(text, "Active quest"),
 			"meta": "Quest",
 			"detail": _quest_detail_for_text(state, text)
+		})
+	for action in _array_field(state.get("quest_target_actions", [])):
+		if not action is Dictionary:
+			continue
+		var text := String(action.get("text", ""))
+		if text.is_empty():
+			continue
+		rows_data.append({
+			"id": "quest_action_%d" % rows_data.size(),
+			"action_id": String(action.get("id", "")),
+			"title": text,
+			"subtitle": "Set active target",
+			"meta": "Route",
+			"detail": text
 		})
 	if rows_data.is_empty():
 		rows_data.append({
@@ -223,7 +254,63 @@ static func _quest_rows(state: Dictionary) -> Array[Dictionary]:
 	return rows_data
 
 
-static func _map_rows(state: Dictionary) -> Array[Dictionary]:
+static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
+	var directions := String(state.get("quest_directions", "none"))
+	if not directions.is_empty() and directions != "none":
+		for line in directions.split("\n", false):
+			var stripped := line.strip_edges()
+			if stripped.is_empty():
+				continue
+			rows_data.append({
+				"id": "quest_route_%d" % rows_data.size(),
+				"title": _title_before_colon(stripped),
+				"subtitle": _text_after_colon(stripped, "Route"),
+				"meta": "Route",
+				"detail": stripped
+			})
+	if rows_data.is_empty():
+		rows_data.append({
+			"id": "quest_routes_empty",
+			"title": "No Routes",
+			"subtitle": "No active quest target selected.",
+			"meta": "Route",
+			"detail": "No quest routes available."
+		})
+	return rows_data
+
+
+static func _quest_reward_rows(state: Dictionary) -> Array[Dictionary]:
+	var actions := _array_field(state.get("quest_target_actions", []))
+	var rows_data: Array[Dictionary] = []
+	for action in actions:
+		if not action is Dictionary:
+			continue
+		var text := String(action.get("text", "Quest Reward"))
+		rows_data.append({
+			"id": "quest_reward_%d" % rows_data.size(),
+			"action_id": String(action.get("id", "")),
+			"title": text,
+			"subtitle": "Quest action",
+			"meta": "Reward",
+			"detail": text
+		})
+	if rows_data.is_empty():
+		rows_data.append({
+			"id": "quest_rewards_empty",
+			"title": "No Rewards Ready",
+			"subtitle": "Finish objectives to reveal rewards.",
+			"meta": "Reward",
+			"detail": "No quest rewards are ready."
+		})
+	return rows_data
+
+
+static func _map_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	if category == "routes":
+		return _map_route_rows(state)
+	if category == "nearby":
+		return _map_nearby_rows(state)
 	var rows_data: Array[Dictionary] = []
 	for location in _comma_entries(String(state.get("locations", "none"))):
 		rows_data.append({
@@ -233,6 +320,19 @@ static func _map_rows(state: Dictionary) -> Array[Dictionary]:
 			"meta": "Map",
 			"detail": _first_non_empty(String(state.get("location_details", "")), location)
 		})
+	if rows_data.is_empty():
+		rows_data.append({
+			"id": "map_empty",
+			"title": "No Known Places",
+			"subtitle": "Explore to discover landmarks.",
+			"meta": "Map",
+			"detail": "No known places."
+		})
+	return rows_data
+
+
+static func _map_route_rows(state: Dictionary) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
 	var quest_directions := String(state.get("quest_directions", "none"))
 	if not quest_directions.is_empty() and quest_directions != "none":
 		for line in quest_directions.split("\n", false):
@@ -245,11 +345,37 @@ static func _map_rows(state: Dictionary) -> Array[Dictionary]:
 			})
 	if rows_data.is_empty():
 		rows_data.append({
-			"id": "map_empty",
-			"title": "No Known Places",
-			"subtitle": "Explore to discover landmarks.",
-			"meta": "Map",
-			"detail": "No known places."
+			"id": "map_routes_empty",
+			"title": "No Routes",
+			"subtitle": "No mapped route selected.",
+			"meta": "Route",
+			"detail": "No routes available."
+		})
+	return rows_data
+
+
+static func _map_nearby_rows(state: Dictionary) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
+	for target in _array_field(state.get("nearby_targets", [])):
+		if not target is Dictionary:
+			continue
+		var name := String(target.get("name", "Nearby target"))
+		if name.is_empty():
+			continue
+		rows_data.append({
+			"id": "map_nearby_%d" % rows_data.size(),
+			"title": name,
+			"subtitle": String(target.get("navigation", target.get("detail", "Nearby"))),
+			"meta": String(target.get("kind", "Nearby")).capitalize(),
+			"detail": String(target.get("detail", name))
+		})
+	if rows_data.is_empty():
+		rows_data.append({
+			"id": "map_nearby_empty",
+			"title": "Nothing Nearby",
+			"subtitle": "Move through town to find targets.",
+			"meta": "Nearby",
+			"detail": "No nearby targets."
 		})
 	return rows_data
 
@@ -267,6 +393,14 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 			"detail": String(state.get("time_details", state.get("time", "")))
 		},
 		{
+			"id": "journal_wait",
+			"action_id": "wait:1",
+			"title": "Wait 1h",
+			"subtitle": "Pass one hour.",
+			"meta": "Time",
+			"detail": "Wait for one hour."
+		},
+		{
 			"id": "journal_reputation",
 			"title": "Reputation",
 			"subtitle": String(state.get("factions", "none")),
@@ -279,11 +413,27 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 			"subtitle": _first_line(recent),
 			"meta": "Log",
 			"detail": recent
+		},
+		{
+			"id": "journal_save",
+			"action_id": "save:game",
+			"title": "Save Game",
+			"subtitle": "Write current progress.",
+			"meta": "System",
+			"detail": "Save current progress."
+		},
+		{
+			"id": "journal_load",
+			"action_id": "load:game",
+			"title": "Load Game",
+			"subtitle": "Restore saved progress.",
+			"meta": "System",
+			"detail": "Load saved progress."
 		}
 	]
 
 
-static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
+static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
 	var trade_text := String(state.get("trade", "No trader selected."))
 	var lines := _non_empty_lines(trade_text)
@@ -293,6 +443,7 @@ static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 		var gold := ""
 		var closed := false
 		var sell_text := ""
+		var in_sell_section := false
 		rows_data.append({
 			"id": "trade_merchant",
 			"title": merchant_name,
@@ -310,13 +461,20 @@ static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 				gold = _text_after_colon(line, "").strip_edges()
 			elif line.begins_with("Sell:"):
 				sell_text = _text_after_colon(line, "none").strip_edges()
+				in_sell_section = true
 			elif line.begins_with("- "):
+				if in_sell_section:
+					continue
 				var stock_text := line.substr(2).strip_edges()
 				var item_name := _title_before_colon(stock_text)
 				var price := _text_after_colon(stock_text, "").strip_edges()
+				var action_id := _action_id_for_text(
+					_array_field(state.get("trade_actions", [])), "Buy %s" % item_name
+				)
 				rows_data.append({
 					"id": "trade_stock_%d" % rows_data.size(),
-					"title": item_name,
+					"action_id": action_id,
+					"title": "Buy %s" % item_name if not action_id.is_empty() else item_name,
 					"subtitle": "Available to buy",
 					"meta": price,
 					"detail": "%s\nPrice: %s\n\n%s" % [item_name, price, merchant_name]
@@ -332,8 +490,22 @@ static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 				"meta": "Sell",
 				"detail": "No sellable carried items."
 			})
+		for action in _array_field(state.get("trade_actions", [])):
+			if not action is Dictionary:
+				continue
+			var text := String(action.get("text", ""))
+			if not text.begins_with("Sell "):
+				continue
+			rows_data.append({
+				"id": "trade_sell_%d" % rows_data.size(),
+				"action_id": String(action.get("id", "")),
+				"title": text,
+				"subtitle": "Sell from pack",
+				"meta": "Sell",
+				"detail": text
+			})
 		if rows_data.size() > 1:
-			return rows_data
+			return _category_filtered_rows(rows_data, category)
 	for line in lines:
 		rows_data.append({
 			"id": "trade_%d" % rows_data.size(),
@@ -353,6 +525,57 @@ static func _trade_rows(state: Dictionary) -> Array[Dictionary]:
 	return rows_data
 
 
+static func _category_filtered_rows(
+	rows_data: Array[Dictionary], category: String
+) -> Array[Dictionary]:
+	var passthrough := ["all", "overview", "active", "known", "stock", "recent"]
+	if category.is_empty() or passthrough.has(category):
+		return rows_data
+	var filtered: Array[Dictionary] = []
+	for row in rows_data:
+		var row_text := "%s %s %s %s" % [
+			String(row.get("id", "")),
+			String(row.get("title", "")),
+			String(row.get("subtitle", "")),
+			String(row.get("meta", ""))
+		]
+		if _row_matches_category(row_text.to_lower(), category):
+			filtered.append(row)
+	if not filtered.is_empty():
+		return filtered
+	return [_empty_category_row(category)]
+
+
+static func _row_matches_category(row_text: String, category: String) -> bool:
+	match category:
+		"training":
+			return row_text.contains("training") or row_text.contains("progression")
+		"gear":
+			return row_text.contains("gear") or row_text.contains("equipment")
+		"effects":
+			return row_text.contains("effect") or row_text.contains("status")
+		"factions":
+			return row_text.contains("faction") or row_text.contains("reputation")
+		"time":
+			return row_text.contains("time")
+		"buy":
+			return row_text.contains("stock") or row_text.contains("buy") or row_text.contains("available")
+		"sell":
+			return row_text.contains("sell")
+	return row_text.contains(category)
+
+
+static func _empty_category_row(category: String) -> Dictionary:
+	var label := category.capitalize()
+	return {
+		"id": "systems_empty_%s" % category,
+		"title": "No %s" % label,
+		"subtitle": "Nothing in this section.",
+		"meta": label,
+		"detail": "No %s entries available." % label.to_lower()
+	}
+
+
 static func _trade_merchant_subtitle(hours: String, gold: String, closed: bool) -> String:
 	var parts: Array[String] = []
 	if not hours.is_empty():
@@ -362,6 +585,39 @@ static func _trade_merchant_subtitle(hours: String, gold: String, closed: bool) 
 	if closed:
 		parts.append("Closed now")
 	return " - ".join(parts)
+
+
+static func _inventory_action_id_for_item(item: Dictionary) -> String:
+	var item_id := String(item.get("item_id", ""))
+	if item_id.is_empty():
+		return ""
+	var slot := String(item.get("equipment_slot", ""))
+	if not slot.is_empty():
+		return "equip:%s" % item_id
+	if String(item.get("type", "")).to_lower() == "consumable":
+		return "use:%s" % item_id
+	return ""
+
+
+static func _action_id_for_text(actions: Array, prefix: String) -> String:
+	for action in actions:
+		if not action is Dictionary:
+			continue
+		if String(action.get("text", "")).begins_with(prefix):
+			return String(action.get("id", ""))
+	return ""
+
+
+static func _action_for_item_id(actions: Array, item_id: String) -> Dictionary:
+	if item_id.is_empty():
+		return {}
+	for action in actions:
+		if not action is Dictionary:
+			continue
+		var action_id := String(action.get("id", ""))
+		if action_id.ends_with(":%s" % item_id):
+			return action
+	return {}
 
 
 static func _non_empty_lines(value: String) -> Array[String]:

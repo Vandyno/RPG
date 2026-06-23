@@ -1,6 +1,8 @@
 class_name ContentDatabase
 extends Node
 
+const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+
 var items: Dictionary = {}
 var readables: Dictionary = {}
 var quests: Dictionary = {}
@@ -129,7 +131,7 @@ func _validate_item_equipment_fields(
 	if not item.has("equipment_slot"):
 		return
 	var slot := String(item.get("equipment_slot", ""))
-	if not ["weapon", "offhand", "body"].has(slot):
+	if not EquipmentSlots.is_supported(slot):
 		errors.append("Item %s has unsupported equipment_slot %s." % [item_id, slot])
 	_validate_optional_non_negative_number(item, "damage_bonus", "Item %s" % item_id, errors)
 	_validate_optional_positive_number(

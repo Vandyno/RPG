@@ -3,6 +3,8 @@ extends GutTest
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const Main = preload("res://scripts/main/main.gd")
 const RpgHud = preload("res://scripts/ui/rpg_hud.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
+const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 
 
 func test_main_uses_player_facing_rpg_hud() -> void:
@@ -132,16 +134,17 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(hud.action_buttons.alignment, BoxContainer.ALIGNMENT_END)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
 	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
-	assert_eq(hud.inventory_action_button.get_meta("action_role"), "secondary")
-	assert_eq(hud.inventory_action_button.get_meta("action_kind"), "inventory")
-	assert_eq(hud.inventory_action_button.get_meta("action_shape"), "round_secondary")
+	var inventory_action_button := hud.action_buttons.get_child(0) as Button
+	assert_eq(inventory_action_button.get_meta("action_role"), "secondary")
+	assert_eq(inventory_action_button.get_meta("action_kind"), "inventory")
+	assert_eq(inventory_action_button.get_meta("action_shape"), "round_secondary")
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
-		hud.inventory_action_button.custom_minimum_size.x
+		inventory_action_button.custom_minimum_size.x
 	)
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.y,
-		hud.inventory_action_button.custom_minimum_size.y
+		inventory_action_button.custom_minimum_size.y
 	)
 
 	var interact_events := []
@@ -149,7 +152,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	hud.interact_pressed.connect(func() -> void: interact_events.append("interact"))
 	hud.cycle_target_pressed.connect(func() -> void: cycle_events.append("cycle"))
 
-	hud.inventory_action_button.pressed.emit()
+	inventory_action_button.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "inventory")
 
@@ -331,34 +334,56 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
-	assert_true(hud.systems_action_list is HFlowContainer)
+	assert_eq(hud.systems_action_list, hud.systems_item_list)
+	assert_null(hud.find_child("SystemsBottomPanel", true, false))
 	assert_eq(
 		_button_texts(hud.systems_category_row),
 		["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"]
 	)
 	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
 	assert_not_null(toolbox_row)
+	assert_true(toolbox_row is RpgInventoryItemButton)
+	assert_eq(toolbox_row.get_meta("item_id"), "item_old_toolbox")
 	assert_true(toolbox_row.text.contains("Count 1"))
 	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
 	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
-	assert_false(hud.systems_character_label.visible)
-	assert_true(hud.systems_character_label.text.contains("Weapon: Road Hatchet"))
+	assert_not_null(hud.systems_detail_panel.find_child("SystemsDetailEquipmentSlots", true, false))
 	assert_not_null(hud.systems_character_panel.find_child("SystemsCharacterPortrait", true, false))
+	var right_hand := hud.systems_character_panel.find_child(
+		"EquipmentSlot_RightHand", true, false
+	) as RpgEquipmentSlot
+	var left_hand := hud.systems_character_panel.find_child(
+		"EquipmentSlot_LeftHand", true, false
+	) as RpgEquipmentSlot
+	var ring_two := hud.systems_character_panel.find_child(
+		"EquipmentSlot_Ring2", true, false
+	) as RpgEquipmentSlot
+	assert_not_null(right_hand)
+	assert_not_null(left_hand)
+	assert_not_null(ring_two)
+	assert_true(right_hand.text.contains("Road Hatchet"))
+	assert_true(left_hand.text.contains("Empty"))
 	var character_health := hud.systems_character_panel.find_child(
 		"SystemsCharacterHealthBar", true, false
 	) as ProgressBar
 	assert_not_null(character_health)
 	assert_eq(int(character_health.value), 76)
 	assert_eq(int(character_health.max_value), 100)
-	assert_not_null(_button_containing(hud.systems_character_rows, "Vitals"))
-	assert_not_null(_button_containing(hud.systems_character_rows, "Training"))
-	var equipment_row := _button_containing(hud.systems_character_rows, "Equipment")
+	var character_rows := hud.systems_character_panel.find_child(
+		"SystemsCharacterRows", true, false
+	)
+	assert_not_null(_button_containing(character_rows, "Vitals"))
+	assert_not_null(_button_containing(character_rows, "Training"))
+	var equipment_row := _button_containing(character_rows, "Equipment")
 	assert_not_null(equipment_row)
 	assert_true(equipment_row.text.contains("Weapon: Road Hatchet"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
 
 	_press_category(hud, "Weapons")
-	assert_not_null(_button_containing(hud.systems_item_list, "Road Hatchet"))
+	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
+	assert_not_null(hatchet_row)
+	assert_eq(hatchet_row.get_meta("item_id"), "item_road_hatchet")
+	assert_eq(hatchet_row.get_meta("equipment_slot"), "weapon")
 	assert_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
 	_press_category(hud, "Armour")
 	assert_not_null(_button_containing(hud.systems_item_list, "Traveler Buckler"))
@@ -399,6 +424,36 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(training_row)
 	assert_false(training_row.text.contains("Training    Progression"))
 	assert_true(training_row.text.contains("Progression - "))
+	_press_category(hud, "Gear")
+	assert_null(_button_containing(hud.systems_item_list, "Training"))
+	assert_not_null(_button_containing(hud.systems_item_list, "Equipment"))
+
+
+func test_rpg_equipment_slots_accept_dropped_items_and_route_equip_action() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var emitted: Array[String] = []
+	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
+	var right_hand := hud.systems_character_panel.find_child(
+		"EquipmentSlot_RightHand", true, false
+	) as RpgEquipmentSlot
+	var left_hand := hud.systems_character_panel.find_child(
+		"EquipmentSlot_LeftHand", true, false
+	) as RpgEquipmentSlot
+	assert_not_null(right_hand)
+	assert_not_null(left_hand)
+	var hatchet_drag := {
+		"type": "inventory_item",
+		"item_id": "item_road_hatchet",
+		"equipment_slot": "weapon"
+	}
+
+	assert_true(right_hand._can_drop_data(Vector2.ZERO, hatchet_drag))
+	assert_false(left_hand._can_drop_data(Vector2.ZERO, hatchet_drag))
+	right_hand._drop_data(Vector2.ZERO, hatchet_drag)
+	assert_eq(emitted, ["equip_slot:item_road_hatchet:right_hand"])
 
 
 func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
@@ -418,7 +473,7 @@ func test_rpg_systems_menu_collapses_side_panes_on_compact_landscape() -> void:
 	assert_true(hud.systems_item_list.visible)
 	assert_lte(hud.systems_left_panel.custom_minimum_size.x, 116.0)
 	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(96, 40))
-	assert_true(hud.systems_action_list is HFlowContainer)
+	assert_eq(hud.systems_action_list, hud.systems_item_list)
 
 
 func test_rpg_hud_collapses_top_chrome_on_compact_landscape() -> void:
@@ -548,6 +603,25 @@ func _sample_state() -> Dictionary:
 			{"id": "equip:item_road_hatchet", "text": "Equip Road Hatchet"}
 		],
 		"equipment": "Weapon: Road Hatchet\nOffhand: empty\nBody: empty",
+		"equipment_slots":
+		{
+			"head": {"label": "Head", "item_id": "", "item_name": ""},
+			"left_hand": {"label": "Left Hand", "item_id": "", "item_name": ""},
+			"right_hand":
+			{
+				"label": "Right Hand",
+				"item_id": "item_road_hatchet",
+				"item_name": "Road Hatchet"
+			},
+			"chest": {"label": "Chest", "item_id": "", "item_name": ""},
+			"legs": {"label": "Legs", "item_id": "", "item_name": ""},
+			"gloves": {"label": "Gloves", "item_id": "", "item_name": ""},
+			"boots": {"label": "Boots", "item_id": "", "item_name": ""},
+			"back": {"label": "Back", "item_id": "", "item_name": ""},
+			"necklace": {"label": "Necklace", "item_id": "", "item_name": ""},
+			"ring_1": {"label": "Ring 1", "item_id": "", "item_name": ""},
+			"ring_2": {"label": "Ring 2", "item_id": "", "item_name": ""}
+		},
 		"factions": "Marches of Velcor +5",
 		"progression": "Level 2  XP 10/40  Points 1",
 		"progression_details": "Level: 2\nXP: 10/40\nUnspent points: 1",

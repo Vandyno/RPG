@@ -1,6 +1,9 @@
 class_name RpgSystemsCharacterPaneBuilder
 extends RefCounted
 
+const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
+
 
 static func build(
 	panel: PanelContainer,
@@ -54,6 +57,16 @@ static func build(
 	_style_health_bar(health_bar)
 	stack.add_child(health_bar)
 
+	var equipment_grid := GridContainer.new()
+	equipment_grid.name = "SystemsEquipmentSlots"
+	equipment_grid.columns = 3
+	equipment_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equipment_grid.add_theme_constant_override("h_separation", 6)
+	equipment_grid.add_theme_constant_override("v_separation", 6)
+	stack.add_child(equipment_grid)
+
+	var equipment_slots := _build_equipment_slots(equipment_grid)
+
 	var rows := VBoxContainer.new()
 	rows.name = "SystemsCharacterRows"
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -69,21 +82,40 @@ static func build(
 		"portrait_label": portrait_label,
 		"subtitle": subtitle,
 		"health_bar": health_bar,
+		"equipment_slots": equipment_slots,
 		"rows": rows,
 		"hidden_label": hidden_label,
 		"new_button": new_button
 	}
 
 
+static func build_equipment_only(panel: PanelContainer, add_margin: Callable) -> Dictionary:
+	var stack := VBoxContainer.new()
+	stack.name = "SystemsDetailEquipmentStack"
+	stack.add_theme_constant_override("separation", 6)
+	add_margin.call(panel, stack, 8)
+
+	var equipment_grid := GridContainer.new()
+	equipment_grid.name = "SystemsDetailEquipmentSlots"
+	equipment_grid.columns = 3
+	equipment_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equipment_grid.add_theme_constant_override("h_separation", 6)
+	equipment_grid.add_theme_constant_override("v_separation", 6)
+	stack.add_child(equipment_grid)
+
+	return {"equipment_slots": _build_equipment_slots(equipment_grid), "panel": panel}
+
+
 static func refresh(nodes: Dictionary, state: Dictionary, row_style: Callable) -> void:
 	var rows: VBoxContainer = nodes.get("rows")
-	if not rows:
-		return
 	var health_bar: ProgressBar = nodes.get("health_bar")
 	var subtitle: Label = nodes.get("subtitle")
 	if subtitle:
 		subtitle.text = String(state.get("progression", "Level 1"))
 	_refresh_health_bar(health_bar, String(state.get("player_health", "Health 0/0")))
+	_refresh_equipment_slots(nodes, state, row_style)
+	if not rows:
+		return
 	var rows_data := RpgSystemsTextBuilder.character_rows(state)
 	for index in range(rows_data.size()):
 		var row := rows_data[index]
@@ -113,6 +145,50 @@ static func _row_button(nodes: Dictionary, index: int) -> Button:
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rows.add_child(button)
 	return button
+
+
+static func _build_equipment_slots(parent: GridContainer) -> Dictionary:
+	var slots := {}
+	var layout := [
+		"", "head", "necklace",
+		"left_hand", "chest", "right_hand",
+		"ring_1", "legs", "ring_2",
+		"gloves", "boots", "back"
+	]
+	for slot_id in layout:
+		if slot_id.is_empty():
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(0, 34)
+			parent.add_child(spacer)
+			continue
+		var slot := RpgEquipmentSlot.new()
+		slot.name = "EquipmentSlot_%s" % slot_id.to_pascal_case()
+		slot.setup_slot(slot_id)
+		slot.text = "%s\nEmpty" % EquipmentSlots.label(slot_id)
+		slot.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		slot.custom_minimum_size = Vector2(0, 44)
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.focus_mode = Control.FOCUS_NONE
+		parent.add_child(slot)
+		slots[slot_id] = slot
+	return slots
+
+
+static func _refresh_equipment_slots(
+	nodes: Dictionary, state: Dictionary, row_style: Callable
+) -> void:
+	var slots: Dictionary = nodes.get("equipment_slots", {})
+	var data: Dictionary = state.get("equipment_slots", {})
+	for slot_id in slots:
+		var slot: RpgEquipmentSlot = slots[slot_id]
+		var entry: Dictionary = data.get(slot_id, {})
+		var label := String(entry.get("label", EquipmentSlots.label(slot_id)))
+		var item_name := String(entry.get("item_name", ""))
+		slot.text = "%s\n%s" % [label, "Empty" if item_name.is_empty() else item_name]
+		slot.tooltip_text = "%s equipment slot" % label
+		slot.add_theme_font_size_override("font_size", 11)
+		row_style.call(slot, not item_name.is_empty())
 
 
 static func _refresh_health_bar(health_bar: ProgressBar, health_text: String) -> void:

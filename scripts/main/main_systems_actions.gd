@@ -11,6 +11,8 @@ static func handle(main, action_id: String) -> void:
 	match action:
 		"equip":
 			main._handle_equip_item(target_id)
+		"equip_slot":
+			_handle_equip_item_to_slot(main, target_id, String(parsed.get("slot_id", "")))
 		"unequip":
 			main._handle_unequip_slot(target_id)
 		"train":
@@ -35,7 +37,26 @@ static func handle(main, action_id: String) -> void:
 
 
 static func parse_action_id(action_id: String) -> Dictionary:
-	var parts := action_id.split(":", false, 1)
-	if parts.size() == 2:
+	var parts := action_id.split(":", false)
+	if parts.size() >= 3 and parts[0] == "equip_slot":
+		return {"action": parts[0], "target_id": parts[1], "slot_id": parts[2]}
+	if parts.size() >= 2:
 		return {"action": parts[0], "target_id": parts[1]}
 	return {"action": "use", "target_id": action_id}
+
+
+static func _handle_equip_item_to_slot(main, item_id: String, slot_id: String) -> void:
+	if main.has_method("_handle_equip_item_to_slot"):
+		main._handle_equip_item_to_slot(item_id, slot_id)
+		return
+	var item: Dictionary = main.content.get_item(item_id)
+	if (
+		item.is_empty()
+		or not main.inventory.has_item(item_id)
+		or not main.equipment.equip_item_to_slot(item_id, slot_id)
+	):
+		main.event_bus.post_message("Could not equip that item there.")
+		main._refresh_hud()
+		return
+	main.event_bus.post_message("Equipped %s." % String(item.get("name", item_id)))
+	main._refresh_hud()

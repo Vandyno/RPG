@@ -7,6 +7,7 @@ const PrimaryActionTextBuilder = preload("res://scripts/ui/primary_action_text_b
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 
 
 static func build(main) -> Dictionary:
@@ -33,6 +34,7 @@ static func build(main) -> Dictionary:
 		"trade": main._trade_text(shop_id),
 		"trade_actions": main._trade_actions_data(shop_id),
 		"equipment": main.equipment.get_summary(),
+		"equipment_slots": _equipment_slots_data(main),
 		"factions": main.factions.get_summary(),
 		"progression": main.progression.get_summary(),
 		"progression_details": main.progression.get_details(),
@@ -107,6 +109,20 @@ static func _inventory_items_data(main) -> Array[Dictionary]:
 			"description": String(item.get("description", ""))
 		})
 	return entries
+
+
+static func _equipment_slots_data(main) -> Dictionary:
+	var slots := {}
+	for slot in EquipmentSlots.SLOTS:
+		var item_id: String = main.equipment.get_equipped_item(slot)
+		var item: Dictionary = main.content.get_item(item_id)
+		slots[slot] = {
+			"slot": slot,
+			"label": EquipmentSlots.label(slot),
+			"item_id": item_id,
+			"item_name": String(item.get("name", ""))
+		}
+	return slots
 
 
 static func _array_field(value: Variant) -> Array:

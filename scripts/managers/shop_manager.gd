@@ -1,6 +1,8 @@
 class_name ShopManager
 extends Node
 
+const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+
 const CURRENCY_ITEM_ID := "item_gold_coin"
 
 var event_bus
@@ -191,7 +193,7 @@ func _hour_to_minute(value: Variant) -> int:
 func _is_equipped(item_id: String) -> bool:
 	if not equipment:
 		return false
-	for slot in ["weapon", "offhand", "body"]:
+	for slot in EquipmentSlots.SLOTS:
 		if equipment.get_equipped_item(slot) == item_id:
 			return true
 	return false

@@ -137,6 +137,8 @@ func test_equipment_equip_unequip_modifiers_and_save_load() -> void:
 	assert_false(equipment.equip_item("item_missing"))
 	assert_false(equipment.equip_item("item_road_hatchet"))
 	assert_eq(equipment.get_equipped_item("weapon"), "item_road_hatchet")
+	assert_eq(equipment.get_equipped_item("right_hand"), "item_road_hatchet")
+	assert_eq(equipment.get_equipped_item("left_hand"), "item_traveler_buckler")
 	assert_eq(equipment.get_player_damage_bonus(), 4)
 	assert_eq(equipment.guarded_counter_multiplier(0.5), 0.25)
 	assert_true(equipment.get_summary().contains("Weapon: Road Hatchet"))

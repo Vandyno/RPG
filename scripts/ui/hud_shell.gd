@@ -948,7 +948,7 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
 	systems_action_list.visible = UiActionButtons.refresh(
 		systems_action_list, actions, self, "inventory_item_selected",
-		"item_id", Vector2(0, 50), 14, "No actions"
+		"item_id", Vector2(0, 50), 14
 	)
 
 func _refresh_context_actions(state: Dictionary) -> void:

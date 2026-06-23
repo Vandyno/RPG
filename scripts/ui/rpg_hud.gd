@@ -13,6 +13,8 @@ const RpgSystemsCharacterPaneBuilder = preload(
 	"res://scripts/ui/rpg_systems_character_pane_builder.gd"
 )
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
+const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(64, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -31,7 +33,6 @@ var systems_title_label: Label
 var systems_subtitle_label: Label
 var systems_resources_label: Label
 var systems_detail_label: Label
-var systems_character_label: Label
 var systems_nav: VBoxContainer
 var systems_frame: MarginContainer
 var systems_main_row: HBoxContainer
@@ -39,18 +40,17 @@ var systems_left_panel: PanelContainer
 var systems_center_panel: PanelContainer
 var systems_detail_panel: PanelContainer
 var systems_character_panel: PanelContainer
-var systems_character_rows: VBoxContainer
 var systems_character_nodes := {}
-var systems_bottom_panel: PanelContainer
+var systems_detail_equipment_nodes := {}
+var systems_inline_equipment_panel: PanelContainer
+var systems_inline_equipment_nodes := {}
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
 var systems_active_category := "all"
-var inventory_action_button: Button
 var content_identity_panel: PanelContainer
 var content_portrait_panel: Panel
 var content_portrait_label: Label
-var content_text_panel: PanelContainer
 var content_right_stack: VBoxContainer
 var content_choice_panel: PanelContainer
 var content_preview_panel: PanelContainer
@@ -110,14 +110,14 @@ func hide_content_card() -> void:
 func show_systems_panel(tab_id: String = "") -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
-		systems_active_category = "all"
+		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.show_systems_panel(tab_id)
 
 
 func set_systems_tab(tab_id: String) -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
-		systems_active_category = "all"
+		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.set_systems_tab(tab_id)
 
 
@@ -212,7 +212,6 @@ func _build_systems_panel() -> void:
 
 	_build_systems_top_bar(outer)
 	_build_systems_body(outer)
-	_build_systems_bottom_bar(outer)
 	_refresh_systems_tabs()
 
 
@@ -308,6 +307,17 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_body_label.visible = false
 	center_stack.add_child(systems_body_label)
 
+	systems_inline_equipment_panel = _new_panel("SystemsInlineEquipmentPanel")
+	center_stack.add_child(systems_inline_equipment_panel)
+	systems_inline_equipment_nodes = RpgSystemsCharacterPaneBuilder.build_equipment_only(
+		systems_inline_equipment_panel, Callable(self, "_add_margin")
+	)
+	for slot in (systems_inline_equipment_nodes.get("equipment_slots", {}) as Dictionary).values():
+		if slot is RpgEquipmentSlot:
+			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
+
+	systems_action_list = systems_item_list
+
 	systems_detail_panel = _new_panel("SystemsDetailPanel")
 	systems_detail_panel.custom_minimum_size = Vector2(232, 0)
 	systems_main_row.add_child(systems_detail_panel)
@@ -325,6 +335,16 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_stack.add_child(systems_detail_label)
 
+	var detail_equipment_panel := PanelContainer.new()
+	detail_equipment_panel.name = "SystemsDetailEquipmentPanel"
+	detail_stack.add_child(detail_equipment_panel)
+	systems_detail_equipment_nodes = RpgSystemsCharacterPaneBuilder.build_equipment_only(
+		detail_equipment_panel, Callable(self, "_add_margin")
+	)
+	for slot in (systems_detail_equipment_nodes.get("equipment_slots", {}) as Dictionary).values():
+		if slot is RpgEquipmentSlot:
+			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
+
 	systems_character_panel = _new_panel("SystemsCharacterPanel")
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	systems_main_row.add_child(systems_character_panel)
@@ -333,27 +353,9 @@ func _build_systems_body(parent: BoxContainer) -> void:
 		systems_character_panel, Callable(self, "_new_label"), Callable(self, "_new_button"),
 		Callable(self, "_add_margin"), Callable(self, "_apply_portrait_style")
 	)
-	systems_character_rows = systems_character_nodes["rows"]
-	systems_character_label = systems_character_nodes["hidden_label"]
-
-
-func _build_systems_bottom_bar(parent: BoxContainer) -> void:
-	systems_bottom_panel = _new_panel("SystemsBottomBar")
-	systems_bottom_panel.custom_minimum_size = Vector2(0, 72)
-	parent.add_child(systems_bottom_panel)
-
-	var scroll := ScrollContainer.new()
-	scroll.name = "SystemsActionScroll"
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_add_margin(systems_bottom_panel, scroll, 8)
-
-	systems_action_list = HFlowContainer.new()
-	systems_action_list.name = "SystemsActions"
-	systems_action_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	systems_action_list.add_theme_constant_override("h_separation", 8)
-	systems_action_list.add_theme_constant_override("v_separation", 6)
-	scroll.add_child(systems_action_list)
+	for slot in (systems_character_nodes.get("equipment_slots", {}) as Dictionary).values():
+		if slot is RpgEquipmentSlot:
+			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
 
 
 func _build_location_banner() -> void:
@@ -435,7 +437,6 @@ func _build_touch_controls() -> void:
 		open_target_picker, primary_action, toggle_systems
 	)
 	action_buttons = action_nodes["cluster"]
-	inventory_action_button = action_nodes["inventory"]
 	target_action_button = action_nodes["target"]
 	primary_action_button = action_nodes["primary"]
 
@@ -455,7 +456,6 @@ func _build_content_panel() -> void:
 	content_identity_panel = nodes["identity_panel"]
 	content_portrait_panel = nodes["portrait_panel"]
 	content_portrait_label = nodes["portrait_label"]
-	content_text_panel = nodes["text_panel"]
 	content_right_stack = nodes["right_stack"]
 	content_choice_panel = nodes["choice_panel"]
 	content_preview_panel = nodes["preview_panel"]
@@ -595,10 +595,14 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		systems_left_panel.custom_minimum_size = Vector2(116, 0) if compact else Vector2(176, 0)
 	if systems_detail_panel:
 		systems_detail_panel.visible = not compact
-		systems_detail_panel.custom_minimum_size = Vector2(232, 0)
+		systems_detail_panel.custom_minimum_size = Vector2(220, 0)
 	if systems_character_panel:
-		systems_character_panel.visible = not compact
+		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
 		systems_character_panel.custom_minimum_size = Vector2(210, 0)
+	if systems_inline_equipment_panel:
+		systems_inline_equipment_panel.visible = (
+			compact and ["inventory", "character"].has(systems_active_tab)
+		)
 	if systems_resources_label:
 		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
 		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
@@ -610,11 +614,8 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		if button is Button:
 			button.custom_minimum_size = Vector2(96, 40) if compact else Vector2(150, 54)
 			button.add_theme_font_size_override("font_size", 11 if compact else 15)
-	if systems_bottom_panel:
-		systems_bottom_panel.custom_minimum_size = Vector2(0, 58) if compact else Vector2(0, 72)
-	if systems_action_list is HFlowContainer:
-		systems_action_list.add_theme_constant_override("h_separation", 6 if compact else 8)
-		systems_action_list.add_theme_constant_override("v_separation", 5 if compact else 6)
+	if systems_item_list:
+		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
 
 
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
@@ -670,10 +671,20 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	]
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	_refresh_systems_rows(state)
-	systems_character_label.text = RpgSystemsTextBuilder.character_text(state)
 	RpgSystemsCharacterPaneBuilder.refresh(
 		systems_character_nodes, state, Callable(self, "_apply_row_button_style")
 	)
+	RpgSystemsCharacterPaneBuilder.refresh(
+		systems_detail_equipment_nodes, state, Callable(self, "_apply_row_button_style")
+	)
+	RpgSystemsCharacterPaneBuilder.refresh(
+		systems_inline_equipment_nodes, state, Callable(self, "_apply_row_button_style")
+	)
+	if systems_inline_equipment_panel:
+		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		systems_inline_equipment_panel.visible = (
+			compact and ["inventory", "character"].has(systems_active_tab)
+		)
 
 
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -697,6 +708,9 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var selected := row_id == systems_selected_row_id
 		_apply_row_button_style(button, selected)
 		button.set_meta("row_id", row_id)
+		button.set_meta("action_id", String(row.get("action_id", "")))
+		button.set_meta("item_id", String(row.get("item_id", "")))
+		button.set_meta("equipment_slot", String(row.get("equipment_slot", "")))
 		button.visible = true
 	for index in range(rows.size(), systems_item_list.get_child_count()):
 		systems_item_list.get_child(index).visible = false
@@ -717,8 +731,19 @@ func _systems_row_button(index: int) -> Button:
 		var existing := systems_item_list.get_child(index)
 		if existing is Button:
 			return existing
-	var button := _new_button("", Vector2(0, 68))
-	button.pressed.connect(func() -> void: _select_systems_row(String(button.get_meta("row_id", ""))))
+	var button := RpgInventoryItemButton.new()
+	button.custom_minimum_size = Vector2(0, 68)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.focus_mode = Control.FOCUS_NONE
+	_apply_button_style(button)
+	button.pressed.connect(
+		func() -> void:
+			var action_id := String(button.get_meta("action_id", ""))
+			if not action_id.is_empty():
+				inventory_item_selected.emit(action_id)
+				return
+			_select_systems_row(String(button.get_meta("row_id", "")))
+	)
 	systems_item_list.add_child(button)
 	return button
 
@@ -740,7 +765,7 @@ func _refresh_category_row(tab_id: String) -> void:
 		button.text = String(labels[index])
 		button.visible = true
 		var category_id := _category_id_for_label(String(labels[index]))
-		button.disabled = systems_active_tab != "inventory"
+		button.disabled = false
 		button.button_pressed = category_id == systems_active_category
 		button.set_meta("category_id", category_id)
 		if not bool(button.get_meta("category_bound", false)):
@@ -762,28 +787,35 @@ func _select_systems_row(row_id: String) -> void:
 
 
 func _select_systems_category(category_id: String) -> void:
-	if systems_active_tab != "inventory" or category_id.is_empty():
+	if category_id.is_empty():
 		return
 	systems_active_category = category_id
 	systems_selected_row_id = ""
 	_refresh_systems_chrome(_state_snapshot())
 
 
+func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
+	if item_id.is_empty() or slot_id.is_empty():
+		return
+	inventory_item_selected.emit("equip_slot:%s:%s" % [item_id, slot_id])
+
+
 func _category_id_for_label(label: String) -> String:
 	return label.to_lower()
 
 
-func _refresh_systems_actions(state: Dictionary) -> void:
-	if not systems_action_list:
-		return
-	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
-	if actions.is_empty():
-		actions = [{"id": "ui:back", "text": "Back"}]
-	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	systems_action_list.visible = UiActionButtons.refresh(
-		systems_action_list, actions, self, "inventory_item_selected", "item_id",
-		Vector2(118, 44) if compact else Vector2(156, 48), 13 if compact else 14
-	)
+func _default_category_for_tab(tab_id: String) -> String:
+	return {
+		"inventory": "all",
+		"character": "overview",
+		"quests": "active",
+		"map": "known",
+		"journal": "recent",
+		"trade": "stock"
+	}.get(tab_id, "all")
+
+
+func _refresh_systems_actions(_state: Dictionary) -> void: pass
 
 
 func _refresh_content_choices(choices: Array) -> void:

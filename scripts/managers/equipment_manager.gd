@@ -1,7 +1,9 @@
 class_name EquipmentManager
 extends Node
 
-const EQUIPMENT_SLOTS := ["weapon", "offhand", "body"]
+const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const EQUIPMENT_SLOTS := EquipmentSlots.SLOTS
+const LEGACY_SUMMARY_SLOTS := ["weapon", "offhand", "body"]
 
 var event_bus
 var content
@@ -19,8 +21,22 @@ func setup(bus, content_database = null, inventory_manager = null) -> void:
 
 func equip_item(item_id: String) -> bool:
 	var item := _item(item_id)
-	var slot := String(item.get("equipment_slot", ""))
-	if item.is_empty() or not EQUIPMENT_SLOTS.has(slot) or not _has_item(item_id):
+	var slot := EquipmentSlots.first_slot_for_item_slot(
+		String(item.get("equipment_slot", "")), equipped_by_slot
+	)
+	return equip_item_to_slot(item_id, slot)
+
+
+func equip_item_to_slot(item_id: String, slot_id: String) -> bool:
+	var item := _item(item_id)
+	var slot := EquipmentSlots.normalize(slot_id)
+	var item_slot := String(item.get("equipment_slot", ""))
+	if (
+		item.is_empty()
+		or not EquipmentSlots.is_supported(slot)
+		or not EquipmentSlots.accepts(slot, item_slot)
+		or not _has_item(item_id)
+	):
 		return false
 	if String(equipped_by_slot.get(slot, "")) == item_id:
 		return false
@@ -30,15 +46,16 @@ func equip_item(item_id: String) -> bool:
 
 
 func unequip_slot(slot: String) -> bool:
-	if not EQUIPMENT_SLOTS.has(slot) or not equipped_by_slot.has(slot):
+	var normalized := EquipmentSlots.normalize(slot)
+	if not EQUIPMENT_SLOTS.has(normalized) or not equipped_by_slot.has(normalized):
 		return false
-	equipped_by_slot.erase(slot)
+	equipped_by_slot.erase(normalized)
 	_emit_changed()
 	return true
 
 
 func get_equipped_item(slot: String) -> String:
-	return String(equipped_by_slot.get(slot, ""))
+	return String(equipped_by_slot.get(EquipmentSlots.normalize(slot), ""))
 
 
 func get_player_damage_bonus() -> int:
@@ -62,7 +79,7 @@ func guarded_counter_multiplier(base_multiplier: float) -> float:
 
 func get_summary() -> String:
 	var lines: Array[String] = []
-	for slot in EQUIPMENT_SLOTS:
+	for slot in LEGACY_SUMMARY_SLOTS:
 		var item_id := get_equipped_item(slot)
 		if item_id.is_empty():
 			lines.append("%s: empty" % _slot_label(slot))
@@ -76,8 +93,12 @@ func get_save_data() -> Dictionary:
 	var equipped: Dictionary = {}
 	for slot in EQUIPMENT_SLOTS:
 		var item_id := get_equipped_item(slot)
-		if not item_id.is_empty() and _has_item(item_id) and _item_slot(item_id) == slot:
-			equipped[slot] = item_id
+		if (
+			not item_id.is_empty()
+			and _has_item(item_id)
+			and EquipmentSlots.accepts(slot, _item_slot(item_id))
+		):
+			equipped[EquipmentSlots.save_slot(slot)] = item_id
 	return {"equipped": equipped}
 
 
@@ -85,9 +106,13 @@ func load_save_data(data: Dictionary) -> void:
 	equipped_by_slot.clear()
 	var equipped := _dictionary_field(data.get("equipped", {}))
 	for slot_id in equipped:
-		var slot := String(slot_id)
+		var slot := EquipmentSlots.normalize(String(slot_id))
 		var item_id := String(equipped[slot_id])
-		if EQUIPMENT_SLOTS.has(slot) and _has_item(item_id) and _item_slot(item_id) == slot:
+		if (
+			EQUIPMENT_SLOTS.has(slot)
+			and _has_item(item_id)
+			and EquipmentSlots.accepts(slot, _item_slot(item_id))
+		):
 			equipped_by_slot[slot] = item_id
 	_emit_changed()
 
@@ -131,8 +156,7 @@ func _slot_label(slot: String) -> String:
 			return "Offhand"
 		"body":
 			return "Body"
-		_:
-			return slot.capitalize()
+	return EquipmentSlots.label(slot)
 
 
 func _dictionary_field(value: Variant) -> Dictionary:
