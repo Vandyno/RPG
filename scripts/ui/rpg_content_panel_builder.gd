@@ -147,6 +147,7 @@ static func build(
 		"preview_title_label": preview_title_label,
 		"preview_label": preview_label,
 		"preview_reward_label": preview_reward_label,
+		"close_button": close,
 		"portrait_label": portrait_label,
 		"kind_label": kind_label,
 		"title_label": title_label,
@@ -220,3 +221,57 @@ static func apply_layout(
 			if child is Button:
 				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
 				child.add_theme_font_size_override("font_size", 14 if compact else 14)
+
+
+static func apply_mode(
+	portrait_label: Label,
+	choice_panel: PanelContainer,
+	close_button: Button,
+	title: String,
+	choices: Array,
+	kind: String
+) -> void:
+	var normalized := kind.to_lower()
+	if portrait_label:
+		portrait_label.text = _identity_text(title, normalized)
+	if close_button:
+		close_button.text = "Leave" if normalized == "dialogue" else "Close"
+		close_button.tooltip_text = "Leave conversation" if normalized == "dialogue" else "Close panel"
+	if choice_panel:
+		choice_panel.visible = _has_valid_choices(choices)
+
+
+static func _identity_text(title: String, kind: String) -> String:
+	match kind:
+		"dialogue":
+			return _initials_for_title(title)
+		"readable":
+			return "R"
+		"place":
+			return "P"
+		"response":
+			return "OK"
+	return _initials_for_title(title)
+
+
+static func _initials_for_title(title: String) -> String:
+	var parts := title.strip_edges().split(" ", false)
+	var letters: Array[String] = []
+	for part in parts:
+		var clean := String(part).strip_edges()
+		if clean.is_empty():
+			continue
+		letters.append(clean.substr(0, 1).to_upper())
+		if letters.size() >= 2:
+			break
+	return "?" if letters.is_empty() else "".join(letters)
+
+
+static func _has_valid_choices(choices: Array) -> bool:
+	for choice in choices:
+		if choice is Dictionary:
+			var choice_id := String(choice.get("id", ""))
+			var text := String(choice.get("text", ""))
+			if not choice_id.is_empty() and not text.is_empty():
+				return true
+	return false

@@ -272,11 +272,34 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	hud.content_card_closed.connect(func() -> void: close_events.append("closed"))
 	var close_button := hud.content_panel.find_child("ContentCloseButton", true, false) as Button
 	assert_not_null(close_button)
+	assert_eq(close_button.text, "Leave")
 	close_button.pressed.emit()
 	assert_false(hud.is_content_card_visible())
 	assert_true(hud.move_pad.visible)
 	assert_true(hud.action_buttons.visible)
 	assert_eq(close_events, ["closed"])
+
+
+func test_rpg_content_panel_uses_readable_mode_without_empty_choice_lane() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+
+	hud.show_content_card(
+		"Road Notice",
+		"Boundary stones are not to be moved.",
+		[],
+		"readable"
+	)
+
+	assert_true(hud.is_content_card_visible())
+	assert_eq(hud.content_kind_label.text, "Readable")
+	assert_eq(hud.content_portrait_label.text, "R")
+	assert_false(hud.content_choice_panel.visible)
+	var close_button := hud.content_panel.find_child("ContentCloseButton", true, false) as Button
+	assert_not_null(close_button)
+	assert_eq(close_button.text, "Close")
+	assert_eq(close_button.tooltip_text, "Close panel")
+	assert_true(hud.content_preview_label.text.contains("Readable"))
 
 
 func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:

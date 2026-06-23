@@ -57,6 +57,7 @@ var content_preview_panel: PanelContainer
 var content_preview_title_label: Label
 var content_preview_label: Label
 var content_preview_reward_label: Label
+var content_close_button: Button
 
 
 func _build_ui() -> void:
@@ -85,8 +86,9 @@ func toggle_debug() -> void:
 
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
-	if content_portrait_label:
-		content_portrait_label.text = _initials_for_title(title)
+	RpgContentPanelBuilder.apply_mode(
+		content_portrait_label, content_choice_panel, content_close_button, title, choices, kind
+	)
 	_refresh_content_preview(choices, kind)
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
@@ -453,6 +455,7 @@ func _build_content_panel() -> void:
 	content_preview_title_label = nodes["preview_title_label"]
 	content_preview_label = nodes["preview_label"]
 	content_preview_reward_label = nodes["preview_reward_label"]
+	content_close_button = nodes["close_button"]
 	content_kind_label = nodes["kind_label"]
 	content_title_label = nodes["title_label"]
 	content_scroll = nodes["scroll"]
@@ -624,19 +627,6 @@ func _rpg_location_name(state: Dictionary) -> String:
 		return "Briarwatch"
 	var first := locations.split(",", false)[0].strip_edges()
 	return "Briarwatch" if first == "Briarwatch Crossroads" else first
-
-
-func _initials_for_title(title: String) -> String:
-	var parts := title.strip_edges().split(" ", false)
-	var letters: Array[String] = []
-	for part in parts:
-		var clean := String(part).strip_edges()
-		if clean.is_empty():
-			continue
-		letters.append(clean.substr(0, 1).to_upper())
-		if letters.size() >= 2:
-			break
-	return "?" if letters.is_empty() else "".join(letters)
 
 
 func _refresh_player_status(state: Dictionary) -> void:
