@@ -184,9 +184,9 @@ static func apply_layout(
 	content_panel.offset_left = hud_margin
 	content_panel.offset_right = -hud_margin
 	content_panel.offset_bottom = -8 if compact else -12
-	content_panel.offset_top = -276 if compact else -246
+	content_panel.offset_top = -328 if compact else -246
 	content_panel.custom_minimum_size = (
-		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 268)
+		Vector2(maxf(0.0, viewport_size.x - hud_margin * 2.0), 320)
 		if compact
 		else Vector2.ZERO
 	)
@@ -197,21 +197,24 @@ static func apply_layout(
 		identity_panel.custom_minimum_size = Vector2(92, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
-		portrait_panel.custom_minimum_size = Vector2(46, 46) if compact else Vector2(70, 70)
+		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
-		right_stack.custom_minimum_size = Vector2(140, 0) if compact else Vector2(286, 0)
+		right_stack.custom_minimum_size = Vector2(132, 0) if compact else Vector2(286, 0)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(140, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(132, 0) if compact else Vector2(0, 0)
 	if preview_panel:
-		preview_panel.custom_minimum_size = Vector2(112, 0) if compact else Vector2(220, 0)
+		preview_panel.custom_minimum_size = Vector2(148, 0) if compact else Vector2(220, 0)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 15 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 10 if compact else 22)
 	if kind_label:
-		kind_label.add_theme_font_size_override("font_size", 14 if compact else 14)
+		kind_label.add_theme_font_size_override("font_size", 11 if compact else 14)
 	if body_label:
-		body_label.add_theme_font_size_override("font_size", 13 if compact else 17)
+		body_label.add_theme_font_size_override("font_size", 16 if compact else 17)
 	if preview_title_label:
 		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
+	var preview_label := preview_panel.find_child("ContentPreview", true, false) as Label
+	if preview_label:
+		preview_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 	if preview_reward_label:
 		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
 	if choice_list:
@@ -219,7 +222,7 @@ static func apply_layout(
 		for child in choice_list.get_children():
 			if child is Button:
 				child.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 46)
-				child.add_theme_font_size_override("font_size", 10 if compact else 14)
+				child.add_theme_font_size_override("font_size", 11 if compact else 14)
 
 
 static func apply_mode(

@@ -563,7 +563,7 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_true(_rect_inside(message_rect, screen), "Compact messages should stay on screen.")
 	assert_true(_rect_inside(action_rect, screen), "Compact actions should stay on screen.")
 	assert_true(_rect_inside(content_rect, screen), "Compact content should stay on screen.")
-	assert_gte(content_rect.size.y, 260.0)
+	assert_gte(content_rect.size.y, 320.0)
 	assert_false(status_rect.intersects(message_rect), "Compact top panels should not overlap.")
 	assert_false(action_rect.intersects(move_rect), "Actions should not cover movement.")
 	assert_true(content_rect.intersects(action_rect), "Content should own the bottom action lane.")
@@ -573,12 +573,14 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_true(hud.content_portrait_panel.visible)
 	assert_true(hud.content_preview_panel.visible)
 	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 92.0)
-	assert_gte(hud.content_right_stack.custom_minimum_size.x, 140.0)
-	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 13)
+	assert_gte(hud.content_right_stack.custom_minimum_size.x, 132.0)
+	assert_gte(hud.content_preview_panel.custom_minimum_size.x, 148.0)
+	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 16)
+	assert_lte(hud.content_preview_label.get_theme_font_size("font_size"), 10)
 	var accept_button := _button_containing(hud.content_choice_list, "Accept") as Button
 	assert_not_null(accept_button)
 	assert_gte(accept_button.custom_minimum_size.y, 46.0)
-	assert_gte(accept_button.get_theme_font_size("font_size"), 10)
+	assert_gte(accept_button.get_theme_font_size("font_size"), 11)
 
 
 func _new_hud() -> RpgHud:
