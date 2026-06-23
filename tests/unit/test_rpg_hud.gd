@@ -132,6 +132,7 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	assert_eq(hud.target_scroll.get_child(0), hud.target_list)
 	var row := _button_containing(hud.target_list, "Harrow Venn")
 	assert_not_null(row)
+	assert_true(row.text.begins_with("T  "))
 	assert_true(row.text.contains("Talk"))
 	assert_true(row.text.contains("Blacksmith"))
 	assert_true(row.text.contains("Road Notice"))

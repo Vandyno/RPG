@@ -142,6 +142,9 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 		detail = _shorten(detail, 42)
 	if bool(target_data.get("selected", false)):
 		name = "Selected: %s" % name
+	var icon := _kind_icon(String(target_data.get("kind", "")))
+	if not icon.is_empty():
+		name = "%s  %s" % [icon, name]
 	var navigation := String(target_data.get("navigation", ""))
 	var lines: Array[String] = [name]
 	var role_line := kind
@@ -152,6 +155,27 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 	if not navigation.is_empty():
 		lines.append(navigation)
 	return "\n".join(lines)
+
+
+static func _kind_icon(kind: String) -> String:
+	match kind:
+		"npc":
+			return "T"
+		"enemy":
+			return "A"
+		"readable":
+			return "R"
+		"pickup":
+			return "P"
+		"container":
+			return "O"
+		"rest":
+			return "Z"
+		"poi":
+			return "U"
+		"door":
+			return "E"
+	return ""
 
 
 static func _shorten(text: String, max_chars: int) -> String:
