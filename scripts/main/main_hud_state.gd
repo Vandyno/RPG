@@ -108,6 +108,8 @@ static func _inventory_items_data(main) -> Array[Dictionary]:
 			"type": String(item.get("type", "")),
 			"tags": _array_field(item.get("tags", [])),
 			"equipment_slot": String(item.get("equipment_slot", "")),
+			"value": maxi(0, int(item.get("value", 0))),
+			"weight": maxf(0.0, float(item.get("weight", 0.0))),
 			"description": String(item.get("description", ""))
 		})
 	return entries

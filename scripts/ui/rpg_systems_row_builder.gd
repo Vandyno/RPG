@@ -156,15 +156,25 @@ static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[
 		var action_text := String(action.get("text", ""))
 		var item_type := _inventory_category_label(item_category)
 		var description := String(item.get("description", "No item details available."))
+		var count_text := "Count %d" % count
+		var value := maxi(0, int(item.get("value", 0)))
+		var weight := maxf(0.0, float(item.get("weight", 0.0)))
+		var meta_parts: Array[String] = [count_text]
+		if not action_text.is_empty():
+			meta_parts.append(action_text)
+		if weight > 0.0:
+			meta_parts.append("%s wt" % _format_weight(weight * count))
+		if value > 0:
+			meta_parts.append("%dg" % value)
 		rows_data.append({
 			"id": "inventory_%s" % String(item.get("item_id", rows_data.size())),
 			"item_id": String(item.get("item_id", "")),
 			"action_id": action_id,
 			"equipment_slot": String(item.get("equipment_slot", "")),
-			"title": action_text if not action_text.is_empty() else name,
-			"subtitle": "Count %d" % count,
+			"title": name,
+			"subtitle": " - ".join(meta_parts),
 			"meta": item_type,
-			"detail": "%s x%d\n\n%s" % [name, count, description]
+			"detail": _inventory_item_detail(name, count, description, value, weight)
 		})
 	return rows_data
 
@@ -205,6 +215,19 @@ static func _inventory_category_label(category: String) -> String:
 		"quest": "Quest",
 		"misc": "Misc"
 	}.get(category, "Inventory")
+
+
+static func _inventory_item_detail(
+	name: String, count: int, description: String, value: int, weight: float
+) -> String:
+	var lines: Array[String] = ["%s x%d" % [name, count]]
+	if weight > 0.0:
+		lines.append("Weight: %s" % _format_weight(weight * count))
+	if value > 0:
+		lines.append("Value: %dg" % value)
+	lines.append("")
+	lines.append(description)
+	return "\n".join(lines)
 
 
 static func _spell_rows(state: Dictionary, category: String) -> Array[Dictionary]:
@@ -908,6 +931,12 @@ static func _first_non_empty(value: String, fallback: String) -> String:
 	if stripped.is_empty() or stripped == "none":
 		return fallback
 	return stripped
+
+
+static func _format_weight(value: float) -> String:
+	if is_equal_approx(value, roundf(value)):
+		return str(int(roundf(value)))
+	return "%.1f" % value
 
 
 static func _lower_array(value: Variant) -> Array[String]:

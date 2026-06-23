@@ -17,6 +17,11 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_true(main.hud is RpgHud)
 	assert_eq(main.get_hud_state()["primary_action"], main.get_debug_state()["primary_action"])
 	assert_true(main.get_hud_state()["inventory_items"] is Array)
+	assert_true(main.inventory.add_item("item_road_hatchet"))
+	var hud_items: Array = main.get_hud_state()["inventory_items"]
+	assert_gt(hud_items.size(), 0)
+	assert_true(hud_items[0].has("weight"))
+	assert_true(hud_items[0].has("value"))
 	assert_false(main.get_hud_state().has("player_world"))
 	assert_true(main.get_debug_state().has("player_world"))
 	assert_true(main.hud.get_state.get_method() == "get_hud_state")
@@ -448,6 +453,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_subtitle_label.text.contains("Inventory"))
 	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
+	assert_true(hud.systems_resources_label.text.contains("Gold"))
+	assert_true(hud.systems_resources_label.text.contains("Load"))
 	assert_eq(_button_texts(hud.systems_nav), [
 		"I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"
 	])
@@ -465,7 +472,9 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(toolbox_row.text.begins_with("Q  "))
 	assert_eq(toolbox_row.get_meta("item_id"), "item_old_toolbox")
 	assert_true(toolbox_row.text.contains("Count 1"))
+	assert_true(toolbox_row.text.contains("5 wt"))
 	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
+	assert_true(hud.systems_detail_label.text.contains("Weight: 5"))
 	assert_true(hud.systems_detail_label.text.contains("A heavy wooden toolbox"))
 	assert_not_null(hud.systems_detail_panel.find_child("SystemsDetailEquipmentSlots", true, false))
 	assert_not_null(hud.systems_character_panel.find_child("SystemsCharacterPortrait", true, false))
@@ -486,6 +495,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
 	assert_not_null(hatchet_row)
 	assert_true(hatchet_row.text.begins_with("W  "))
+	assert_true(hatchet_row.text.contains("1.6 wt"))
+	assert_true(hatchet_row.text.contains("18g"))
 	var character_health := hud.systems_character_panel.find_child(
 		"SystemsCharacterHealthBar", true, false
 	) as ProgressBar
@@ -740,6 +751,8 @@ func _sample_state() -> Dictionary:
 				"count": 1,
 				"type": "quest_item",
 				"tags": ["quest"],
+				"value": 0,
+				"weight": 5.0,
 				"description": "A heavy wooden toolbox."
 			},
 			{
@@ -749,6 +762,8 @@ func _sample_state() -> Dictionary:
 				"type": "weapon",
 				"tags": ["weapon"],
 				"equipment_slot": "weapon",
+				"value": 18,
+				"weight": 1.6,
 				"description": "A short iron hatchet."
 			},
 			{
@@ -758,6 +773,8 @@ func _sample_state() -> Dictionary:
 				"type": "shield",
 				"tags": ["shield"],
 				"equipment_slot": "offhand",
+				"value": 16,
+				"weight": 2.5,
 				"description": "A scarred round shield."
 			},
 			{
@@ -766,6 +783,8 @@ func _sample_state() -> Dictionary:
 				"count": 2,
 				"type": "ingredient",
 				"tags": ["ingredient"],
+				"value": 2,
+				"weight": 0.1,
 				"description": "Bright mint used in roadside tonics."
 			},
 			{
@@ -774,6 +793,8 @@ func _sample_state() -> Dictionary:
 				"count": 1,
 				"type": "consumable",
 				"tags": ["consumable"],
+				"value": 12,
+				"weight": 0.3,
 				"description": "A bitter green tonic."
 			}
 		],

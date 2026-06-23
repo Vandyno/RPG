@@ -30,7 +30,11 @@ static func resource_text(state: Dictionary) -> String:
 	var inventory := String(state.get("inventory", "empty"))
 	var gold := _count_named_entry(inventory, "Gold Coin")
 	var time := String(state.get("time", "Day 1, 08:00"))
-	return "Gold %d     %s" % [gold, _short_time(time)]
+	var carry := _carry_weight(_array_field(state.get("inventory_items", [])))
+	var capacity := maxf(1.0, float(state.get("carry_capacity", 90.0)))
+	return "Gold %d     Load %s/%s     %s" % [
+		gold, _format_weight(carry), _format_weight(capacity), _short_time(time)
+	]
 
 
 static func detail_text(state: Dictionary, tab_id: String) -> String:
@@ -144,6 +148,21 @@ static func _count_named_entry(summary: String, item_name: String) -> int:
 		if marker >= 0 and marker + 1 < part.length():
 			return maxi(0, int(part.substr(marker + 1)))
 	return 0
+
+
+static func _carry_weight(items: Array) -> float:
+	var total := 0.0
+	for item in items:
+		if not item is Dictionary:
+			continue
+		total += maxf(0.0, float(item.get("weight", 0.0))) * maxi(0, int(item.get("count", 0)))
+	return total
+
+
+static func _format_weight(value: float) -> String:
+	if is_equal_approx(value, roundf(value)):
+		return str(int(roundf(value)))
+	return "%.1f" % value
 
 
 static func _array_field(value: Variant) -> Array:
