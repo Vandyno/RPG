@@ -134,6 +134,22 @@ func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	assert_false(forge.text.begins_with("S  "))
 
 
+func test_content_identity_icon_matches_content_kind() -> void:
+	var hud := _new_hud()
+	var art := hud.content_portrait_panel.find_child(
+		"ContentPortraitSilhouette", true, false
+	) as RpgPortraitSilhouette
+	assert_not_null(art)
+	hud.show_content_card("Harrow Venn", "Hello.", [], "dialogue")
+	assert_eq(art.identity_kind, "person")
+	hud.show_content_card("Road Notice", "Read this.", [], "readable")
+	assert_eq(art.identity_kind, "readable")
+	hud.show_content_card("Briarwatch Square", "Town green.", [], "place")
+	assert_eq(art.identity_kind, "place")
+	hud.show_content_card("Done", "Complete.", [], "response")
+	assert_eq(art.identity_kind, "response")
+
+
 func test_desktop_quick_actions_do_not_cover_action_cluster() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))

@@ -300,6 +300,7 @@ static func apply_mode(
 	if portrait_label:
 		portrait_label.text = ""
 		portrait_label.visible = false
+		_set_identity_art_kind(portrait_label, normalized)
 	if close_button:
 		var has_choices := _has_valid_choices(choices)
 		close_button.text = "Leave" if normalized == "dialogue" else "Close"
@@ -329,6 +330,17 @@ static func _add_portrait_art(parent: Control) -> void:
 	art.name = "ContentPortraitSilhouette"
 	art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	parent.add_child(art)
+
+
+static func _set_identity_art_kind(portrait_label: Label, kind: String) -> void:
+	if not portrait_label or not portrait_label.get_parent():
+		return
+	var art := portrait_label.get_parent().find_child(
+		"ContentPortraitSilhouette", true, false
+	) as RpgPortraitSilhouette
+	if not art:
+		return
+	art.set_identity_kind("person" if kind == "dialogue" else kind)
 
 
 static func _has_valid_choices(choices: Array) -> bool:
