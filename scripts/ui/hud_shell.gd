@@ -1,4 +1,4 @@
-class_name DebugHud
+class_name HudShell
 extends CanvasLayer
 signal interact_pressed
 signal cycle_target_pressed

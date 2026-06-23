@@ -1,5 +1,5 @@
 class_name RpgHud
-extends DebugHud
+extends HudShell
 
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")

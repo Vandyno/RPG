@@ -155,7 +155,7 @@ Prefer a staged replacement that survives into the final UI:
 3. Build the exploration HUD shell from the target layout.
 4. Replace systems tabs with real menu panes.
 5. Replace content cards with dialogue/readable/POI/trade-specific panels.
-6. Retire or rename `DebugHud` once player-facing responsibilities move out.
+6. Keep `HudShell` as shared UI plumbing while player-facing panels replace legacy debug content.
 
 Avoid changes that only make the old debug-shaped HUD prettier.
 
@@ -168,4 +168,3 @@ Meaningful UI work should include:
 - tests for modal/open/close behavior
 - smoke renders at desktop and mobile landscape
 - visual inspection against this target document
-
