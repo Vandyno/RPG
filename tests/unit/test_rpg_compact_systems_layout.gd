@@ -259,6 +259,29 @@ func test_target_picker_uses_player_facing_distance_text() -> void:
 	assert_true(row.tooltip_text.contains("6.3 tiles southeast"))
 
 
+func test_systems_routes_use_player_facing_distance_text() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.show_systems_panel("map")
+
+	var routes := _button_containing(hud.systems_category_row, "Routes") as Button
+	assert_not_null(routes)
+	routes.pressed.emit()
+	var route_row := _button_containing(hud.systems_item_list, "Missing Tools") as Button
+	assert_not_null(route_row)
+	assert_true(route_row.text.contains("5 tiles east to Harrow Venn"))
+	assert_false(route_row.text.contains("E 5.0t"))
+	assert_true(hud.systems_detail_label.text.contains("5 tiles east to Harrow Venn"))
+
+	var nearby := _button_containing(hud.systems_category_row, "Nearby") as Button
+	assert_not_null(nearby)
+	nearby.pressed.emit()
+	var nearby_row := _button_containing(hud.systems_item_list, "Road Notice") as Button
+	assert_not_null(nearby_row)
+	assert_true(nearby_row.text.contains("6.3 tiles southeast"))
+	assert_false(nearby_row.text.contains("SE 6.3t"))
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
@@ -333,6 +356,7 @@ func _sample_state() -> Dictionary:
 				"navigation": "SE 6.3t"
 			}
 		],
+		"quest_directions": "Missing Tools: E 5.0t Harrow Venn",
 		"time": "Day 1, 08:00"
 	}
 

@@ -1,6 +1,8 @@
 class_name RpgTargetPanelBuilder
 extends RefCounted
 
+const RpgNavigationTextBuilder = preload("res://scripts/ui/rpg_navigation_text_builder.gd")
+
 
 static func build(
 	root: Control,
@@ -141,7 +143,9 @@ static func _target_text(target_data: Dictionary, compact: bool) -> String:
 		detail = ""
 	if compact:
 		detail = _shorten(detail, 42)
-	var navigation := _friendly_navigation(String(target_data.get("navigation", "")))
+	var navigation := RpgNavigationTextBuilder.friendly_navigation(
+		String(target_data.get("navigation", ""))
+	)
 	var lines: Array[String] = [name]
 	var role_line := kind
 	if not detail.is_empty():
@@ -157,7 +161,9 @@ static func _target_tooltip(target_data: Dictionary) -> String:
 	var display_name := String(target_data.get("name", target_data.get("id", "Target")))
 	var kind := _kind_text(String(target_data.get("kind", "")))
 	var detail := _clean_detail(String(target_data.get("detail", "")))
-	var navigation := _friendly_navigation(String(target_data.get("navigation", "")))
+	var navigation := RpgNavigationTextBuilder.friendly_navigation(
+		String(target_data.get("navigation", ""))
+	)
 	return "\n".join([display_name, kind, detail, navigation]).strip_edges()
 
 
@@ -172,33 +178,6 @@ static func _clean_detail(detail: String) -> String:
 		if detail.begins_with(prefix):
 			return detail.trim_prefix(prefix)
 	return detail
-
-
-static func _friendly_navigation(navigation: String) -> String:
-	var clean := navigation.strip_edges()
-	var tokens := clean.split(" ", false)
-	if tokens.size() < 2:
-		return clean
-	var direction := String(tokens[0])
-	var distance := String(tokens[1])
-	if not _direction_words().has(direction) or not distance.ends_with("t"):
-		return clean
-	var tile_count := distance.trim_suffix("t")
-	var plural := "tile" if is_equal_approx(float(tile_count), 1.0) else "tiles"
-	return "%s %s %s" % [tile_count, plural, _direction_words()[direction]]
-
-
-static func _direction_words() -> Dictionary:
-	return {
-		"N": "north",
-		"NE": "northeast",
-		"E": "east",
-		"SE": "southeast",
-		"S": "south",
-		"SW": "southwest",
-		"W": "west",
-		"NW": "northwest"
-	}
 
 
 static func _kind_text(kind: String) -> String:

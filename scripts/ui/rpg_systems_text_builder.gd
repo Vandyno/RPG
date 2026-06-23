@@ -1,6 +1,8 @@
 class_name RpgSystemsTextBuilder
 extends RefCounted
 
+const RpgNavigationTextBuilder = preload("res://scripts/ui/rpg_navigation_text_builder.gd")
+
 
 static func title(tab_id: String) -> String:
 	return {
@@ -121,7 +123,7 @@ static func _quest_detail_text(state: Dictionary) -> String:
 	var directions := String(state.get("quest_directions", "none"))
 	if directions != "none" and not directions.is_empty():
 		lines.append("")
-		lines.append(directions)
+		lines.append(RpgNavigationTextBuilder.friendly_route_lines(directions))
 	return "\n".join(lines)
 
 

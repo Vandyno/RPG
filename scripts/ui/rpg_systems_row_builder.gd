@@ -1,6 +1,8 @@
 class_name RpgSystemsRowBuilder
 extends RefCounted
 
+const RpgNavigationTextBuilder = preload("res://scripts/ui/rpg_navigation_text_builder.gd")
+
 
 static func rows(
 	state: Dictionary, tab_id: String, message_log: Array[String], category: String = "all"
@@ -356,9 +358,9 @@ static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
 			rows_data.append({
 				"id": "quest_route_%d" % rows_data.size(),
 				"title": _title_before_colon(stripped),
-				"subtitle": _text_after_colon(stripped, "Route"),
+				"subtitle": _route_after_colon(stripped, "Route"),
 				"meta": "Route",
-				"detail": stripped
+				"detail": RpgNavigationTextBuilder.friendly_route_line(stripped)
 			})
 	if rows_data.is_empty():
 		rows_data.append({
@@ -431,9 +433,9 @@ static func _map_route_rows(state: Dictionary) -> Array[Dictionary]:
 			rows_data.append({
 				"id": "map_route_%d" % rows_data.size(),
 				"title": _title_before_colon(line),
-				"subtitle": _text_after_colon(line, "Quest route"),
+				"subtitle": _route_after_colon(line, "Quest route"),
 				"meta": "Route",
-				"detail": line
+				"detail": RpgNavigationTextBuilder.friendly_route_line(line)
 			})
 	if rows_data.is_empty():
 		rows_data.append({
@@ -457,7 +459,9 @@ static func _map_nearby_rows(state: Dictionary) -> Array[Dictionary]:
 		rows_data.append({
 			"id": "map_nearby_%d" % rows_data.size(),
 			"title": name,
-			"subtitle": String(target.get("navigation", target.get("detail", "Nearby"))),
+			"subtitle": RpgNavigationTextBuilder.friendly_navigation(
+				String(target.get("navigation", target.get("detail", "Nearby")))
+			),
 			"meta": String(target.get("kind", "Nearby")).capitalize(),
 			"detail": String(target.get("detail", name))
 		})
@@ -479,7 +483,7 @@ static func _map_detail_for_location(state: Dictionary, location: String) -> Str
 	if not routes.is_empty() and routes != "none":
 		lines.append("")
 		lines.append("Mapped Route")
-		lines.append(routes)
+		lines.append(RpgNavigationTextBuilder.friendly_route_lines(routes))
 	var nearby := _nearby_summary_lines(state)
 	if not nearby.is_empty():
 		lines.append("")
@@ -513,7 +517,10 @@ static func _nearby_summary_lines(state: Dictionary) -> Array[String]:
 			continue
 		total += 1
 		if lines.size() < 4:
-			lines.append("- %s: %s" % [name, String(target.get("navigation", "Nearby"))])
+			var route := RpgNavigationTextBuilder.friendly_navigation(
+				String(target.get("navigation", "Nearby"))
+			)
+			lines.append("- %s: %s" % [name, route])
 	if total > lines.size():
 		lines.append("+ %d more nearby" % (total - lines.size()))
 	return lines
@@ -873,7 +880,7 @@ static func _quest_detail_for_text(state: Dictionary, quest_text: String) -> Str
 	var directions := String(state.get("quest_directions", "none"))
 	if not directions.is_empty() and directions != "none":
 		lines.append("")
-		lines.append(directions)
+		lines.append(RpgNavigationTextBuilder.friendly_route_lines(directions))
 	return "\n".join(lines)
 
 
@@ -900,6 +907,11 @@ static func _text_after_colon(value: String, fallback: String) -> String:
 	if separator < 0 or separator + 1 >= value.length():
 		return fallback
 	return value.substr(separator + 1).strip_edges()
+
+
+static func _route_after_colon(value: String, fallback: String) -> String:
+	var route := _text_after_colon(value, fallback)
+	return RpgNavigationTextBuilder.friendly_navigation(route)
 
 
 static func _first_line(value: String) -> String:
