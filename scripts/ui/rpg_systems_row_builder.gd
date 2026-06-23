@@ -359,12 +359,13 @@ static func _map_rows(state: Dictionary, category: String) -> Array[Dictionary]:
 		return _map_nearby_rows(state)
 	var rows_data: Array[Dictionary] = []
 	for location in _comma_entries(String(state.get("locations", "none"))):
+		var detail := _map_detail_for_location(state, location)
 		rows_data.append({
 			"id": "map_location_%d" % rows_data.size(),
 			"title": location,
-			"subtitle": "Known place",
-			"meta": "Map",
-			"detail": _first_non_empty(String(state.get("location_details", "")), location)
+			"subtitle": _location_region(detail),
+			"meta": "Known",
+			"detail": detail
 		})
 	if rows_data.is_empty():
 		rows_data.append({
@@ -424,6 +425,53 @@ static func _map_nearby_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": "No nearby targets."
 		})
 	return rows_data
+
+
+static func _map_detail_for_location(state: Dictionary, location: String) -> String:
+	var detail := _detail_for_named_block(String(state.get("location_details", "")), location)
+	var lines := [_first_non_empty(detail, location)]
+	var routes := String(state.get("quest_directions", ""))
+	if not routes.is_empty() and routes != "none":
+		lines.append("")
+		lines.append("Mapped Route")
+		lines.append(routes)
+	var nearby := _nearby_summary_lines(state)
+	if not nearby.is_empty():
+		lines.append("")
+		lines.append("Nearby Leads")
+		lines.append_array(nearby)
+	return "\n".join(lines)
+
+
+static func _detail_for_named_block(details: String, title: String) -> String:
+	for block in details.split("\n\n", false):
+		var stripped := block.strip_edges()
+		if stripped == title or stripped.begins_with("%s -" % title):
+			return stripped
+	return ""
+
+
+static func _location_region(detail: String) -> String:
+	var first := _first_line(detail)
+	var marker := first.find(" - ")
+	return first.substr(marker + 3).strip_edges() if marker >= 0 else "Known place"
+
+
+static func _nearby_summary_lines(state: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	var total := 0
+	for target in _array_field(state.get("nearby_targets", [])):
+		if not target is Dictionary:
+			continue
+		var name := String(target.get("name", ""))
+		if name.is_empty():
+			continue
+		total += 1
+		if lines.size() < 4:
+			lines.append("- %s: %s" % [name, String(target.get("navigation", "Nearby"))])
+	if total > lines.size():
+		lines.append("+ %d more nearby" % (total - lines.size()))
+	return lines
 
 
 static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Array[Dictionary]:

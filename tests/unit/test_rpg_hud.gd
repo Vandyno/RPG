@@ -464,6 +464,15 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_detail_label.text.contains("The Missing Tools"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Target Harrow Venn"))
 
+	hud.set_systems_tab("map")
+	assert_eq(_button_texts(hud.systems_category_row), ["Known", "Routes", "Nearby"])
+	var map_row := _button_containing(hud.systems_item_list, "Briarwatch Crossroads")
+	assert_not_null(map_row)
+	assert_true(map_row.text.contains("Known"))
+	assert_true(map_row.text.contains("Marches of Velcor"))
+	assert_true(hud.systems_detail_label.text.contains("Mapped Route"))
+	assert_true(hud.systems_detail_label.text.contains("Nearby Leads"))
+
 	hud.set_systems_tab("journal")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
 	assert_true(hud.systems_subtitle_label.text.contains("Journal"))
