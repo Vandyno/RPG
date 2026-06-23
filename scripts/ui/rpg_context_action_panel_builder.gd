@@ -91,7 +91,7 @@ static func apply_layout(
 	var width := minf(520.0, viewport_size.x - hud_margin * 2.0)
 	if compact:
 		width = minf(480.0, viewport_size.x - 152.0)
-	var bottom_gap := 96.0 if not compact else 92.0
+	var bottom_gap := 210.0 if not compact else 164.0
 	var row_count := ceili(float(maxi(1, visible_count)) / 3.0)
 	var height := 44.0 + float(row_count) * (59.0 if compact else 57.0)
 	height = clampf(height, 104.0 if compact else 104.0, 184.0 if compact else 172.0)

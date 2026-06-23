@@ -93,29 +93,31 @@ static func apply_layout(
 		return
 	cluster.add_theme_constant_override("separation", 6 if compact else 8)
 	var sizes := {
-		"InventoryButton": Vector2(66, 58) if compact else Vector2(82, 68),
-		"TargetButton": Vector2(66, 58) if compact else Vector2(82, 68),
-		"InteractButton": Vector2(98, 66) if compact else Vector2(124, 88),
-		"SystemsButton": Vector2(58, 58) if compact else Vector2(74, 68)
+		"InventoryButton": Vector2(54, 50) if compact else Vector2(76, 64),
+		"TargetButton": Vector2(54, 50) if compact else Vector2(76, 64),
+		"InteractButton": Vector2(86, 86) if compact else Vector2(112, 112),
+		"SystemsButton": Vector2(50, 50) if compact else Vector2(68, 64)
 	}
 	for child in cluster.get_children():
 		if child is Button:
 			child.custom_minimum_size = sizes.get(child.name, fallback_size)
 			child.size_flags_vertical = Control.SIZE_SHRINK_END
-			child.add_theme_font_size_override("font_size", 12 if compact else 15)
+			child.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			child.add_theme_font_size_override("font_size", 10 if compact else 14)
 			if child == primary:
-				child.add_theme_font_size_override("font_size", 14 if compact else 16)
+				child.add_theme_font_size_override("font_size", 12 if compact else 15)
 				primary_style.call(child)
 				_apply_command_style(child, true, compact)
 			else:
 				_apply_command_style(child, false, compact)
 		elif child is VBoxContainer:
-			child.add_theme_constant_override("separation", 4 if compact else 5)
-			child.custom_minimum_size = Vector2(58, 86) if compact else Vector2(72, 100)
+			child.add_theme_constant_override("separation", 4 if compact else 6)
+			child.custom_minimum_size = Vector2(44, 140) if compact else Vector2(54, 174)
 			for nested in child.get_children():
 				if nested is Button:
-					nested.custom_minimum_size = Vector2(58, 26) if compact else Vector2(72, 30)
-					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
+					nested.custom_minimum_size = Vector2(44, 44) if compact else Vector2(54, 54)
+					nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+					nested.add_theme_font_size_override("font_size", 8 if compact else 9)
 					_apply_command_style(nested, false, compact)
 
 
