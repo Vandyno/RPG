@@ -93,8 +93,15 @@ static func build(
 static func build_equipment_only(panel: PanelContainer, add_margin: Callable) -> Dictionary:
 	var stack := VBoxContainer.new()
 	stack.name = "SystemsDetailEquipmentStack"
-	stack.add_theme_constant_override("separation", 6)
+	stack.add_theme_constant_override("separation", 5)
 	add_margin.call(panel, stack, 8)
+
+	var title := Label.new()
+	title.name = "SystemsDetailEquipmentTitle"
+	title.text = "Equipment"
+	title.add_theme_font_size_override("font_size", 13)
+	title.add_theme_color_override("font_color", Color(0.88, 0.72, 0.42, 0.95))
+	stack.add_child(title)
 
 	var scroll := ScrollContainer.new()
 	scroll.name = "SystemsDetailEquipmentScroll"
@@ -114,7 +121,8 @@ static func build_equipment_only(panel: PanelContainer, add_margin: Callable) ->
 		"equipment_grid": equipment_grid,
 		"equipment_scroll": scroll,
 		"equipment_slots": _build_equipment_slots(equipment_grid),
-		"panel": panel
+		"panel": panel,
+		"detail_only": true
 	}
 
 
@@ -199,12 +207,13 @@ static func _refresh_equipment_slots(
 		var slot: RpgEquipmentSlot = slots[slot_id]
 		var entry: Dictionary = data.get(slot_id, {})
 		var label := String(entry.get("label", EquipmentSlots.label(slot_id)))
-		var display_label := _slot_display_label(String(slot_id), label, compact)
+		var detail_only := bool(nodes.get("detail_only", false))
+		var display_label := _slot_display_label(String(slot_id), label, compact or detail_only)
 		var item_name := String(entry.get("item_name", ""))
 		slot.text = "%s\n%s" % [display_label, "Empty" if item_name.is_empty() else item_name]
 		slot.tooltip_text = "%s equipment slot" % label
-		slot.custom_minimum_size = Vector2(72, 52) if compact else Vector2(0, 44)
-		slot.add_theme_font_size_override("font_size", 10 if compact else 11)
+		slot.custom_minimum_size = _equipment_slot_size(compact, detail_only)
+		slot.add_theme_font_size_override("font_size", 10 if compact else 9 if detail_only else 11)
 		row_style.call(slot, not item_name.is_empty())
 
 
@@ -213,8 +222,16 @@ static func _layout_equipment_grid(nodes: Dictionary, compact: bool) -> void:
 	if not grid:
 		return
 	grid.columns = 2 if compact else 3
-	grid.add_theme_constant_override("h_separation", 5 if compact else 6)
-	grid.add_theme_constant_override("v_separation", 5 if compact else 6)
+	grid.add_theme_constant_override("h_separation", 5 if compact else 4)
+	grid.add_theme_constant_override("v_separation", 5 if compact else 4)
+
+
+static func _equipment_slot_size(compact: bool, detail_only: bool) -> Vector2:
+	if compact:
+		return Vector2(72, 52)
+	if detail_only:
+		return Vector2(0, 38)
+	return Vector2(0, 44)
 
 
 static func _slot_display_label(slot_id: String, fallback: String, compact: bool) -> String:

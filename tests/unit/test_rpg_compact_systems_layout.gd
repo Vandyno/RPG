@@ -37,6 +37,20 @@ func test_detail_pane_uses_player_facing_renderer() -> void:
 	assert_true(hud.systems_detail_label.text.contains("A bitter green tonic."))
 
 
+func test_detail_equipment_pane_has_section_header_and_tight_slots() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var title := hud.systems_detail_panel.find_child("SystemsDetailEquipmentTitle", true, false)
+	var right := hud.systems_detail_panel.find_child("EquipmentSlot_RightHand", true, false) as Button
+	assert_not_null(title)
+	assert_eq((title as Label).text, "Equipment")
+	assert_not_null(right)
+	assert_eq(right.custom_minimum_size.y, 38.0)
+	assert_true(right.text.begins_with("R Hand\n"))
+
+
 func test_spell_categories_use_compact_readable_labels() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
