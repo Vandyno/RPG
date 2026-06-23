@@ -69,10 +69,10 @@ func _build_ui() -> void:
 	refresh()
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	super._apply_layout_for_size(viewport_size)
-	var compact := viewport_size.x < 980.0 or viewport_size.y < 540.0
-	if action_buttons:
-		action_buttons.offset_top = -196 if compact else -228
-		action_buttons.offset_bottom = -32 if compact else -12
+	# Keep this hook for RPG-specific layout after the base shell pass.
+	# Action cluster positioning lives in RpgActionClusterBuilder.
+	return
+
 func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
@@ -410,7 +410,7 @@ func _build_touch_controls() -> void:
 		Callable(self, "_press_target_control"),
 		Callable(self, "_hold_target_control")
 	)
-	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
+	# Top nav owns Menu; the action cluster stays combat-focused.
 
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(

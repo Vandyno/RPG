@@ -199,7 +199,8 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
 	assert_eq(_button_texts(hud.action_buttons), ["Attack"])
-	assert_eq(hud.action_buttons.alignment, BoxContainer.ALIGNMENT_END)
+	assert_eq(hud.action_buttons.offset_right, -12.0)
+	assert_eq(hud.action_buttons.offset_bottom, -12.0)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
 	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
 	assert_eq(hud.primary_action_button.get_meta("action_kind"), "attack")
@@ -208,7 +209,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_not_null(ability)
 	assert_eq(ability.get_meta("action_kind"), "ability_1")
 	assert_eq(hud.action_buttons.get_child_count(), 3)
-	assert_true(hud.action_buttons.get_child(0) is VBoxContainer)
+	assert_true(hud.action_buttons.get_child(0) is HBoxContainer)
 	assert_true(hud.action_buttons.get_child(1) is VBoxContainer)
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
@@ -218,6 +219,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 		hud.primary_action_button.custom_minimum_size.y,
 		ability.custom_minimum_size.y
 	)
+	assert_gt(hud.primary_action_button.position.x, ability.position.x)
 
 	var interact_events := []
 	var cycle_events := []
@@ -233,19 +235,14 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_not_null(utility_stack)
 	var inventory := utility_stack.find_child("InventoryButton", true, false) as Button
 	var target := utility_stack.find_child("TargetButton", true, false) as Button
-	var menu := utility_stack.find_child("MenuButton", true, false) as Button
 	assert_not_null(inventory)
 	assert_not_null(target)
-	assert_not_null(menu)
+	assert_null(utility_stack.find_child("MenuButton", true, false))
 	assert_eq(hud.target_action_button, target)
 
 	inventory.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "inventory")
-
-	hud.hide_systems_panel()
-	menu.pressed.emit()
-	assert_true(hud.is_systems_panel_visible())
 
 	hud.hide_systems_panel()
 	var attack := hud.primary_action_button as RpgAimJoystick

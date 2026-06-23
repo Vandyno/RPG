@@ -8,44 +8,38 @@ static func build(
 	root: Control,
 	aim_action: Callable
 ) -> Dictionary:
-	var cluster := HBoxContainer.new()
+	var cluster := Control.new()
 	cluster.name = "ActionButtons"
 	cluster.anchor_left = 1.0
 	cluster.anchor_right = 1.0
 	cluster.anchor_top = 1.0
 	cluster.anchor_bottom = 1.0
-	cluster.alignment = BoxContainer.ALIGNMENT_END
-	cluster.offset_left = -544
-	cluster.offset_top = -76
+	cluster.offset_left = -300
+	cluster.offset_top = -252
 	cluster.offset_right = -12
 	cluster.offset_bottom = -12
-	cluster.add_theme_constant_override("separation", 8)
 	root.add_child(cluster)
 
-	var utility_stack := VBoxContainer.new()
-	utility_stack.name = "UtilityButtonStack"
-	utility_stack.add_theme_constant_override("separation", 5)
-	utility_stack.custom_minimum_size = Vector2(64, 100)
-	utility_stack.size_flags_vertical = Control.SIZE_SHRINK_END
-	cluster.add_child(utility_stack)
+	var utility_row := HBoxContainer.new()
+	utility_row.name = "UtilityButtonStack"
+	utility_row.alignment = BoxContainer.ALIGNMENT_END
+	utility_row.add_theme_constant_override("separation", 6)
+	cluster.add_child(utility_row)
 
 	var utility_buttons := {}
 	for data in [
 		{"id": "inventory", "text": "I\nInv", "tooltip": "Inventory"},
-		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."},
-		{"id": "menu", "text": "=\nMenu", "tooltip": "Menu"}
+		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."}
 	]:
 		var utility := _utility_button(
 			String(data["text"]), String(data["id"]), String(data["tooltip"]), Vector2(56, 56)
 		)
-		utility_stack.add_child(utility)
+		utility_row.add_child(utility)
 		utility_buttons[String(data["id"])] = utility
 
 	var ability_stack := VBoxContainer.new()
 	ability_stack.name = "AbilityButtonStack"
-	ability_stack.add_theme_constant_override("separation", 5)
-	ability_stack.custom_minimum_size = Vector2(72, 100)
-	ability_stack.size_flags_vertical = Control.SIZE_SHRINK_END
+	ability_stack.add_theme_constant_override("separation", 8)
 	cluster.add_child(ability_stack)
 
 	var ability_buttons := {}
@@ -59,7 +53,7 @@ static func build(
 		ability_stack.add_child(ability)
 		ability_buttons[slot_id] = ability
 
-	var primary := _aim_joystick("Attack", "attack", "Aim attack", Vector2(136, 58), false)
+	var primary := _aim_joystick("Attack", "attack", "Aim attack", Vector2(156, 156), false)
 	primary.name = "InteractButton"
 	primary.set_meta("action_role", "primary")
 	primary.aimed.connect(aim_action)
@@ -74,7 +68,7 @@ static func build(
 
 
 static func apply_layout(
-	cluster: HBoxContainer,
+	cluster: Control,
 	primary: Button,
 	compact: bool,
 	_fallback_size: Vector2,
@@ -82,39 +76,48 @@ static func apply_layout(
 ) -> void:
 	if not cluster:
 		return
-	cluster.add_theme_constant_override("separation", 6 if compact else 8)
-	cluster.offset_top = -188 if compact else -220
-	cluster.offset_bottom = -32 if compact else -12
-	for child in cluster.get_children():
-		if child is Button:
-			child.custom_minimum_size = Vector2(92, 92) if compact else Vector2(128, 128)
-			child.size_flags_vertical = Control.SIZE_SHRINK_END
-			child.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			child.add_theme_font_size_override("font_size", 12 if compact else 15)
-			if child == primary:
-				primary_style.call(child)
-				_apply_command_style(child, true, compact)
-			else:
-				_apply_command_style(child, false, compact)
-		elif child is VBoxContainer:
-			var utility_stack := child.name == "UtilityButtonStack"
-			child.add_theme_constant_override("separation", 4 if compact else 6)
-			var stack_size := Vector2(52, 164) if compact else Vector2(64, 204)
-			if utility_stack:
-				stack_size = Vector2(42, 140) if compact else Vector2(54, 180)
-			child.custom_minimum_size = stack_size
-			for nested in child.get_children():
-				if nested is Button:
-					var button_size := Vector2(48, 48) if compact else Vector2(64, 64)
-					if utility_stack:
-						button_size = Vector2(40, 40) if compact else Vector2(52, 52)
-					nested.custom_minimum_size = button_size
-					nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
-					if utility_stack:
-						_apply_utility_style(nested, compact)
-					else:
-						_apply_command_style(nested, false, compact)
+	var cluster_size := Vector2(208, 174) if compact else Vector2(300, 300)
+	cluster.offset_left = -cluster_size.x - 12
+	cluster.offset_top = -cluster_size.y - (30 if compact else 12)
+	cluster.offset_right = -12
+	cluster.offset_bottom = -30 if compact else -12
+	cluster.custom_minimum_size = cluster_size
+	cluster.size = cluster_size
+
+	var utility_row := cluster.find_child("UtilityButtonStack", true, false) as HBoxContainer
+	if utility_row:
+		utility_row.position = Vector2(76, 0) if compact else Vector2(156, 92)
+		utility_row.size = Vector2(132, 38) if compact else Vector2(144, 52)
+		utility_row.add_theme_constant_override("separation", 5 if compact else 6)
+		for nested in utility_row.get_children():
+			if nested is Button:
+				nested.custom_minimum_size = Vector2(54, 36) if compact else Vector2(68, 48)
+				nested.size = nested.custom_minimum_size
+				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
+				_apply_utility_style(nested, compact)
+
+	var ability_stack := cluster.find_child("AbilityButtonStack", true, false) as VBoxContainer
+	if ability_stack:
+		ability_stack.position = Vector2(0, 40) if compact else Vector2(0, 104)
+		ability_stack.size = Vector2(52, 132) if compact else Vector2(70, 190)
+		ability_stack.add_theme_constant_override("separation", 5 if compact else 8)
+		for nested in ability_stack.get_children():
+			if nested is Button:
+				nested.custom_minimum_size = Vector2(48, 40) if compact else Vector2(64, 56)
+				nested.size = nested.custom_minimum_size
+				nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
+				_apply_command_style(nested, false, compact)
+
+	if primary:
+		primary.position = Vector2(66, 54) if compact else Vector2(92, 132)
+		primary.custom_minimum_size = Vector2(122, 112) if compact else Vector2(170, 156)
+		primary.size = primary.custom_minimum_size
+		primary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		primary.add_theme_font_size_override("font_size", 11 if compact else 15)
+		primary_style.call(primary)
+		_apply_command_style(primary, true, compact)
 
 
 static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> void:

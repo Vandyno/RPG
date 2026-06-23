@@ -72,7 +72,7 @@ var content_body_label: Label
 var content_choice_list: VBoxContainer
 var move_pad: Control
 var move_knob: ColorRect
-var action_buttons: HBoxContainer
+var action_buttons: Control
 var primary_action_button: Button
 var target_action_button: Button
 var move_pad_size := MOVE_PAD_SIZE
@@ -657,15 +657,15 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	_set_move_pad_layout(compact_actions)
 	_set_action_button_layout(compact_actions)
 	_set_overlay_panel_layout(viewport_size, compact_actions)
-	var action_width := HudLayoutMetrics.button_row_width(
-		action_buttons, 5.0 if compact_actions else 8.0
-	)
-	if not compact_actions:
-		action_width = maxf(action_width, 532.0)
-	action_buttons.offset_left = -action_width - HUD_MARGIN
-	action_buttons.offset_right = -HUD_MARGIN
-	action_buttons.offset_top = -68 if compact_actions else -76
-
+	if action_buttons is HBoxContainer:
+		var action_width := HudLayoutMetrics.button_row_width(
+			action_buttons, 5.0 if compact_actions else 8.0
+		)
+		if not compact_actions:
+			action_width = maxf(action_width, 532.0)
+		action_buttons.offset_left = -action_width - HUD_MARGIN
+		action_buttons.offset_right = -HUD_MARGIN
+		action_buttons.offset_top = -68 if compact_actions else -76
 	var message_left := 0.0
 	var message_right := 0.0
 	if compact_actions:
