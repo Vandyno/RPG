@@ -594,7 +594,7 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
-		systems_detail_equipment_panel.visible = systems_active_tab != "spells"
+		systems_detail_equipment_panel.visible = ["inventory", "character"].has(systems_active_tab)
 	if systems_character_panel:
 		systems_character_panel.visible = not compact and _viewport_size.x >= 1280.0
 		systems_character_panel.custom_minimum_size = Vector2(210, 0)
@@ -679,7 +679,7 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
 	if systems_detail_equipment_panel:
-		systems_detail_equipment_panel.visible = systems_active_tab != "spells"
+		systems_detail_equipment_panel.visible = ["inventory", "character"].has(systems_active_tab)
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
