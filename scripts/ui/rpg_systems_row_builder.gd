@@ -56,15 +56,13 @@ static func button_text(row: Dictionary) -> String:
 	var title := String(row.get("title", "Entry"))
 	var subtitle := String(row.get("subtitle", ""))
 	var meta := String(row.get("meta", ""))
-	var icon := _row_icon(row)
-	var heading := "%s  %s" % [icon, title] if not icon.is_empty() else title
 	if subtitle.is_empty() and meta.is_empty():
-		return heading
+		return title
 	if subtitle.is_empty():
-		return "%s\n%s" % [heading, meta]
+		return "%s\n%s" % [title, meta]
 	if meta.is_empty():
-		return "%s\n%s" % [heading, subtitle]
-	return "%s\n%s - %s" % [heading, meta, subtitle]
+		return "%s\n%s" % [title, subtitle]
+	return "%s\n%s - %s" % [title, meta, subtitle]
 
 
 static func selected_row(rows_data: Array[Dictionary], selected_row_id: String) -> Dictionary:
@@ -120,38 +118,6 @@ static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictio
 			"detail": "Your pack is empty."
 		})
 	return rows_data
-
-
-static func _row_icon(row: Dictionary) -> String:
-	var text := "%s %s %s %s" % [
-		String(row.get("meta", "")),
-		String(row.get("equipment_slot", "")),
-		String(row.get("title", "")),
-		String(row.get("subtitle", ""))
-	]
-	var lower := text.to_lower()
-	if lower.contains("weapon"):
-		return "W"
-	if lower.contains("armour") or lower.contains("armor") or lower.contains("shield"):
-		return "A"
-	if lower.contains("ingredient"):
-		return "G"
-	if lower.contains("quest"):
-		return "Q"
-	if lower.contains("spell") or lower.contains("cost") or lower.contains("school"):
-		return "S"
-	if lower.contains("map") or lower.contains("route") or lower.contains("known"):
-		return "M"
-	if lower.contains("journal") or lower.contains("log") or lower.contains("time"):
-		return "J"
-	if (
-		lower.contains("trade") or lower.contains("merchant") or lower.contains("shop")
-		or lower.contains("buy ") or lower.contains("sell")
-	):
-		return "T"
-	if lower.contains("vitals") or lower.contains("health"):
-		return "H"
-	return "I"
 
 
 static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:

@@ -466,7 +466,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
 	assert_not_null(toolbox_row)
 	assert_true(toolbox_row is RpgInventoryItemButton)
-	assert_true(toolbox_row.text.begins_with("Q  "))
+	assert_false(toolbox_row.text.begins_with("Q  "))
 	assert_eq(toolbox_row.get_meta("item_id"), "item_old_toolbox")
 	assert_true(toolbox_row.text.contains("Count 1"))
 	assert_true(toolbox_row.text.contains("5 wt"))
@@ -493,7 +493,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(left_hand.text.contains("Empty"))
 	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
 	assert_not_null(hatchet_row)
-	assert_true(hatchet_row.text.begins_with("W  "))
+	assert_false(hatchet_row.text.begins_with("W  "))
 	assert_true(hatchet_row.text.contains("1.6 wt"))
 	assert_true(hatchet_row.text.contains("18g"))
 	var character_health := hud.systems_character_panel.find_child(
