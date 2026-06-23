@@ -13,6 +13,19 @@ func test_compact_system_rows_wrap_long_player_text() -> void:
 	assert_true(row.text.contains("Crossroads Peddler"))
 
 
+func test_trade_rows_use_trade_card_icons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("trade")
+
+	var stock := _button_containing(hud.systems_item_list, "Roadside Draught")
+	var merchant := _button_containing(hud.systems_item_list, "Crossroads Peddler")
+	assert_not_null(stock)
+	assert_not_null(merchant)
+	assert_eq(stock.get_meta("card_icon"), "T")
+	assert_eq(merchant.get_meta("card_icon"), "T")
+
+
 func test_system_rows_render_player_facing_card_data() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))

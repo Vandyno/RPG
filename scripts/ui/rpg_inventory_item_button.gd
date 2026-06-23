@@ -103,7 +103,10 @@ func _card_icon(row: Dictionary) -> String:
 		icon = "M"
 	elif lower.contains("journal") or lower.contains("log") or lower.contains("time"):
 		icon = "J"
-	elif lower.contains("trade") or lower.contains("merchant") or lower.contains("sell"):
+	elif (
+		lower.contains("trade") or lower.contains("merchant") or lower.contains("shop")
+		or lower.contains("buy ") or lower.contains("sell")
+	):
 		icon = "T"
 	elif lower.contains("vitals") or lower.contains("health"):
 		icon = "H"

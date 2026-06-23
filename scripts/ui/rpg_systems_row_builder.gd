@@ -130,7 +130,10 @@ static func _row_icon(row: Dictionary) -> String:
 		return "M"
 	if lower.contains("journal") or lower.contains("log") or lower.contains("time"):
 		return "J"
-	if lower.contains("trade") or lower.contains("merchant") or lower.contains("sell"):
+	if (
+		lower.contains("trade") or lower.contains("merchant") or lower.contains("shop")
+		or lower.contains("buy ") or lower.contains("sell")
+	):
 		return "T"
 	if lower.contains("vitals") or lower.contains("health"):
 		return "H"
