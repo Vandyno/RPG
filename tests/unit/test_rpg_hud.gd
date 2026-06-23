@@ -12,6 +12,7 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_eq(main.hud.name, "RpgHud")
 	assert_true(main.hud is RpgHud)
 	assert_eq(main.get_hud_state()["primary_action"], main.get_debug_state()["primary_action"])
+	assert_true(main.get_hud_state()["inventory_items"] is Array)
 	assert_true(main.hud.get_state.get_method() == "get_hud_state")
 
 
@@ -126,6 +127,9 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
 	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Target", "Talk", "Menu"])
+	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
+	assert_eq(hud.inventory_action_button.get_meta("action_role"), "secondary")
+	assert_eq(hud.inventory_action_button.get_meta("action_kind"), "inventory")
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
 		hud.inventory_action_button.custom_minimum_size.x
@@ -296,7 +300,10 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
 	assert_true(hud.systems_action_list is HFlowContainer)
-	assert_eq(_button_texts(hud.systems_category_row), ["All", "Gear", "Use", "Quest"])
+	assert_eq(
+		_button_texts(hud.systems_category_row),
+		["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"]
+	)
 	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
 	assert_not_null(toolbox_row)
 	assert_true(toolbox_row.text.contains("Count 1"))
@@ -317,6 +324,19 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(equipment_row)
 	assert_true(equipment_row.text.contains("Weapon: Road Hatchet"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
+
+	_press_category(hud, "Weapons")
+	assert_not_null(_button_containing(hud.systems_item_list, "Road Hatchet"))
+	assert_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
+	_press_category(hud, "Armour")
+	assert_not_null(_button_containing(hud.systems_item_list, "Traveler Buckler"))
+	_press_category(hud, "Ingredients")
+	assert_not_null(_button_containing(hud.systems_item_list, "River Mint"))
+	_press_category(hud, "Misc")
+	assert_not_null(_button_containing(hud.systems_item_list, "Roadside Draught"))
+	_press_category(hud, "Quest")
+	assert_not_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
+	assert_null(_button_containing(hud.systems_item_list, "Road Hatchet"))
 
 	hud.set_systems_tab("quests")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
@@ -432,8 +452,64 @@ func _sample_state() -> Dictionary:
 		"primary_action": "Talk",
 		"locations": "Briarwatch Crossroads",
 		"quests": ["The Missing Tools: Return the toolbox to Harrow Venn."],
-		"inventory": "Old Toolbox x1",
-		"inventory_details": "Old Toolbox x1: A heavy wooden toolbox.",
+		"inventory":
+		(
+			"Old Toolbox x1, Road Hatchet x1, Traveler Buckler x1, "
+			+ "River Mint x2, Roadside Draught x1"
+		),
+		"inventory_items":
+		[
+			{
+				"item_id": "item_old_toolbox",
+				"name": "Old Toolbox",
+				"count": 1,
+				"type": "quest_item",
+				"tags": ["quest"],
+				"description": "A heavy wooden toolbox."
+			},
+			{
+				"item_id": "item_road_hatchet",
+				"name": "Road Hatchet",
+				"count": 1,
+				"type": "weapon",
+				"tags": ["weapon"],
+				"equipment_slot": "weapon",
+				"description": "A short iron hatchet."
+			},
+			{
+				"item_id": "item_traveler_buckler",
+				"name": "Traveler Buckler",
+				"count": 1,
+				"type": "shield",
+				"tags": ["shield"],
+				"equipment_slot": "offhand",
+				"description": "A scarred round shield."
+			},
+			{
+				"item_id": "item_river_mint",
+				"name": "River Mint",
+				"count": 2,
+				"type": "ingredient",
+				"tags": ["ingredient"],
+				"description": "Bright mint used in roadside tonics."
+			},
+			{
+				"item_id": "item_roadside_draught",
+				"name": "Roadside Draught",
+				"count": 1,
+				"type": "consumable",
+				"tags": ["consumable"],
+				"description": "A bitter green tonic."
+			}
+		],
+		"inventory_details":
+		(
+			"Old Toolbox x1: A heavy wooden toolbox.\n"
+			+ "Road Hatchet x1: A short iron hatchet.\n"
+			+ "Traveler Buckler x1: A scarred round shield.\n"
+			+ "River Mint x2: Bright mint used in roadside tonics.\n"
+			+ "Roadside Draught x1: A bitter green tonic."
+		),
 		"inventory_actions":
 		[
 			{"id": "use:item_roadside_draught", "text": "Use Roadside Draught"},
@@ -490,6 +566,12 @@ func _button_texts(parent: Node) -> Array:
 
 func _press_nav(hud: RpgHud, text: String) -> void:
 	var button := _button_containing(hud.top_nav_buttons, text)
+	assert_not_null(button)
+	button.pressed.emit()
+
+
+func _press_category(hud: RpgHud, text: String) -> void:
+	var button := _button_containing(hud.systems_category_row, text)
 	assert_not_null(button)
 	button.pressed.emit()
 

@@ -35,6 +35,7 @@ static func build(main) -> Dictionary:
 		"combat_actions": main._combat_actions_data(nearby),
 		"context_actions": MainContextActions.secondary(main, nearby),
 		"inventory": main._inventory_text(),
+		"inventory_items": _inventory_items_data(main),
 		"inventory_details": main._inventory_details_text(),
 		"inventory_actions": main._inventory_actions_data(),
 		"trade": main._trade_text(shop_id),
@@ -101,3 +102,26 @@ static func _quest_target_actions(main) -> Array[Dictionary]:
 		seen[target_id] = true
 		actions.append({"id": "target:%s" % target_id, "text": "Target %s" % entity.get_display_name()})
 	return actions
+
+
+static func _inventory_items_data(main) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for item_id in main._sorted_inventory_ids():
+		var item: Dictionary = main.content.get_item(item_id)
+		var count: int = main.inventory.get_count(item_id)
+		if item.is_empty() or count <= 0:
+			continue
+		entries.append({
+			"item_id": item_id,
+			"name": String(item.get("name", item_id)),
+			"count": count,
+			"type": String(item.get("type", "")),
+			"tags": _array_field(item.get("tags", [])),
+			"equipment_slot": String(item.get("equipment_slot", "")),
+			"description": String(item.get("description", ""))
+		})
+	return entries
+
+
+static func _array_field(value: Variant) -> Array:
+	return value if value is Array else []

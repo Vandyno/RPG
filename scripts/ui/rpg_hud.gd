@@ -6,6 +6,7 @@ const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
 const RpgContentChoiceBuilder = preload("res://scripts/ui/rpg_content_choice_builder.gd")
 const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
+const RpgActionClusterBuilder = preload("res://scripts/ui/rpg_action_cluster_builder.gd")
 const RpgMovePadBuilder = preload("res://scripts/ui/rpg_move_pad_builder.gd")
 const RpgStatusTextBuilder = preload("res://scripts/ui/rpg_status_text_builder.gd")
 const RpgSystemsCharacterPaneBuilder = preload(
@@ -44,6 +45,7 @@ var systems_bottom_panel: PanelContainer
 var systems_category_row: HBoxContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
+var systems_active_category := "all"
 var inventory_action_button: Button
 var content_identity_panel: PanelContainer
 var content_portrait_panel: Panel
@@ -94,6 +96,20 @@ func show_content_card(title: String, body: String, choices: Array = [], kind: S
 func hide_content_card() -> void:
 	super.hide_content_card()
 	_sync_content_overlay_chrome()
+
+
+func show_systems_panel(tab_id: String = "") -> void:
+	var normalized_tab := _normalize_systems_tab(tab_id)
+	if normalized_tab != systems_active_tab:
+		systems_active_category = "all"
+	super.show_systems_panel(tab_id)
+
+
+func set_systems_tab(tab_id: String) -> void:
+	var normalized_tab := _normalize_systems_tab(tab_id)
+	if normalized_tab != systems_active_tab:
+		systems_active_category = "all"
+	super.set_systems_tab(tab_id)
 
 
 func _refresh_health_bar(state: Dictionary) -> void:
@@ -399,45 +415,20 @@ func _build_touch_controls() -> void:
 	move_knob = move_nodes["move_knob"]
 	_update_move_knob()
 
-	action_buttons = HBoxContainer.new()
-	action_buttons.name = "ActionButtons"
-	action_buttons.anchor_left = 1.0
-	action_buttons.anchor_right = 1.0
-	action_buttons.anchor_top = 1.0
-	action_buttons.anchor_bottom = 1.0
-	action_buttons.offset_left = -544
-	action_buttons.offset_top = -76
-	action_buttons.offset_right = -12
-	action_buttons.offset_bottom = -12
-	action_buttons.add_theme_constant_override("separation", 8)
-	root.add_child(action_buttons)
-
-	inventory_action_button = _new_button("Inventory", Vector2(92, 58))
-	inventory_action_button.name = "InventoryButton"
-	inventory_action_button.tooltip_text = "Open inventory"
-	inventory_action_button.pressed.connect(func() -> void: show_systems_panel("inventory"))
-	action_buttons.add_child(inventory_action_button)
-
-	target_action_button = _new_button("Target", Vector2(92, 58))
-	target_action_button.name = "TargetButton"
-	HoldActionButton.bind(
-		target_action_button,
-		func() -> void: cycle_target_pressed.emit(),
-		func() -> void:
-			if not is_target_picker_visible():
-				toggle_target_picker()
+	var open_inventory := func() -> void: show_systems_panel("inventory")
+	var cycle_target := func() -> void: cycle_target_pressed.emit()
+	var open_target_picker := func() -> void:
+		if not is_target_picker_visible():
+			toggle_target_picker()
+	var primary_action := func() -> void: interact_pressed.emit()
+	var action_nodes := RpgActionClusterBuilder.build(
+		root, Callable(self, "_new_button"), open_inventory, cycle_target,
+		open_target_picker, primary_action, toggle_systems
 	)
-	action_buttons.add_child(target_action_button)
-
-	primary_action_button = _new_button("Interact", Vector2(136, 58))
-	primary_action_button.name = "InteractButton"
-	primary_action_button.pressed.connect(func() -> void: interact_pressed.emit())
-	action_buttons.add_child(primary_action_button)
-
-	var systems := _new_button("Menu", Vector2(82, 58))
-	systems.name = "SystemsButton"
-	systems.pressed.connect(toggle_systems)
-	action_buttons.add_child(systems)
+	action_buttons = action_nodes["cluster"]
+	inventory_action_button = action_nodes["inventory"]
+	target_action_button = action_nodes["target"]
+	primary_action_button = action_nodes["primary"]
 
 
 func _build_content_panel() -> void:
@@ -470,22 +461,10 @@ func _build_content_panel() -> void:
 
 
 func _set_action_button_layout(compact: bool) -> void:
-	if not action_buttons:
-		return
-	action_buttons.add_theme_constant_override("separation", 6 if compact else 8)
-	var sizes := {
-		"InventoryButton": Vector2(78, 52) if compact else Vector2(92, 58),
-		"TargetButton": Vector2(78, 52) if compact else Vector2(92, 58),
-		"InteractButton": Vector2(112, 52) if compact else Vector2(136, 58),
-		"SystemsButton": Vector2(72, 52) if compact else Vector2(82, 58)
-	}
-	for child in action_buttons.get_children():
-		if child is Button:
-			child.custom_minimum_size = sizes.get(child.name, BUTTON_SIZE)
-			child.add_theme_font_size_override("font_size", 12 if compact else 15)
-			if child == primary_action_button:
-				child.add_theme_font_size_override("font_size", 14 if compact else 16)
-				_apply_primary_action_style(child)
+	RpgActionClusterBuilder.apply_layout(
+		action_buttons, primary_action_button, compact, BUTTON_SIZE,
+		Callable(self, "_apply_primary_action_style")
+	)
 
 
 func _add_systems_tab(tab_id: String, text: String) -> void:
@@ -703,7 +682,9 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
-	var rows := RpgSystemsRowBuilder.rows(state, systems_active_tab, message_log)
+	var rows := RpgSystemsRowBuilder.rows(
+		state, systems_active_tab, message_log, systems_active_category
+	)
 	_refresh_category_row(systems_active_tab)
 	if not RpgSystemsRowBuilder.has_id(rows, systems_selected_row_id):
 		systems_selected_row_id = String(rows[0].get("id", "")) if not rows.is_empty() else ""
@@ -749,20 +730,29 @@ func _refresh_category_row(tab_id: String) -> void:
 	if not systems_category_row:
 		return
 	var labels := RpgSystemsRowBuilder.category_labels(tab_id)
+	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	var button_size := Vector2(80, 38) if tab_id == "inventory" else Vector2(64, 38)
 	for index in range(labels.size()):
 		var button: Button
 		if index < systems_category_row.get_child_count():
 			button = systems_category_row.get_child(index) as Button
 		else:
-			button = _new_button("", Vector2(64, 38))
+			button = _new_button("", button_size)
 			button.focus_mode = Control.FOCUS_NONE
 			systems_category_row.add_child(button)
 		button.text = String(labels[index])
 		button.visible = true
-		button.disabled = index != 0
-		button.button_pressed = index == 0
-		button.add_theme_font_size_override("font_size", 13)
-		button.custom_minimum_size = Vector2(64, 38)
+		var category_id := _category_id_for_label(String(labels[index]))
+		button.disabled = systems_active_tab != "inventory"
+		button.button_pressed = category_id == systems_active_category
+		button.set_meta("category_id", category_id)
+		if not bool(button.get_meta("category_bound", false)):
+			button.set_meta("category_bound", true)
+			button.pressed.connect(
+				func() -> void: _select_systems_category(String(button.get_meta("category_id", "")))
+			)
+		button.add_theme_font_size_override("font_size", 11 if compact else 13)
+		button.custom_minimum_size = button_size
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
 
@@ -772,6 +762,18 @@ func _select_systems_row(row_id: String) -> void:
 		return
 	systems_selected_row_id = row_id
 	_refresh_systems_chrome(_state_snapshot())
+
+
+func _select_systems_category(category_id: String) -> void:
+	if systems_active_tab != "inventory" or category_id.is_empty():
+		return
+	systems_active_category = category_id
+	systems_selected_row_id = ""
+	_refresh_systems_chrome(_state_snapshot())
+
+
+func _category_id_for_label(label: String) -> String:
+	return label.to_lower()
 
 
 func _refresh_systems_actions(state: Dictionary) -> void:

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 static func rows(
-	state: Dictionary, tab_id: String, message_log: Array[String]
+	state: Dictionary, tab_id: String, message_log: Array[String], category: String = "all"
 ) -> Array[Dictionary]:
 	match tab_id:
 		"character":
@@ -17,12 +17,12 @@ static func rows(
 		"trade":
 			return _trade_rows(state)
 		_:
-			return _inventory_rows(state)
+			return _inventory_rows(state, category)
 
 
 static func category_labels(tab_id: String) -> Array[String]:
 	var labels: Array = {
-		"inventory": ["All", "Gear", "Use", "Quest"],
+		"inventory": ["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"],
 		"character": ["Overview", "Training", "Gear", "Effects"],
 		"quests": ["Active", "Routes", "Rewards"],
 		"map": ["Known", "Routes", "Nearby"],
@@ -74,7 +74,12 @@ static func hidden_text(rows_data: Array[Dictionary]) -> String:
 	return "\n".join(lines)
 
 
-static func _inventory_rows(state: Dictionary) -> Array[Dictionary]:
+static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var typed_rows := _typed_inventory_rows(state, category)
+	if not typed_rows.is_empty():
+		return typed_rows
+	if category != "all":
+		return [_empty_inventory_category(category)]
 	var details_by_name := _detail_lines_by_name(String(state.get("inventory_details", "")))
 	var rows_data: Array[Dictionary] = []
 	for entry in _summary_entries(String(state.get("inventory", "empty"))):
@@ -96,6 +101,68 @@ static func _inventory_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": "You are not carrying any loose items."
 		})
 	return rows_data
+
+
+static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
+	for item in _array_field(state.get("inventory_items", [])):
+		if not item is Dictionary:
+			continue
+		var item_category := _inventory_category(item)
+		if category != "all" and category != item_category:
+			continue
+		var name := String(item.get("name", item.get("item_id", "Item")))
+		var count := maxi(0, int(item.get("count", 0)))
+		if name.is_empty() or count <= 0:
+			continue
+		var item_type := _inventory_category_label(item_category)
+		var description := String(item.get("description", "No item details available."))
+		rows_data.append({
+			"id": "inventory_%s" % String(item.get("item_id", rows_data.size())),
+			"title": name,
+			"subtitle": "Count %d" % count,
+			"meta": item_type,
+			"detail": "%s x%d\n\n%s" % [name, count, description]
+		})
+	return rows_data
+
+
+static func _empty_inventory_category(category: String) -> Dictionary:
+	var label := _inventory_category_label(category)
+	return {
+		"id": "inventory_empty_%s" % category,
+		"title": "No %s" % label,
+		"subtitle": "Nothing in this category.",
+		"meta": label,
+		"detail": "No %s carried." % label.to_lower()
+	}
+
+
+static func _inventory_category(item: Dictionary) -> String:
+	var item_type := String(item.get("type", "")).to_lower()
+	var slot := String(item.get("equipment_slot", "")).to_lower()
+	var tags := _lower_array(item.get("tags", []))
+	if item_type == "weapon" or slot == "weapon" or tags.has("weapon"):
+		return "weapons"
+	if ["armor", "armour", "shield"].has(item_type) or ["offhand", "body"].has(slot):
+		return "armour"
+	if tags.has("armor") or tags.has("armour") or tags.has("shield"):
+		return "armour"
+	if item_type == "ingredient" or tags.has("ingredient"):
+		return "ingredients"
+	if item_type == "quest_item" or tags.has("quest"):
+		return "quest"
+	return "misc"
+
+
+static func _inventory_category_label(category: String) -> String:
+	return {
+		"weapons": "Weapons",
+		"armour": "Armour",
+		"ingredients": "Ingredients",
+		"quest": "Quest",
+		"misc": "Misc"
+	}.get(category, "Inventory")
 
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:
@@ -387,6 +454,13 @@ static func _first_non_empty(value: String, fallback: String) -> String:
 	if stripped.is_empty() or stripped == "none":
 		return fallback
 	return stripped
+
+
+static func _lower_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	for entry in _array_field(value):
+		result.append(String(entry).to_lower())
+	return result
 
 
 static func _array_field(value: Variant) -> Array:
