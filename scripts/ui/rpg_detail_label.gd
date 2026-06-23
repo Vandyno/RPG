@@ -20,8 +20,7 @@ func _draw() -> void:
 	var title_size := 16 if size.x < 210.0 else 18
 	var body_size := 12 if size.x < 210.0 else 14
 	var y := 22.0
-	draw_string(font, Vector2(0, y), lines[0], HORIZONTAL_ALIGNMENT_LEFT, size.x, title_size, TEXT)
-	y += float(title_size) + 8.0
+	y = _draw_title(font, lines[0], y, title_size)
 	var index := 1
 	while index < lines.size() and not lines[index].is_empty():
 		var line := lines[index]
@@ -33,6 +32,13 @@ func _draw() -> void:
 	while index < lines.size():
 		y = _draw_wrapped(font, lines[index], y, body_size, TEXT)
 		index += 1
+
+
+func _draw_title(font: Font, value: String, y: float, font_size: int) -> float:
+	for line in _fit_wrapped_lines(value, font, font_size, size.x, 2):
+		draw_string(font, Vector2(0, y), line, HORIZONTAL_ALIGNMENT_LEFT, size.x, font_size, TEXT)
+		y += float(font_size) + 4.0
+	return y + 4.0
 
 
 func _draw_wrapped(font: Font, value: String, y: float, font_size: int, color: Color) -> float:
@@ -50,6 +56,52 @@ func _draw_wrapped(font: Font, value: String, y: float, font_size: int, color: C
 		draw_string(font, Vector2(0, y), line, HORIZONTAL_ALIGNMENT_LEFT, size.x, font_size, color)
 		y += float(font_size) + 5.0
 	return y
+
+
+func _fit_wrapped_lines(
+	value: String, font: Font, font_size: int, max_width: float, max_lines: int
+) -> Array[String]:
+	var result: Array[String] = []
+	var line := ""
+	for word in value.split(" ", false):
+		var candidate := word if line.is_empty() else "%s %s" % [line, word]
+		if _line_width(candidate, font, font_size) <= max_width:
+			line = candidate
+			continue
+		if not line.is_empty():
+			result.append(line)
+			if result.size() >= max_lines:
+				result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+				return result
+		line = word
+	if not line.is_empty():
+		result.append(line)
+	if result.size() > max_lines:
+		result = result.slice(0, max_lines)
+		result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+	elif not result.is_empty():
+		result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+	return result
+
+
+func _ellipsize(value: String, font: Font, font_size: int, max_width: float) -> String:
+	if _line_width(value, font, font_size) <= max_width:
+		return value
+	var suffix := "..."
+	var suffix_width := _line_width(suffix, font, font_size)
+	if suffix_width >= max_width:
+		return suffix
+	var best := ""
+	for index in range(1, value.length() + 1):
+		var candidate := value.substr(0, index).strip_edges()
+		if _line_width(candidate, font, font_size) + suffix_width > max_width:
+			break
+		best = candidate
+	return "%s%s" % [best, suffix]
+
+
+func _line_width(value: String, font: Font, font_size: int) -> float:
+	return font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
 func _visible_lines(value: String) -> Array[String]:

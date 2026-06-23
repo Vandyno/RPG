@@ -50,6 +50,20 @@ func test_detail_pane_uses_player_facing_renderer() -> void:
 	assert_true(hud.systems_detail_label.text.contains("A bitter green tonic."))
 
 
+func test_compact_detail_title_wraps_instead_of_clipping() -> void:
+	var detail := RpgDetailLabel.new()
+	add_child_autofree(detail)
+	detail.size = Vector2(150, 120)
+	var font := detail.get_theme_default_font()
+	var lines := detail._fit_wrapped_lines(
+		"Briarwatch Crossroads - Marches of Velcor", font, 16, detail.size.x, 2
+	)
+
+	assert_gt(lines.size(), 1)
+	for line in lines:
+		assert_lte(detail._line_width(line, font, 16), detail.size.x)
+
+
 func test_detail_equipment_pane_has_section_header_and_tight_slots() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
