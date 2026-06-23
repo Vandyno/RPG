@@ -211,9 +211,10 @@ static func apply_layout(
 		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
 	if right_stack:
 		var has_choices := choice_panel and choice_panel.visible
+		right_stack.visible = has_choices
 		right_stack.custom_minimum_size = (
 			Vector2(190, 0) if compact else Vector2(286, 0)
-		) if has_choices else Vector2(112 if compact else 124, 0)
+		) if has_choices else Vector2.ZERO
 		right_stack.size_flags_horizontal = (
 			Control.SIZE_EXPAND_FILL if compact and has_choices else Control.SIZE_SHRINK_END
 		)
@@ -296,13 +297,27 @@ static func apply_mode(
 	if portrait_label:
 		portrait_label.text = _identity_text(title, normalized)
 	if close_button:
+		var has_choices := _has_valid_choices(choices)
 		close_button.text = "Leave" if normalized == "dialogue" else "Close"
 		close_button.tooltip_text = (
 			"Leave conversation" if normalized == "dialogue" else "Close panel"
 		)
-		close_button.visible = not _has_valid_choices(choices)
+		_place_close_button(portrait_label, choice_panel, close_button, has_choices)
+		close_button.visible = not has_choices
 	if choice_panel:
 		choice_panel.visible = _has_valid_choices(choices)
+
+
+static func _place_close_button(
+	portrait_label: Label, choice_panel: PanelContainer, close_button: Button, has_choices: bool
+) -> void:
+	var target_parent: Node = choice_panel.get_parent() if has_choices and choice_panel else null
+	if not has_choices and portrait_label and portrait_label.get_parent():
+		target_parent = portrait_label.get_parent().get_parent()
+	if not target_parent or close_button.get_parent() == target_parent:
+		return
+	close_button.get_parent().remove_child(close_button)
+	target_parent.add_child(close_button)
 
 
 static func _identity_text(title: String, kind: String) -> String:

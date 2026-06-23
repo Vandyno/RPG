@@ -428,9 +428,9 @@ func test_rpg_content_panel_uses_readable_mode_without_empty_choice_lane() -> vo
 	assert_not_null(close_button)
 	assert_eq(close_button.text, "Close")
 	assert_eq(close_button.tooltip_text, "Close panel")
+	assert_eq(close_button.get_parent(), hud.content_portrait_panel.get_parent())
 	assert_false(hud.content_preview_panel.visible)
-	assert_lte(hud.content_right_stack.custom_minimum_size.x, 124.0)
-	assert_true(hud.content_preview_label.text.contains("Readable"))
+	assert_false(hud.content_right_stack.visible)
 
 
 func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
