@@ -16,10 +16,12 @@ func test_spawn_town_places_existing_content_in_logical_groups() -> void:
 	assert_eq(_tile(main, "object_road_notice"), Vector2i(2, 6))
 	assert_eq(_tile(main, "object_roadside_campfire"), Vector2i(-1, 4))
 	assert_eq(_tile(main, "pickup_old_toolbox"), Vector2i(-7, 1))
+	assert_eq(_tile(main, "pickup_river_mint"), Vector2i(2, -6))
 	assert_eq(_tile(main, "enemy_road_thug"), Vector2i(-6, 1))
 	assert_eq(_tile(main, "object_road_cache"), Vector2i(-8, 2))
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "object_roadside_campfire")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "pickup_old_toolbox")), "road")
+	assert_true(main.chunks.is_walkable(_tile(main, "pickup_river_mint")))
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "enemy_road_thug")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "object_road_cache")), "road")
 	assert_lte(

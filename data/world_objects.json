@@ -170,6 +170,15 @@
     "count": 1
   },
   {
+    "id": "pickup_river_mint",
+    "name": "River Mint",
+    "kind": "pickup",
+    "global_tile": [2, -6],
+    "interaction_radius": 96,
+    "item_id": "item_river_mint",
+    "count": 2
+  },
+  {
     "id": "pickup_road_hatchet",
     "name": "Road Hatchet",
     "kind": "pickup",

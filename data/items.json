@@ -40,6 +40,16 @@
       }
     ]
   },
+  "item_river_mint": {
+    "id": "item_river_mint",
+    "name": "River Mint",
+    "description": "Bright mint gathered along Briarwatch's riverbank and used in simple tonics.",
+    "type": "ingredient",
+    "stackable": true,
+    "max_stack": 20,
+    "value": 2,
+    "tags": ["ingredient"]
+  },
   "item_road_hatchet": {
     "id": "item_road_hatchet",
     "name": "Road Hatchet",
