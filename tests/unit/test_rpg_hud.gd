@@ -415,6 +415,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var toolbox_row := _button_containing(hud.systems_item_list, "Old Toolbox")
 	assert_not_null(toolbox_row)
 	assert_true(toolbox_row is RpgInventoryItemButton)
+	assert_true(toolbox_row.text.begins_with("Q  "))
 	assert_eq(toolbox_row.get_meta("item_id"), "item_old_toolbox")
 	assert_true(toolbox_row.text.contains("Count 1"))
 	assert_true(hud.systems_body_label.text.contains("Old Toolbox x1"))
@@ -435,6 +436,9 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(ring_two)
 	assert_true(right_hand.text.contains("Road Hatchet"))
 	assert_true(left_hand.text.contains("Empty"))
+	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
+	assert_not_null(hatchet_row)
+	assert_true(hatchet_row.text.begins_with("W  "))
 	var character_health := hud.systems_character_panel.find_child(
 		"SystemsCharacterHealthBar", true, false
 	) as ProgressBar
@@ -452,10 +456,10 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
 
 	_press_category(hud, "Weapons")
-	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
-	assert_not_null(hatchet_row)
-	assert_eq(hatchet_row.get_meta("item_id"), "item_road_hatchet")
-	assert_eq(hatchet_row.get_meta("equipment_slot"), "weapon")
+	var weapon_hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
+	assert_not_null(weapon_hatchet_row)
+	assert_eq(weapon_hatchet_row.get_meta("item_id"), "item_road_hatchet")
+	assert_eq(weapon_hatchet_row.get_meta("equipment_slot"), "weapon")
 	assert_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
 	_press_category(hud, "Armour")
 	assert_not_null(_button_containing(hud.systems_item_list, "Traveler Buckler"))
