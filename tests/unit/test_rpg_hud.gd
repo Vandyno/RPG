@@ -129,12 +129,19 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
 	assert_eq(_button_texts(hud.action_buttons), ["Inventory", "Target", "Talk", "Menu"])
+	assert_eq(hud.action_buttons.alignment, BoxContainer.ALIGNMENT_END)
 	assert_eq(hud.primary_action_button.get_meta("action_role"), "primary")
+	assert_eq(hud.primary_action_button.get_meta("action_shape"), "round_primary")
 	assert_eq(hud.inventory_action_button.get_meta("action_role"), "secondary")
 	assert_eq(hud.inventory_action_button.get_meta("action_kind"), "inventory")
+	assert_eq(hud.inventory_action_button.get_meta("action_shape"), "round_secondary")
 	assert_gt(
 		hud.primary_action_button.custom_minimum_size.x,
 		hud.inventory_action_button.custom_minimum_size.x
+	)
+	assert_gt(
+		hud.primary_action_button.custom_minimum_size.y,
+		hud.inventory_action_button.custom_minimum_size.y
 	)
 
 	var interact_events := []

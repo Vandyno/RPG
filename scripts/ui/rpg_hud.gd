@@ -68,6 +68,13 @@ func _build_ui() -> void:
 	refresh()
 
 
+func _apply_layout_for_size(viewport_size: Vector2) -> void:
+	super._apply_layout_for_size(viewport_size)
+	var compact := viewport_size.x < 980.0 or viewport_size.y < 540.0
+	if action_buttons:
+		action_buttons.offset_top = -82 if compact else -106
+
+
 func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
