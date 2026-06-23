@@ -205,10 +205,10 @@ static func apply_layout(
 		text_panel.size_flags_stretch_ratio = 1.0
 	if identity_panel:
 		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(86, 0) if compact else Vector2(188, 0)
+		identity_panel.custom_minimum_size = Vector2(78, 0) if compact else Vector2(188, 0)
 	if portrait_panel:
 		portrait_panel.visible = true
-		portrait_panel.custom_minimum_size = Vector2(38, 38) if compact else Vector2(70, 70)
+		portrait_panel.custom_minimum_size = Vector2(34, 34) if compact else Vector2(70, 70)
 	if right_stack:
 		var has_choices := choice_panel and choice_panel.visible
 		right_stack.visible = has_choices
@@ -237,12 +237,12 @@ static func apply_layout(
 			Control.SIZE_SHRINK_BEGIN if compact else Control.SIZE_EXPAND_FILL
 		)
 	if title_label:
-		title_label.add_theme_font_size_override("font_size", 13 if compact else 22)
+		title_label.add_theme_font_size_override("font_size", 12 if compact else 22)
 	if kind_label:
-		kind_label.add_theme_font_size_override("font_size", 11 if compact else 14)
+		kind_label.add_theme_font_size_override("font_size", 10 if compact else 14)
 	if body_label:
 		body_label.custom_minimum_size = Vector2.ZERO
-		body_label.add_theme_font_size_override("font_size", 18 if compact else 17)
+		body_label.add_theme_font_size_override("font_size", 16 if compact else 17)
 	if preview_title_label:
 		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
 	var preview_label := preview_panel.find_child("ContentPreview", true, false) as Label
