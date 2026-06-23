@@ -38,6 +38,20 @@ static func category_labels(tab_id: String) -> Array[String]:
 	return result
 
 
+static func w(label: String, fallback: float, compact: bool) -> float:
+	if compact:
+		return fallback
+	var widths := {
+		"All": 52,
+		"Weapons": 72,
+		"Armour": 72,
+		"Ingredients": 88,
+		"Misc": 58,
+		"Quest": 58
+	}
+	return float(widths.get(label, int(fallback)))
+
+
 static func button_text(row: Dictionary) -> String:
 	var title := String(row.get("title", "Entry"))
 	var subtitle := String(row.get("subtitle", ""))

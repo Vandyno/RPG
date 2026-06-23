@@ -768,7 +768,7 @@ func _refresh_category_row(tab_id: String) -> void:
 				func() -> void: _select_systems_category(String(button.get_meta("category_id", "")))
 			)
 		button.add_theme_font_size_override("font_size", 11 if compact else 13)
-		button.custom_minimum_size = button_size
+		button.custom_minimum_size.x = RpgSystemsRowBuilder.w(str(labels[index]), button_size.x, compact)
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
 

@@ -131,6 +131,17 @@ func test_desktop_systems_character_pane_scrolls_when_visible() -> void:
 	assert_not_null(hud.systems_character_panel.find_child("SystemsCharacterScroll", true, false))
 
 
+func test_desktop_inventory_categories_use_tight_widths() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var all := _button_containing(hud.systems_category_row, "All") as Button
+	var ingredients := _button_containing(hud.systems_category_row, "Ingredients") as Button
+	assert_eq(all.custom_minimum_size.x, 52.0)
+	assert_eq(ingredients.custom_minimum_size.x, 88.0)
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
