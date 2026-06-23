@@ -1,6 +1,8 @@
 class_name RpgContentChoiceBuilder
 extends RefCounted
 
+const RpgContentChoiceButton = preload("res://scripts/ui/rpg_content_choice_button.gd")
+
 
 static func refresh(
 	container: VBoxContainer,
@@ -21,7 +23,9 @@ static func refresh(
 		if choice_id.is_empty() or text.is_empty():
 			continue
 		var button := _button(container, button_index, new_button)
-		button.text = _button_text(choice)
+		var closes := _choice_closes(choice)
+		var subtitle := _subtitle(choice)
+		button.text = _button_text(choice, subtitle)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.disabled = false
@@ -30,9 +34,14 @@ static func refresh(
 		button.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 44)
 		button.add_theme_font_size_override("font_size", 10 if compact else 13)
 		button.set_meta("choice_id", choice_id)
-		var closes := _choice_closes(choice)
 		button.set_meta("content_close_choice", closes)
-		row_style.call(button, _is_recommended(choice) and not closes)
+		var recommended := _is_recommended(choice) and not closes
+		button.set_meta("choice_recommended", recommended)
+		row_style.call(button, recommended)
+		if button is RpgContentChoiceButton:
+			(button as RpgContentChoiceButton).set_choice_card(
+				_choice_icon(choice), text, subtitle, closes
+			)
 		_bind_button(button, owner, close_callback)
 		button_index += 1
 	if button_index > 0 and not close_text.is_empty() and not _has_close_choice(choices):
@@ -47,7 +56,10 @@ static func refresh(
 		close.add_theme_font_size_override("font_size", 10 if compact else 13)
 		close.set_meta("choice_id", "")
 		close.set_meta("content_close_choice", true)
+		close.set_meta("choice_recommended", false)
 		row_style.call(close, false)
+		if close is RpgContentChoiceButton:
+			(close as RpgContentChoiceButton).set_choice_card("close", close_text, "", true)
 		_bind_button(close, owner, close_callback)
 		button_index += 1
 	for index in range(button_index, container.get_child_count()):
@@ -120,7 +132,15 @@ static func _button(container: VBoxContainer, index: int, new_button: Callable) 
 		var existing := container.get_child(index)
 		if existing is Button:
 			return existing
-	var button := new_button.call("", Vector2(0, 58)) as Button
+	var button := RpgContentChoiceButton.new()
+	button.custom_minimum_size = Vector2(0, 58)
+	var styled := new_button.call("", Vector2.ZERO) as Button
+	if styled:
+		button.add_theme_stylebox_override("normal", styled.get_theme_stylebox("normal"))
+		button.add_theme_stylebox_override("hover", styled.get_theme_stylebox("hover"))
+		button.add_theme_stylebox_override("pressed", styled.get_theme_stylebox("pressed"))
+		button.add_theme_stylebox_override("focus", styled.get_theme_stylebox("focus"))
+		styled.free()
 	button.focus_mode = Control.FOCUS_NONE
 	container.add_child(button)
 	return button
@@ -140,31 +160,29 @@ static func _bind_button(button: Button, owner: Object, close_callback: Callable
 	)
 
 
-static func _button_text(choice: Dictionary) -> String:
-	var prefix := _choice_icon(choice)
+static func _button_text(choice: Dictionary, subtitle: String) -> String:
 	var title := String(choice.get("text", ""))
 	if _choice_closes(choice):
 		return title
-	var subtitle := _subtitle(choice)
 	if subtitle.is_empty():
-		return "%s  %s" % [prefix, title]
-	return "%s  %s\n%s" % [prefix, title, subtitle]
+		return title
+	return "%s\n%s" % [title, subtitle]
 
 
 static func _choice_icon(choice: Dictionary) -> String:
 	if _choice_closes(choice):
-		return "X"
+		return "close"
 	var text := String(choice.get("text", "")).to_lower()
 	var choice_id := String(choice.get("id", "")).to_lower()
 	if _effect_summary(choice.get("effects", [])).contains("quest") or text.begins_with("turn in"):
-		return "Q"
+		return "quest"
 	if text.contains("forge") or text.contains("service") or text.contains("sharpen"):
-		return "S"
+		return "service"
 	if text.contains("trade") or choice_id.contains("trade"):
-		return "T"
+		return "trade"
 	if text.contains("ask") or not String(choice.get("response", "")).is_empty():
-		return "D"
-	return "A"
+		return "dialogue"
+	return "action"
 
 
 static func _has_close_choice(choices: Array) -> bool:

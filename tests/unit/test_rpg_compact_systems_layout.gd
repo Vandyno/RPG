@@ -97,9 +97,9 @@ func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	var ask := _button_containing(hud.content_choice_list, "Ask about tools") as Button
 	var turn_in := _button_containing(hud.content_choice_list, "Turn in Toolbox") as Button
 	var forge := _button_containing(hud.content_choice_list, "Forge Services") as Button
-	assert_true(ask.text.begins_with("D  "))
-	assert_true(turn_in.text.begins_with("Q  "))
-	assert_true(forge.text.begins_with("S  "))
+	assert_false(ask.text.begins_with("D  "))
+	assert_false(turn_in.text.begins_with("Q  "))
+	assert_false(forge.text.begins_with("S  "))
 
 
 func test_desktop_quick_actions_do_not_cover_action_cluster() -> void:
