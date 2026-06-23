@@ -65,8 +65,8 @@ static func refresh(
 		button.text = "%s\n%s" % [text, _subtitle(action_id, text)]
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(104, 56) if compact else Vector2(150, 56)
-		button.add_theme_font_size_override("font_size", 11 if compact else 12)
+		button.custom_minimum_size = Vector2(104, 46) if compact else Vector2(150, 56)
+		button.add_theme_font_size_override("font_size", 10 if compact else 12)
 		row_style.call(button, _is_recommended(action_id, text))
 		button.set_meta("action_id", action_id)
 		button.set_meta("context_mode", context_mode)
@@ -112,7 +112,7 @@ static func apply_layout(
 	var column_count := 1 if compact and width < 300.0 else 2 if compact and width < 430.0 else 3
 	var row_count := ceili(float(maxi(1, visible_count)) / float(column_count))
 	var height := 46.0 + float(row_count) * (65.0 if compact else 63.0)
-	height = clampf(height, 112.0 if compact else 112.0, 235.0 if compact else 184.0)
+	height = clampf(height, 112.0, 184.0)
 	if compact:
 		var left_bound := 196.0
 		var right_bound := viewport_size.x - 230.0
@@ -121,7 +121,7 @@ static func apply_layout(
 		left = clampf(left, hud_margin, viewport_size.x - width - hud_margin)
 		panel.offset_left = -viewport_size.x + left
 		panel.offset_right = panel.offset_left + width
-		panel.offset_bottom = -hud_margin
+		panel.offset_bottom = -74.0
 	else:
 		panel.offset_left = -width - hud_margin
 		panel.offset_right = -hud_margin
@@ -130,8 +130,18 @@ static func apply_layout(
 	if panel.offset_top < -viewport_size.y + hud_margin:
 		panel.offset_top = -viewport_size.y + hud_margin
 	if buttons:
-		buttons.add_theme_constant_override("h_separation", 6 if compact else 7)
-		buttons.add_theme_constant_override("v_separation", 6 if compact else 7)
+		buttons.add_theme_constant_override("h_separation", 5 if compact else 7)
+		buttons.add_theme_constant_override("v_separation", 5 if compact else 7)
+		var frame := panel.find_child("QuickActionFrame", true, false) as VBoxContainer
+		if frame:
+			frame.add_theme_constant_override("separation", 5 if compact else 7)
+		var margin := panel.get_child(0) as MarginContainer if panel.get_child_count() > 0 else null
+		if margin:
+			var margin_size := 6 if compact else 9
+			margin.add_theme_constant_override("margin_left", margin_size)
+			margin.add_theme_constant_override("margin_top", margin_size)
+			margin.add_theme_constant_override("margin_right", margin_size)
+			margin.add_theme_constant_override("margin_bottom", margin_size)
 
 
 static func _button(container: HFlowContainer, index: int, new_button: Callable) -> Button:

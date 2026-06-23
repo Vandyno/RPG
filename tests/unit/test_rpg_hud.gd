@@ -132,7 +132,6 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
 	assert_false((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
-
 func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -315,11 +314,12 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	for action_rect in _visible_button_rects(hud.action_buttons):
 		assert_false(quick_rect.intersects(action_rect))
 	assert_false(quick_rect.intersects(_anchored_rect(hud.move_pad, Vector2(640, 360))))
+	assert_false(quick_rect.intersects(_anchored_rect(hud.message_panel, Vector2(640, 360))))
 	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
 	assert_not_null(accept)
 	assert_true(accept.text.contains("Dialogue"))
 	assert_gte(accept.custom_minimum_size.x, 104.0)
-	assert_gte(accept.custom_minimum_size.y, 56.0)
+	assert_gte(accept.custom_minimum_size.y, 44.0)
 	accept.pressed.emit()
 	assert_eq(context_actions, ["dialogue:accept"])
 
