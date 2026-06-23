@@ -14,6 +14,7 @@ const RpgSystemsCharacterPaneBuilder = preload(
 )
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
+const RpgDetailLabel = preload("res://scripts/ui/rpg_detail_label.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgSpellSlotPanelBuilder = preload("res://scripts/ui/rpg_spell_slot_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
@@ -294,11 +295,10 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_detail_title_label.text = "Details"
 	detail_stack.add_child(systems_detail_title_label)
 
-	systems_detail_label = _new_label(14)
+	systems_detail_label = RpgDetailLabel.new()
 	systems_detail_label.name = "SystemsDetail"
 	systems_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_stack.add_child(systems_detail_label)
-
 	systems_detail_equipment_panel = PanelContainer.new()
 	systems_detail_equipment_panel.name = "SystemsDetailEquipmentPanel"
 	detail_stack.add_child(systems_detail_equipment_panel)

@@ -27,6 +27,16 @@ func test_system_rows_render_player_facing_card_data() -> void:
 	assert_true(String(row.get_meta("card_detail")).contains("Count 1"))
 
 
+func test_detail_pane_uses_player_facing_renderer() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	assert_true(hud.systems_detail_label is RpgDetailLabel)
+	assert_true(hud.systems_detail_label.text.contains("Roadside Draught x1"))
+	assert_true(hud.systems_detail_label.text.contains("A bitter green tonic."))
+
+
 func test_spell_categories_use_compact_readable_labels() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
