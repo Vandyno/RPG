@@ -87,14 +87,21 @@ static func apply_layout(
 		return
 	var width := minf(520.0, viewport_size.x - hud_margin * 2.0)
 	if compact:
-		width = minf(480.0, viewport_size.x - 152.0)
+		width = minf(320.0, viewport_size.x - hud_margin * 2.0)
 	var bottom_gap := 210.0 if not compact else 164.0
-	var row_count := ceili(float(maxi(1, visible_count)) / 3.0)
+	var column_count := 2 if compact and width < 430.0 else 3
+	var row_count := ceili(float(maxi(1, visible_count)) / float(column_count))
 	var height := 46.0 + float(row_count) * (65.0 if compact else 63.0)
 	height = clampf(height, 112.0 if compact else 112.0, 196.0 if compact else 184.0)
-	panel.offset_left = -width - hud_margin
-	panel.offset_right = -hud_margin
-	panel.offset_bottom = -bottom_gap
+	if compact:
+		var left := minf(112.0, viewport_size.x - width - hud_margin)
+		panel.offset_left = -viewport_size.x + left
+		panel.offset_right = panel.offset_left + width
+		panel.offset_bottom = -70.0
+	else:
+		panel.offset_left = -width - hud_margin
+		panel.offset_right = -hud_margin
+		panel.offset_bottom = -bottom_gap
 	panel.offset_top = panel.offset_bottom - height
 	if panel.offset_top < -viewport_size.y + hud_margin:
 		panel.offset_top = -viewport_size.y + hud_margin

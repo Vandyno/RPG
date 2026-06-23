@@ -70,12 +70,12 @@ func _build_ui() -> void:
 	_build_top_nav()
 	_apply_responsive_layout()
 	refresh()
-
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	super._apply_layout_for_size(viewport_size)
 	var compact := viewport_size.x < 980.0 or viewport_size.y < 540.0
 	if action_buttons:
-		action_buttons.offset_top = -152 if compact else -198
+		action_buttons.offset_top = -196 if compact else -228
+		action_buttons.offset_bottom = -32 if compact else -12
 
 func refresh() -> void:
 	super.refresh()

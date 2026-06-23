@@ -50,7 +50,9 @@ static func build(
 
 	var ability_buttons := {}
 	for slot_id in ["ability_1", "ability_2", "ability_3"]:
-		var ability := _aim_joystick("Empty", slot_id, "Assigned spell", Vector2(72, 30), false)
+		var ability := _aim_joystick(
+			_slot_index_text(slot_id), slot_id, "Assigned spell", Vector2(56, 56), false
+		)
 		ability.name = "%sButton" % slot_id.to_pascal_case()
 		ability.set_meta("ability_slot", slot_id)
 		ability.aimed.connect(aim_action)
@@ -89,6 +91,8 @@ static func apply_layout(
 	if not cluster:
 		return
 	cluster.add_theme_constant_override("separation", 6 if compact else 8)
+	cluster.offset_top = -196 if compact else -228
+	cluster.offset_bottom = -32 if compact else -12
 	var sizes := {
 		"InventoryButton": Vector2(54, 50) if compact else Vector2(76, 64),
 		"TargetButton": Vector2(54, 50) if compact else Vector2(76, 64),
@@ -109,12 +113,12 @@ static func apply_layout(
 				_apply_command_style(child, false, compact)
 		elif child is VBoxContainer:
 			child.add_theme_constant_override("separation", 4 if compact else 6)
-			child.custom_minimum_size = Vector2(44, 140) if compact else Vector2(54, 174)
+			child.custom_minimum_size = Vector2(52, 164) if compact else Vector2(64, 204)
 			for nested in child.get_children():
 				if nested is Button:
-					nested.custom_minimum_size = Vector2(44, 44) if compact else Vector2(54, 54)
+					nested.custom_minimum_size = Vector2(52, 52) if compact else Vector2(64, 64)
 					nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-					nested.add_theme_font_size_override("font_size", 8 if compact else 9)
+					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
 					_apply_command_style(nested, false, compact)
 
 
@@ -125,11 +129,11 @@ static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> v
 		var spell_name := String(slot_data.get("name", ""))
 		var cost := int(slot_data.get("mana_cost", 0))
 		if spell_name.is_empty():
-			button.text = "Empty\n%s" % _slot_index_text(String(slot_id))
+			button.text = _slot_index_text(String(slot_id))
 			button.tooltip_text = "Empty ability slot"
 			button.set_meta("spell_id", "")
 		else:
-			button.text = "%s\n%d MP" % [spell_name, cost]
+			button.text = "%s\n%d" % [_short_spell_label(spell_name), cost]
 			button.tooltip_text = "Cast %s" % spell_name
 			button.set_meta("spell_id", String(slot_data.get("spell_id", "")))
 
@@ -169,6 +173,11 @@ static func _aim_joystick(
 
 static func _slot_index_text(slot_id: String) -> String:
 	return {"ability_1": "I", "ability_2": "II", "ability_3": "III"}.get(slot_id, "")
+
+
+static func _short_spell_label(spell_name: String) -> String:
+	var parts := spell_name.split(" ", false)
+	return String(parts[0]) if not parts.is_empty() else spell_name
 
 
 static func _apply_command_style(button: Button, primary: bool, compact: bool) -> void:

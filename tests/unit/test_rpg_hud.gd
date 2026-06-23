@@ -112,9 +112,11 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 
 	hud.refresh()
 	var ability := hud.ability_slot_buttons["ability_1"] as Button
-	assert_true(ability.text.contains("Fire Blast"))
-	assert_true(ability.text.contains("5 MP"))
-	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
+	assert_true(ability.text.contains("Fire"))
+	assert_true(ability.text.contains("5"))
+	assert_true(ability.tooltip_text.contains("Fire Blast"))
+	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
+	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
 
 
 func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
@@ -263,12 +265,12 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	)
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(640, 360))
-	var action_rect := _anchored_rect(hud.action_buttons, Vector2(640, 360))
 	assert_true(_rect_inside(quick_rect, screen))
-	assert_gte(quick_rect.size.x, 470.0)
-	assert_false(
-		quick_rect.intersects(action_rect), "Quick actions should not cover main commands."
-	)
+	assert_gte(quick_rect.size.x, 300.0)
+	for action_rect in _visible_button_rects(hud.action_buttons):
+		assert_false(
+			quick_rect.intersects(action_rect), "Quick actions should not cover main commands."
+		)
 	var accept := _button_containing(hud.context_action_buttons, "I'll find it.")
 	assert_not_null(accept)
 	assert_true(accept.text.contains("Dialogue"))
@@ -812,6 +814,14 @@ func _button_containing(parent: Node, text: String) -> Button:
 		if child is Button and child.visible and child.text.contains(text):
 			return child
 	return null
+
+func _visible_button_rects(parent: Node) -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for child in parent.get_children():
+		if child is Button and child.visible:
+			rects.append((child as Button).get_global_rect())
+		rects.append_array(_visible_button_rects(child))
+	return rects
 
 
 func _rect_inside(inner: Rect2, outer: Rect2) -> bool:

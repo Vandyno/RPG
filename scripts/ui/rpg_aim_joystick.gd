@@ -51,7 +51,7 @@ func _draw_label() -> void:
 	var font_size := 8 if size.y < 70.0 else 11
 	var lines := label.split("\n", false)
 	var line_height := font_size + 1
-	var y := size.y - float(lines.size() * line_height) - 3.0
+	var y := size.y - float(lines.size() * line_height) - 8.0
 	for index in range(lines.size()):
 		draw_string(
 			font,
