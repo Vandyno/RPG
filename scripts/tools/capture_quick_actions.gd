@@ -23,6 +23,18 @@ func _capture() -> void:
 	main.hud._apply_layout_for_size(Vector2(width, height))
 	main.hud._refresh_context_actions(
 		{
+			"nearby": "Rest Bridge Campfire",
+			"nearby_targets":
+			[
+				{
+					"id": "object_roadside_campfire",
+					"name": "Rest Bridge Campfire",
+					"kind": "rest",
+					"detail": "Bridge campfire",
+					"navigation": "Near the bridge",
+					"selected": true
+				}
+			],
 			"context_actions": [
 				{"id": "dialogue:accept", "text": "I'll find it."},
 				{"id": "poi:sharpen", "text": "Sharpen Road Hatchet"},

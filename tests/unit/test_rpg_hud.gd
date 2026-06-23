@@ -263,6 +263,7 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 
 	hud._refresh_context_actions(
 		{
+			"nearby": "Harrow Venn",
 			"context_actions":
 			[
 				{"id": "dialogue:accept", "text": "I'll find it."},
@@ -274,7 +275,7 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_true(hud.context_action_panel.visible)
 	assert_eq(
 		(hud.context_action_panel.find_child("QuickActionTitle", true, false) as Label).text,
-		"Actions"
+		"Harrow Venn"
 	)
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var quick_rect := _anchored_rect(hud.context_action_panel, Vector2(640, 360))
@@ -293,6 +294,10 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_eq(context_actions, ["dialogue:accept"])
 
 	hud._refresh_context_actions({"combat_actions": [{"id": "guard", "text": "Guard"}]})
+	assert_eq(
+		(hud.context_action_panel.find_child("QuickActionTitle", true, false) as Label).text,
+		"Combat Actions"
+	)
 	var guard := _button_containing(hud.context_action_buttons, "Guard")
 	assert_not_null(guard)
 	guard.pressed.emit()

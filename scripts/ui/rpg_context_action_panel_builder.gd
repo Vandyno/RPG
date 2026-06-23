@@ -48,9 +48,11 @@ static func refresh(
 	new_button: Callable,
 	row_style: Callable,
 	action_callback: Callable,
+	title_text: String,
 	context_mode: bool,
 	compact: bool
 ) -> int:
+	_refresh_title(container, title_text)
 	var button_index := 0
 	for action in actions:
 		if not action is Dictionary:
@@ -73,6 +75,22 @@ static func refresh(
 	for index in range(button_index, container.get_child_count()):
 		container.get_child(index).visible = false
 	return button_index
+
+
+static func title_text(state: Dictionary, context_mode: bool) -> String:
+	if not context_mode:
+		return "Combat Actions"
+	var nearby := String(state.get("nearby", "")).strip_edges()
+	if _is_useful_title(nearby):
+		return nearby
+	var targets_value = state.get("nearby_targets", [])
+	if targets_value is Array:
+		for target in targets_value:
+			if target is Dictionary and bool(target.get("selected", false)):
+				var name := String(target.get("name", "")).strip_edges()
+				if _is_useful_title(name):
+					return name
+	return "Nearby Actions"
 
 
 static func apply_layout(
@@ -132,6 +150,22 @@ static func _bind_button(button: Button, action_callback: Callable) -> void:
 				bool(button.get_meta("context_mode", false))
 			)
 	)
+
+
+static func _refresh_title(container: HFlowContainer, title_text: String) -> void:
+	var frame := container.get_parent().get_parent() if container and container.get_parent() else null
+	if not frame:
+		return
+	var title := frame.find_child("QuickActionTitle", false, false) as Label
+	if title:
+		title.text = title_text
+
+
+static func _is_useful_title(text: String) -> bool:
+	if text.is_empty():
+		return false
+	var lowered := text.to_lower()
+	return lowered != "none" and lowered != "nothing nearby" and lowered != "destination"
 
 
 static func _is_recommended(action_id: String, text: String) -> bool:

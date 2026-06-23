@@ -871,6 +871,7 @@ func _refresh_context_actions(state: Dictionary) -> void:
 		context_action_buttons, actions, Callable(self, "_new_button"),
 		Callable(self, "_apply_row_button_style"),
 		func(action_id: String, is_context: bool) -> void: _emit_quick_action(action_id, is_context),
+		RpgContextActionPanelBuilder.title_text(state, context_mode),
 		context_mode,
 		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
@@ -884,7 +885,6 @@ func _emit_quick_action(action_id: String, context_mode: bool) -> void:
 		context_action_selected.emit(action_id)
 	else:
 		combat_action_selected.emit(action_id)
-
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()
 	var overlay_open := content_open or is_target_picker_visible()
