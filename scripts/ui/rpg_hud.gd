@@ -14,6 +14,7 @@ const RpgSystemsCharacterPaneBuilder = preload(
 )
 const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
+const RpgIconButton = preload("res://scripts/ui/rpg_icon_button.gd")
 const RpgDetailLabel = preload("res://scripts/ui/rpg_detail_label.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgSpellSlotPanelBuilder = preload("res://scripts/ui/rpg_spell_slot_panel_builder.gd")
@@ -70,7 +71,6 @@ func _build_ui() -> void:
 	refresh()
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	super._apply_layout_for_size(viewport_size)
-
 func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
@@ -136,7 +136,6 @@ func _build_status_panel() -> void:
 	portrait_art.name = "PortraitSilhouette"
 	portrait_art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	portrait_panel.add_child(portrait_art)
-
 	level_badge_label = _new_label(15)
 	level_badge_label.name = "LevelBadge"
 	level_badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -173,7 +172,6 @@ func _build_status_panel() -> void:
 	health_label.name = "HealthValue"
 	health_label.add_theme_color_override("font_color", Color(0.95, 0.84, 0.70))
 	stack.add_child(health_label)
-
 func _build_systems_panel() -> void:
 	systems_panel = _new_panel("SystemsPanel")
 	_apply_modal_panel_style(systems_panel)
@@ -193,8 +191,6 @@ func _build_systems_panel() -> void:
 	_build_systems_top_bar(outer)
 	_build_systems_body(outer)
 	_refresh_systems_tabs()
-
-
 func _build_systems_top_bar(parent: BoxContainer) -> void:
 	var top_bar := HBoxContainer.new()
 	top_bar.name = "SystemsTopBar"
@@ -225,7 +221,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	close.tooltip_text = "Close menu"
 	close.pressed.connect(hide_systems_panel)
 	top_bar.add_child(close)
-
 func _build_systems_body(parent: BoxContainer) -> void:
 	systems_main_row = HBoxContainer.new()
 	systems_main_row.name = "SystemsMainRow"
@@ -331,7 +326,6 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	for slot in (systems_character_nodes.get("equipment_slots", {}) as Dictionary).values():
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
-
 func _build_location_banner() -> void:
 	location_banner_panel = _new_panel("LocationBanner")
 	location_banner_panel.anchor_left = 0.5
@@ -346,7 +340,6 @@ func _build_location_banner() -> void:
 	location_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	location_banner_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_add_margin(location_banner_panel, location_banner_label, 8)
-
 func _build_top_nav() -> void:
 	top_nav_panel = _new_panel("TopNavPanel")
 	top_nav_panel.anchor_left = 1.0
@@ -358,17 +351,20 @@ func _build_top_nav() -> void:
 	top_nav_buttons.add_theme_constant_override("separation", 6)
 	_add_margin(top_nav_panel, top_nav_buttons, 8)
 
-	_add_nav_button("Quests", func() -> void: show_systems_panel("quests"))
-	_add_nav_button("Journal", func() -> void: show_systems_panel("journal"))
-	_add_nav_button("Map", func() -> void: show_systems_panel("map"))
-	_add_nav_button("Menu", toggle_systems)
+	_add_nav_button("Quests", "quests", func() -> void: show_systems_panel("quests"))
+	_add_nav_button("Journal", "journal", func() -> void: show_systems_panel("journal"))
+	_add_nav_button("Map", "map", func() -> void: show_systems_panel("map"))
+	_add_nav_button("Menu", "menu", toggle_systems)
 
-func _add_nav_button(text: String, callback: Callable) -> void:
-	var button := _new_button(text, NAV_BUTTON_SIZE)
+func _add_nav_button(text: String, icon: String, callback: Callable) -> void:
+	var button := RpgIconButton.new()
+	button.text = text
+	button.custom_minimum_size = NAV_BUTTON_SIZE
+	_apply_button_style(button)
+	button.setup_icon(icon, "top")
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(callback)
 	top_nav_buttons.add_child(button)
-
 func _build_target_panel() -> void:
 	var nodes := RpgTargetPanelBuilder.build(
 		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
@@ -378,7 +374,6 @@ func _build_target_panel() -> void:
 	target_panel = nodes["panel"]
 	target_scroll = nodes["scroll"]
 	target_list = nodes["list"]
-
 func _build_context_action_panel() -> void:
 	var nodes := RpgContextActionPanelBuilder.build(
 		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
@@ -386,7 +381,6 @@ func _build_context_action_panel() -> void:
 	)
 	context_action_panel = nodes["panel"]
 	context_action_buttons = nodes["buttons"]
-
 func _build_touch_controls() -> void:
 	var move_nodes := RpgMovePadBuilder.build(
 		root, Callable(self, "_on_move_pad_gui_input"), MOVE_KNOB_SIZE
@@ -444,9 +438,12 @@ func _set_action_button_layout(compact: bool) -> void:
 		action_buttons, primary_action_button, compact, BUTTON_SIZE,
 		Callable(self, "_apply_primary_action_style")
 	)
-
 func _add_systems_tab(tab_id: String, text: String) -> void:
-	var button := _new_button(text, Vector2(150, 54))
+	var button := RpgIconButton.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(150, 54)
+	_apply_button_style(button)
+	button.setup_icon(tab_id, "left")
 	button.toggle_mode = true
 	button.focus_mode = Control.FOCUS_NONE
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -463,10 +460,15 @@ func _refresh_systems_tabs() -> void:
 		var active := String(tab_id) == systems_active_tab
 		button.button_pressed = active
 		button.add_theme_font_size_override("font_size", 15)
+		button.set_meta("nav_selected", active)
+		if button is RpgIconButton:
+			(button as RpgIconButton).setup_icon(String(tab_id), "left")
+			continue
 		button.add_theme_color_override(
 			"font_color",
 			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
 		)
+		button.queue_redraw()
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
 	if prompt_panel:
@@ -535,6 +537,8 @@ func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 		if child is Button:
 			child.custom_minimum_size = button_size
 			child.add_theme_font_size_override("font_size", 11 if compact else 14)
+		if child is RpgIconButton:
+			(child as RpgIconButton).set_compact(compact)
 	var separation := 4.0 if compact else 6.0
 	top_nav_buttons.add_theme_constant_override("separation", int(separation))
 	var count := float(top_nav_buttons.get_child_count())
@@ -544,8 +548,6 @@ func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 	top_nav_panel.offset_right = -HUD_MARGIN
 	top_nav_panel.offset_top = HUD_MARGIN
 	top_nav_panel.offset_bottom = HUD_MARGIN + height
-
-
 func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if not systems_panel or not systems_frame:
 		return
@@ -562,7 +564,7 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_main_row:
 		systems_main_row.add_theme_constant_override("separation", 6 if compact else 10)
 	if systems_left_panel:
-		systems_left_panel.custom_minimum_size = Vector2(92, 0) if compact else Vector2(176, 0)
+		systems_left_panel.custom_minimum_size = Vector2(112, 0) if compact else Vector2(176, 0)
 	if systems_detail_panel:
 		systems_detail_panel.visible = true
 		systems_detail_panel.custom_minimum_size = Vector2(184, 0) if compact else Vector2(220, 0)
@@ -591,8 +593,10 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 		systems_subtitle_label.add_theme_font_size_override("font_size", 11 if compact else 15)
 	for button in systems_tab_buttons.values():
 		if button is Button:
-			button.custom_minimum_size = Vector2(72, 38) if compact else Vector2(150, 54)
+			button.custom_minimum_size = Vector2(92, 38) if compact else Vector2(150, 54)
 			button.add_theme_font_size_override("font_size", 11 if compact else 15)
+		if button is RpgIconButton:
+			(button as RpgIconButton).set_compact(compact)
 	if systems_item_list:
 		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
 
@@ -722,7 +726,6 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	else:
 		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
-
 func _systems_row_button(index: int) -> Button:
 	if index < systems_item_list.get_child_count():
 		var existing := systems_item_list.get_child(index)
@@ -743,8 +746,6 @@ func _systems_row_button(index: int) -> Button:
 	)
 	systems_item_list.add_child(button)
 	return button
-
-
 func _refresh_category_row(tab_id: String) -> void:
 	if not systems_category_row:
 		return
@@ -775,7 +776,6 @@ func _refresh_category_row(tab_id: String) -> void:
 		button.custom_minimum_size.x = RpgSystemsRowBuilder.w(str(labels[index]), button_size.x, compact)
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
-
 func _select_systems_row(row_id: String) -> void:
 	if row_id.is_empty():
 		return
@@ -788,7 +788,6 @@ func _select_systems_category(category_id: String) -> void:
 	systems_active_category = category_id
 	systems_selected_row_id = ""
 	_refresh_systems_chrome(_state_snapshot())
-
 func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	if item_id.is_empty() or slot_id.is_empty():
 		return

@@ -76,6 +76,26 @@ func test_spell_categories_use_compact_readable_labels() -> void:
 	assert_null(_button_containing(hud.systems_category_row, "Restoration"))
 
 
+func test_navigation_controls_use_icon_buttons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("spells")
+
+	for child in hud.top_nav_buttons.get_children():
+		assert_true(child is RpgIconButton)
+		assert_eq((child as RpgIconButton).icon_layout, "top")
+	for tab_id in ["inventory", "spells", "character", "quests", "map", "journal", "trade"]:
+		var button := hud.systems_tab_buttons[tab_id] as RpgIconButton
+		assert_not_null(button)
+		assert_eq(button.icon_kind, tab_id)
+		assert_eq(button.icon_layout, "left")
+	assert_true(bool((hud.systems_tab_buttons["spells"] as Button).get_meta("nav_selected")))
+
+	hud._apply_layout_for_size(Vector2(640, 360))
+	assert_true((hud.top_nav_buttons.get_child(0) as RpgIconButton).compact)
+	assert_true((hud.systems_tab_buttons["inventory"] as RpgIconButton).compact)
+
+
 func test_dialogue_choices_use_player_facing_action_icons() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
