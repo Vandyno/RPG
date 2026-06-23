@@ -29,7 +29,7 @@ static func category_labels(tab_id: String) -> Array[String]:
 		"character": ["Overview", "Training", "Gear", "Effects"],
 		"quests": ["Active", "Routes", "Rewards"],
 		"map": ["Known", "Routes", "Nearby"],
-		"journal": ["Recent", "Factions", "Time"],
+		"journal": ["Recent", "Factions", "Time", "System"],
 		"trade": ["Stock", "Buy", "Sell"]
 	}.get(tab_id, ["Overview"])
 	var result: Array[String] = []
@@ -480,6 +480,13 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 		recent = "\n".join(message_log.slice(maxi(0, message_log.size() - 6)))
 	return [
 		{
+			"id": "journal_events",
+			"title": "Recent Events",
+			"subtitle": _first_line(recent),
+			"meta": "Log",
+			"detail": recent
+		},
+		{
 			"id": "journal_time",
 			"title": "Time",
 			"subtitle": String(state.get("time", "Day 1, 08:00")),
@@ -500,13 +507,6 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 			"subtitle": String(state.get("factions", "none")),
 			"meta": "Factions",
 			"detail": String(state.get("factions", "none"))
-		},
-		{
-			"id": "journal_events",
-			"title": "Recent Events",
-			"subtitle": _first_line(recent),
-			"meta": "Log",
-			"detail": recent
 		},
 		{
 			"id": "journal_save",
@@ -622,7 +622,7 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 static func _category_filtered_rows(
 	rows_data: Array[Dictionary], category: String
 ) -> Array[Dictionary]:
-	var passthrough := ["all", "overview", "active", "known", "stock", "recent"]
+	var passthrough := ["all", "overview", "active", "known", "stock"]
 	if category.is_empty() or passthrough.has(category):
 		return rows_data
 	var filtered: Array[Dictionary] = []
@@ -651,7 +651,17 @@ static func _row_matches_category(row_text: String, category: String) -> bool:
 		"factions":
 			return row_text.contains("faction") or row_text.contains("reputation")
 		"time":
-			return row_text.contains("time")
+			return row_text.contains("time") or row_text.contains("wait") or row_text.contains("day")
+		"recent":
+			return (
+				row_text.contains("recent")
+				or row_text.contains("log")
+				or row_text.contains("wait")
+				or row_text.contains("save")
+				or row_text.contains("load")
+			)
+		"system":
+			return row_text.contains("system") or row_text.contains("save") or row_text.contains("load")
 		"buy":
 			return row_text.contains("stock") or row_text.contains("buy") or row_text.contains("available")
 		"sell":
