@@ -217,6 +217,14 @@ static func apply_layout(
 		right_stack.size_flags_stretch_ratio = 0.72 if compact else 1.0
 	if choice_panel:
 		choice_panel.custom_minimum_size = Vector2(190, 0) if compact else Vector2(0, 0)
+	var choice_scroll := (
+		choice_panel.find_child("ContentChoiceScroll", true, false) as ScrollContainer
+		if choice_panel else null
+	)
+	if choice_scroll:
+		choice_scroll.vertical_scroll_mode = (
+			ScrollContainer.SCROLL_MODE_AUTO if compact else ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		)
 	if preview_panel:
 		preview_panel.custom_minimum_size = Vector2(190, 30) if compact else Vector2(220, 0)
 		preview_panel.size_flags_vertical = (
@@ -242,7 +250,7 @@ static func apply_layout(
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():
 			if child is Button:
-				child.custom_minimum_size = Vector2(0, 36) if compact else Vector2(0, 46)
+				child.custom_minimum_size = Vector2(0, 48) if compact else Vector2(0, 46)
 				child.add_theme_font_size_override("font_size", 12 if compact else 14)
 
 

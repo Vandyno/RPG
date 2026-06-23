@@ -605,7 +605,12 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	hud.show_content_card(
 		"Road Notice",
 		"Boundary stones are not to be moved.",
-		[{"id": "accept", "text": "Accept"}],
+		[
+			{"id": "accept", "text": "Accept"},
+			{"id": "inspect", "text": "Inspect notice"},
+			{"id": "mark", "text": "Mark on map"},
+			{"id": "close", "text": "Close"}
+		],
 		"readable"
 	)
 
@@ -645,8 +650,13 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_lte(hud.content_preview_label.get_theme_font_size("font_size"), 10)
 	var accept_button := _button_containing(hud.content_choice_list, "Accept") as Button
 	assert_not_null(accept_button)
-	assert_gte(accept_button.custom_minimum_size.y, 36.0)
+	assert_gte(accept_button.custom_minimum_size.y, 48.0)
 	assert_gte(accept_button.get_theme_font_size("font_size"), 12)
+	var choice_scroll := hud.content_panel.find_child(
+		"ContentChoiceScroll", true, false
+	) as ScrollContainer
+	assert_not_null(choice_scroll)
+	assert_eq(choice_scroll.vertical_scroll_mode, ScrollContainer.SCROLL_MODE_AUTO)
 
 
 func _new_hud() -> RpgHud:
