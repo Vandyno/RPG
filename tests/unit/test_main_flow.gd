@@ -20,7 +20,7 @@ func test_target_cycle_touch_next_and_picker_uses_spawn_interactables() -> void:
 	assert_not_null(first)
 	var first_id: String = first.get_entity_id()
 
-	var next_button := _button_containing(main.hud.action_buttons, "Target")
+	var next_button: Button = main.hud.target_action_button
 	assert_not_null(next_button)
 	next_button.pressed.emit()
 	var second = main._get_nearby_entity()

@@ -19,7 +19,7 @@ const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_butt
 const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgSpellSlotPanelBuilder = preload("res://scripts/ui/rpg_spell_slot_panel_builder.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
-const COMPACT_NAV_BUTTON_SIZE := Vector2(52, 46)
+const COMPACT_NAV_BUTTON_SIZE := Vector2(44, 46)
 const LOCATION_BANNER_WIDTH := 344.0
 const LOCATION_BANNER_HEIGHT := 54.0
 const STATUS_PANEL_SIZE := Vector2(318, 116)
@@ -349,7 +349,6 @@ func _build_systems_body(parent: BoxContainer) -> void:
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
 
-
 func _build_location_banner() -> void:
 	location_banner_panel = _new_panel("LocationBanner")
 	location_banner_panel.anchor_left = 0.5
@@ -365,7 +364,6 @@ func _build_location_banner() -> void:
 	location_banner_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_add_margin(location_banner_panel, location_banner_label, 8)
 
-
 func _build_top_nav() -> void:
 	top_nav_panel = _new_panel("TopNavPanel")
 	top_nav_panel.anchor_left = 1.0
@@ -380,15 +378,23 @@ func _build_top_nav() -> void:
 	_add_nav_button("Q\nQuests", func() -> void: show_systems_panel("quests"))
 	_add_nav_button("J\nJournal", func() -> void: show_systems_panel("journal"))
 	_add_nav_button("M\nMap", func() -> void: show_systems_panel("map"))
+	target_action_button = _new_button("T\nTarget", NAV_BUTTON_SIZE)
+	target_action_button.name = "TargetButton"
+	target_action_button.focus_mode = Control.FOCUS_NONE
+	target_action_button.tooltip_text = "Tap to cycle target. Hold for target list."
+	HoldActionButton.bind(
+		target_action_button,
+		Callable(self, "_press_target_control"),
+		Callable(self, "_hold_target_control")
+	)
+	top_nav_buttons.add_child(target_action_button)
 	_add_nav_button("=\nMenu", toggle_systems)
-
 
 func _add_nav_button(text: String, callback: Callable) -> void:
 	var button := _new_button(text, NAV_BUTTON_SIZE)
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(callback)
 	top_nav_buttons.add_child(button)
-
 
 func _build_target_panel() -> void:
 	var nodes := RpgTargetPanelBuilder.build(
@@ -400,7 +406,6 @@ func _build_target_panel() -> void:
 	target_scroll = nodes["scroll"]
 	target_list = nodes["list"]
 
-
 func _build_context_action_panel() -> void:
 	var nodes := RpgContextActionPanelBuilder.build(
 		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
@@ -408,7 +413,6 @@ func _build_context_action_panel() -> void:
 	)
 	context_action_panel = nodes["panel"]
 	context_action_buttons = nodes["buttons"]
-
 
 func _build_touch_controls() -> void:
 	var move_nodes := RpgMovePadBuilder.build(
@@ -418,27 +422,12 @@ func _build_touch_controls() -> void:
 	move_knob = move_nodes["move_knob"]
 	_update_move_knob()
 
-	var open_inventory := func() -> void: show_systems_panel("inventory")
-	var cycle_target := func() -> void:
-		if is_target_picker_visible():
-			toggle_target_picker()
-		else:
-			cycle_target_pressed.emit()
-	var open_target_picker := func() -> void:
-		if not is_target_picker_visible():
-			toggle_target_picker()
-	var primary_action := func() -> void: interact_pressed.emit()
 	var aim_action := func(action_id: String, direction: Vector2) -> void:
 		aim_action_released.emit(action_id, direction)
-	var action_nodes := RpgActionClusterBuilder.build(
-		root, Callable(self, "_new_button"), open_inventory, cycle_target,
-		open_target_picker, primary_action, aim_action, toggle_systems
-	)
+	var action_nodes := RpgActionClusterBuilder.build(root, aim_action)
 	action_buttons = action_nodes["cluster"]
-	target_action_button = action_nodes["target"]
 	primary_action_button = action_nodes["primary"]
 	ability_slot_buttons = action_nodes["ability_buttons"]
-
 
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
@@ -475,7 +464,6 @@ func _set_action_button_layout(compact: bool) -> void:
 		Callable(self, "_apply_primary_action_style")
 	)
 
-
 func _add_systems_tab(tab_id: String, text: String) -> void:
 	var button := _new_button(text, Vector2(150, 54))
 	button.toggle_mode = true
@@ -499,7 +487,6 @@ func _refresh_systems_tabs() -> void:
 			"font_color",
 			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
 		)
-
 
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
@@ -562,7 +549,8 @@ func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 			child.add_theme_font_size_override("font_size", 11 if compact else 14)
 	var separation := 4.0 if compact else 6.0
 	top_nav_buttons.add_theme_constant_override("separation", int(separation))
-	var width := button_size.x * 4.0 + separation * 3.0 + 16.0
+	var count := float(top_nav_buttons.get_child_count())
+	var width := button_size.x * count + separation * maxf(count - 1.0, 0.0) + 16.0
 	var height := button_size.y + 16.0
 	top_nav_panel.offset_left = -width - HUD_MARGIN
 	top_nav_panel.offset_right = -HUD_MARGIN
@@ -648,10 +636,22 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
 	if not target_action_button:
 		return
-	target_action_button.text = "Close" if is_target_picker_visible() else "Target"
+	target_action_button.text = "X\nClose" if is_target_picker_visible() else "T\nTarget"
 	target_action_button.add_theme_font_size_override(
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)
+
+
+func _press_target_control() -> void:
+	if is_target_picker_visible():
+		toggle_target_picker()
+	else:
+		cycle_target_pressed.emit()
+
+
+func _hold_target_control() -> void:
+	if not is_target_picker_visible():
+		toggle_target_picker()
 
 
 func _refresh_systems_chrome(state: Dictionary) -> void:

@@ -1,19 +1,12 @@
 class_name RpgActionClusterBuilder
 extends RefCounted
 
-const HoldActionButton = preload("res://scripts/ui/hold_action_button.gd")
 const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
 
 
 static func build(
 	root: Control,
-	new_button: Callable,
-	open_inventory: Callable,
-	cycle_target: Callable,
-	open_target_picker: Callable,
-	_primary_action: Callable,
-	aim_action: Callable,
-	open_menu: Callable
+	aim_action: Callable
 ) -> Dictionary:
 	var cluster := HBoxContainer.new()
 	cluster.name = "ActionButtons"
@@ -28,18 +21,6 @@ static func build(
 	cluster.offset_bottom = -12
 	cluster.add_theme_constant_override("separation", 8)
 	root.add_child(cluster)
-
-	var inventory: Button = _command_button(
-		new_button, "Inventory", "inventory", "Open inventory", Vector2(92, 58)
-	)
-	inventory.pressed.connect(open_inventory)
-	cluster.add_child(inventory)
-
-	var target: Button = _command_button(
-		new_button, "Target", "target", "Cycle or hold for target list", Vector2(92, 58)
-	)
-	HoldActionButton.bind(target, cycle_target, open_target_picker)
-	cluster.add_child(target)
 
 	var ability_stack := VBoxContainer.new()
 	ability_stack.name = "AbilityButtonStack"
@@ -65,19 +46,10 @@ static func build(
 	primary.aimed.connect(aim_action)
 	cluster.add_child(primary)
 
-	var menu: Button = _command_button(
-		new_button, "Menu", "menu", "Open systems menu", Vector2(82, 58)
-	)
-	menu.pressed.connect(open_menu)
-	cluster.add_child(menu)
-
 	return {
 		"cluster": cluster,
-		"inventory": inventory,
-		"target": target,
 		"ability_buttons": ability_buttons,
-		"primary": primary,
-		"menu": menu
+		"primary": primary
 	}
 
 
@@ -85,28 +57,21 @@ static func apply_layout(
 	cluster: HBoxContainer,
 	primary: Button,
 	compact: bool,
-	fallback_size: Vector2,
+	_fallback_size: Vector2,
 	primary_style: Callable
 ) -> void:
 	if not cluster:
 		return
 	cluster.add_theme_constant_override("separation", 6 if compact else 8)
-	cluster.offset_top = -196 if compact else -228
+	cluster.offset_top = -188 if compact else -220
 	cluster.offset_bottom = -32 if compact else -12
-	var sizes := {
-		"InventoryButton": Vector2(54, 50) if compact else Vector2(76, 64),
-		"TargetButton": Vector2(54, 50) if compact else Vector2(76, 64),
-		"InteractButton": Vector2(86, 86) if compact else Vector2(112, 112),
-		"SystemsButton": Vector2(50, 50) if compact else Vector2(68, 64)
-	}
 	for child in cluster.get_children():
 		if child is Button:
-			child.custom_minimum_size = sizes.get(child.name, fallback_size)
+			child.custom_minimum_size = Vector2(92, 92) if compact else Vector2(128, 128)
 			child.size_flags_vertical = Control.SIZE_SHRINK_END
 			child.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			child.add_theme_font_size_override("font_size", 10 if compact else 14)
+			child.add_theme_font_size_override("font_size", 12 if compact else 15)
 			if child == primary:
-				child.add_theme_font_size_override("font_size", 12 if compact else 15)
 				primary_style.call(child)
 				_apply_command_style(child, true, compact)
 			else:
@@ -116,7 +81,7 @@ static func apply_layout(
 			child.custom_minimum_size = Vector2(52, 164) if compact else Vector2(64, 204)
 			for nested in child.get_children():
 				if nested is Button:
-					nested.custom_minimum_size = Vector2(52, 52) if compact else Vector2(64, 64)
+					nested.custom_minimum_size = Vector2(48, 48) if compact else Vector2(64, 64)
 					nested.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 					nested.add_theme_font_size_override("font_size", 9 if compact else 10)
 					_apply_command_style(nested, false, compact)
@@ -136,23 +101,6 @@ static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> v
 			button.text = "%s\n%d" % [_short_spell_label(spell_name), cost]
 			button.tooltip_text = "Cast %s" % spell_name
 			button.set_meta("spell_id", String(slot_data.get("spell_id", "")))
-
-
-static func _command_button(
-	new_button: Callable, text: String, action_kind: String, tooltip: String, size: Vector2
-) -> Button:
-	var button := new_button.call(text, size) as Button
-	button.name = {
-		"inventory": "InventoryButton",
-		"target": "TargetButton",
-		"menu": "SystemsButton"
-	}.get(action_kind, "%sButton" % action_kind.capitalize())
-	button.tooltip_text = tooltip
-	button.focus_mode = Control.FOCUS_NONE
-	button.set_meta("action_kind", action_kind)
-	button.set_meta("action_role", "secondary")
-	button.set_meta("action_shape", "round_secondary")
-	return button
 
 
 static func _aim_joystick(
