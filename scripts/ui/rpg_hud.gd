@@ -111,7 +111,6 @@ func show_systems_panel(tab_id: String = "") -> void:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.show_systems_panel(tab_id)
 
-
 func set_systems_tab(tab_id: String) -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
@@ -424,7 +423,11 @@ func _build_touch_controls() -> void:
 	_update_move_knob()
 
 	var open_inventory := func() -> void: show_systems_panel("inventory")
-	var cycle_target := func() -> void: cycle_target_pressed.emit()
+	var cycle_target := func() -> void:
+		if is_target_picker_visible():
+			toggle_target_picker()
+		else:
+			cycle_target_pressed.emit()
 	var open_target_picker := func() -> void:
 		if not is_target_picker_visible():
 			toggle_target_picker()
@@ -612,7 +615,6 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_item_list:
 		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
 
-
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	RpgContentPanelBuilder.apply_layout(
 		content_panel, content_identity_panel, content_portrait_panel, content_right_stack,
@@ -622,7 +624,6 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	)
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
-
 
 func _rpg_location_name(state: Dictionary) -> String:
 	var locations := String(state.get("locations", ""))
@@ -644,7 +645,6 @@ func _refresh_player_status(state: Dictionary) -> void:
 		int(health_bar.max_value)
 	]
 	_refresh_systems_chrome(state)
-
 
 func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
