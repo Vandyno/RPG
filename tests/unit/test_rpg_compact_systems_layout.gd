@@ -237,6 +237,18 @@ func test_combat_controls_are_aim_drag_joysticks_not_tap_buttons() -> void:
 		assert_true(ability.show_direction_markers)
 
 
+func test_target_picker_uses_player_facing_distance_text() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+	hud.toggle_target_picker()
+
+	var row := _button_containing(hud.target_list, "Road Notice") as Button
+	assert_not_null(row)
+	assert_true(row.text.contains("6.3 tiles southeast"))
+	assert_false(row.text.contains("SE 6.3t"))
+	assert_true(row.tooltip_text.contains("6.3 tiles southeast"))
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
@@ -301,6 +313,16 @@ func _sample_state() -> Dictionary:
 			+ "Sell: none"
 		),
 		"trade_actions": [{"id": "buy:item_roadside_draught", "text": "Buy Roadside Draught"}],
+		"nearby_targets":
+		[
+			{
+				"id": "object_road_notice",
+				"name": "Road Notice",
+				"kind": "readable",
+				"detail": "Readable: Read town notice.",
+				"navigation": "SE 6.3t"
+			}
+		],
 		"time": "Day 1, 08:00"
 	}
 
