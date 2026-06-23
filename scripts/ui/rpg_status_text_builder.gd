@@ -2,7 +2,9 @@ class_name RpgStatusTextBuilder
 extends RefCounted
 
 
-static func lines(state: Dictionary, progression_text: String) -> Array[String]:
+static func lines(state: Dictionary, progression_text: String, compact := false) -> Array[String]:
+	if compact:
+		return _compact_lines(progression_text)
 	var result: Array[String] = ["Adventurer", progression_text]
 	var statuses := String(state.get("statuses", "none"))
 	if statuses != "none":
@@ -16,6 +18,25 @@ static func lines(state: Dictionary, progression_text: String) -> Array[String]:
 		var target := _first_quest_target_with_count(state, quests)
 		if not target.is_empty() and not objective.contains(target):
 			result.append(target)
+	return result
+
+
+static func _compact_lines(progression_text: String) -> Array[String]:
+	var parts := progression_text.split(" ", false)
+	if parts.size() < 4:
+		return ["Adventurer", progression_text.replace("Level", "Lv")]
+	var result: Array[String] = ["Adventurer"]
+	result.append("Lv %s  %s %s" % [String(parts[1]), String(parts[2]), String(parts[3])])
+	var might_index := parts.find("Might")
+	var grit_index := parts.find("Grit")
+	var has_might := might_index >= 0 and might_index + 1 < parts.size()
+	var has_grit := grit_index >= 0 and grit_index + 1 < parts.size()
+	if has_might and has_grit:
+		result.append(
+			"Might %s  Grit %s" % [
+				String(parts[might_index + 1]), String(parts[grit_index + 1])
+			]
+		)
 	return result
 
 

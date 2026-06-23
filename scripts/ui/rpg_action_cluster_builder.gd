@@ -129,7 +129,7 @@ static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> v
 		var spell_name := String(slot_data.get("name", ""))
 		var cost := int(slot_data.get("mana_cost", 0))
 		if spell_name.is_empty():
-			button.text = _slot_index_text(String(slot_id))
+			button.text = "%s\nEmpty" % _slot_index_text(String(slot_id))
 			button.tooltip_text = "Empty ability slot"
 			button.set_meta("spell_id", "")
 		else:

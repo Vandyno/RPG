@@ -116,6 +116,7 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true(ability.text.contains("5"))
 	assert_true(ability.tooltip_text.contains("Fire Blast"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
+	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
 
 
@@ -598,6 +599,9 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_true(hud.location_banner_panel.visible)
 	assert_true(hud.top_nav_panel.visible)
 	assert_false(hud.message_panel.visible)
+	assert_true(hud.status_label.text.contains("Lv 2  XP 10/40"))
+	assert_false(hud.status_label.text.contains("Points"))
+	assert_false(hud.status_label.text.contains("Quest:"))
 
 	var screen := Rect2(Vector2.ZERO, Vector2(640, 360))
 	var status_rect := _top_left_rect(hud.status_panel)

@@ -117,7 +117,6 @@ func set_systems_tab(tab_id: String) -> void:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.set_systems_tab(tab_id)
 
-
 func _refresh_health_bar(state: Dictionary) -> void:
 	super._refresh_health_bar(state)
 	var fill := StyleBoxFlat.new()
@@ -129,7 +128,6 @@ func _refresh_health_bar(state: Dictionary) -> void:
 	fill.corner_radius_bottom_left = 3
 	fill.corner_radius_bottom_right = 3
 	health_bar.add_theme_stylebox_override("fill", fill)
-
 
 func _build_status_panel() -> void:
 	status_panel = _new_panel("StatusPanel")
@@ -637,7 +635,9 @@ func _refresh_player_status(state: Dictionary) -> void:
 	var progression_text := String(state.get("progression", "Level 1"))
 	var level := RpgSystemsTextBuilder.level_from_progression(progression_text)
 	level_badge_label.text = str(level)
-	status_label.text = "\n".join(RpgStatusTextBuilder.lines(state, progression_text))
+	status_label.text = "\n".join(RpgStatusTextBuilder.lines(
+		state, progression_text, applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	))
 	health_label.text = "Health %d/%d" % [
 		int(health_bar.value),
 		int(health_bar.max_value)
