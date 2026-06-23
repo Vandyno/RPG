@@ -72,6 +72,17 @@ static func preview_text(choices: Array, kind: String) -> String:
 	return "\n".join(lines)
 
 
+static func preview_compact_text(choices: Array, kind: String) -> String:
+	var choice := _preview_choice(choices)
+	if choice.is_empty():
+		return "%s ready." % _kind_text(kind)
+	var explicit := String(choice.get("preview", ""))
+	if not explicit.is_empty():
+		return _shorten(explicit, 42)
+	var subtitle := _subtitle(choice)
+	return _shorten(subtitle if not subtitle.is_empty() else String(choice.get("text", "")), 42)
+
+
 static func preview_title(choices: Array, kind: String) -> String:
 	var choice := _preview_choice(choices)
 	if choice.is_empty():
@@ -97,6 +108,11 @@ static func preview_rewards(choices: Array) -> String:
 		if not text.is_empty():
 			parts.append(text)
 	return "\n".join(parts)
+
+
+static func preview_compact_rewards(choices: Array) -> String:
+	var rewards := preview_rewards(choices).replace("\n", ", ")
+	return _shorten(rewards, 42)
 
 
 static func _button(container: VBoxContainer, index: int, new_button: Callable) -> Button:

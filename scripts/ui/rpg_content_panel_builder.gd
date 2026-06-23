@@ -241,11 +241,15 @@ static func apply_layout(
 		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
 	var preview_label := preview_panel.find_child("ContentPreview", true, false) as Label
 	if preview_label:
-		preview_label.visible = not compact
+		preview_label.visible = true
 		preview_label.add_theme_font_size_override("font_size", 10 if compact else 13)
+		if compact:
+			preview_label.custom_minimum_size = Vector2(0, 18)
 	if preview_reward_label:
-		preview_reward_label.visible = not compact
+		preview_reward_label.visible = true
 		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
+		if compact:
+			preview_reward_label.custom_minimum_size = Vector2(0, 18)
 	if choice_list:
 		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
 		for child in choice_list.get_children():

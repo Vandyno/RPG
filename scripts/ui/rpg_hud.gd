@@ -1,8 +1,6 @@
 class_name RpgHud
 extends HudShell
-
 signal aim_action_released(action_id: String, direction: Vector2)
-
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
@@ -25,7 +23,6 @@ const LOCATION_BANNER_HEIGHT := 54.0
 const STATUS_PANEL_SIZE := Vector2(318, 116)
 const COMPACT_STATUS_PANEL_SIZE := Vector2(180, 88)
 const SYSTEMS_PANEL_MIN_SIZE := Vector2(600, 328)
-
 var location_banner_panel: PanelContainer
 var location_banner_label: Label
 var top_nav_panel: PanelContainer
@@ -63,7 +60,6 @@ var content_preview_label: Label
 var content_preview_reward_label: Label
 var content_close_button: Button
 var ability_slot_buttons := {}
-
 func _build_ui() -> void:
 	super._build_ui()
 	_build_location_banner()
@@ -76,7 +72,6 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	if action_buttons:
 		action_buttons.offset_top = -196 if compact else -228
 		action_buttons.offset_bottom = -32 if compact else -12
-
 func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
@@ -90,7 +85,6 @@ func toggle_debug() -> void:
 	visible_debug = false
 	if debug_panel:
 		debug_panel.visible = false
-
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
 	RpgContentPanelBuilder.apply_mode(
@@ -833,15 +827,21 @@ func _refresh_content_choices(choices: Array) -> void:
 		"Leave" if content_kind_label.text == "Dialogue" else "Close"
 	)
 
-
 func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if not content_preview_label:
 		return
+	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	if content_preview_title_label:
 		content_preview_title_label.text = RpgContentChoiceBuilder.preview_title(choices, kind)
-	content_preview_label.text = RpgContentChoiceBuilder.preview_text(choices, kind)
+	content_preview_label.text = (
+		RpgContentChoiceBuilder.preview_compact_text(choices, kind)
+		if compact else RpgContentChoiceBuilder.preview_text(choices, kind)
+	)
 	if content_preview_reward_label:
-		content_preview_reward_label.text = RpgContentChoiceBuilder.preview_rewards(choices)
+		content_preview_reward_label.text = (
+			RpgContentChoiceBuilder.preview_compact_rewards(choices)
+			if compact else RpgContentChoiceBuilder.preview_rewards(choices)
+		)
 	if content_preview_panel:
 		content_preview_panel.visible = not content_preview_label.text.is_empty()
 
