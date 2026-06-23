@@ -161,11 +161,13 @@ static func _aim_joystick(
 	joystick.action_id = action_kind
 	joystick.emit_press_on_release = emit_press
 	joystick.require_direction = true
+	joystick.show_direction_markers = true
 	joystick.tooltip_text = tooltip
 	joystick.focus_mode = Control.FOCUS_NONE
 	joystick.set_meta("action_kind", action_kind)
 	joystick.set_meta("action_role", "secondary")
-	joystick.set_meta("action_shape", "round_secondary")
+	joystick.set_meta("action_input", "aim_drag")
+	joystick.set_meta("action_shape", "aim_joystick_ability")
 	return joystick
 
 

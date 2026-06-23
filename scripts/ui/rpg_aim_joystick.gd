@@ -9,6 +9,7 @@ var center_label := ""
 var footer_label := ""
 var empty_slot := false
 var require_direction := true
+var show_direction_markers := true
 var use_text_as_footer := true
 var drag_origin := Vector2.ZERO
 var aim_vector := Vector2.ZERO
@@ -56,12 +57,11 @@ func _draw() -> void:
 	var alpha := 0.46 if empty_slot else 0.86
 	draw_circle(center, radius * 1.30, Color(0.0, 0.0, 0.0, 0.48))
 	draw_circle(center, radius * 1.08, Color(0.035, 0.031, 0.024, alpha))
+	draw_arc(center, radius * 1.26, 0.0, TAU, 72, Color(0.0, 0.0, 0.0, 0.62), 2.0)
 	draw_arc(center, radius, 0.0, TAU, 64, rim, 2.8 if active else 2.0)
 	draw_arc(center, radius * 0.63, 0.0, TAU, 48, Color(0.90, 0.72, 0.42, 0.32), 1.1)
-	for direction: Vector2 in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
-		var outer: Vector2 = center + direction * radius * 0.90
-		var inner: Vector2 = center + direction * radius * 0.70
-		draw_line(inner, outer, Color(1.0, 0.86, 0.50, 0.48), 1.4)
+	if show_direction_markers:
+		_draw_direction_markers(center, radius, active)
 	if aim_vector.length() > 0.05:
 		draw_line(center, knob, Color(1.0, 0.80, 0.40, 0.78), 2.0)
 	draw_circle(knob, radius * 0.40, Color(0.95, 0.78, 0.42, 0.90 if active else 0.76))
@@ -69,6 +69,17 @@ func _draw() -> void:
 	draw_arc(knob, radius * 0.38, 0.0, TAU, 32, Color(1.0, 0.91, 0.58, 0.72), 1.0)
 	_draw_center_label(center, radius)
 	_draw_footer_label(footer)
+
+
+func _draw_direction_markers(center: Vector2, radius: float, active: bool) -> void:
+	var marker_color := Color(1.0, 0.86, 0.50, 0.70 if active else 0.46)
+	for direction: Vector2 in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+		var outer: Vector2 = center + direction * radius * 0.94
+		var inner: Vector2 = center + direction * radius * 0.68
+		var side := Vector2(-direction.y, direction.x) * radius * 0.11
+		draw_line(inner, outer, marker_color, 1.4)
+		draw_line(outer, inner + side, marker_color, 1.2)
+		draw_line(outer, inner - side, marker_color, 1.2)
 
 
 func _draw_center_label(center: Vector2, radius: float) -> void:

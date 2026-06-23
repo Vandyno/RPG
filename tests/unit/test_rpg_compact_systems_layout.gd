@@ -217,6 +217,26 @@ func test_ability_joysticks_need_drag_direction_before_casting() -> void:
 	assert_eq(events[0]["direction"], Vector2.RIGHT)
 
 
+func test_combat_controls_are_aim_drag_joysticks_not_tap_buttons() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(640, 360))
+
+	var attack := hud.primary_action_button as RpgAimJoystick
+	assert_not_null(attack)
+	assert_eq(attack.get_meta("action_input"), "aim_drag")
+	assert_true(attack.require_direction)
+	assert_false(attack.emit_press_on_release)
+	assert_true(attack.show_direction_markers)
+
+	for slot_id in ["ability_1", "ability_2", "ability_3"]:
+		var ability := hud.ability_slot_buttons[slot_id] as RpgAimJoystick
+		assert_not_null(ability)
+		assert_eq(ability.get_meta("action_input"), "aim_drag")
+		assert_true(ability.require_direction)
+		assert_false(ability.emit_press_on_release)
+		assert_true(ability.show_direction_markers)
+
+
 func _new_hud() -> RpgHud:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
