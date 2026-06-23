@@ -241,13 +241,13 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_tabs.name = "SystemsTabs"
 	systems_tabs.visible = false
 	systems_nav.add_child(systems_tabs)
-	_add_systems_tab("inventory", "I\nInventory")
-	_add_systems_tab("spells", "S\nSpells")
-	_add_systems_tab("character", "C\nCharacter")
-	_add_systems_tab("quests", "Q\nQuests")
-	_add_systems_tab("map", "M\nMap")
-	_add_systems_tab("journal", "J\nJournal")
-	_add_systems_tab("trade", "T\nTrade")
+	_add_systems_tab("inventory", "Inventory")
+	_add_systems_tab("spells", "Spells")
+	_add_systems_tab("character", "Character")
+	_add_systems_tab("quests", "Quests")
+	_add_systems_tab("map", "Map")
+	_add_systems_tab("journal", "Journal")
+	_add_systems_tab("trade", "Trade")
 
 	systems_center_panel = _new_panel("SystemsContentPanel")
 	systems_center_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -354,10 +354,10 @@ func _build_top_nav() -> void:
 	top_nav_buttons.add_theme_constant_override("separation", 6)
 	_add_margin(top_nav_panel, top_nav_buttons, 8)
 
-	_add_nav_button("Q\nQuests", func() -> void: show_systems_panel("quests"))
-	_add_nav_button("J\nJournal", func() -> void: show_systems_panel("journal"))
-	_add_nav_button("M\nMap", func() -> void: show_systems_panel("map"))
-	_add_nav_button("=\nMenu", toggle_systems)
+	_add_nav_button("Quests", func() -> void: show_systems_panel("quests"))
+	_add_nav_button("Journal", func() -> void: show_systems_panel("journal"))
+	_add_nav_button("Map", func() -> void: show_systems_panel("map"))
+	_add_nav_button("Menu", toggle_systems)
 
 func _add_nav_button(text: String, callback: Callable) -> void:
 	var button := _new_button(text, NAV_BUTTON_SIZE)
@@ -628,7 +628,7 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
 	if not target_action_button:
 		return
-	target_action_button.text = "X\nClose" if is_target_picker_visible() else "T\nTarget"
+	target_action_button.text = "Close" if is_target_picker_visible() else "Target"
 	target_action_button.add_theme_font_size_override(
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)

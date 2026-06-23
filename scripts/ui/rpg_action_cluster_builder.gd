@@ -28,9 +28,9 @@ static func build(
 
 	var utility_buttons := {}
 	for data in [
-		{"id": "inventory", "text": "I\nInv", "tooltip": "Inventory"},
-		{"id": "target", "text": "T\nTarget", "tooltip": "Cycle target. Hold for target list."},
-		{"id": "menu", "text": "=\nMenu", "tooltip": "Open systems menu"}
+		{"id": "inventory", "text": "Inv", "tooltip": "Inventory"},
+		{"id": "target", "text": "Target", "tooltip": "Cycle target. Hold for target list."},
+		{"id": "menu", "text": "Menu", "tooltip": "Open systems menu"}
 	]:
 		var utility := _utility_button(
 			String(data["text"]), String(data["id"]), String(data["tooltip"]), Vector2(56, 56)

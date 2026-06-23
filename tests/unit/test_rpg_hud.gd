@@ -36,7 +36,7 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.top_nav_panel.visible)
 	assert_eq(
 		_button_texts(hud.top_nav_buttons),
-		["Q\nQuests", "J\nJournal", "M\nMap", "=\nMenu"]
+		["Quests", "Journal", "Map", "Menu"]
 	)
 	assert_true(hud.status_label.text.contains("Adventurer"))
 	assert_true(hud.status_label.text.contains("Level 2"))
@@ -89,7 +89,7 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_eq(hud.get_systems_tab(), "spells")
 	assert_eq(
 		_button_texts(hud.systems_nav),
-		["I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"]
+		["Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"]
 	)
 	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
 	assert_eq(hud.systems_detail_title_label.text, "Spell Details")
@@ -161,7 +161,7 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 
 	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
 	assert_null(close)
-	assert_eq(hud.target_action_button.text, "X\nClose")
+	assert_eq(hud.target_action_button.text, "Close")
 	hud.target_action_button.pressed.emit()
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
@@ -453,7 +453,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_resources_label.text.contains("Gold"))
 	assert_true(hud.systems_resources_label.text.contains("Load"))
 	assert_eq(_button_texts(hud.systems_nav), [
-		"I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"
+		"Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
