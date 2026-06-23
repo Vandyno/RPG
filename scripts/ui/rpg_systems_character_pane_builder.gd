@@ -106,14 +106,16 @@ static func build_equipment_only(panel: PanelContainer, add_margin: Callable) ->
 	return {"equipment_slots": _build_equipment_slots(equipment_grid), "panel": panel}
 
 
-static func refresh(nodes: Dictionary, state: Dictionary, row_style: Callable) -> void:
+static func refresh(
+	nodes: Dictionary, state: Dictionary, row_style: Callable, compact := false
+) -> void:
 	var rows: VBoxContainer = nodes.get("rows")
 	var health_bar: ProgressBar = nodes.get("health_bar")
 	var subtitle: Label = nodes.get("subtitle")
 	if subtitle:
 		subtitle.text = String(state.get("progression", "Level 1"))
 	_refresh_health_bar(health_bar, String(state.get("player_health", "Health 0/0")))
-	_refresh_equipment_slots(nodes, state, row_style)
+	_refresh_equipment_slots(nodes, state, row_style, compact)
 	if not rows:
 		return
 	var rows_data := RpgSystemsTextBuilder.character_rows(state)
@@ -176,7 +178,7 @@ static func _build_equipment_slots(parent: GridContainer) -> Dictionary:
 
 
 static func _refresh_equipment_slots(
-	nodes: Dictionary, state: Dictionary, row_style: Callable
+	nodes: Dictionary, state: Dictionary, row_style: Callable, compact: bool
 ) -> void:
 	var slots: Dictionary = nodes.get("equipment_slots", {})
 	var data: Dictionary = state.get("equipment_slots", {})
@@ -184,11 +186,29 @@ static func _refresh_equipment_slots(
 		var slot: RpgEquipmentSlot = slots[slot_id]
 		var entry: Dictionary = data.get(slot_id, {})
 		var label := String(entry.get("label", EquipmentSlots.label(slot_id)))
+		var display_label := _slot_display_label(String(slot_id), label, compact)
 		var item_name := String(entry.get("item_name", ""))
-		slot.text = "%s\n%s" % [label, "Empty" if item_name.is_empty() else item_name]
+		slot.text = "%s\n%s" % [display_label, "Empty" if item_name.is_empty() else item_name]
 		slot.tooltip_text = "%s equipment slot" % label
 		slot.add_theme_font_size_override("font_size", 11)
 		row_style.call(slot, not item_name.is_empty())
+
+
+static func _slot_display_label(slot_id: String, fallback: String, compact: bool) -> String:
+	if not compact:
+		return fallback
+	match EquipmentSlots.normalize(slot_id):
+		"left_hand":
+			return "L Hand"
+		"right_hand":
+			return "R Hand"
+		"necklace":
+			return "Neck"
+		"ring_1":
+			return "Ring 1"
+		"ring_2":
+			return "Ring 2"
+	return fallback
 
 
 static func _refresh_health_bar(health_bar: ProgressBar, health_text: String) -> void:

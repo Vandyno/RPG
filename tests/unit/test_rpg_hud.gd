@@ -578,6 +578,10 @@ func test_rpg_systems_menu_keeps_same_structure_on_compact_landscape() -> void:
 	assert_gte(hud.systems_detail_panel.custom_minimum_size.x, 184.0)
 	assert_eq((hud.systems_tab_buttons["inventory"] as Button).custom_minimum_size, Vector2(72, 38))
 	assert_eq(hud.systems_action_list, hud.systems_item_list)
+	var compact_neck := hud.systems_detail_panel.find_child("EquipmentSlot_Necklace", true, false)
+	var compact_right := hud.systems_detail_panel.find_child("EquipmentSlot_RightHand", true, false)
+	assert_eq((compact_neck as Button).text, "Neck\nEmpty")
+	assert_true((compact_right as Button).text.begins_with("R Hand\n"))
 
 
 func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:

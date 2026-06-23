@@ -188,7 +188,6 @@ func _build_status_panel() -> void:
 	health_label.add_theme_color_override("font_color", Color(0.95, 0.84, 0.70))
 	stack.add_child(health_label)
 
-
 func _build_systems_panel() -> void:
 	systems_panel = _new_panel("SystemsPanel")
 	_apply_modal_panel_style(systems_panel)
@@ -244,7 +243,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	close.tooltip_text = "Close menu"
 	close.pressed.connect(hide_systems_panel)
 	top_bar.add_child(close)
-
 
 func _build_systems_body(parent: BoxContainer) -> void:
 	systems_main_row = HBoxContainer.new()
@@ -667,10 +665,12 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	_refresh_systems_rows(state)
 	RpgSystemsCharacterPaneBuilder.refresh(
-		systems_character_nodes, state, Callable(self, "_apply_row_button_style")
+		systems_character_nodes, state, Callable(self, "_apply_row_button_style"),
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
 	RpgSystemsCharacterPaneBuilder.refresh(
-		systems_detail_equipment_nodes, state, Callable(self, "_apply_row_button_style")
+		systems_detail_equipment_nodes, state, Callable(self, "_apply_row_button_style"),
+		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
 	var spell_value: Variant = state.get("spell_slots", {})
 	var spell_slots: Dictionary = spell_value if spell_value is Dictionary else {}
