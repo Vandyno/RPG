@@ -82,7 +82,7 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_eq(hud.get_systems_tab(), "spells")
 	assert_eq(
 		_button_texts(hud.systems_nav),
-		["Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"]
+		["I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"]
 	)
 	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
 	assert_true(hud.systems_spell_slot_panel.visible)
@@ -402,7 +402,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
 	assert_eq(_button_texts(hud.systems_nav), [
-		"Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"
+		"I\nInventory", "S\nSpells", "C\nCharacter", "Q\nQuests", "M\nMap", "J\nJournal", "T\nTrade"
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)

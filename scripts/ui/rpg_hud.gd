@@ -265,13 +265,13 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_tabs.name = "SystemsTabs"
 	systems_tabs.visible = false
 	systems_nav.add_child(systems_tabs)
-	_add_systems_tab("inventory", "Inventory")
-	_add_systems_tab("spells", "Spells")
-	_add_systems_tab("character", "Character")
-	_add_systems_tab("quests", "Quests")
-	_add_systems_tab("map", "Map")
-	_add_systems_tab("journal", "Journal")
-	_add_systems_tab("trade", "Trade")
+	_add_systems_tab("inventory", "I\nInventory")
+	_add_systems_tab("spells", "S\nSpells")
+	_add_systems_tab("character", "C\nCharacter")
+	_add_systems_tab("quests", "Q\nQuests")
+	_add_systems_tab("map", "M\nMap")
+	_add_systems_tab("journal", "J\nJournal")
+	_add_systems_tab("trade", "T\nTrade")
 
 	systems_center_panel = _new_panel("SystemsContentPanel")
 	systems_center_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
