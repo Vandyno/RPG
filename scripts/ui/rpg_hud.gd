@@ -463,7 +463,6 @@ func _refresh_systems_tabs() -> void:
 			"font_color",
 			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
 		)
-
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
 	if prompt_panel:
@@ -478,7 +477,6 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 	_layout_message_panel(viewport_size, compact)
-
 func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	var size := COMPACT_STATUS_PANEL_SIZE if compact else STATUS_PANEL_SIZE
 	status_panel.offset_left = HUD_MARGIN
@@ -699,6 +697,9 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var row_id := String(row.get("id", ""))
 		var selected := row_id == systems_selected_row_id
 		_apply_row_button_style(button, selected)
+		if button is RpgInventoryItemButton:
+			button.set_card_data(row)
+			button.set_meta("card_selected", selected)
 		button.set_meta("row_id", row_id)
 		button.set_meta("action_id", String(row.get("action_id", "")))
 		button.set_meta("item_id", String(row.get("item_id", "")))
@@ -863,7 +864,6 @@ func _refresh_target_picker(state: Dictionary) -> void:
 		func(entity_id: String) -> void: target_used.emit(entity_id),
 		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	)
-
 func _refresh_context_actions(state: Dictionary) -> void:
 	if not context_action_buttons:
 		return

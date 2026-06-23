@@ -13,6 +13,20 @@ func test_compact_system_rows_wrap_long_player_text() -> void:
 	assert_true(row.text.contains("Crossroads Peddler"))
 
 
+func test_system_rows_render_player_facing_card_data() -> void:
+	var hud := _new_hud()
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var row := _button_containing(hud.systems_item_list, "Roadside Draught")
+	assert_not_null(row)
+	assert_true(row is RpgInventoryItemButton)
+	assert_eq(row.get_meta("card_title"), "Roadside Draught")
+	assert_eq(row.get_meta("card_icon"), "I")
+	assert_eq(row.get_meta("card_meta"), "Misc")
+	assert_true(String(row.get_meta("card_detail")).contains("Count 1"))
+
+
 func test_spell_categories_use_compact_readable_labels() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
