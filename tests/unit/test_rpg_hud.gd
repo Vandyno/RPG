@@ -600,18 +600,15 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_true(content_rect.intersects(action_rect), "Content should own the bottom action lane.")
 	assert_false(hud.action_buttons.visible)
 	assert_false(hud.move_pad.visible)
-	assert_true(hud.content_identity_panel.visible)
-	assert_true(hud.content_portrait_panel.visible)
-	assert_true(hud.content_preview_panel.visible)
-	assert_lte(hud.content_identity_panel.custom_minimum_size.x, 74.0)
-	assert_gte(hud.content_right_stack.custom_minimum_size.x, 154.0)
-	assert_gte(hud.content_preview_panel.custom_minimum_size.x, 154.0)
-	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 16)
+	assert_false(hud.content_identity_panel.visible)
+	assert_false(hud.content_preview_panel.visible)
+	assert_gte(hud.content_right_stack.custom_minimum_size.x, 228.0)
+	assert_gte(hud.content_body_label.get_theme_font_size("font_size"), 18)
 	assert_lte(hud.content_preview_label.get_theme_font_size("font_size"), 10)
 	var accept_button := _button_containing(hud.content_choice_list, "Accept") as Button
 	assert_not_null(accept_button)
 	assert_gte(accept_button.custom_minimum_size.y, 46.0)
-	assert_gte(accept_button.get_theme_font_size("font_size"), 11)
+	assert_gte(accept_button.get_theme_font_size("font_size"), 13)
 
 
 func _new_hud() -> RpgHud:
