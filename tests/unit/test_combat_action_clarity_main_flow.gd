@@ -1,54 +1,49 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 
 
-func test_enemy_attack_is_primary_and_guard_is_only_context_action() -> void:
+func test_enemy_has_no_interaction_quick_action_panel() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "enemy_road_thug")
+	_stand_by_enemy(main, "enemy_road_thug")
 
-	assert_eq(main.get_debug_state()["primary_action"], "Attack")
-	assert_true(main.hud.context_action_panel.visible)
+	assert_false(main.hud.context_action_panel.visible)
+	assert_ne(main.selected_target_id, "enemy_road_thug")
 	assert_null(_visible_button_containing(main.hud.context_action_buttons, "Attack"))
-	assert_not_null(_visible_button_containing(main.hud.context_action_buttons, "Guard"))
+	assert_null(_visible_button_containing(main.hud.context_action_buttons, "Guard"))
 
 
-func test_guard_stance_hides_redundant_guard_action_until_attack() -> void:
+func test_enemy_context_stays_hidden_after_directional_attack() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "enemy_road_thug")
-	var guard := _visible_button_containing(main.hud.context_action_buttons, "Guard")
-	assert_not_null(guard)
+	_equip_hatchet(main)
+	_stand_by_enemy(main, "enemy_road_thug")
 
-	guard.pressed.emit()
-
-	assert_eq(main.get_debug_state()["primary_action"], "Attack")
-	assert_eq(main.get_debug_state()["target_detail"], "Enemy HP 12/12, counter 4, guarding")
 	assert_false(main.hud.context_action_panel.visible)
 
-	main._handle_interact_requested()
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
 
-	assert_eq(main.get_debug_state()["target_detail"], "Enemy HP 6/12, counter 4")
-	assert_true(main.hud.context_action_panel.visible)
-	assert_not_null(_visible_button_containing(main.hud.context_action_buttons, "Guard"))
+	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
+	assert_false(main.hud.context_action_panel.visible)
+	assert_null(_visible_button_containing(main.hud.context_action_buttons, "Guard"))
 
 
-func _select_entity(main, entity_id: String) -> void:
+func _stand_by_enemy(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
-	if target:
-		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
-		main.player.set_facing_direction(Vector2.RIGHT)
-		main._update_nearby()
-	for _i in range(40):
-		var entity = main._get_nearby_entity()
-		if entity and entity.get_entity_id() == entity_id:
-			main._update_nearby()
-			return
-		main._handle_cycle_target_requested()
-	fail_test("Could not select nearby entity: %s" % entity_id)
+	assert_not_null(target)
+	main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	main._update_nearby()
+
+
+func _equip_hatchet(main) -> void:
+	if not main.inventory.has_item("item_road_hatchet"):
+		main.inventory.add_item("item_road_hatchet", 1)
+	main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")
 
 
 func _visible_button_containing(parent: Node, text: String) -> Button:

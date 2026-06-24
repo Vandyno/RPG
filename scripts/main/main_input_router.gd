@@ -35,6 +35,8 @@ static func target_world(
 	var entity = main.entities.get_interactable_at_world(world_position, pick_radius)
 	if not entity:
 		return false
+	if entity.get_kind() == "enemy":
+		return false
 	main._close_open_overlay_panel(false)
 	var delta: Vector2 = entity.global_position - main.player.global_position
 	main.player.set_facing_direction(delta)

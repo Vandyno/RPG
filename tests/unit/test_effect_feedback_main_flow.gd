@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 
 
 func test_quest_feedback_reports_start_stage_and_completion_rewards() -> void:
@@ -45,9 +46,7 @@ func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> vo
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "enemy_road_thug")
-	main._handle_interact_requested()
-	main._handle_interact_requested()
+	_attack_enemy_until_defeated(main, "enemy_road_thug")
 
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 	assert_true(main.hud.log_label.text.contains("Rewards: Gold Coin x3, Road Bandits -5, XP +10."))
@@ -71,6 +70,25 @@ func _choose_content(main, text: String) -> void:
 	var button := _button_containing(main.hud.content_choice_list, text)
 	assert_not_null(button)
 	button.pressed.emit()
+
+
+func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+	_equip_hatchet(main)
+	var enemy = main.entities.get_entity(entity_id)
+	assert_not_null(enemy)
+	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	for _i in range(8):
+		MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+		if not main.entities.get_entity(entity_id):
+			return
+	fail_test("Enemy was not defeated: %s" % entity_id)
+
+
+func _equip_hatchet(main) -> void:
+	if not main.inventory.has_item("item_road_hatchet"):
+		main.inventory.add_item("item_road_hatchet", 1)
+	main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")
 
 
 func _button_containing(parent: Node, text: String) -> Button:

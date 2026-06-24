@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 
 
 func test_town_hall_job_board_shows_place_card() -> void:
@@ -167,9 +168,7 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	assert_true(main.hud.content_body_label.text.contains("road thug west of Briarwatch"))
 	main.hud.hide_content_card()
 
-	_select_entity(main, "enemy_road_thug")
-	main._handle_interact_requested()
-	main._handle_interact_requested()
+	_attack_enemy_until_defeated(main, "enemy_road_thug")
 	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
 
 	_select_entity(main, "poi_briarwatch_square")
@@ -203,6 +202,25 @@ func _select_entity(main, entity_id: String) -> void:
 			return
 		main._handle_cycle_target_requested()
 	fail_test("Could not select nearby entity: %s" % entity_id)
+
+
+func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+	_equip_hatchet(main)
+	var enemy = main.entities.get_entity(entity_id)
+	assert_not_null(enemy)
+	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	for _i in range(8):
+		MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+		if not main.entities.get_entity(entity_id):
+			return
+	fail_test("Enemy was not defeated: %s" % entity_id)
+
+
+func _equip_hatchet(main) -> void:
+	if not main.inventory.has_item("item_road_hatchet"):
+		main.inventory.add_item("item_road_hatchet", 1)
+	main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")
 
 
 func _button_containing(container: Node, text: String) -> Button:

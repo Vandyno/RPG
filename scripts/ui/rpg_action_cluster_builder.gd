@@ -31,7 +31,7 @@ static func build(
 	var utility_buttons := {}
 	for data in [
 		{"id": "inventory", "text": "Inv", "tooltip": "Inventory"},
-		{"id": "target", "text": "Target", "tooltip": "Cycle target. Hold for target list."},
+		{"id": "sneak", "text": "Sneak", "tooltip": "Toggle sneak"},
 		{"id": "menu", "text": "Menu", "tooltip": "Open systems menu"}
 	]:
 		var utility := _utility_button(

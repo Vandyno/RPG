@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 
 
 func test_container_world_hint_updates_after_opening() -> void:
@@ -20,18 +21,20 @@ func test_container_world_hint_updates_after_opening() -> void:
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 
 
-func test_selected_target_recovers_immediately_after_enemy_defeat() -> void:
+func test_enemy_defeat_does_not_leave_selected_interaction_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	_select_entity(main, "enemy_road_thug")
-	assert_eq(main.selected_target_id, "enemy_road_thug")
+	_equip_hatchet(main)
+	var enemy = main.entities.get_entity("enemy_road_thug")
+	assert_not_null(enemy)
+	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
 
-	main._handle_interact_requested()
-	main._handle_interact_requested()
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
 
 	assert_null(main.entities.get_entity("enemy_road_thug"))
 	assert_ne(main.selected_target_id, "enemy_road_thug")
-	assert_not_null(main._get_nearby_entity())
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 
 
@@ -48,3 +51,9 @@ func _select_entity(main, entity_id: String) -> void:
 			return
 		main._handle_cycle_target_requested()
 	fail_test("Could not select nearby entity: %s" % entity_id)
+
+
+func _equip_hatchet(main) -> void:
+	if not main.inventory.has_item("item_road_hatchet"):
+		main.inventory.add_item("item_road_hatchet", 1)
+	main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")

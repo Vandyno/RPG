@@ -5,7 +5,7 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const WorldEntityScript = preload("res://scripts/world/world_entity.gd")
 const DEFAULT_INTERACTION_RADIUS_PIXELS := 32.0
 const DOOR_INTERACTION_RADIUS_PIXELS := 48.0
-const NON_INTERACTIVE_KINDS := ["location"]
+const NON_INTERACTIVE_KINDS := ["location", "enemy"]
 
 var event_bus
 var content

@@ -85,6 +85,8 @@ func _draw_icon_badge(rect: Rect2, color: Color) -> void:
 			_draw_menu(center, radius, color)
 		"target":
 			_draw_target(center, radius, color)
+		"sneak":
+			_draw_sneak(center, radius, color)
 		"inventory":
 			_draw_bag(center, radius, color)
 		"spells":
@@ -107,6 +109,17 @@ func _draw_quest(center: Vector2, radius: float, color: Color) -> void:
 	])
 	draw_polyline(points, color, 2.0)
 	draw_circle(center, radius * 0.22, color)
+
+
+func _draw_sneak(center: Vector2, radius: float, color: Color) -> void:
+	draw_arc(center + Vector2(-radius * 0.20, 0), radius * 0.62, PI, TAU, 20, color, 1.8)
+	draw_line(
+		center + Vector2(-radius * 0.15, radius * 0.62),
+		center + Vector2(radius * 0.68, radius * 0.62),
+		color,
+		1.8
+	)
+	draw_circle(center + Vector2(radius * 0.40, -radius * 0.10), radius * 0.18, color)
 
 
 func _draw_book(center: Vector2, radius: float, color: Color) -> void:

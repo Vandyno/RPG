@@ -93,6 +93,45 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	)
 
 
+func test_handle_held_melee_repeats_on_weapon_interval() -> void:
+	var main := AimMainStub.new()
+	main.equipment.equipped_item_id = "item_training_sword"
+
+	MainSystemsActions.handle_aim_held(main, "attack", Vector2.LEFT, 1.0)
+	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+
+	assert_eq(
+		main.calls,
+		[
+			"damage:enemy_west:3",
+			"message:Training Sword hits River Ruffian for 3.",
+			"damage:enemy_west:3",
+			"message:Training Sword hits River Ruffian for 3.",
+			"damage:enemy_west:3",
+			"message:Training Sword hits River Ruffian for 3.",
+			"refresh",
+			"refresh"
+		]
+	)
+
+
+func test_handle_held_bow_waits_for_release() -> void:
+	var main := AimMainStub.new()
+	main.equipment.equipped_item_id = "item_hunting_bow"
+
+	MainSystemsActions.handle_aim_held(main, "attack", Vector2.LEFT, 1.0)
+	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+
+	assert_eq(
+		main.calls,
+		[
+			"damage:enemy_west:4",
+			"message:Hunting Bow hits River Ruffian for 4.",
+			"refresh"
+		]
+	)
+
+
 func test_handle_aim_attack_swings_without_target() -> void:
 	var main := AimMainStub.new()
 	main.enemies.clear()
@@ -167,6 +206,7 @@ class AimMainStub:
 	var effect_runner := AimEffectRunnerStub.new()
 	var channeled_spell_damage_bank: Dictionary = {}
 	var channeled_spell_empty_reported: Dictionary = {}
+	var held_weapon_attack_elapsed: Dictionary = {}
 	var enemies := [
 		AimEntityStub.new("enemy_west", "River Ruffian", Vector2.LEFT * 28.0),
 		AimEntityStub.new("enemy_east", "Road Thug", Vector2.RIGHT * 28.0)
@@ -223,14 +263,45 @@ class AimContentStub:
 		return {}
 
 	func get_item(_item_id: String) -> Dictionary:
+		if _item_id == "item_training_sword":
+			return {
+				"id": _item_id,
+				"name": "Training Sword",
+				"weapon_attack":
+				{
+					"shape": "swing",
+					"range_pixels": 34,
+					"width_pixels": 30,
+					"arc_degrees": 110,
+					"damage": 3,
+					"attack_interval_seconds": 0.5,
+					"visual": "swing"
+				}
+			}
+		if _item_id == "item_hunting_bow":
+			return {
+				"id": _item_id,
+				"name": "Hunting Bow",
+				"weapon_attack":
+				{
+					"shape": "projectile",
+					"range_pixels": 96,
+					"width_pixels": 14,
+					"damage": 4,
+					"attack_interval_seconds": 0.8,
+					"visual": "projectile"
+				}
+			}
 		return {}
 
 
 class AimEquipmentStub:
 	extends RefCounted
 
+	var equipped_item_id := ""
+
 	func get_equipped_item(_slot: String) -> String:
-		return ""
+		return equipped_item_id
 
 
 class AimCombatStub:

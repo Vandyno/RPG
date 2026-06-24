@@ -6,10 +6,6 @@ const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
 
 static func build(main, entity) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
-	for action in main._combat_actions_data(entity):
-		actions.append(
-			{"id": "combat:%s" % String(action.get("id", "")), "text": action.get("text", "")}
-		)
 	if entity and entity.get_kind() == "poi":
 		for action in PoiInteraction.available_actions_for_main(entity, main):
 			actions.append(
@@ -58,8 +54,6 @@ static func secondary(main, entity) -> Array[Dictionary]:
 	var actions := build(main, entity)
 	var primary := preferred_primary(main, entity)
 	var primary_id := String(primary.get("id", ""))
-	if primary_id.is_empty() and entity and entity.get_kind() == "enemy":
-		primary_id = "combat:attack"
 	if primary_id.is_empty():
 		return actions
 	var result: Array[Dictionary] = []
@@ -73,8 +67,6 @@ static func secondary(main, entity) -> Array[Dictionary]:
 static func handle(main, action_id: String) -> void:
 	var parsed := _parse_action_id(action_id)
 	match String(parsed.get("kind", "")):
-		"combat":
-			main._handle_combat_action_selected(String(parsed.get("id", "")))
 		"poi":
 			_handle_poi_action_selected(main, String(parsed.get("id", "")))
 		"dialogue":
@@ -229,7 +221,7 @@ static func _npc_for_entity(main, entity) -> Dictionary:
 static func _parse_action_id(action_id: String) -> Dictionary:
 	var delimiter := action_id.find(":")
 	if delimiter < 0:
-		return {"kind": "combat", "id": action_id}
+		return {"kind": "", "id": action_id}
 	return {"kind": action_id.substr(0, delimiter), "id": action_id.substr(delimiter + 1)}
 
 

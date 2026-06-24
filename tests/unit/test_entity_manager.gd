@@ -259,7 +259,7 @@ func test_world_distance_caps_authored_interaction_radius_to_requested_range() -
 	)
 
 
-func test_enemy_entities_are_interactable_by_world_distance() -> void:
+func test_enemy_entities_are_combat_entities_not_interactables() -> void:
 	var content := ContentStub.new()
 	content.world_objects = [
 		{"id": "enemy", "name": "Enemy", "kind": "enemy", "global_tile": [-1, 2]}
@@ -269,9 +269,11 @@ func test_enemy_entities_are_interactable_by_world_distance() -> void:
 	manager.setup(null, content, ChunkStub.new())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 42.0)
+	var combat_entities := manager.get_entities_world(Vector2(8.0, 8.0), 42.0, "enemy")
 
-	assert_not_null(entity)
-	assert_eq(entity.get_kind(), "enemy")
+	assert_null(entity)
+	assert_eq(combat_entities.size(), 1)
+	assert_eq(combat_entities[0].get_kind(), "enemy")
 
 
 func test_spawn_all_replaces_entities_immediately_and_clears_highlight() -> void:

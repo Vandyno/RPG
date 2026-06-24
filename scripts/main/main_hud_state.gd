@@ -28,7 +28,6 @@ static func build(main) -> Dictionary:
 		"primary_action": _primary_action(main, nearby, auto_target),
 		"target_detail": target_detail,
 		"nearby_targets": main._nearby_targets_data(),
-		"combat_actions": main._combat_actions_data(nearby),
 		"context_actions": MainContextActions.secondary(main, nearby),
 		"inventory": main._inventory_text(),
 		"inventory_items": _inventory_items_data(main),

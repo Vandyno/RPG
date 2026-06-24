@@ -144,6 +144,14 @@ func _validate_item_equipment_fields(
 	_validate_optional_positive_number(
 		item, "guard_counter_multiplier", "Item %s" % item_id, errors
 	)
+	if String(item.get("type", "")) == "weapon":
+		var attack = item.get("weapon_attack", {})
+		if not attack is Dictionary:
+			errors.append("Item %s weapon_attack must be a dictionary." % item_id)
+		else:
+			_validate_required_positive_number(
+				attack, "attack_interval_seconds", "Item %s weapon_attack" % item_id, errors
+			)
 
 
 func _validate_readables(errors: Array[String]) -> void:

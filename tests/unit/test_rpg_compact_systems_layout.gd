@@ -115,7 +115,7 @@ func test_action_cluster_utility_controls_use_icon_buttons() -> void:
 	hud._apply_layout_for_size(Vector2(640, 360))
 	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
 	assert_not_null(utility_stack)
-	for id in ["inventory", "target", "menu"]:
+	for id in ["inventory", "sneak", "menu"]:
 		var button := utility_stack.find_child("%sButton" % id.to_pascal_case(), true, false)
 		assert_true(button is RpgIconButton)
 		assert_eq((button as RpgIconButton).icon_kind, id)
@@ -194,14 +194,16 @@ func test_desktop_quick_actions_do_not_cover_action_cluster() -> void:
 		assert_false(quick_rect.intersects(action_rect))
 
 
-func test_desktop_target_picker_does_not_cover_action_cluster() -> void:
+func test_sneak_control_replaces_player_facing_target_picker() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
-	hud.toggle_target_picker()
+	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
+	var sneak := utility_stack.find_child("SneakButton", true, false) as Button
 
-	var target_rect := _anchored_rect(hud.target_panel, Vector2(1152, 648))
-	for action_rect in _visible_button_rects(hud.action_buttons):
-		assert_false(target_rect.intersects(action_rect))
+	assert_not_null(sneak)
+	assert_null(utility_stack.find_child("TargetButton", true, false))
+	sneak.pressed.emit()
+	assert_false(hud.is_target_picker_visible())
 
 
 func test_desktop_systems_character_pane_scrolls_when_visible() -> void:
@@ -261,16 +263,13 @@ func test_combat_controls_are_aim_drag_joysticks_not_tap_buttons() -> void:
 		assert_true(ability.show_direction_markers)
 
 
-func test_target_picker_uses_player_facing_distance_text() -> void:
+func test_target_picker_stays_closed_in_rpg_hud() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
 	hud.toggle_target_picker()
 
-	var row := _button_containing(hud.target_list, "Road Notice") as Button
-	assert_not_null(row)
-	assert_true(row.text.contains("6.3 tiles southeast"))
-	assert_false(row.text.contains("SE 6.3t"))
-	assert_true(row.tooltip_text.contains("6.3 tiles southeast"))
+	assert_false(hud.is_target_picker_visible())
+	assert_false(hud.target_panel.visible)
 
 
 func test_systems_routes_use_player_facing_distance_text() -> void:

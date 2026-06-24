@@ -73,6 +73,7 @@
       "width_pixels": 34,
       "arc_degrees": 90,
       "damage": 6,
+      "attack_interval_seconds": 0.75,
       "visual": "swing",
       "miss_text": "Chopped"
     }
@@ -96,6 +97,7 @@
       "width_pixels": 38,
       "arc_degrees": 125,
       "damage": 5,
+      "attack_interval_seconds": 0.55,
       "visual": "swing",
       "miss_text": "Slashed"
     }
@@ -118,6 +120,7 @@
       "range_pixels": 78,
       "width_pixels": 18,
       "damage": 7,
+      "attack_interval_seconds": 0.95,
       "visual": "thrust",
       "miss_text": "Thrust"
     }
@@ -140,6 +143,7 @@
       "range_pixels": 150,
       "width_pixels": 14,
       "damage": 5,
+      "attack_interval_seconds": 0.85,
       "visual": "projectile",
       "miss_text": "Fired"
     }

@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 
 
 func test_consumable_applies_visible_status_that_modifies_next_attacks() -> void:
@@ -23,13 +24,16 @@ func test_consumable_applies_visible_status_that_modifies_next_attacks() -> void
 	assert_true(main.hud.systems_body_label.text.contains("Road Focus"))
 	main.hud.hide_systems_panel()
 
-	_select_entity(main, "enemy_road_thug")
-	assert_true(main.get_debug_state()["target_detail"].contains("Enemy HP 12/12"))
-	main._handle_interact_requested()
+	_equip_hatchet(main)
+	var enemy = main.entities.get_entity("enemy_road_thug")
+	assert_not_null(enemy)
+	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
 
 	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 3)
 	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 1)
-	assert_true(main.hud.log_label.text.contains("Hit Road Thug for 9"))
+	assert_true(main.hud.log_label.text.contains("hits Road Thug for 9"))
 
 
 func _select_entity(main, entity_id: String) -> void:
@@ -51,3 +55,9 @@ func _button_containing(container: Node, text: String) -> Button:
 		if child is Button and child.text.contains(text):
 			return child
 	return null
+
+
+func _equip_hatchet(main) -> void:
+	if not main.inventory.has_item("item_road_hatchet"):
+		main.inventory.add_item("item_road_hatchet", 1)
+	main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")

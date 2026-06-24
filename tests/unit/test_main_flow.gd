@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 const TEST_SAVE_PATH := "user://test_main_flow.json"
 
 
@@ -12,7 +13,7 @@ func after_each() -> void:
 	_remove_test_save()
 
 
-func test_target_cycle_touch_next_and_picker_uses_spawn_interactables() -> void:
+func test_sneak_button_does_not_open_or_cycle_targets() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	var enemy = main.entities.get_entity("enemy_road_thug")
@@ -30,43 +31,22 @@ func test_target_cycle_touch_next_and_picker_uses_spawn_interactables() -> void:
 	var second = main._get_nearby_entity()
 	assert_not_null(second)
 
-	assert_ne(second.get_entity_id(), first_id)
-	assert_true(main.get_debug_state()["nearby_all"].contains("*%s*" % second.get_display_name()))
+	assert_eq(second.get_entity_id(), first_id)
 	assert_false(main.hud.is_target_picker_visible())
 
 	main.hud.toggle_target_picker()
-	assert_true(main.hud.is_target_picker_visible())
-	var enemy_button := _button_containing(main.hud.target_list, "Road Thug")
-	assert_not_null(enemy_button)
-
-	enemy_button.pressed.emit()
-
 	assert_false(main.hud.is_target_picker_visible())
-	assert_eq(main.selected_target_id, "enemy_road_thug")
-	assert_eq(main._get_nearby_entity().get_kind(), "enemy")
-	assert_true(main.hud.log_label.text.contains("Hit Road Thug"))
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
-	assert_true(main.get_debug_state()["nearby_all"].contains("*Road Thug*"))
-	assert_true(main.get_debug_state()["navigation"].contains("Road Thug"))
-
-	var stale_main := Main.new()
-	add_child_autofree(stale_main)
-	stale_main.hud.toggle_target_picker()
-	stale_main._handle_target_selected("missing_entity")
-
-	assert_false(stale_main.hud.is_target_picker_visible())
-	assert_true(stale_main.hud.log_label.text.contains("Target is no longer nearby."))
-	assert_null(stale_main._get_nearby_entity())
 
 
 func test_selected_target_remains_stable_when_nearby_order_changes() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_kind(main, "enemy")
+	_select_kind(main, "pickup")
 	var selected = main._get_nearby_entity()
 	assert_not_null(selected)
 	var selected_id: String = selected.get_entity_id()
+	main._handle_target_selected(selected_id)
 
 	main.player.set_world_position(selected.global_position + Vector2(4.0, 0.0))
 	var still_selected = main._get_nearby_entity()
@@ -403,21 +383,20 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.time.advance_hours(12))
 	main.hud.refresh()
 
-	_select_kind(main, "enemy")
-	assert_true(main.get_debug_state()["target_detail"].contains("Enemy HP 12/12"))
-	assert_true(main.hud.context_action_panel.visible)
+	_stand_by_enemy(main, "enemy_road_thug")
+	assert_false(main.hud.context_action_panel.visible)
 	var guard_button := _button_containing(main.hud.context_action_buttons, "Guard")
-	assert_not_null(guard_button)
+	assert_null(guard_button)
 	var attack_button := _button_containing(main.hud.context_action_buttons, "Attack")
 	assert_true(attack_button == null or not attack_button.visible)
-	assert_eq(main.get_debug_state()["primary_action"], "Attack")
-	guard_button.pressed.emit()
-	assert_true(main.hud.log_label.text.contains("Guarding against Road Thug."))
-	main._handle_interact_requested()
+	assert_ne(main.get_debug_state()["primary_action"], "Attack")
+	_attack_enemy_once(main, "enemy_road_thug")
 	assert_eq(main.player.health, 100)
 	assert_eq(int(main.hud.health_bar.value), 100)
 	assert_eq(main.hud.health_label.text, "HP 100/100  MP 100/100")
 	assert_eq(main.hud.health_bar.tooltip_text, "Health: 100/100")
+	assert_true(main.hud.log_label.text.contains("hits Road Thug"))
+	_attack_enemy_once(main, "enemy_road_thug")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 	assert_null(main.entities.get_entity("enemy_road_thug"))
 	main.hud.toggle_systems()
@@ -485,18 +464,18 @@ func test_main_sanitizes_malformed_runtime_enemy_numbers() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_kind(main, "enemy")
-	var enemy = main._get_nearby_entity()
+	var enemy = main.entities.get_entity("enemy_road_thug")
+	assert_not_null(enemy)
 	enemy.data["max_health"] = "twelve"
 	enemy.data["damage_taken_per_hit"] = "six"
 	enemy.data["attack_damage"] = "four"
 
-	assert_eq(main.get_debug_state()["target_detail"], "Enemy HP 12/12, counter 4")
+	assert_eq(main._target_detail_text(enemy), "Enemy HP 12/12, counter 4")
 
-	main._handle_interact_requested()
+	_attack_enemy_once(main, "enemy_road_thug")
 
-	assert_eq(main.player.health, 96)
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
+	assert_eq(main.player.health, 100)
+	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 10)
 
 
 func test_main_sanitizes_malformed_runtime_rest_amount() -> void:
@@ -539,14 +518,12 @@ func test_player_defeat_recovers_at_spawn() -> void:
 
 	main.player.set_world_position(Vector2(-24.0, 24.0))
 	main.player.set_health(2)
-	_select_kind(main, "enemy")
 
-	main._handle_interact_requested()
+	main._handle_player_defeated("Road Thug")
 
 	assert_eq(defeat_sources, ["Road Thug"])
 	assert_eq(main.player.health, main.player.max_health)
 	assert_eq(main.player.global_tile, Vector2i.ZERO)
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
 	assert_not_null(main.entities.get_entity("enemy_road_thug"))
 
 
@@ -557,8 +534,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 
 	_select_entity(main, "pickup_old_toolbox")
 	main._handle_interact_requested()
-	_select_kind(main, "enemy")
-	main._handle_interact_requested()
+	_attack_enemy_once(main, "enemy_road_thug")
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
 	assert_true(main.time.advance_hours(6))
@@ -577,11 +553,11 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 
 	assert_true(main.save_manager.load_game())
 
-	assert_eq(main.player.health, 96)
+	assert_eq(main.player.health, 100)
 	assert_eq(main.equipment.get_equipped_item("weapon"), "")
 	assert_true(main.inventory.has_item("item_old_toolbox"))
 	assert_eq(main.quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
+	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 10)
 	assert_true(main.chunks.is_object_opened("object_road_cache", Vector2i(-7, 2)))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 	assert_eq(main.progression.level, 1)
@@ -595,9 +571,7 @@ func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
 	add_child_autofree(main)
 	main.save_manager.save_path = TEST_SAVE_PATH
 
-	_select_kind(main, "enemy")
-	main._handle_interact_requested()
-	main._handle_interact_requested()
+	_attack_enemy_until_defeated(main, "enemy_road_thug")
 
 	assert_null(main.entities.get_entity("enemy_road_thug"))
 	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
@@ -639,6 +613,27 @@ func _select_kind(main, kind: String) -> void:
 			return
 		main._handle_cycle_target_requested()
 	fail_test("Could not select nearby kind: %s" % kind)
+
+
+func _stand_by_enemy(main, entity_id: String) -> void:
+	var enemy = main.entities.get_entity(entity_id)
+	assert_not_null(enemy)
+	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	main._update_nearby()
+
+
+func _attack_enemy_once(main, entity_id: String) -> void:
+	_stand_by_enemy(main, entity_id)
+	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+
+
+func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+	for _i in range(8):
+		if not main.entities.get_entity(entity_id):
+			return
+		_attack_enemy_once(main, entity_id)
+	assert_null(main.entities.get_entity(entity_id))
 
 
 func _select_entity(main, entity_id: String) -> void:

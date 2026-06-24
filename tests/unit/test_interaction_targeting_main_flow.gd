@@ -18,7 +18,7 @@ class BlockingChunks:
 		return "water" if not is_walkable(tile) else "grass"
 
 
-func test_default_interact_prefers_faced_target_without_target_menu() -> void:
+func test_default_interact_ignores_enemy_as_interaction_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
@@ -28,17 +28,12 @@ func test_default_interact_prefers_faced_target_without_target_menu() -> void:
 	var enemy = main.entities.get_entity("enemy_road_thug")
 	main.player.set_world_position(enemy.global_position + Vector2(8.0, 0.0))
 	main.player.set_facing_direction(Vector2.LEFT)
-	var west_target = main._get_nearby_entity()
+	var target = main._get_nearby_entity()
 
-	assert_not_null(west_target)
-	assert_eq(west_target.get_entity_id(), "enemy_road_thug")
-	assert_eq(main.get_debug_state()["primary_action"], "Attack")
+	assert_true(target == null or target.get_kind() != "enemy")
+	assert_ne(main.get_debug_state()["primary_action"], "Attack")
 	assert_false(main.manual_target_locked)
-
-	main._handle_interact_requested()
-
-	assert_true(main.hud.log_label.text.contains("Hit Road Thug"))
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
+	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
 
 	var harrow = main.entities.get_entity("npc_harrow_venn_world")
 	main.player.set_world_position(harrow.global_position + Vector2(-8.0, 0.0))

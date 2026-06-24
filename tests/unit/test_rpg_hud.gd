@@ -126,7 +126,7 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
 	assert_false((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
-func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void:
+func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
 
@@ -134,29 +134,15 @@ func test_rpg_target_picker_uses_framed_focus_panel_and_routes_targets() -> void
 	hud.target_used.connect(func(entity_id: String) -> void: used_targets.append(entity_id))
 	hud.toggle_target_picker()
 
-	assert_true(hud.is_target_picker_visible())
-	assert_eq((hud.target_panel.find_child("TargetTitle", true, false) as Label).text, "Focus Target")
-	assert_eq(hud.target_scroll.get_child(0), hud.target_list)
-	var row := _button_containing(hud.target_list, "Harrow Venn")
-	assert_not_null(row)
-	assert_eq(row.alignment, HORIZONTAL_ALIGNMENT_LEFT)
-	assert_false(row.text.begins_with("T  "))
-	assert_false(row.text.contains("Selected:"))
-	assert_true(row.text.contains("Talk"))
-	assert_true(row.text.contains("Blacksmith"))
-	assert_true(row.text.contains("Road Notice"))
-	assert_true(row.tooltip_text.contains("Harrow Venn"))
-	var target_rect := _anchored_rect(hud.target_panel, Vector2(640, 360))
-	for action_rect in _visible_button_rects(hud.action_buttons):
-		assert_false(target_rect.intersects(action_rect))
-	row.pressed.emit()
-	assert_eq(used_targets, ["npc_harrow_venn_world"])
+	assert_false(hud.is_target_picker_visible())
+	assert_false(hud.target_panel.visible)
+	assert_eq(used_targets, [])
 	assert_true(hud.action_buttons.visible)
-	assert_false(hud.move_pad.visible)
+	assert_true(hud.move_pad.visible)
 
 	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
 	assert_null(close)
-	assert_eq(hud.target_action_button.text, "Close")
+	assert_eq(hud.target_action_button.text, "Sneak")
 	hud.target_action_button.pressed.emit()
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
@@ -229,10 +215,11 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
 	assert_not_null(utility_stack)
 	var inventory := utility_stack.find_child("InventoryButton", true, false) as Button
-	var target := utility_stack.find_child("TargetButton", true, false) as Button
+	var sneak := utility_stack.find_child("SneakButton", true, false) as Button
 	var menu := utility_stack.find_child("MenuButton", true, false) as Button
-	assert_not_null(target)
-	assert_eq(hud.target_action_button, target)
+	assert_not_null(sneak)
+	assert_null(utility_stack.find_child("TargetButton", true, false))
+	assert_eq(hud.target_action_button, sneak)
 
 	inventory.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
@@ -249,8 +236,9 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(aim_events[0]["direction"], Vector2.RIGHT)
 	assert_eq(interact_events, [])
 
-	target.pressed.emit()
-	assert_eq(cycle_events, ["cycle"])
+	sneak.pressed.emit()
+	assert_eq(cycle_events, [])
+	assert_false(hud.is_target_picker_visible())
 	ability._start_aim(Vector2.ZERO)
 	ability._finish_aim(Vector2(0, -32))
 	assert_eq(aim_events[1]["action_id"], "ability_1")
@@ -279,12 +267,8 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	hud._apply_layout_for_size(Vector2(640, 360))
 
 	var context_actions: Array[String] = []
-	var combat_actions: Array[String] = []
 	hud.context_action_selected.connect(
 		func(action_id: String) -> void: context_actions.append(action_id)
-	)
-	hud.combat_action_selected.connect(
-		func(action_id: String) -> void: combat_actions.append(action_id)
 	)
 
 	hud._refresh_context_actions(
@@ -319,14 +303,8 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_eq(context_actions, ["dialogue:accept"])
 
 	hud._refresh_context_actions({"combat_actions": [{"id": "guard", "text": "Guard"}]})
-	assert_eq(
-		(hud.context_action_panel.find_child("QuickActionTitle", true, false) as Label).text,
-		"Combat Actions"
-	)
-	var guard := _button_containing(hud.context_action_buttons, "Guard")
-	assert_not_null(guard)
-	guard.pressed.emit()
-	assert_eq(combat_actions, ["guard"])
+	assert_false(hud.context_action_panel.visible)
+	assert_null(_button_containing(hud.context_action_buttons, "Guard"))
 
 func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() -> void:
 	var hud := _new_hud()

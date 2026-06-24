@@ -12,8 +12,6 @@ static func for_kind(kind: String) -> String:
 			return "Pick Up"
 		"container", "door":
 			return "Open"
-		"enemy":
-			return "Attack"
 		"rest":
 			return "Rest"
 		"poi":

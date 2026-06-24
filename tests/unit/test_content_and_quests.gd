@@ -139,11 +139,13 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 		{
 			"id": "item_bad_numeric",
 			"name": "Bad",
+			"type": "weapon",
 			"max_stack": "many",
 			"value": "free",
 			"equipment_slot": "hands",
 			"damage_bonus": "heavy",
-			"guard_counter_multiplier": 0
+			"guard_counter_multiplier": 0,
+			"weapon_attack": {"attack_interval_seconds": 0}
 		}
 	}
 	broken.readables = {
@@ -441,6 +443,7 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("unsupported equipment_slot"))
 	assert_true(joined.contains("Item item_bad_numeric damage_bonus must be numeric"))
 	assert_true(joined.contains("non-positive guard_counter_multiplier"))
+	assert_true(joined.contains("weapon_attack must have positive attack_interval_seconds"))
 	assert_true(joined.contains("item item_bad effects_on_use has malformed effect"))
 	assert_true(joined.contains("item item_bad effects_on_use heal_player amount must be numeric"))
 	assert_true(joined.contains("count must be numeric"))

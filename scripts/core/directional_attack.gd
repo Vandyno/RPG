@@ -8,6 +8,7 @@ const DEFAULT_ATTACK := {
 	"width_pixels": 30.0,
 	"arc_degrees": 100.0,
 	"damage": 2,
+	"attack_interval_seconds": 0.55,
 	"visual": "swing"
 }
 
@@ -87,6 +88,10 @@ static func spell_attack(spell: Dictionary) -> Dictionary:
 		},
 		_dictionary_field(spell.get("attack", {}))
 	)
+
+
+static func is_melee_attack(attack: Dictionary) -> bool:
+	return not ["projectile"].has(String(attack.get("shape", "swing")))
 
 
 static func _merged_attack(base: Dictionary, override: Dictionary) -> Dictionary:

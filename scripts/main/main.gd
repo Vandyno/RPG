@@ -71,9 +71,9 @@ var auto_move_stuck_seconds := 0.0
 var auto_move_path: Array = []
 var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
-var guarding_next_attack := false
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
+var held_weapon_attack_elapsed: Dictionary = {}
 func _ready() -> void:
 	_bootstrap()
 	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
@@ -114,7 +114,6 @@ func _bootstrap() -> void:
 	factions.name = "FactionManager"
 	add_child(factions)
 	factions.setup(event_bus, content)
-
 	progression = ProgressionManagerScript.new()
 	progression.name = "ProgressionManager"
 	add_child(progression)
@@ -231,7 +230,6 @@ func _bootstrap() -> void:
 		func(action_id: String, direction: Vector2, delta: float) -> void:
 			MainSystemsActions.handle_aim_held(self, action_id, direction, delta)
 	)
-	hud.combat_action_selected.connect(_handle_combat_action_selected)
 	hud.context_action_selected.connect(_handle_context_action_selected)
 	hud.save_pressed.connect(_handle_save_requested)
 	hud.load_pressed.connect(_handle_load_requested)
@@ -412,8 +410,6 @@ func _interact() -> void:
 			PoiInteraction.interact_with_main(entity, self)
 		"npc":
 			_interact_npc(entity)
-		"enemy":
-			_interact_enemy(entity)
 		"rest":
 			_interact_rest(entity)
 		_:
@@ -484,52 +480,8 @@ func _interact_npc(entity) -> void:
 	_update_nearby()
 
 
-func _interact_enemy(entity) -> void:
-	var defeat_effects := _array_field(entity.data.get("effects_on_defeat", []))
-	var result: Dictionary = combat.attack_entity(entity, guarding_next_attack)
-	guarding_next_attack = false
-	if bool(result.get("defeated", false)):
-		combat.clear_entity(entity.get_entity_id())
-		entities.remove_entity(entity.get_entity_id())
-		event_bus.post_message("Defeated %s." % result.get("name", "enemy"))
-		for effect in defeat_effects:
-			if effect is Dictionary:
-				apply_effect(effect, false)
-		var reward_text: String = effect_runner.describe_effects(defeat_effects)
-		if not reward_text.is_empty():
-			event_bus.post_message("Rewards: %s." % reward_text)
-		_update_nearby()
-		return
-	var counter_damage := _non_negative_int_value(result.get("counter_damage", 0), 0)
-	if counter_damage > 0:
-		player.apply_damage(counter_damage)
-		if player.health <= 0:
-			_handle_player_defeated(String(result.get("name", "enemy")))
-			return
-	event_bus.post_message(_combat_hit_message(result, counter_damage))
-
-func _handle_combat_action_selected(action_id: String) -> void:
-	match action_id:
-		"attack":
-			_handle_interact_requested()
-		"guard":
-			_handle_guard_requested()
-		_:
-			event_bus.post_message("Unknown combat action.")
-
 func _handle_context_action_selected(action_id: String) -> void:
 	MainContextActions.handle(self, action_id)
-
-
-func _handle_guard_requested() -> void:
-	var entity = _get_nearby_entity()
-	if not entity or entity.get_kind() != "enemy":
-		event_bus.post_message("No enemy to guard against.")
-		guarding_next_attack = false
-		return
-	guarding_next_attack = true
-	event_bus.post_message("Guarding against %s." % entity.get_display_name())
-	_refresh_hud()
 
 
 func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
@@ -555,7 +507,6 @@ func _handle_player_defeated(source_name: String) -> void:
 	target_cycle_index = 0
 	selected_target_id = ""
 	manual_target_locked = false
-	guarding_next_attack = false
 	event_bus.post_message("You fall to %s, then recover at the bridge campfire." % source_name)
 
 
@@ -872,8 +823,8 @@ func _enemy_detail_text(entity) -> String:
 		entity.data, "attack_damage", CombatManagerScript.DEFAULT_ENEMY_DAMAGE
 	)
 	return (
-		"Enemy HP %d/%d, counter %d%s"
-		% [health, max_health, attack_damage, ", guarding" if guarding_next_attack else ""]
+		"Enemy HP %d/%d, counter %d"
+		% [health, max_health, attack_damage]
 	)
 
 
@@ -908,12 +859,6 @@ func _nearby_targets_data() -> Array[Dictionary]:
 			}
 		)
 	return targets
-
-func _combat_actions_data(entity) -> Array:
-	if not entity or entity.get_kind() != "enemy":
-		return []
-	var attack := {"id": "attack", "text": "Attack"}
-	return [attack] if guarding_next_attack else [attack, {"id": "guard", "text": "Guard"}]
 
 func _get_nearby_entity():
 	var nearby_entities := _get_nearby_entities()

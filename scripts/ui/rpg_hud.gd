@@ -399,12 +399,8 @@ func _build_touch_controls() -> void:
 		Callable(self, "show_systems_panel").bind("inventory")
 	)
 	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
-	target_action_button = utility_buttons["target"] as Button
-	HoldActionButton.bind(
-		target_action_button,
-		Callable(self, "_press_target_control"),
-		Callable(self, "_hold_target_control")
-	)
+	target_action_button = utility_buttons["sneak"] as Button
+	target_action_button.pressed.connect(Callable(self, "_press_target_control"))
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
 		root,
@@ -638,20 +634,25 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
 	if not target_action_button:
 		return
-	target_action_button.text = "Close" if is_target_picker_visible() else "Target"
+	target_action_button.text = "Sneak"
+	target_action_button.tooltip_text = "Sneak"
 	target_action_button.add_theme_font_size_override(
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)
 
 func _press_target_control() -> void:
-	if is_target_picker_visible():
-		toggle_target_picker()
-	else:
-		cycle_target_pressed.emit()
+	if event_bus:
+		event_bus.post_message("Sneaking.")
 
 func _hold_target_control() -> void:
-	if not is_target_picker_visible():
-		toggle_target_picker()
+	pass
+
+func toggle_target_picker() -> void:
+	if target_panel:
+		target_panel.visible = false
+
+func is_target_picker_visible() -> bool:
+	return false
 
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
@@ -859,25 +860,18 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if content_preview_panel:
 		content_preview_panel.visible = not content_preview_label.text.is_empty()
 
-func _refresh_target_picker(state: Dictionary) -> void:
-	if not target_list or not target_panel.visible:
-		return
-	RpgTargetPanelBuilder.refresh(
-		target_list, _array_field(state.get("nearby_targets", [])),
-		Callable(self, "_new_label"), Callable(self, "_new_button"),
-		Callable(self, "_apply_row_button_style"),
-		func(entity_id: String) -> void: target_used.emit(entity_id),
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	)
+func _refresh_target_picker(_state: Dictionary) -> void:
+	if target_panel:
+		target_panel.visible = false
 func _refresh_context_actions(state: Dictionary) -> void:
 	if not context_action_buttons:
 		return
-	if _has_open_overlay_panel():
+	if _has_open_overlay_panel() or not state.has("context_actions"):
 		visible_context_action_count = 0
 		context_action_panel.visible = false
 		return
-	var context_mode := state.has("context_actions")
-	var actions := _array_field(state.get("context_actions" if context_mode else "combat_actions", []))
+	var context_mode := true
+	var actions := _array_field(state.get("context_actions", []))
 	visible_context_action_count = RpgContextActionPanelBuilder.refresh(
 		context_action_buttons, actions, Callable(self, "_new_button"),
 		Callable(self, "_apply_row_button_style"),
