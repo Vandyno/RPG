@@ -29,6 +29,7 @@ static func build(
 		slot.setup_slot(slot_id)
 		slot.custom_minimum_size = Vector2(0, 50)
 		slot.focus_mode = Control.FOCUS_NONE
+		slot.mouse_filter = Control.MOUSE_FILTER_STOP
 		slot.spell_dropped.connect(drop_callback)
 		button_style.call(slot)
 		slot.add_theme_font_size_override("font_size", 12)

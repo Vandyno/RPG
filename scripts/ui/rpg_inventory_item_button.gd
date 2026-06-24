@@ -1,6 +1,11 @@
 class_name RpgInventoryItemButton
 extends Button
 
+const DRAG_THRESHOLD := 6.0
+
+var drag_start := Vector2.ZERO
+var drag_pointer_down := false
+
 
 func set_card_data(row: Dictionary) -> void:
 	set_meta("card_icon", _card_icon(row))
@@ -43,26 +48,57 @@ func _draw() -> void:
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
+	var payload := _drag_payload()
+	if payload.is_empty():
+		return null
+	var preview := _drag_preview()
+	_apply_drag_preview(preview)
+	return payload
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		drag_pointer_down = event.pressed
+		drag_start = event.position
+	elif event is InputEventMouseMotion and drag_pointer_down:
+		_try_force_drag(event.position)
+	elif event is InputEventScreenTouch:
+		drag_pointer_down = event.pressed
+		drag_start = event.position
+	elif event is InputEventScreenDrag and drag_pointer_down:
+		_try_force_drag(event.position)
+
+
+func _try_force_drag(position: Vector2) -> void:
+	if position.distance_to(drag_start) < DRAG_THRESHOLD:
+		return
+	var payload := _drag_payload()
+	if payload.is_empty():
+		return
+	drag_pointer_down = false
+	force_drag(payload, _drag_preview())
+
+
+func _drag_payload() -> Dictionary:
 	var spell_id := String(get_meta("spell_id", ""))
 	if not spell_id.is_empty():
-		var spell_preview := Label.new()
-		spell_preview.text = _preview_text()
-		spell_preview.add_theme_font_size_override("font_size", 14)
-		_apply_drag_preview(spell_preview)
 		return {"type": "spell", "spell_id": spell_id}
 	var item_id := String(get_meta("item_id", ""))
 	var equipment_slot := String(get_meta("equipment_slot", ""))
 	if item_id.is_empty() or equipment_slot.is_empty():
-		return null
-	var preview := Label.new()
-	preview.text = _preview_text()
-	preview.add_theme_font_size_override("font_size", 14)
-	_apply_drag_preview(preview)
+		return {}
 	return {
 		"type": "inventory_item",
 		"item_id": item_id,
 		"equipment_slot": equipment_slot
 	}
+
+
+func _drag_preview() -> Label:
+	var preview := Label.new()
+	preview.text = _preview_text()
+	preview.add_theme_font_size_override("font_size", 14)
+	return preview
 
 
 func _preview_text() -> String:

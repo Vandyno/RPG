@@ -312,6 +312,10 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	)
 	systems_spell_slot_panel = spell_slot_nodes["panel"]
 	systems_spell_slot_buttons = spell_slot_nodes["buttons"]
+	for slot_id in systems_spell_slot_buttons:
+		var spell_slot := systems_spell_slot_buttons[slot_id] as Button
+		if spell_slot:
+			spell_slot.pressed.connect(Callable(self, "_on_spell_slot_pressed").bind(String(slot_id)))
 
 	systems_character_panel = _new_panel("SystemsCharacterPanel")
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
@@ -643,10 +647,6 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 func _press_target_control() -> void:
 	if event_bus:
 		event_bus.post_message("Sneaking.")
-
-func _hold_target_control() -> void:
-	pass
-
 func toggle_target_picker() -> void:
 	if target_panel:
 		target_panel.visible = false
@@ -784,7 +784,6 @@ func _select_systems_row(row_id: String) -> void:
 		return
 	systems_selected_row_id = row_id
 	_refresh_systems_chrome(_state_snapshot())
-
 func _select_systems_category(category_id: String) -> void:
 	if category_id.is_empty():
 		return
@@ -795,12 +794,19 @@ func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	if item_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit("equip_slot:%s:%s" % [item_id, slot_id])
-
 func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
 	if spell_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit("assign_spell:%s:%s" % [spell_id, slot_id])
 
+func _on_spell_slot_pressed(slot_id: String) -> void:
+	if (
+		systems_active_tab != "spells"
+		or slot_id.is_empty()
+		or not systems_selected_row_id.begins_with("spell_")
+	):
+		return
+	_on_spell_slot_dropped(slot_id, systems_selected_row_id.substr(6))
 func _category_id_for_label(label: String) -> String:
 	return "restoration" if label == "Restore" else label.to_lower()
 

@@ -117,6 +117,11 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true(slot._can_drop_data(Vector2.ZERO, drag))
 	slot._drop_data(Vector2.ZERO, drag)
 	assert_eq(emitted, ["assign_spell:spell_fire_blast:ability_1"])
+	emitted.clear()
+	var slot_2 := hud.systems_spell_slot_buttons["ability_2"] as RpgSpellSlot
+	assert_not_null(slot_2)
+	slot_2.pressed.emit()
+	assert_eq(emitted, ["assign_spell:spell_fire_blast:ability_2"])
 
 	hud.refresh()
 	var ability := hud.ability_slot_buttons["ability_1"] as Button
