@@ -7,6 +7,13 @@
 		"mana_cost": 5,
 		"mana_drain_per_second": 8,
 		"channel": true,
+		"attack": {
+			"shape": "stream",
+			"range_pixels": 96,
+			"width_pixels": 50,
+			"damage_per_second": 8,
+			"visual": "fire_stream"
+		},
 		"range": "6 tiles",
 		"behavior": "Channels a short flamethrower in the aimed direction while held."
 	}

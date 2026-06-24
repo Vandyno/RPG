@@ -57,11 +57,17 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim_held(main, "ability_1", Vector2.RIGHT, 0.625)
+	MainSystemsActions.handle_aim_held(main, "ability_1", Vector2.RIGHT, 1.0)
 
-	assert_eq(main.selected_id, "enemy_east")
-	assert_eq(main.player.mana, 95.0)
-	assert_eq(main.calls, ["message:Fire Blast burns Road Thug.", "hit:enemy_east", "refresh"])
+	assert_eq(main.player.mana, 92.0)
+	assert_eq(
+		main.calls,
+		[
+			"damage:enemy_east:1",
+			"message:Fire Blast hits Road Thug for 1.",
+			"refresh"
+		]
+	)
 
 
 func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
@@ -77,18 +83,25 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 
 	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
 
-	assert_eq(main.selected_id, "enemy_west")
-	assert_eq(main.calls, ["hit:enemy_west", "refresh"])
+	assert_eq(
+		main.calls,
+		[
+			"damage:enemy_west:2",
+			"message:Unarmed hits River Ruffian for 2.",
+			"refresh"
+		]
+	)
 
 
 func test_handle_aim_attack_swings_without_target() -> void:
 	var main := AimMainStub.new()
 	main.enemies.clear()
+	main.entities.entities_by_id.clear()
 
 	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
 
 	assert_eq(main.player.facing_direction, Vector2.RIGHT)
-	assert_eq(main.calls, ["message:Swung east.", "refresh"])
+	assert_eq(main.calls, ["message:Attacked east.", "refresh"])
 
 
 class MainStub:
@@ -149,12 +162,16 @@ class AimMainStub:
 	var content := AimContentStub.new()
 	var event_bus := AimBusStub.new(calls)
 	var player := AimPlayerStub.new()
+	var equipment := AimEquipmentStub.new()
+	var combat := AimCombatStub.new(calls)
+	var effect_runner := AimEffectRunnerStub.new()
 	var channeled_spell_damage_bank: Dictionary = {}
 	var channeled_spell_empty_reported: Dictionary = {}
 	var enemies := [
-		AimEntityStub.new("enemy_west", "River Ruffian", Vector2.LEFT * 48.0),
-		AimEntityStub.new("enemy_east", "Road Thug", Vector2.RIGHT * 48.0)
+		AimEntityStub.new("enemy_west", "River Ruffian", Vector2.LEFT * 28.0),
+		AimEntityStub.new("enemy_east", "Road Thug", Vector2.RIGHT * 28.0)
 	]
+	var entities := AimEntitiesStub.new(enemies)
 
 	func _get_nearby_entity():
 		return enemies[0]
@@ -171,6 +188,9 @@ class AimMainStub:
 
 	func _refresh_hud() -> void:
 		calls.append("refresh")
+
+	func apply_effect(_effect: Dictionary, _refresh: bool = true) -> void:
+		calls.append("effect")
 
 
 class AimSpellsStub:
@@ -190,9 +210,63 @@ class AimContentStub:
 				"name": "Fire Blast",
 				"mana_cost": 5,
 				"mana_drain_per_second": 8,
-				"channel": true
+				"channel": true,
+				"attack":
+				{
+					"shape": "stream",
+					"range_pixels": 96,
+					"width_pixels": 50,
+					"damage_per_second": 1,
+					"visual": "fire_stream"
+				}
 			}
 		return {}
+
+	func get_item(_item_id: String) -> Dictionary:
+		return {}
+
+
+class AimEquipmentStub:
+	extends RefCounted
+
+	func get_equipped_item(_slot: String) -> String:
+		return ""
+
+
+class AimCombatStub:
+	extends RefCounted
+
+	var calls: Array[String]
+
+	func _init(call_log: Array[String]) -> void:
+		calls = call_log
+
+	func damage_entity(entity, damage: int, _counter_enabled: bool = false) -> Dictionary:
+		calls.append("damage:%s:%d" % [entity.get_entity_id(), damage])
+		return {"name": entity.get_display_name(), "defeated": false}
+
+	func clear_entity(_entity_id: String) -> void:
+		pass
+
+
+class AimEffectRunnerStub:
+	extends RefCounted
+
+	func describe_effects(_effects: Array) -> String:
+		return ""
+
+
+class AimEntitiesStub:
+	extends RefCounted
+
+	var entities_by_id: Dictionary = {}
+
+	func _init(enemies: Array) -> void:
+		for enemy in enemies:
+			entities_by_id[enemy.get_entity_id()] = enemy
+
+	func remove_entity(entity_id: String) -> void:
+		entities_by_id.erase(entity_id)
 
 
 class AimBusStub:

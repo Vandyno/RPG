@@ -65,7 +65,84 @@
     "weight": 1.6,
     "tags": ["weapon"],
     "equipment_slot": "weapon",
-    "damage_bonus": 4
+    "damage_bonus": 4,
+    "weapon_attack": {
+      "name": "Hatchet Chop",
+      "shape": "swing",
+      "range_pixels": 42,
+      "width_pixels": 34,
+      "arc_degrees": 90,
+      "damage": 6,
+      "visual": "swing",
+      "miss_text": "Chopped"
+    }
+  },
+  "item_training_sword": {
+    "id": "item_training_sword",
+    "name": "Training Sword",
+    "description": "A plain arming sword with enough edge for real side-to-side cuts.",
+    "type": "weapon",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 22,
+    "weight": 2.2,
+    "tags": ["weapon"],
+    "equipment_slot": "weapon",
+    "damage_bonus": 3,
+    "weapon_attack": {
+      "name": "Sword Cut",
+      "shape": "swing",
+      "range_pixels": 50,
+      "width_pixels": 38,
+      "arc_degrees": 125,
+      "damage": 5,
+      "visual": "swing",
+      "miss_text": "Slashed"
+    }
+  },
+  "item_test_polearm": {
+    "id": "item_test_polearm",
+    "name": "Test Polearm",
+    "description": "A long practice polearm built for straight thrusts into a narrow lane.",
+    "type": "weapon",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 26,
+    "weight": 4.8,
+    "tags": ["weapon"],
+    "equipment_slot": "weapon",
+    "damage_bonus": 2,
+    "weapon_attack": {
+      "name": "Polearm Thrust",
+      "shape": "thrust",
+      "range_pixels": 78,
+      "width_pixels": 18,
+      "damage": 7,
+      "visual": "thrust",
+      "miss_text": "Thrust"
+    }
+  },
+  "item_hunting_bow": {
+    "id": "item_hunting_bow",
+    "name": "Hunting Bow",
+    "description": "A light bow. Drag the attack wheel to aim, then release to fire.",
+    "type": "weapon",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 30,
+    "weight": 2.0,
+    "tags": ["weapon", "bow"],
+    "equipment_slot": "weapon",
+    "damage_bonus": 1,
+    "weapon_attack": {
+      "name": "Arrow Shot",
+      "shape": "projectile",
+      "range_pixels": 150,
+      "width_pixels": 14,
+      "damage": 5,
+      "visual": "projectile",
+      "miss_text": "Fired"
+    }
   },
   "item_traveler_buckler": {
     "id": "item_traveler_buckler",

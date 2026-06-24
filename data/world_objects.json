@@ -188,6 +188,30 @@
     "count": 1
   },
   {
+    "id": "pickup_training_sword",
+    "name": "Training Sword",
+    "kind": "pickup",
+    "global_tile": [-2, 2],
+    "item_id": "item_training_sword",
+    "count": 1
+  },
+  {
+    "id": "pickup_test_polearm",
+    "name": "Test Polearm",
+    "kind": "pickup",
+    "global_tile": [-1, 2],
+    "item_id": "item_test_polearm",
+    "count": 1
+  },
+  {
+    "id": "pickup_hunting_bow",
+    "name": "Hunting Bow",
+    "kind": "pickup",
+    "global_tile": [-2, 3],
+    "item_id": "item_hunting_bow",
+    "count": 1
+  },
+  {
     "id": "pickup_traveler_buckler",
     "name": "Traveler Buckler",
     "kind": "pickup",

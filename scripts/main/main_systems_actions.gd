@@ -3,6 +3,8 @@ extends RefCounted
 
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
 const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
+const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
+const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
 
 const MIN_AIM_DIRECTION := 0.1
 
@@ -45,16 +47,11 @@ static func handle_aim(main, action_id: String, direction: Vector2) -> void:
 	var attack_action := action_id == "attack" or action_id == "primary"
 	if direction.length() > MIN_AIM_DIRECTION and main.player.has_method("set_facing_direction"):
 		main.player.set_facing_direction(direction)
-	var aimed_entity = _select_aimed_target(main, direction, true)
-	if action_id == "primary":
-		return
 	if attack_action:
-		if aimed_entity and aimed_entity.get_kind() == "enemy":
-			main._interact_enemy(aimed_entity)
-		else:
-			main.event_bus.post_message("Swung %s." % _direction_text(direction))
+		_perform_weapon_attack(main, direction)
 		main._refresh_hud()
 		return
+	var aimed_entity = _select_aimed_target(main, direction, true)
 	var spell_id: String = main.spells.get_assigned_spell(action_id) if main.spells else ""
 	var spell: Dictionary = main.content.get_spell(spell_id)
 	if spell.is_empty():
@@ -96,18 +93,16 @@ static func handle_aim_held(main, action_id: String, direction: Vector2, delta: 
 		main._refresh_hud()
 		return
 	main.channeled_spell_empty_reported[action_id] = false
-	var pulse_cost := maxf(1.0, float(spell.get("mana_cost", 1)))
-	var bank: float = float(main.channeled_spell_damage_bank.get(action_id, 0.0)) + spent
-	while bank >= pulse_cost:
-		bank -= pulse_cost
-		var aimed_entity = _select_aimed_target(main, direction, true)
-		if aimed_entity and aimed_entity.get_kind() == "enemy":
-			main.event_bus.post_message(
-				"%s burns %s." % [spell_name, aimed_entity.get_display_name()]
-			)
-			main._interact_enemy(aimed_entity)
-		else:
-			main.event_bus.post_message("%s pours %s." % [spell_name, _direction_text(direction)])
+	var attack := DirectionalAttack.spell_attack(spell)
+	_spawn_effect(main, String(attack.get("visual", "fire_stream")), direction, attack)
+	var dps := maxf(0.0, float(attack.get("damage_per_second", spell.get("mana_cost", 1))))
+	var bank: float = float(main.channeled_spell_damage_bank.get(action_id, 0.0)) + dps * delta
+	while bank >= 1.0:
+		bank -= 1.0
+		var targets := DirectionalAttack.targets_in_shape(
+			main, main.player.global_position, direction, attack
+		)
+		_damage_targets(main, targets, 1, spell_name)
 	main.channeled_spell_damage_bank[action_id] = bank
 	main._refresh_hud()
 
@@ -136,6 +131,60 @@ static func _handle_equip_item_to_slot(main, item_id: String, slot_id: String) -
 		return
 	main.event_bus.post_message("Equipped %s." % String(item.get("name", item_id)))
 	main._refresh_hud()
+
+
+static func _perform_weapon_attack(main, direction: Vector2) -> void:
+	if direction.length() <= MIN_AIM_DIRECTION:
+		main.event_bus.post_message("Aim attack first.")
+		return
+	var attack := DirectionalAttack.weapon_attack(main.content, main.equipment)
+	_spawn_effect(main, String(attack.get("visual", attack.get("shape", "swing"))), direction, attack)
+	var targets := DirectionalAttack.targets_in_shape(
+		main, main.player.global_position, direction, attack
+	)
+	if targets.is_empty():
+		main.event_bus.post_message(
+			"%s %s." % [String(attack.get("miss_text", "Attacked")), _direction_text(direction)]
+		)
+		return
+	var damage := maxi(1, int(attack.get("damage", 2)))
+	_damage_targets(main, targets, damage, String(attack.get("item_name", "Attack")))
+
+
+static func _damage_targets(main, targets: Array, damage: int, source_name: String) -> void:
+	for entity in targets:
+		if not entity or entity.get_kind() != "enemy":
+			continue
+		var result: Dictionary = main.combat.damage_entity(entity, damage, false)
+		if bool(result.get("defeated", false)):
+			_defeat_enemy(main, entity, result)
+		else:
+			main.event_bus.post_message(
+				"%s hits %s for %d." % [source_name, entity.get_display_name(), damage]
+			)
+
+
+static func _defeat_enemy(main, entity, result: Dictionary) -> void:
+	var defeat_effects := []
+	if entity and entity.data is Dictionary:
+		defeat_effects = entity.data.get("effects_on_defeat", [])
+	main.combat.clear_entity(entity.get_entity_id())
+	main.entities.remove_entity(entity.get_entity_id())
+	main.event_bus.post_message("Defeated %s." % result.get("name", "enemy"))
+	for effect in defeat_effects:
+		if effect is Dictionary:
+			main.apply_effect(effect, false)
+	var reward_text: String = main.effect_runner.describe_effects(defeat_effects)
+	if not reward_text.is_empty():
+		main.event_bus.post_message("Rewards: %s." % reward_text)
+
+
+static func _spawn_effect(main, visual: String, direction: Vector2, attack: Dictionary) -> void:
+	if not (main is Node):
+		return
+	var effect := CombatActionEffect.new()
+	main.add_child(effect)
+	effect.setup(visual, main.player.global_position, direction, attack)
 
 
 static func _select_aimed_target(main, direction: Vector2, enemies_only: bool):

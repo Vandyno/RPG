@@ -24,15 +24,22 @@ func setup(
 
 
 func attack_entity(entity, guarded: bool = false) -> Dictionary:
+	var damage := _attack_damage_for_entity(entity)
+	return damage_entity(entity, damage, true, guarded)
+
+
+func damage_entity(
+	entity, damage: int, counter_enabled: bool = false, guarded: bool = false
+) -> Dictionary:
 	var entity_id: String = entity.get_entity_id()
 	var max_health := _max_health_for_entity(entity)
 	var current_health := _clamped_entity_health(entity_id, max_health)
-	var damage := _attack_damage_for_entity(entity)
-	var next_health := maxi(0, current_health - damage)
+	var dealt_damage := maxi(1, damage)
+	var next_health := maxi(0, current_health - dealt_damage)
 	var defeated := next_health <= 0
 	var raw_counter_damage := (
 		0
-		if defeated
+		if defeated or not counter_enabled
 		else _non_negative_int_field(entity.data, "attack_damage", DEFAULT_ENEMY_DAMAGE)
 	)
 	var counter_damage := (
@@ -49,7 +56,7 @@ func attack_entity(entity, guarded: bool = false) -> Dictionary:
 	var result := {
 		"entity_id": entity_id,
 		"name": entity.get_display_name(),
-		"damage": damage,
+		"damage": dealt_damage,
 		"counter_damage": counter_damage,
 		"raw_counter_damage": raw_counter_damage,
 		"guarded": guarded and raw_counter_damage > counter_damage,
