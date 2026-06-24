@@ -36,15 +36,41 @@ func _draw() -> void:
 	draw_rect(icon_rect, icon_color, false, 1.3)
 	_draw_badge_icon(icon_rect, icon, icon_color)
 	var text_x := icon_rect.end.x + 12.0
-	var text_width := maxf(0.0, size.x - text_x - 12.0)
-	draw_string(font, Vector2(text_x, 28), title, HORIZONTAL_ALIGNMENT_LEFT, text_width, title_size,
-		Color(0.86, 1.0, 0.58, 0.98) if selected else Color(0.98, 0.92, 0.78, 0.98))
+	var right_pad := 12.0
+	var meta_width := 0.0
 	if not meta.is_empty():
-		draw_string(font, Vector2(text_x, 48), meta, HORIZONTAL_ALIGNMENT_LEFT, text_width, meta_size,
-			Color(0.82, 0.70, 0.50, 0.95))
+		meta_width = clampf(size.x * 0.18, 34.0, 72.0)
+	var title_width := maxf(0.0, size.x - text_x - right_pad - meta_width - 8.0)
+	var detail_width := maxf(0.0, size.x - text_x - right_pad)
+	draw_string(
+		font,
+		Vector2(text_x, 28),
+		title,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		title_width,
+		title_size,
+		Color(0.86, 1.0, 0.58, 0.98) if selected else Color(0.98, 0.92, 0.78, 0.98)
+	)
+	if not meta.is_empty():
+		draw_string(
+			font,
+			Vector2(size.x - right_pad - meta_width, 28),
+			meta,
+			HORIZONTAL_ALIGNMENT_RIGHT,
+			meta_width,
+			meta_size,
+			Color(0.82, 0.70, 0.50, 0.95)
+		)
 	if not detail.is_empty():
-		draw_string(font, Vector2(text_x, size.y - 12), detail, HORIZONTAL_ALIGNMENT_LEFT, text_width,
-			meta_size, Color(0.92, 0.86, 0.72, 0.94))
+		draw_string(
+			font,
+			Vector2(text_x, size.y - 12),
+			detail,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			detail_width,
+			meta_size,
+			Color(0.92, 0.86, 0.72, 0.94)
+		)
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:

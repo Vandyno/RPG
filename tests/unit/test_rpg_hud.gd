@@ -550,7 +550,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 
 	hud.set_systems_tab("trade")
 	assert_eq(_button_texts(hud.systems_category_row), ["Stock", "Buy", "Sell"])
-	assert_not_null(_button_containing(hud.systems_item_list, "Crossroads Peddler"))
+	assert_null(hud.systems_item_list.find_child("SystemsRow_TradeMerchant", false, false))
 	var draught_row := _button_containing(hud.systems_item_list, "Roadside Draught")
 	assert_not_null(draught_row)
 	assert_true(draught_row.text.contains("Buy Roadside Draught"))

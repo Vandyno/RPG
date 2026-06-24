@@ -590,26 +590,13 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 	var lines := _non_empty_lines(trade_text)
 	if not lines.is_empty() and not lines[0].contains(":") and not lines[0].begins_with("-"):
 		var merchant_name := lines[0]
-		var hours := ""
-		var gold := ""
 		var closed := false
 		var sell_text := ""
 		var in_sell_section := false
-		rows_data.append({
-			"id": "trade_merchant",
-			"title": merchant_name,
-			"subtitle": "Selected merchant",
-			"meta": "Shop",
-			"detail": trade_text
-		})
 		for index in range(1, lines.size()):
 			var line := lines[index]
-			if line.begins_with("Hours:"):
-				hours = _text_after_colon(line, "").strip_edges()
-			elif line == "Closed now.":
+			if line == "Closed now.":
 				closed = true
-			elif line.begins_with("Gold:"):
-				gold = _text_after_colon(line, "").strip_edges()
 			elif line.begins_with("Sell:"):
 				sell_text = _text_after_colon(line, "none").strip_edges()
 				in_sell_section = true
@@ -632,12 +619,6 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 					"meta": price,
 					"detail": _trade_item_detail(item_name, merchant_name, price, true)
 				})
-		var merchant_subtitle := _trade_merchant_subtitle(hours, gold, closed)
-		if not merchant_subtitle.is_empty():
-			rows_data[0]["subtitle"] = merchant_subtitle
-			rows_data[0]["detail"] = _trade_merchant_detail(
-				merchant_name, hours, gold, closed, trade_text
-			)
 		if sell_text == "none":
 			rows_data.append({
 				"id": "trade_sell_empty",
@@ -660,11 +641,7 @@ static func _trade_rows(state: Dictionary, category: String) -> Array[Dictionary
 				"meta": "Sell",
 				"detail": "%s\n\nTap this row to sell." % text
 			})
-		if rows_data.size() > 1:
-			if ["stock", "buy"].has(category) and rows_data[0].get("id", "") == "trade_merchant":
-				var merchant_row: Dictionary = rows_data[0]
-				rows_data.remove_at(0)
-				rows_data.append(merchant_row)
+		if not rows_data.is_empty():
 			return _category_filtered_rows(rows_data, category)
 	for line in lines:
 		rows_data.append({
@@ -734,8 +711,7 @@ static func _row_matches_category(row_text: String, category: String) -> bool:
 			)
 		"stock":
 			return (
-				row_text.contains("trade_merchant")
-				or row_text.contains("trade_stock")
+				row_text.contains("trade_stock")
 				or row_text.contains("buy ")
 				or row_text.contains("available")
 			)
@@ -759,34 +735,6 @@ static func _empty_category_row(category: String) -> Dictionary:
 		"meta": label,
 		"detail": "No %s entries available." % label.to_lower()
 	}
-
-
-static func _trade_merchant_subtitle(hours: String, gold: String, closed: bool) -> String:
-	var parts: Array[String] = []
-	if not hours.is_empty():
-		parts.append("Open %s" % hours)
-	if not gold.is_empty():
-		parts.append("Gold %s" % gold)
-	if closed:
-		parts.append("Closed now.")
-	return " - ".join(parts)
-
-
-static func _trade_merchant_detail(
-	merchant_name: String, hours: String, gold: String, closed: bool, trade_text: String
-) -> String:
-	var lines: Array[String] = [merchant_name, ""]
-	if not hours.is_empty():
-		lines.append("Hours: %s" % hours)
-	if not gold.is_empty():
-		lines.append("Merchant gold: %s" % gold)
-	lines.append("Status: %s" % ("Closed" if closed else "Open"))
-	lines.append("")
-	lines.append("Stock and sell offers")
-	for line in _non_empty_lines(trade_text):
-		if line.begins_with("- "):
-			lines.append(line)
-	return "\n".join(lines)
 
 
 static func _trade_item_detail(
