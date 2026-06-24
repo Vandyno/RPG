@@ -19,6 +19,8 @@ func test_mobile_touch_assist_reaches_small_pickup_without_mouse_precision() -> 
 	var touch_draught = touch_main.entities.get_entity("pickup_roadside_draught")
 	assert_not_null(touch_draught)
 	near_miss = touch_draught.global_position + Vector2(-45.0, 0.0)
+	touch_main.player.set_world_position(touch_draught.global_position + Vector2(-8.0, 0.0))
+	touch_main._update_nearby()
 
 	assert_true(
 		MainInputRouter.target_world(

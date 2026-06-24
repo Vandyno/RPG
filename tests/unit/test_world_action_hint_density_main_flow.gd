@@ -10,6 +10,9 @@ func test_nearby_spawn_hints_stay_sparse_around_selected_target() -> void:
 	var campfire = main.entities.get_entity("object_roadside_campfire")
 
 	assert_not_null(campfire)
+	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
+	campfire = main.entities.get_entity("object_roadside_campfire")
 	main._handle_target_selected("object_roadside_campfire")
 	main._update_nearby()
 
@@ -28,6 +31,9 @@ func test_nearby_spawn_hints_do_not_overlap_selected_hint() -> void:
 	var campfire = main.entities.get_entity("object_roadside_campfire")
 
 	assert_not_null(campfire)
+	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
+	campfire = main.entities.get_entity("object_roadside_campfire")
 	main._handle_target_selected("object_roadside_campfire")
 	main._update_nearby()
 
@@ -52,6 +58,9 @@ func test_unselected_spawn_hints_do_not_compete_with_player_ring() -> void:
 	var campfire = main.entities.get_entity("object_roadside_campfire")
 
 	assert_not_null(campfire)
+	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
+	campfire = main.entities.get_entity("object_roadside_campfire")
 	main._handle_target_selected("object_roadside_campfire")
 	main._update_nearby()
 

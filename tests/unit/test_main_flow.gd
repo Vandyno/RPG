@@ -15,6 +15,10 @@ func after_each() -> void:
 func test_target_cycle_touch_next_and_picker_uses_spawn_interactables() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var enemy = main.entities.get_entity("enemy_road_thug")
+	main.player.set_world_position(enemy.global_position + Vector2(8.0, 0.0))
+	main.player.set_facing_direction(Vector2.LEFT)
+	main._update_nearby()
 
 	var first = main._get_nearby_entity()
 	assert_not_null(first)
@@ -52,7 +56,7 @@ func test_target_cycle_touch_next_and_picker_uses_spawn_interactables() -> void:
 
 	assert_false(stale_main.hud.is_target_picker_visible())
 	assert_true(stale_main.hud.log_label.text.contains("Target is no longer nearby."))
-	assert_not_null(stale_main._get_nearby_entity())
+	assert_null(stale_main._get_nearby_entity())
 
 
 func test_selected_target_remains_stable_when_nearby_order_changes() -> void:
@@ -64,7 +68,7 @@ func test_selected_target_remains_stable_when_nearby_order_changes() -> void:
 	assert_not_null(selected)
 	var selected_id: String = selected.get_entity_id()
 
-	main.player.set_world_position(Vector2(12.0, 8.0))
+	main.player.set_world_position(selected.global_position + Vector2(4.0, 0.0))
 	var still_selected = main._get_nearby_entity()
 
 	assert_not_null(still_selected)
@@ -98,11 +102,7 @@ func test_rest_interaction_heals_player() -> void:
 	main.player.apply_damage(40)
 	assert_eq(main.player.health, 60)
 
-	for _i in range(8):
-		var entity = main._get_nearby_entity()
-		if entity and entity.get_kind() == "rest":
-			break
-		main._handle_cycle_target_requested()
+	_select_kind(main, "rest")
 
 	var rest = main._get_nearby_entity()
 	assert_not_null(rest)
@@ -203,6 +203,9 @@ func test_npc_completion_requires_authored_conditions() -> void:
 func test_open_systems_panel_consumes_interact_and_target_actions() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var notice = main.entities.get_entity("object_road_notice")
+	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
 	var first = main._get_nearby_entity()
 	assert_not_null(first)
 	var first_id: String = first.get_entity_id()
@@ -292,6 +295,7 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_not_null(main.entities.get_entity("object_warden_cache"))
 	assert_true(main.hud.is_content_card_visible())
 	assert_eq(main.hud.content_kind_label.text, "Readable")
+	main.hud.hide_content_card()
 
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
@@ -302,6 +306,7 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
 	assert_true(main.hud.is_content_card_visible())
 	assert_eq(main.hud.content_kind_label.text, "Result")
+	main.hud.hide_content_card()
 
 	_select_entity(main, "pickup_old_toolbox")
 	main._handle_interact_requested()
@@ -622,6 +627,12 @@ func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
 
 
 func _select_kind(main, kind: String) -> void:
+	for candidate in main.entities.entities_by_id.values():
+		if candidate and candidate.get_kind() == kind:
+			main.player.set_world_position(candidate.global_position + Vector2(-8.0, 0.0))
+			main.player.set_facing_direction(Vector2.RIGHT)
+			main._update_nearby()
+			break
 	for _i in range(24):
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_kind() == kind:
@@ -631,6 +642,11 @@ func _select_kind(main, kind: String) -> void:
 
 
 func _select_entity(main, entity_id: String) -> void:
+	var target = main.entities.get_entity(entity_id)
+	if target:
+		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
+		main.player.set_facing_direction(Vector2.RIGHT)
+		main._update_nearby()
 	for _i in range(24):
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:

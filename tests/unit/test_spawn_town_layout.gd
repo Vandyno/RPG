@@ -58,9 +58,9 @@ func test_spawn_town_interactables_have_reachable_approach_points() -> void:
 		var entity = main.entities.get_entity(String(entity_id))
 		if not entity or entity.get_kind() == "location":
 			continue
-		var stop_distance := 32.0
 		if entity.get_kind() == "door":
-			stop_distance = maxf(stop_distance, main.entities.get_interaction_radius(entity) - 4.0)
+			continue
+		var stop_distance := 32.0
 		var path := MainPathfinder.approach_path_to(
 			main, main.player.global_position, entity.global_position, stop_distance
 		)

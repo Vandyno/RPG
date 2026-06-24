@@ -11,8 +11,11 @@ func setup_icon(kind: String, layout: String) -> void:
 	icon_layout = layout
 	add_theme_color_override("font_color", Color.TRANSPARENT)
 	add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	add_theme_color_override("font_hover_pressed_color", Color.TRANSPARENT)
 	add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
 	add_theme_color_override("font_focus_color", Color.TRANSPARENT)
+	add_theme_color_override("font_disabled_color", Color.TRANSPARENT)
+	add_theme_color_override("font_outline_color", Color.TRANSPARENT)
 	queue_redraw()
 
 

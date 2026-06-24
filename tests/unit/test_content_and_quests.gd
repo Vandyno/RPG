@@ -541,10 +541,9 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		else:
 			assert_true(chunks.is_walkable(tile), "%s should not sit on blocked terrain." % entity_id)
 			assert_lte(
-				distance_from_spawn,
-				float(
-					entry.get("interaction_radius", EntityManager.DEFAULT_INTERACTION_RADIUS_PIXELS)
-				)
+				distance_from_spawn / GridMath.TILE_SIZE,
+				9.0,
+				"%s should stay near spawn, but not be interactable from spawn." % entity_id
 			)
 		found_ids.append(entity_id)
 

@@ -3,7 +3,8 @@ extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const WorldEntityScript = preload("res://scripts/world/world_entity.gd")
-const DEFAULT_INTERACTION_RADIUS_PIXELS := 96.0
+const DEFAULT_INTERACTION_RADIUS_PIXELS := 32.0
+const DOOR_INTERACTION_RADIUS_PIXELS := 48.0
 const NON_INTERACTIVE_KINDS := ["location"]
 
 var event_bus
@@ -266,8 +267,11 @@ func _conditions_pass(entry: Dictionary) -> bool:
 func _interaction_radius_for(entity, fallback: float) -> float:
 	var value: Variant = entity.data.get("interaction_radius", fallback)
 	if not _is_number(value) or float(value) <= 0.0:
-		return fallback
-	return maxf(fallback, float(value))
+		value = fallback
+	var capped := minf(fallback, float(value))
+	if entity.get_kind() == "door":
+		return maxf(capped, DOOR_INTERACTION_RADIUS_PIXELS)
+	return capped
 
 
 func _is_interactable(entity) -> bool:

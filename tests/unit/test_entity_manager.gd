@@ -61,7 +61,7 @@ func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> vo
 	var tapped = manager.get_entity("tapped")
 	var broad_reach_point: Vector2 = broad.global_position + Vector2(120.0, 0.0)
 
-	assert_eq(manager.get_interactables_world(broad_reach_point, 32.0)[0].get_entity_id(), "broad")
+	assert_true(manager.get_interactables_world(broad_reach_point, 32.0).is_empty())
 	assert_null(manager.get_interactable_at_world(broad_reach_point))
 	assert_eq(manager.get_interactable_at_world(tapped.global_position).get_entity_id(), "tapped")
 	assert_eq(manager.get_interactable_at_world(broad.global_position).get_entity_id(), "broad")
@@ -232,7 +232,7 @@ func test_interaction_lists_use_stable_name_tie_breaks() -> void:
 	assert_eq(nearest_tile.get_entity_id(), "alpha")
 
 
-func test_world_distance_uses_authored_interaction_radius() -> void:
+func test_world_distance_caps_authored_interaction_radius_to_requested_range() -> void:
 	var content := ContentStub.new()
 	content.world_objects = [
 		{
@@ -250,9 +250,13 @@ func test_world_distance_uses_authored_interaction_radius() -> void:
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0))
 
-	assert_eq(interactables.size(), 1)
+	assert_true(interactables.is_empty())
+	interactables = manager.get_interactables_world(Vector2(8.0, 8.0), 128.0)
+	assert_eq(interactables.size(), 2)
 	assert_eq(interactables[0].get_entity_id(), "extended")
-	assert_true(manager.get_navigation_summary(Vector2(8.0, 8.0)).contains("E 7.0t Extended"))
+	assert_true(
+		manager.get_navigation_summary(Vector2(8.0, 8.0), 128.0).contains("E 7.0t Extended")
+	)
 
 
 func test_enemy_entities_are_interactable_by_world_distance() -> void:

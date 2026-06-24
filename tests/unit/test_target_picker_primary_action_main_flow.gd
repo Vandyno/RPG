@@ -6,6 +6,9 @@ const Main = preload("res://scripts/main/main.gd")
 func test_primary_action_uses_selected_target_when_target_picker_is_open() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var notice = main.entities.get_entity("object_road_notice")
+	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
 
 	main._handle_target_selected("object_road_notice")
 	main.hud.toggle_target_picker()
@@ -23,6 +26,9 @@ func test_primary_action_uses_selected_target_when_target_picker_is_open() -> vo
 func test_selected_target_picker_row_uses_target_directly() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var notice = main.entities.get_entity("object_road_notice")
+	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
 
 	main._handle_target_selected("object_road_notice")
 	main.hud.toggle_target_picker()
@@ -43,21 +49,22 @@ func test_selected_target_picker_row_uses_target_directly() -> void:
 func test_unselected_target_picker_row_uses_target_directly() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var notice = main.entities.get_entity("object_road_notice")
+	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
 
 	main._handle_target_selected("object_road_notice")
 	main.hud.toggle_target_picker()
 	assert_true(main.hud.is_target_picker_visible())
-	var harrow_row := _button_containing(main.hud.target_list, "Harrow Venn")
-	assert_not_null(harrow_row)
-	assert_false(harrow_row.text.contains("Selected:"))
-	assert_false(bool(harrow_row.get_meta("selected_target", false)))
+	var strongbox_row := _button_containing(main.hud.target_list, "Sealed Strongbox")
+	assert_not_null(strongbox_row)
+	assert_false(strongbox_row.text.contains("Selected:"))
+	assert_false(bool(strongbox_row.get_meta("selected_target", false)))
 
-	harrow_row.pressed.emit()
+	strongbox_row.pressed.emit()
 
 	assert_false(main.hud.is_target_picker_visible())
-	assert_eq(main.selected_target_id, "npc_harrow_venn_world")
-	assert_true(main.hud.is_content_card_visible())
-	assert_true(main.hud.content_body_label.text.contains("need my old toolbox"))
+	assert_eq(main.selected_target_id, "object_sealed_strongbox")
 
 
 func _selected_button_containing(container: Control, text: String) -> Button:

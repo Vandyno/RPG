@@ -18,7 +18,9 @@ func test_world_quest_marker_tracks_objective_target_changes() -> void:
 	assert_not_null(target_toolbox)
 	target_toolbox.pressed.emit()
 	assert_false(main.hud.is_systems_panel_visible())
-	assert_eq(main.selected_target_id, "pickup_old_toolbox")
+	assert_true(main.entities.get_entity("pickup_old_toolbox").quest_marker_visible)
+	main.auto_interact_target_id = ""
+	main.auto_move_path = []
 
 	main.hud.hide_content_card()
 	_select_entity(main, "pickup_old_toolbox")
@@ -35,6 +37,11 @@ func test_world_quest_marker_tracks_objective_target_changes() -> void:
 
 
 func _select_entity(main, entity_id: String) -> void:
+	var target = main.entities.get_entity(entity_id)
+	if target:
+		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
+		main.player.set_facing_direction(Vector2.RIGHT)
+		main._update_nearby()
 	for _i in range(24):
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:

@@ -144,6 +144,10 @@ static func update_auto_interaction(main, delta_seconds: float) -> void:
 		main._handle_interact_requested()
 		return
 	_follow_auto_path_or_direction(main, entity.global_position, delta, delta_seconds)
+	entity = main.entities.get_entity(main.auto_interact_target_id)
+	if not entity or not is_instance_valid(entity):
+		_clear_auto_interaction(main)
+		return
 	_track_auto_interaction_progress(main, entity, delta_seconds)
 
 

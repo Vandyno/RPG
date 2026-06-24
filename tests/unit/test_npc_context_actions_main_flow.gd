@@ -121,6 +121,11 @@ func test_trade_feedback_reports_price_and_remaining_gold() -> void:
 
 
 func _select_entity(main, entity_id: String) -> void:
+	var target = main.entities.get_entity(entity_id)
+	if target:
+		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
+		main.player.set_facing_direction(Vector2.RIGHT)
+		main._update_nearby()
 	for _i in range(40):
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:

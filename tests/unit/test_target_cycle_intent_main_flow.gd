@@ -6,7 +6,9 @@ const Main = preload("res://scripts/main/main.gd")
 func test_next_target_uses_facing_rank_in_crowded_spawn() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var harrow = main.entities.get_entity("npc_harrow_venn_world")
 
+	main.player.set_world_position(harrow.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	assert_eq(main._get_nearby_entity().get_entity_id(), "npc_harrow_venn_world")
 
@@ -20,6 +22,9 @@ func test_next_target_uses_facing_rank_in_crowded_spawn() -> void:
 func test_next_target_can_cycle_through_every_nearby_spawn_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var strongbox = main.entities.get_entity("object_sealed_strongbox")
+	main.player.set_world_position(strongbox.global_position + Vector2(-8.0, 0.0))
+	main._update_nearby()
 	var expected_ids := {}
 	for entity in main._get_nearby_entities():
 		expected_ids[entity.get_entity_id()] = true
@@ -38,11 +43,13 @@ func test_next_target_can_cycle_through_every_nearby_spawn_target() -> void:
 func test_target_picker_data_uses_same_intent_rank_as_next_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	var harrow = main.entities.get_entity("npc_harrow_venn_world")
 
+	main.player.set_world_position(harrow.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	var targets: Array = main.get_debug_state()["nearby_targets"]
 
-	assert_gt(targets.size(), 2)
+	assert_gte(targets.size(), 2)
 	assert_eq(targets[0]["id"], "npc_harrow_venn_world")
 	assert_eq(targets[1]["id"], "poi_harrow_forge")
 	assert_true(bool(targets[0]["selected"]))

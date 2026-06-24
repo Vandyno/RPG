@@ -54,6 +54,11 @@ func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> vo
 
 
 func _select_entity(main, entity_id: String) -> void:
+	var target = main.entities.get_entity(entity_id)
+	if target:
+		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
+		main.player.set_facing_direction(Vector2.RIGHT)
+		main._update_nearby()
 	for _i in range(24):
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:
