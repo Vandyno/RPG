@@ -89,6 +89,8 @@ func _draw_icon_badge(rect: Rect2, color: Color) -> void:
 			_draw_sneak(center, radius, color)
 		"inventory":
 			_draw_bag(center, radius, color)
+		"weapon_swap":
+			_draw_weapon_swap(center, radius, color)
 		"spells":
 			_draw_spell(center, radius, color)
 		"character":
@@ -120,6 +122,34 @@ func _draw_sneak(center: Vector2, radius: float, color: Color) -> void:
 		1.8
 	)
 	draw_circle(center + Vector2(radius * 0.40, -radius * 0.10), radius * 0.18, color)
+
+
+func _draw_weapon_swap(center: Vector2, radius: float, color: Color) -> void:
+	draw_line(
+		center + Vector2(-radius * 0.65, radius * 0.55),
+		center + Vector2(radius * 0.45, -radius * 0.55),
+		color,
+		2.6
+	)
+	draw_line(
+		center + Vector2(-radius * 0.25, radius * 0.65),
+		center + Vector2(-radius * 0.75, radius * 0.15),
+		color,
+		2.2
+	)
+	draw_arc(center, radius * 0.82, -PI * 0.10, PI * 0.92, 18, color, 1.8)
+	draw_line(
+		center + Vector2(-radius * 0.70, radius * 0.18),
+		center + Vector2(-radius * 0.96, radius * 0.16),
+		color,
+		1.8
+	)
+	draw_line(
+		center + Vector2(-radius * 0.70, radius * 0.18),
+		center + Vector2(-radius * 0.64, -radius * 0.06),
+		color,
+		1.8
+	)
 
 
 func _draw_book(center: Vector2, radius: float, color: Color) -> void:

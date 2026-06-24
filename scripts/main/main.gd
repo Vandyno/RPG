@@ -609,6 +609,16 @@ func _handle_equip_item(item_id: String) -> void:
 	_refresh_hud()
 
 
+func _handle_swap_mainhand_weapon() -> void:
+	var last_item_id: String = equipment.last_mainhand_weapon_id
+	var item: Dictionary = content.get_item(last_item_id)
+	if item.is_empty() or not equipment.equip_last_mainhand_weapon():
+		event_bus.post_message("No previous main hand weapon.")
+	else:
+		event_bus.post_message("Equipped %s." % String(item.get("name", last_item_id)))
+	_refresh_hud()
+
+
 func _handle_unequip_slot(slot_id: String) -> void:
 	var item_id: String = equipment.get_equipped_item(slot_id)
 	var item: Dictionary = content.get_item(item_id)

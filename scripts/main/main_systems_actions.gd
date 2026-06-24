@@ -19,6 +19,8 @@ static func handle(main, action_id: String) -> void:
 			_handle_equip_item_to_slot(main, target_id, String(parsed.get("slot_id", "")))
 		"assign_spell":
 			_handle_assign_spell_to_slot(main, target_id, String(parsed.get("slot_id", "")))
+		"swap_mainhand":
+			main._handle_swap_mainhand_weapon()
 		"unequip":
 			main._handle_unequip_slot(target_id)
 		"train":

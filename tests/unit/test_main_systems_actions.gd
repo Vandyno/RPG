@@ -24,6 +24,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 	for action_id in [
 		"equip:item_hatchet",
 		"equip_slot:item_hatchet:right_hand",
+		"swap_mainhand:weapon",
 		"unequip:weapon",
 		"train:might",
 		"buy:item_draught",
@@ -41,6 +42,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 		[
 			"equip:item_hatchet",
 			"equip_slot:item_hatchet:right_hand",
+			"swap_mainhand",
 			"unequip:weapon",
 			"train:might",
 			"buy:item_draught",
@@ -157,6 +159,9 @@ class MainStub:
 
 	func _handle_unequip_slot(slot_id: String) -> void:
 		calls.append("unequip:%s" % slot_id)
+
+	func _handle_swap_mainhand_weapon() -> void:
+		calls.append("swap_mainhand")
 
 	func _handle_train_stat(stat_id: String) -> void:
 		calls.append("train:%s" % stat_id)

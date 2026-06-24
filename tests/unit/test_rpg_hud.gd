@@ -212,6 +212,10 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	hud.interact_pressed.connect(func() -> void: interact_events.append("interact"))
 	hud.cycle_target_pressed.connect(func() -> void: cycle_events.append("cycle"))
 	var aim_events: Array[Dictionary] = []
+	var utility_events: Array[String] = []
+	hud.inventory_item_selected.connect(
+		func(action_id: String) -> void: utility_events.append(action_id)
+	)
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
 			aim_events.append({"action_id": action_id, "direction": direction})
@@ -219,17 +223,18 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 
 	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
 	assert_not_null(utility_stack)
-	var inventory := utility_stack.find_child("InventoryButton", true, false) as Button
+	var weapon_swap := utility_stack.find_child("WeaponSwapButton", true, false) as Button
 	var sneak := utility_stack.find_child("SneakButton", true, false) as Button
 	var menu := utility_stack.find_child("MenuButton", true, false) as Button
+	assert_not_null(weapon_swap)
 	assert_not_null(sneak)
+	assert_null(utility_stack.find_child("InventoryButton", true, false))
 	assert_null(utility_stack.find_child("TargetButton", true, false))
 	assert_eq(hud.target_action_button, sneak)
 
-	inventory.pressed.emit()
-	assert_true(hud.is_systems_panel_visible())
-	assert_eq(hud.get_systems_tab(), "inventory")
-	hud.hide_systems_panel()
+	weapon_swap.pressed.emit()
+	assert_eq(utility_events, ["swap_mainhand:weapon"])
+	assert_false(hud.is_systems_panel_visible())
 	menu.pressed.emit()
 	assert_true(hud.is_systems_panel_visible())
 

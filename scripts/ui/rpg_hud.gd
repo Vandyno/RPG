@@ -399,8 +399,8 @@ func _build_touch_controls() -> void:
 	primary_action_button = action_nodes["primary"]
 	ability_slot_buttons = action_nodes["ability_buttons"]
 	var utility_buttons := action_nodes["utility_buttons"] as Dictionary
-	(utility_buttons["inventory"] as Button).pressed.connect(
-		Callable(self, "show_systems_panel").bind("inventory")
+	(utility_buttons["weapon_swap"] as Button).pressed.connect(
+		func() -> void: inventory_item_selected.emit("swap_mainhand:weapon")
 	)
 	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
 	target_action_button = utility_buttons["sneak"] as Button

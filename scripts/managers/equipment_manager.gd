@@ -9,6 +9,7 @@ var event_bus
 var content
 var inventory
 var equipped_by_slot: Dictionary = {}
+var last_mainhand_weapon_id := ""
 
 
 func setup(bus, content_database = null, inventory_manager = null) -> void:
@@ -38,17 +39,33 @@ func equip_item_to_slot(item_id: String, slot_id: String) -> bool:
 		or not _has_item(item_id)
 	):
 		return false
-	if String(equipped_by_slot.get(slot, "")) == item_id:
+	var current_item_id := String(equipped_by_slot.get(slot, ""))
+	if current_item_id == item_id:
 		return false
+	if slot == "right_hand":
+		if current_item_id.is_empty() and last_mainhand_weapon_id == item_id:
+			last_mainhand_weapon_id = ""
+		else:
+			_remember_mainhand_weapon(current_item_id)
 	equipped_by_slot[slot] = item_id
 	_emit_changed()
 	return true
+
+
+func equip_last_mainhand_weapon() -> bool:
+	if last_mainhand_weapon_id.is_empty() or not _has_item(last_mainhand_weapon_id):
+		return false
+	if get_equipped_item("right_hand") == last_mainhand_weapon_id:
+		return false
+	return equip_item_to_slot(last_mainhand_weapon_id, "right_hand")
 
 
 func unequip_slot(slot: String) -> bool:
 	var normalized := EquipmentSlots.normalize(slot)
 	if not EQUIPMENT_SLOTS.has(normalized) or not equipped_by_slot.has(normalized):
 		return false
+	if normalized == "right_hand":
+		_remember_mainhand_weapon(String(equipped_by_slot.get(normalized, "")))
 	equipped_by_slot.erase(normalized)
 	_emit_changed()
 	return true
@@ -99,7 +116,13 @@ func get_save_data() -> Dictionary:
 			and EquipmentSlots.accepts(slot, _item_slot(item_id))
 		):
 			equipped[EquipmentSlots.save_slot(slot)] = item_id
-	return {"equipped": equipped}
+	var data := {"equipped": equipped}
+	if (
+		_is_valid_mainhand_weapon(last_mainhand_weapon_id)
+		and last_mainhand_weapon_id != get_equipped_item("right_hand")
+	):
+		data["last_mainhand_weapon"] = last_mainhand_weapon_id
+	return data
 
 
 func load_save_data(data: Dictionary) -> void:
@@ -114,6 +137,10 @@ func load_save_data(data: Dictionary) -> void:
 			and EquipmentSlots.accepts(slot, _item_slot(item_id))
 		):
 			equipped_by_slot[slot] = item_id
+	var last_weapon := String(data.get("last_mainhand_weapon", ""))
+	last_mainhand_weapon_id = last_weapon if _is_valid_mainhand_weapon(last_weapon) else ""
+	if last_mainhand_weapon_id == get_equipped_item("right_hand"):
+		last_mainhand_weapon_id = ""
 	_emit_changed()
 
 
@@ -123,9 +150,15 @@ func _on_item_count_changed(item_id: String, count: int) -> void:
 	var removed := false
 	for slot in EQUIPMENT_SLOTS:
 		if get_equipped_item(slot) == item_id:
+			if slot == "right_hand":
+				last_mainhand_weapon_id = ""
 			equipped_by_slot.erase(slot)
 			removed = true
-	if removed:
+	var last_cleared := false
+	if last_mainhand_weapon_id == item_id:
+		last_mainhand_weapon_id = ""
+		last_cleared = true
+	if removed or last_cleared:
 		_emit_changed()
 
 
@@ -142,6 +175,19 @@ func _item(item_id: String) -> Dictionary:
 
 func _item_slot(item_id: String) -> String:
 	return String(_item(item_id).get("equipment_slot", ""))
+
+
+func _remember_mainhand_weapon(item_id: String) -> void:
+	if _is_valid_mainhand_weapon(item_id):
+		last_mainhand_weapon_id = item_id
+
+
+func _is_valid_mainhand_weapon(item_id: String) -> bool:
+	return (
+		not item_id.is_empty()
+		and _has_item(item_id)
+		and EquipmentSlots.accepts("right_hand", _item_slot(item_id))
+	)
 
 
 func _has_item(item_id: String) -> bool:
