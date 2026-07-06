@@ -8,13 +8,13 @@ const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
 
 class ActionContext:
 	var active_content_choices: Dictionary
+	var condition_evaluator
 	var content
 	var dialogues
 	var event_bus
 	var hud
 	var inventory_transfer_context
 	var player
-	var poi_context
 	var world_state
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
@@ -24,13 +24,13 @@ class ActionContext:
 
 	func _init(main) -> void:
 		active_content_choices = main.active_content_choices
+		condition_evaluator = main.condition_evaluator
 		content = main.content
 		dialogues = main.dialogues
 		event_bus = main.event_bus
 		hud = main.hud
 		inventory_transfer_context = MainInventoryTransfer.context(main)
 		player = main.player
-		poi_context = main
 		world_state = main.world_state
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
@@ -40,6 +40,20 @@ class ActionContext:
 
 	func apply_effect(effect: Dictionary) -> bool:
 		return bool(_apply_effect.call(effect))
+
+	func available_poi_actions(entity) -> Array[Dictionary]:
+		return PoiInteraction.available_actions(entity, condition_evaluator)
+
+	func inspect_poi(entity) -> void:
+		PoiInteraction.inspect(
+			entity,
+			world_state,
+			hud,
+			_apply_effect,
+			event_bus,
+			active_content_choices,
+			condition_evaluator
+		)
 
 	func nearby_entity():
 		return _get_nearby_entity.call()
@@ -62,7 +76,7 @@ static func build(source, entity) -> Array[Dictionary]:
 	var ctx := _context(source)
 	var actions: Array[Dictionary] = []
 	if entity and entity.get_kind() == "poi":
-		for action in PoiInteraction.available_actions_for_main(entity, ctx.poi_context):
+		for action in ctx.available_poi_actions(entity):
 			actions.append(
 				{"id": "poi:%s" % String(action.get("id", "")), "text": action.get("text", "")}
 			)
@@ -150,7 +164,7 @@ static func _handle_poi_action_selected(ctx: ActionContext, action_id: String) -
 	if not entity or entity.get_kind() != "poi":
 		ctx.event_bus.post_message("No place action available.")
 		return
-	for action in PoiInteraction.available_actions_for_main(entity, ctx.poi_context):
+	for action in ctx.available_poi_actions(entity):
 		if String(action.get("id", "")) == action_id:
 			_apply_poi_action(ctx, action)
 			return
@@ -214,7 +228,7 @@ static func _handle_poi_inspect_selected(ctx: ActionContext, _entity_id: String)
 	if not entity or entity.get_kind() != "poi":
 		ctx.event_bus.post_message("No place to inspect.")
 		return
-	PoiInteraction.inspect_with_main(entity, ctx.poi_context)
+	ctx.inspect_poi(entity)
 
 
 static func _handle_pickpocket_selected(ctx: ActionContext, entity_id: String) -> void:
@@ -351,7 +365,7 @@ static func _poi_should_offer_inspect(ctx: ActionContext, entity) -> bool:
 
 
 static func _available_poi_actions(ctx: ActionContext, entity) -> Array[Dictionary]:
-	return PoiInteraction.available_actions_for_main(entity, ctx.poi_context)
+	return ctx.available_poi_actions(entity)
 
 
 static func _context(source) -> ActionContext:

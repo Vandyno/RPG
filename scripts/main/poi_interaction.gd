@@ -45,7 +45,11 @@ static func primary_action_text(entity) -> String:
 
 
 static func available_actions_for_main(entity, main) -> Array[Dictionary]:
-	return _available_actions(entity, main.condition_evaluator)
+	return available_actions(entity, main.condition_evaluator)
+
+
+static func available_actions(entity, condition_evaluator) -> Array[Dictionary]:
+	return _available_actions(entity, condition_evaluator)
 
 
 static func interact(
