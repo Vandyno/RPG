@@ -1,13 +1,13 @@
 extends GutTest
 
-const HudShell = preload("res://scripts/ui/shell/hud_shell.gd")
+const LegacyHudShell = preload("res://scripts/ui/shell/legacy_hud_shell.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 
 func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 
@@ -248,7 +248,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 func test_landscape_hud_layout_keeps_core_controls_separated() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 
@@ -282,14 +282,14 @@ func test_landscape_hud_layout_keeps_core_controls_separated() -> void:
 func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 
 	hud._apply_layout_for_size(Vector2(960, 540))
 	var message_width := hud.message_panel.offset_right - hud.message_panel.offset_left
 	assert_true(hud.message_panel.visible)
-	assert_gte(message_width, HudShell.MESSAGE_MIN_WIDTH)
+	assert_gte(message_width, LegacyHudShell.MESSAGE_MIN_WIDTH)
 	assert_eq(hud.message_panel.offset_top, 12.0)
 	assert_eq(hud.message_panel.offset_bottom, 64.0)
 	assert_lte(hud.message_panel.offset_right, 948.0)
@@ -302,7 +302,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	hud._apply_layout_for_size(Vector2(860, 484))
 	assert_true(hud.message_panel.visible)
 	assert_gte(
-		hud.message_panel.offset_right - hud.message_panel.offset_left, HudShell.MESSAGE_MIN_WIDTH
+		hud.message_panel.offset_right - hud.message_panel.offset_left, LegacyHudShell.MESSAGE_MIN_WIDTH
 	)
 	assert_eq(hud.message_panel.offset_top, 12.0)
 	assert_eq(hud.message_panel.offset_bottom, 64.0)
@@ -325,7 +325,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	assert_true(hud.message_panel.visible)
 	assert_gte(
 		hud.message_panel.offset_right - hud.message_panel.offset_left,
-		HudShell.MESSAGE_MIN_WIDTH
+		LegacyHudShell.MESSAGE_MIN_WIDTH
 	)
 	assert_eq(hud.message_panel.offset_top, 12.0)
 	assert_eq(hud.message_panel.offset_bottom, 64.0)
@@ -339,7 +339,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	var compact_move_rect := _rect_for_bottom_left_anchored_panel(
 		hud.move_pad, Vector2(640, 360)
 	)
-	assert_eq(compact_move_rect.size, HudShell.COMPACT_MOVE_PAD_SIZE)
+	assert_eq(compact_move_rect.size, LegacyHudShell.COMPACT_MOVE_PAD_SIZE)
 	assert_lte(compact_move_rect.end.x, 146.0)
 	assert_false(
 		compact_move_rect.intersects(_center_play_rect(Vector2(640, 360))),
@@ -347,7 +347,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	)
 	assert_eq(
 		(hud.move_pad.get_node("MoveRightButton") as Button).custom_minimum_size,
-		HudShell.COMPACT_MOVE_BUTTON_SIZE
+		LegacyHudShell.COMPACT_MOVE_BUTTON_SIZE
 	)
 	assert_eq((hud.move_pad.get_node("MoveUpButton") as Button).text, String.chr(8593))
 	assert_eq((hud.move_pad.get_node("MoveRightButton") as Button).text, String.chr(8594))
@@ -413,9 +413,9 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	)
 	assert_eq(
 		(hud.context_action_buttons.get_child(0) as Button).custom_minimum_size,
-		HudShell.CONTEXT_ACTION_BUTTON_SIZE
+		LegacyHudShell.CONTEXT_ACTION_BUTTON_SIZE
 	)
-	assert_gte(HudShell.CONTEXT_ACTION_BUTTON_SIZE.y, 50.0)
+	assert_gte(LegacyHudShell.CONTEXT_ACTION_BUTTON_SIZE.y, 50.0)
 	(hud.context_action_buttons.get_child(0) as Button).pressed.emit()
 	assert_eq(context_actions, ["dialogue:accept"])
 	hud._refresh_context_actions(
@@ -517,7 +517,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 func test_touch_pad_gui_input_emits_clamped_move_and_release() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 	var move_vectors: Array[Vector2] = []
@@ -527,7 +527,7 @@ func test_touch_pad_gui_input_emits_clamped_move_and_release() -> void:
 
 	var press := InputEventMouseButton.new()
 	press.pressed = true
-	press.position = Vector2(HudShell.MOVE_PAD_SIZE.x, HudShell.MOVE_PAD_SIZE.y * 0.5)
+	press.position = Vector2(LegacyHudShell.MOVE_PAD_SIZE.x, LegacyHudShell.MOVE_PAD_SIZE.y * 0.5)
 	hud._on_move_pad_gui_input(press)
 
 	assert_eq(move_vectors.size(), 1)
@@ -547,30 +547,32 @@ func test_touch_pad_gui_input_emits_clamped_move_and_release() -> void:
 func test_hud_message_log_is_bounded_to_latest_entries() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 
-	for index in range(HudShell.MAX_MESSAGE_LOG + 5):
+	for index in range(LegacyHudShell.MAX_MESSAGE_LOG + 5):
 		bus.post_message("Message %d" % index)
 
-	assert_eq(hud.message_log.size(), HudShell.MAX_MESSAGE_LOG)
+	assert_eq(hud.message_log.size(), LegacyHudShell.MAX_MESSAGE_LOG)
 	assert_eq(hud.message_log[0], "Message 5")
-	assert_true(hud.log_label.text.contains("Message %d" % (HudShell.MAX_MESSAGE_LOG + 4)))
+	assert_true(hud.log_label.text.contains("Message %d" % (LegacyHudShell.MAX_MESSAGE_LOG + 4)))
 	assert_false(hud.log_label.text.contains("Message 5"))
 
 	hud.toggle_systems()
 	hud.set_systems_tab("journal")
 
 	assert_true(hud.systems_body_label.text.contains("Message 5"))
-	assert_true(hud.systems_body_label.text.contains("Message %d" % (HudShell.MAX_MESSAGE_LOG + 4)))
+	assert_true(
+		hud.systems_body_label.text.contains("Message %d" % (LegacyHudShell.MAX_MESSAGE_LOG + 4))
+	)
 	assert_false(hud.systems_body_label.text.contains("Message 4"))
 
 
 func test_hud_releases_held_move_actions_when_removed() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child(hud)
 	hud.setup(bus, Callable(self, "_sample_state"))
 	var up_button := hud.move_pad.get_node("MoveUpButton") as Button
@@ -590,7 +592,7 @@ func test_hud_releases_held_move_actions_when_removed() -> void:
 func test_hud_refresh_tolerates_non_dictionary_state_provider() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_non_dictionary_state"))
 
@@ -610,7 +612,7 @@ func test_hud_refresh_tolerates_non_dictionary_state_provider() -> void:
 func test_hud_refresh_sanitizes_malformed_state_fields() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_malformed_state"))
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-const HudShell = preload("res://scripts/ui/shell/hud_shell.gd")
+const LegacyHudShell = preload("res://scripts/ui/shell/legacy_hud_shell.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const ButtonTextFormatter = preload("res://scripts/ui/text/button_text_formatter.gd")
 
@@ -8,7 +8,7 @@ const ButtonTextFormatter = preload("res://scripts/ui/text/button_text_formatter
 func test_primary_action_button_wraps_long_action_text() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var hud := HudShell.new()
+	var hud := LegacyHudShell.new()
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_long_action_state"))
 

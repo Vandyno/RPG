@@ -71,11 +71,22 @@ var content_close_button: Button
 var ability_slot_buttons := {}
 func _build_ui() -> void:
 	super._build_ui()
+	_build_status_panel()
+	_build_prompt_panel()
+	_build_message_panel()
+	_build_target_panel()
+	_build_context_action_panel()
+	_build_debug_panel()
+	_build_systems_panel()
+	_build_touch_controls()
+	_build_content_panel()
 	_build_location_banner()
 	_build_top_nav()
 	_apply_responsive_layout()
 	refresh()
 func _apply_layout_for_size(viewport_size: Vector2) -> void:
+	if not status_panel:
+		return
 	super._apply_layout_for_size(viewport_size)
 func refresh() -> void:
 	super.refresh()
