@@ -1003,6 +1003,7 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 	)
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
+	chunks.load_authored_terrain(ChunkManager.AUTHORED_TERRAIN_PATH)
 	var expected_ids := [
 		"object_road_notice",
 		"npc_harrow_venn_world",
@@ -1067,6 +1068,7 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 func test_people_enemy_range_stays_outside_town_but_reachable() -> void:
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
+	chunks.load_authored_terrain(ChunkManager.AUTHORED_TERRAIN_PATH)
 	var town_bounds := Rect2i(Vector2i(-12, -10), Vector2i(27, 21))
 	var seen_tiles := {}
 

@@ -426,6 +426,7 @@ func test_chunk_load_ignores_invalid_removed_entities() -> void:
 func test_spawn_town_uses_authored_tiles_and_walkability() -> void:
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
+	chunks.load_authored_terrain(ChunkManager.AUTHORED_TERRAIN_PATH)
 
 	assert_eq(chunks.get_tile_kind(Vector2i.ZERO), "road")
 	assert_true(chunks.is_walkable(Vector2i.ZERO))

@@ -3,6 +3,13 @@ extends GutTest
 const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
 
 
+func test_chunk_manager_constructor_does_not_load_authored_terrain() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	assert_eq(chunks.authored_areas, [])
+
+
 func test_authored_terrain_file_drives_region_order_and_fallback() -> void:
 	var path := "user://test_world_terrain.json"
 	var file := FileAccess.open(path, FileAccess.WRITE)

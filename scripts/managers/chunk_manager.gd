@@ -10,10 +10,6 @@ var authored_areas: Array[Dictionary] = []
 var modified_chunks: Dictionary = {}
 
 
-func _init() -> void:
-	load_authored_terrain(AUTHORED_TERRAIN_PATH)
-
-
 func load_authored_terrain(path: String) -> void:
 	authored_areas.clear()
 	if not FileAccess.file_exists(path):

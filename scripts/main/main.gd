@@ -175,6 +175,7 @@ func _bootstrap() -> bool:
 	chunks = ChunkManagerScript.new()
 	chunks.name = "ChunkManager"
 	add_child(chunks)
+	chunks.load_authored_terrain(ChunkManagerScript.AUTHORED_TERRAIN_PATH)
 
 	streamer = WorldStreamingManagerScript.new()
 	streamer.name = "WorldStreamingManager"
