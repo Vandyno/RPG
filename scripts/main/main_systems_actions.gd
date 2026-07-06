@@ -27,21 +27,21 @@ class SystemsContext:
 	var progression
 	var spells
 	var statuses
+	var buy_item_command: Callable
+	var equip_item_command: Callable
+	var equip_item_to_slot_command: Callable
+	var load_requested_command: Callable
+	var save_requested_command: Callable
+	var sell_item_command: Callable
+	var swap_mainhand_weapon_command: Callable
+	var target_entity_command: Callable
+	var train_stat_command: Callable
+	var unequip_slot_command: Callable
+	var use_inventory_item_command: Callable
+	var wait_action_command: Callable
 	var _add_effect_child: Callable
 	var _apply_effect: Callable
-	var _buy_item: Callable
-	var _equip_item: Callable
-	var _equip_item_to_slot: Callable
-	var _load_requested: Callable
 	var _refresh_hud: Callable
-	var _save_requested: Callable
-	var _sell_item: Callable
-	var _swap_mainhand_weapon: Callable
-	var _target_entity: Callable
-	var _train_stat: Callable
-	var _unequip_slot: Callable
-	var _use_inventory_item: Callable
-	var _wait_action: Callable
 
 	func _init(main) -> void:
 		channeled_spell_damage_bank = _dictionary_property(main, "channeled_spell_damage_bank")
@@ -62,22 +62,22 @@ class SystemsContext:
 		progression = main.get("progression")
 		spells = main.get("spells")
 		statuses = main.get("statuses")
+		buy_item_command = Callable(main, "_handle_buy_item")
+		equip_item_command = Callable(main, "_handle_equip_item")
+		equip_item_to_slot_command = Callable(main, "_handle_equip_item_to_slot")
+		load_requested_command = Callable(main, "_handle_load_requested")
+		save_requested_command = Callable(main, "_handle_save_requested")
+		sell_item_command = Callable(main, "_handle_sell_item")
+		swap_mainhand_weapon_command = Callable(main, "_handle_swap_mainhand_weapon")
+		target_entity_command = func(entity_id: String) -> void:
+			MainInputRouter.target_entity(main, entity_id)
+		train_stat_command = Callable(main, "_handle_train_stat")
+		unequip_slot_command = Callable(main, "_handle_unequip_slot")
+		use_inventory_item_command = Callable(main, "_use_inventory_item")
+		wait_action_command = Callable(main, "_handle_wait_action")
 		_add_effect_child = Callable(main, "add_child")
 		_apply_effect = Callable(main, "apply_effect")
-		_buy_item = Callable(main, "_handle_buy_item")
-		_equip_item = Callable(main, "_handle_equip_item")
-		_equip_item_to_slot = Callable(main, "_handle_equip_item_to_slot")
-		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
-		_save_requested = Callable(main, "_handle_save_requested")
-		_sell_item = Callable(main, "_handle_sell_item")
-		_swap_mainhand_weapon = Callable(main, "_handle_swap_mainhand_weapon")
-		_target_entity = func(entity_id: String) -> void:
-			MainInputRouter.target_entity(main, entity_id)
-		_train_stat = Callable(main, "_handle_train_stat")
-		_unequip_slot = Callable(main, "_handle_unequip_slot")
-		_use_inventory_item = Callable(main, "_use_inventory_item")
-		_wait_action = Callable(main, "_handle_wait_action")
 
 	func add_effect_child(effect: Node) -> void:
 		if _add_effect_child.is_valid():
@@ -88,44 +88,8 @@ class SystemsContext:
 	func apply_effect(effect: Dictionary, refresh: bool = false) -> void:
 		_apply_effect.call(effect, refresh)
 
-	func buy_item(item_id: String) -> void:
-		_buy_item.call(item_id)
-
-	func equip_item(item_id: String) -> void:
-		_equip_item.call(item_id)
-
-	func equip_item_to_slot(item_id: String, slot_id: String) -> void:
-		_equip_item_to_slot.call(item_id, slot_id)
-
-	func load_requested() -> void:
-		_load_requested.call()
-
 	func refresh_hud() -> void:
 		_refresh_hud.call()
-
-	func save_requested() -> void:
-		_save_requested.call()
-
-	func sell_item(item_id: String) -> void:
-		_sell_item.call(item_id)
-
-	func swap_mainhand_weapon() -> void:
-		_swap_mainhand_weapon.call()
-
-	func target_entity(entity_id: String) -> void:
-		_target_entity.call(entity_id)
-
-	func train_stat(stat_id: String) -> void:
-		_train_stat.call(stat_id)
-
-	func unequip_slot(slot_id: String) -> void:
-		_unequip_slot.call(slot_id)
-
-	func use_inventory_item(item_id: String) -> void:
-		_use_inventory_item.call(item_id)
-
-	func wait_action(hours: int) -> void:
-		_wait_action.call(hours)
 
 	func _dictionary_property(source, property_name: String) -> Dictionary:
 		var value: Variant = source.get(property_name)
@@ -143,38 +107,38 @@ static func handle(source, action_id: String) -> void:
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
 		"equip":
-			ctx.equip_item(target_id)
+			ctx.equip_item_command.call(target_id)
 		"equip_slot":
-			ctx.equip_item_to_slot(target_id, String(parsed.get("slot_id", "")))
+			ctx.equip_item_to_slot_command.call(target_id, String(parsed.get("slot_id", "")))
 		"assign_spell":
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
 		"swap_mainhand":
-			ctx.swap_mainhand_weapon()
+			ctx.swap_mainhand_weapon_command.call()
 		"unequip":
-			ctx.unequip_slot(target_id)
+			ctx.unequip_slot_command.call(target_id)
 		"train":
-			ctx.train_stat(target_id)
+			ctx.train_stat_command.call(target_id)
 		"buy":
-			ctx.buy_item(target_id)
+			ctx.buy_item_command.call(target_id)
 		"sell":
-			ctx.sell_item(target_id)
+			ctx.sell_item_command.call(target_id)
 		"take":
 			MainInventoryTransfer.take_item(ctx.inventory_transfer_context, target_id)
 		"put":
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		"wait":
-			ctx.wait_action(target_id.to_int())
+			ctx.wait_action_command.call(target_id.to_int())
 		"target":
-			ctx.target_entity(target_id)
+			ctx.target_entity_command.call(target_id)
 		"save":
-			ctx.save_requested()
+			ctx.save_requested_command.call()
 		"load":
-			ctx.load_requested()
+			ctx.load_requested_command.call()
 		"ui":
 			if target_id == "back" and ctx.hud:
 				ctx.hud.hide_systems_panel()
 		_:
-			ctx.use_inventory_item(target_id)
+			ctx.use_inventory_item_command.call(target_id)
 
 
 static func handle_aim(source, action_id: String, direction: Vector2) -> void:
