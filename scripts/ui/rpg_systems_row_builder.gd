@@ -63,7 +63,7 @@ static func clear_non_button_children(container: Node) -> void:
 		child.free()
 
 
-static func w(label: String, fallback: float, compact: bool) -> float:
+static func tab_label_width(label: String, fallback: float, compact: bool) -> float:
 	if compact:
 		return fallback
 	var widths := {

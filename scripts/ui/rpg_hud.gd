@@ -511,7 +511,6 @@ func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	location_banner_panel.offset_bottom = HUD_MARGIN + height
 	location_banner_label.add_theme_font_size_override("font_size", 18 if compact else 24)
 
-
 func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 	if not top_nav_panel or not top_nav_buttons:
 		return
@@ -765,10 +764,11 @@ func _refresh_category_row(tab_id: String) -> void:
 			button = _new_button("", button_size)
 			button.focus_mode = Control.FOCUS_NONE
 			systems_category_row.add_child(button)
-		button.text = String(labels[index])
+		var label := String(labels[index])
+		button.text = label
 		button.clip_text = true
 		button.visible = true
-		var category_id := _category_id_for_label(String(labels[index]))
+		var category_id := _category_id_for_label(label)
 		button.disabled = false
 		button.button_pressed = category_id == systems_active_category
 		button.set_meta("category_id", category_id)
@@ -778,7 +778,7 @@ func _refresh_category_row(tab_id: String) -> void:
 				func() -> void: _select_systems_category(String(button.get_meta("category_id", "")))
 			)
 		button.add_theme_font_size_override("font_size", 11 if compact else 13)
-		button.custom_minimum_size.x = RpgSystemsRowBuilder.w(str(labels[index]), button_size.x, compact)
+		button.custom_minimum_size.x = RpgSystemsRowBuilder.tab_label_width(label, button_size.x, compact)
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
 func _select_systems_row(row_id: String) -> void:
