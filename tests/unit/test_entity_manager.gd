@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const EntityManager = preload("res://scripts/managers/entity_manager.gd")
@@ -8,6 +9,14 @@ const WorldEntity = preload("res://scripts/world/world_entity.gd")
 
 class ContentStub:
 	var world_objects: Array[Dictionary] = []
+	var npcs: Dictionary = {}
+	var character_profiles: Dictionary = {}
+
+	func get_npc(npc_id: String) -> Dictionary:
+		return npcs.get(npc_id, {})
+
+	func get_character_profile(profile_id: String) -> Dictionary:
+		return character_profiles.get(profile_id, {})
 
 
 class ChunkStub:
@@ -348,6 +357,45 @@ func test_world_entity_setup_uses_valid_tile_position() -> void:
 	assert_eq(
 		entity.position,
 		GridMath.tile_to_world(Vector2i(2, -1)) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
+	)
+
+
+func test_profile_backed_npc_gets_humanoid_avatar_and_stays_interactable() -> void:
+	var content := ContentStub.new()
+	content.world_objects = [
+		{
+			"id": "npc_world",
+			"name": "Harrow",
+			"kind": "npc",
+			"global_tile": [1, 0],
+			"npc_id": "npc_harrow"
+		}
+	]
+	content.npcs = {"npc_harrow": {"id": "npc_harrow", "character_profile_id": "char_harrow"}}
+	content.character_profiles = {
+		"char_harrow":
+		{
+			"character_id": "char_harrow",
+			"people_id": "people_human",
+			"state": "alive",
+			"inventory_owner_id": "char_harrow",
+			"equipment_owner_id": "char_harrow",
+			"spellbook_owner_id": "char_harrow",
+			"appearance": {"base_clothing_id": "clothing_smith_apron"}
+		}
+	}
+	var manager := EntityManager.new()
+	add_child_autofree(manager)
+	manager.setup(null, content, ChunkStub.new())
+
+	var entity = manager.get_entity("npc_world")
+
+	assert_not_null(entity)
+	assert_not_null(entity.humanoid_avatar)
+	assert_eq(entity.data["character_profile_id"], "char_harrow")
+	assert_eq(
+		manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 32.0).get_entity_id(),
+		"npc_world"
 	)
 
 

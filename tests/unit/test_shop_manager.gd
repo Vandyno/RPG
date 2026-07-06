@@ -19,14 +19,14 @@ func test_shop_buys_and_sells_with_gold_and_item_caps() -> void:
 	assert_eq(inventory.get_count("item_gold_coin"), 17)
 	assert_eq(inventory.get_count("item_roadside_draught"), 1)
 
-	assert_true(shops.sell_item("item_roadside_draught"))
+	assert_true(shops.sell_item("shop_crossroads_peddler", "item_roadside_draught"))
 	assert_eq(inventory.get_count("item_gold_coin"), 23)
 	assert_false(inventory.has_item("item_roadside_draught"))
 
 	assert_false(shops.buy_item("shop_crossroads_peddler", "missing_item"))
 	assert_false(shops.buy_item("missing_shop", "item_roadside_draught"))
-	assert_false(shops.sell_item("item_gold_coin"))
-	assert_false(shops.sell_item("item_old_toolbox"))
+	assert_false(shops.sell_item("shop_crossroads_peddler", "item_gold_coin"))
+	assert_false(shops.sell_item("shop_crossroads_peddler", "item_old_toolbox"))
 
 
 func test_shop_blocks_selling_equipped_items_and_reports_actions() -> void:
@@ -39,15 +39,17 @@ func test_shop_blocks_selling_equipped_items_and_reports_actions() -> void:
 	inventory.add_item("item_road_hatchet", 1)
 	assert_true(equipment.equip_item("item_road_hatchet"))
 
-	assert_eq(shops.sell_price("item_road_hatchet"), 0)
-	assert_false(shops.sell_item("item_road_hatchet"))
+	assert_eq(shops.sell_price("shop_crossroads_peddler", "item_road_hatchet"), 0)
+	assert_false(shops.sell_item("shop_crossroads_peddler", "item_road_hatchet"))
 	assert_true(inventory.has_item("item_road_hatchet"))
 
 	assert_true(equipment.unequip_slot("weapon"))
-	assert_eq(shops.sell_price("item_road_hatchet"), 9)
+	assert_eq(shops.sell_price("shop_crossroads_peddler", "item_road_hatchet"), 9)
 	assert_true(shops.get_shop_summary("shop_crossroads_peddler").contains("Roadside Draught: 8g"))
 	assert_true(shops.get_buy_actions("shop_crossroads_peddler")[0]["text"].contains("Buy"))
-	assert_true(shops.get_sell_actions()[0]["text"].contains("Sell Road Hatchet"))
+	assert_true(
+		shops.get_sell_actions("shop_crossroads_peddler")[0]["text"].contains("Sell Road Hatchet")
+	)
 
 
 func test_shop_hours_gate_buy_sell_actions() -> void:
@@ -67,7 +69,7 @@ func test_shop_hours_gate_buy_sell_actions() -> void:
 	assert_true(time.advance_hours(12))
 	assert_false(shops.is_shop_open("shop_crossroads_peddler"))
 	assert_false(shops.buy_item("shop_crossroads_peddler", "item_roadside_draught"))
-	assert_false(shops.sell_item("item_road_hatchet", "shop_crossroads_peddler"))
+	assert_false(shops.sell_item("shop_crossroads_peddler", "item_road_hatchet"))
 	assert_true(shops.get_buy_actions("shop_crossroads_peddler").is_empty())
 	assert_true(shops.get_sell_actions("shop_crossroads_peddler").is_empty())
 	assert_true(shops.get_shop_summary("shop_crossroads_peddler").contains("Closed now."))

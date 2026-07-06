@@ -61,7 +61,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(parsed["spells"]["assigned"]["ability_1"], "spell_fire_blast")
 	assert_eq(int(parsed["factions"]["reputation"]["faction_marches_of_velcor"]), 5)
 	assert_eq(int(parsed["progression"]["level"]), 2)
-	assert_eq(int(parsed["progression"]["stats"]["might"]), 1)
+	assert_false(parsed["progression"].has("stats"))
 	assert_eq(int(parsed["statuses"]["active"][0]["charges"]), 2)
 	assert_eq(int(parsed["time"]["day"]), 3)
 	assert_eq(int(parsed["time"]["minute_of_day"]), 1260)
@@ -82,7 +82,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	)
 	assert_eq(int(providers["progression"].loaded_payload["level"]), 2)
 	assert_eq(int(providers["progression"].loaded_payload["experience"]), 7)
-	assert_eq(int(providers["progression"].loaded_payload["stats"]["might"]), 1)
+	assert_false(providers["progression"].loaded_payload.has("stats"))
 	assert_eq(providers["statuses"].loaded_payload["active"][0]["status_id"], "status_road_focus")
 	assert_eq(int(providers["statuses"].loaded_payload["active"][0]["charges"]), 2)
 	assert_eq(int(providers["time"].loaded_payload["day"]), 3)
@@ -161,11 +161,13 @@ func test_malformed_save_version_reports_failure_without_loading() -> void:
 		assert_eq(providers["entities"].spawn_count, 0)
 
 
-func test_malformed_save_sections_load_as_empty_dictionaries() -> void:
+func test_malformed_required_save_sections_fail_without_loading() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
 	var messages: Array[String] = []
+	var loads: Array[String] = []
 	bus.message_posted.connect(func(text: String) -> void: messages.append(text))
+	bus.load_completed.connect(func(path: String) -> void: loads.append(path))
 	var providers := _provider_set()
 	var manager := SaveManager.new()
 	add_child_autofree(manager)
@@ -192,8 +194,9 @@ func test_malformed_save_sections_load_as_empty_dictionaries() -> void:
 	)
 	file = null
 
-	assert_true(manager.load_game())
-	assert_true(messages.back().contains("Loaded"))
+	assert_false(manager.load_game())
+	assert_true(messages.back().contains("Save section is invalid: player"))
+	assert_eq(loads, [])
 	assert_eq(providers["player"].loaded_payload, {})
 	assert_eq(providers["world_state"].loaded_payload, {})
 	assert_eq(providers["quests"].loaded_payload, {})
@@ -207,7 +210,32 @@ func test_malformed_save_sections_load_as_empty_dictionaries() -> void:
 	assert_eq(providers["readables"].loaded_payload, {})
 	assert_eq(providers["combat"].loaded_payload, {})
 	assert_eq(providers["chunks"].loaded_payload, {})
-	assert_eq(providers["entities"].spawn_count, 1)
+	assert_eq(providers["entities"].spawn_count, 0)
+
+
+func test_missing_required_save_section_fails_without_loading() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var messages: Array[String] = []
+	var loads: Array[String] = []
+	bus.message_posted.connect(func(text: String) -> void: messages.append(text))
+	bus.load_completed.connect(func(path: String) -> void: loads.append(path))
+	var providers := _provider_set()
+	var manager := SaveManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, providers, TEST_SAVE_PATH)
+	var save_data := _complete_save_data()
+	save_data.erase("inventory")
+	var file := FileAccess.open(TEST_SAVE_PATH, FileAccess.WRITE)
+	file.store_string(JSON.stringify(save_data))
+	file = null
+
+	assert_false(manager.load_game())
+	assert_true(messages.back().contains("Save section is invalid: inventory"))
+	assert_eq(loads, [])
+	assert_eq(providers["player"].loaded_payload, {})
+	assert_eq(providers["inventory"].loaded_payload, {})
+	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func _provider_set() -> Dictionary:
@@ -220,7 +248,7 @@ func _provider_set() -> Dictionary:
 		"spells": ProviderStub.new({"assigned": {"ability_1": "spell_fire_blast"}}),
 		"factions": ProviderStub.new({"reputation": {"faction_marches_of_velcor": 5}}),
 		"progression":
-		ProviderStub.new({"level": 2, "experience": 7, "stats": {"might": 1, "grit": 0}}),
+		ProviderStub.new({"level": 2, "experience": 7, "skill_points": 1}),
 		"statuses":
 		ProviderStub.new({"active": [{"status_id": "status_road_focus", "charges": 2}]}),
 		"time": ProviderStub.new({"day": 3, "minute_of_day": 1260}),
@@ -228,6 +256,25 @@ func _provider_set() -> Dictionary:
 		"combat": ProviderStub.new({"health_by_entity_id": {"enemy": 6}}),
 		"chunks": ProviderStub.new({"surface:0:0": {"removed_entities": []}}),
 		"entities": EntityProviderStub.new()
+	}
+
+
+func _complete_save_data() -> Dictionary:
+	return {
+		"version": SaveManager.CURRENT_VERSION,
+		"player": {"health": 77},
+		"world_state": {"flags": {"flag": true}},
+		"quests": {"quest": {"state": "active"}},
+		"inventory": {"items": [{"item_id": "coin", "count": 3}]},
+		"equipment": {"equipped": {"weapon": "item_road_hatchet"}},
+		"spells": {"assigned": {"ability_1": "spell_fire_blast"}},
+		"factions": {"reputation": {"faction_marches_of_velcor": 5}},
+		"progression": {"level": 2, "experience": 7, "skill_points": 1},
+		"statuses": {"active": [{"status_id": "status_road_focus", "charges": 2}]},
+		"time": {"day": 3, "minute_of_day": 1260},
+		"readables": {"read": ["notice"]},
+		"combat": {"health_by_entity_id": {"enemy": 6}},
+		"chunks": {"surface:0:0": {"removed_entities": []}}
 	}
 
 

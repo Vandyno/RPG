@@ -23,10 +23,47 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 	assert_eq(main.get_debug_state()["primary_action"], "Open")
 	main._handle_interact_requested()
 
-	assert_eq(main.inventory.get_count("item_gold_coin"), 4)
+	assert_true(main.hud.is_systems_panel_visible())
+	assert_eq(main.hud.get_systems_tab(), "inventory")
+	assert_true(main.get_hud_state()["transfer_open"])
+	assert_not_null(main.hud.systems_item_list.find_child("TransferPlayerInventory", true, false))
+	assert_not_null(main.hud.systems_item_list.find_child("TransferTargetInventory", true, false))
+	assert_not_null(_label_containing(main.hud.systems_item_list, "Your Inventory"))
+	assert_not_null(_label_containing(main.hud.systems_item_list, "Sealed Strongbox"))
+	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 4)
+	assert_not_null(main.hud.systems_item_list.find_child("TransferTake_ItemGoldCoin", true, false))
+
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 3)
+
+	main._handle_inventory_item_selected("put:item_gold_coin")
+	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 4)
 	assert_true(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(3, 6)))
 	assert_eq(main.get_debug_state()["target_detail"], "Container: opened")
 	assert_eq(main.get_debug_state()["primary_action"], "Opened")
+
+
+func _button_containing(container: Node, text: String) -> Button:
+	for child in container.get_children():
+		if child is Button and child.visible and (child as Button).text.contains(text):
+			return child
+		var descendant := _button_containing(child, text)
+		if descendant:
+			return descendant
+	return null
+
+
+func _label_containing(container: Node, text: String) -> Label:
+	for child in container.get_children():
+		if child is Label and child.visible and (child as Label).text.contains(text):
+			return child
+		var descendant := _label_containing(child, text)
+		if descendant:
+			return descendant
+	return null
 
 
 func _select_entity(main, entity_id: String) -> void:

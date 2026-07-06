@@ -31,7 +31,6 @@ func test_condition_evaluator_checks_supported_conditions() -> void:
 	readables.read_readable("readable_briarwatch_notice")
 	factions.change_reputation("faction_marches_of_velcor", 5)
 	progression.add_experience(20)
-	assert_true(progression.spend_point("might"))
 	time.advance_hours(12)
 
 	assert_true(evaluator.evaluate({"type": "has_flag", "flag_id": "flag_test"}))
@@ -65,7 +64,6 @@ func test_condition_evaluator_checks_supported_conditions() -> void:
 		)
 	)
 	assert_true(evaluator.evaluate({"type": "player_level_at_least", "level": 2}))
-	assert_true(evaluator.evaluate({"type": "stat_at_least", "stat_id": "might", "rank": 1}))
 	assert_true(evaluator.evaluate({"type": "time_phase", "phase": "Evening"}))
 	assert_true(evaluator.evaluate({"type": "time_hour_between", "start_hour": 18, "end_hour": 6}))
 
@@ -113,9 +111,6 @@ func test_condition_evaluator_rejects_invalid_or_unmet_conditions() -> void:
 	)
 	assert_false(evaluator.evaluate({"type": "player_level_at_least", "level": 2}))
 	assert_false(evaluator.evaluate({"type": "player_level_at_least", "level": "two"}))
-	assert_false(evaluator.evaluate({"type": "stat_at_least", "stat_id": "might", "rank": 1}))
-	assert_false(evaluator.evaluate({"type": "stat_at_least", "stat_id": "", "rank": 1}))
-	assert_false(evaluator.evaluate({"type": "stat_at_least", "stat_id": "might", "rank": "one"}))
 	assert_false(evaluator.evaluate({"type": "time_phase", "phase": "Night"}))
 	assert_false(evaluator.evaluate({"type": "time_phase", "phase": ""}))
 	assert_false(

@@ -24,6 +24,7 @@ static func build(main) -> Dictionary:
 		"player_mana": "%d/%d" % [int(roundf(main.player.mana)), int(roundf(main.player.max_mana))],
 		"player_mana_value": main.player.mana,
 		"player_max_mana": main.player.max_mana,
+		"player_sneaking": main.player.is_sneaking,
 		"nearby": target_name,
 		"primary_action": _primary_action(main, nearby, auto_target),
 		"target_detail": target_detail,
@@ -33,6 +34,13 @@ static func build(main) -> Dictionary:
 		"inventory_items": _inventory_items_data(main),
 		"inventory_details": main._inventory_details_text(),
 		"inventory_actions": main._inventory_actions_data(),
+		"transfer_open": not String(main.active_transfer_owner_id).is_empty(),
+		"transfer_target": {
+			"owner_id": String(main.active_transfer_owner_id),
+			"name": String(main.active_transfer_name)
+		},
+		"transfer_player_items": _inventory_items_data(main),
+		"transfer_target_items": _inventory_items_for_owner(main, String(main.active_transfer_owner_id)),
 		"spells": _spells_data(main),
 		"spell_slots": _spell_slots_data(main),
 		"trade": main._trade_text(shop_id),
@@ -97,10 +105,16 @@ static func _quest_target_actions(main) -> Array[Dictionary]:
 
 
 static func _inventory_items_data(main) -> Array[Dictionary]:
+	return _inventory_items_for_owner(main, "char_player")
+
+
+static func _inventory_items_for_owner(main, owner_id: String) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
-	for item_id in main._sorted_inventory_ids():
+	if owner_id.is_empty():
+		return entries
+	for item_id in _sorted_owner_inventory_ids(main, owner_id):
 		var item: Dictionary = main.content.get_item(item_id)
-		var count: int = main.inventory.get_count(item_id)
+		var count: int = main.inventory.get_count_for_owner(owner_id, item_id)
 		if item.is_empty() or count <= 0:
 			continue
 		entries.append({
@@ -115,6 +129,13 @@ static func _inventory_items_data(main) -> Array[Dictionary]:
 			"description": String(item.get("description", ""))
 		})
 	return entries
+
+
+static func _sorted_owner_inventory_ids(main, owner_id: String) -> Array:
+	var source: Dictionary = main.inventory.get_items_for_owner(owner_id)
+	var item_ids: Array = source.keys()
+	item_ids.sort()
+	return item_ids
 
 
 static func _equipment_slots_data(main) -> Dictionary:

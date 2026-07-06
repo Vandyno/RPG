@@ -12,6 +12,7 @@ static func build(
 ) -> Dictionary:
 	var cluster := Control.new()
 	cluster.name = "CombatJoystickCluster"
+	cluster.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cluster.anchor_left = 1.0
 	cluster.anchor_right = 1.0
 	cluster.anchor_top = 1.0
@@ -24,6 +25,7 @@ static func build(
 
 	var utility_row := HBoxContainer.new()
 	utility_row.name = "UtilityButtonStack"
+	utility_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.alignment = BoxContainer.ALIGNMENT_END
 	utility_row.add_theme_constant_override("separation", 6)
 	cluster.add_child(utility_row)
@@ -42,6 +44,7 @@ static func build(
 
 	var ability_stack := Control.new()
 	ability_stack.name = "AbilityButtonStack"
+	ability_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cluster.add_child(ability_stack)
 
 	var ability_buttons := {}

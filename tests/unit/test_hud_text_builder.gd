@@ -3,7 +3,7 @@ extends GutTest
 const HudTextBuilder = preload("res://scripts/ui/hud_text_builder.gd")
 
 
-func test_status_text_summarizes_multiple_quests_and_targets() -> void:
+func test_status_text_omits_quests_and_targets() -> void:
 	var text := HudTextBuilder.status_text(
 		{
 			"time": "Day 1, 08:00 (Morning)",
@@ -22,9 +22,9 @@ func test_status_text_summarizes_multiple_quests_and_targets() -> void:
 	)
 
 	assert_true(text.contains("Briarwatch Crossroads  Day 1, 08:00"))
-	assert_true(text.contains("Quest: The Missing Tools (+1)"))
-	assert_true(text.contains("Goal: Return the toolbox to Harrow Venn."))
-	assert_true(text.contains("Next: E 5.0t Harrow Venn (+1)"))
+	assert_false(text.contains("Quest:"))
+	assert_false(text.contains("Goal:"))
+	assert_false(text.contains("Next:"))
 
 
 func test_status_text_omits_empty_inventory_and_empty_quest_noise() -> void:
@@ -77,8 +77,4 @@ func test_systems_text_uses_player_facing_screen_headers() -> void:
 			"Active work and nearby objectives."
 		)
 	)
-	assert_true(
-		HudTextBuilder.systems_text(state, "map", []).contains(
-			"Known places, routes, and nearby leads."
-		)
-	)
+	assert_eq(HudTextBuilder.systems_text(state, "map", []), "")

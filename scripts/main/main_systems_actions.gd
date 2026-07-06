@@ -2,8 +2,10 @@ class_name MainSystemsActions
 extends RefCounted
 
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
+const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
 const MIN_AIM_DIRECTION := 0.1
 
@@ -29,6 +31,10 @@ static func handle(main, action_id: String) -> void:
 			main._handle_buy_item(target_id)
 		"sell":
 			main._handle_sell_item(target_id)
+		"take":
+			MainInventoryTransfer.take_item(MainInventoryTransfer.context(main), target_id)
+		"put":
+			MainInventoryTransfer.put_item(MainInventoryTransfer.context(main), target_id)
 		"wait":
 			main._handle_wait_action(target_id.to_int())
 		"target":
@@ -46,13 +52,14 @@ static func handle(main, action_id: String) -> void:
 
 static func handle_aim(main, action_id: String, direction: Vector2) -> void:
 	var attack_action := action_id == "attack" or action_id == "primary"
+	var snapped_direction := _snapped_aim_direction(direction)
 	if direction.length() > MIN_AIM_DIRECTION and main.player.has_method("set_facing_direction"):
-		main.player.set_facing_direction(direction)
+		main.player.set_facing_direction(snapped_direction)
 	if attack_action:
 		if _consume_held_melee_release(main, action_id):
 			main._refresh_hud()
 			return
-		_perform_weapon_attack(main, direction)
+		_perform_weapon_attack(main, snapped_direction)
 		main._refresh_hud()
 		return
 	var spell_id: String = main.spells.get_assigned_spell(action_id) if main.spells else ""
@@ -65,7 +72,7 @@ static func handle_aim(main, action_id: String, direction: Vector2) -> void:
 		var spell_name := String(spell.get("name", spell_id))
 		var spell_attack := DirectionalAttack.spell_attack(spell)
 		var targets := DirectionalAttack.targets_in_shape(
-			main, main.player.global_position, direction, spell_attack
+			_enemy_candidates(main), main.player.global_position, snapped_direction, spell_attack
 		)
 		var damage := maxi(1, int(spell_attack.get("damage", spell.get("mana_cost", 1))))
 		if targets.is_empty():
@@ -78,15 +85,16 @@ static func handle_aim(main, action_id: String, direction: Vector2) -> void:
 static func handle_aim_held(main, action_id: String, direction: Vector2, delta: float) -> void:
 	if delta <= 0.0 or direction.length() <= MIN_AIM_DIRECTION:
 		return
+	var snapped_direction := _snapped_aim_direction(direction)
 	if action_id == "attack" or action_id == "primary":
-		_handle_held_weapon_attack(main, action_id, direction, delta)
+		_handle_held_weapon_attack(main, action_id, snapped_direction, delta)
 		return
 	var spell_id: String = main.spells.get_assigned_spell(action_id) if main.spells else ""
 	var spell: Dictionary = main.content.get_spell(spell_id)
 	if spell.is_empty() or not bool(spell.get("channel", false)):
 		return
 	if main.player.has_method("set_facing_direction"):
-		main.player.set_facing_direction(direction)
+		main.player.set_facing_direction(snapped_direction)
 	var spell_name := String(spell.get("name", spell_id))
 	var drain_value: Variant = spell.get("mana_drain_per_second", spell.get("mana_cost", 1))
 	var drain_rate := maxf(0.1, float(drain_value))
@@ -101,13 +109,13 @@ static func handle_aim_held(main, action_id: String, direction: Vector2, delta: 
 		return
 	main.channeled_spell_empty_reported[action_id] = false
 	var attack := DirectionalAttack.spell_attack(spell)
-	_spawn_effect(main, String(attack.get("visual", "fire_stream")), direction, attack)
+	_spawn_effect(main, String(attack.get("visual", "fire_stream")), snapped_direction, attack)
 	var dps := maxf(0.0, float(attack.get("damage_per_second", spell.get("mana_cost", 1))))
 	var bank: float = float(main.channeled_spell_damage_bank.get(action_id, 0.0)) + dps * delta
 	while bank >= 1.0:
 		bank -= 1.0
 		var targets := DirectionalAttack.targets_in_shape(
-			main, main.player.global_position, direction, attack
+			_enemy_candidates(main), main.player.global_position, snapped_direction, attack
 		)
 		_damage_targets(main, targets, 1, spell_name)
 	main.channeled_spell_damage_bank[action_id] = bank
@@ -147,7 +155,7 @@ static func _perform_weapon_attack(main, direction: Vector2) -> void:
 	var attack := DirectionalAttack.weapon_attack(main.content, main.equipment)
 	_spawn_effect(main, String(attack.get("visual", attack.get("shape", "swing"))), direction, attack)
 	var targets := DirectionalAttack.targets_in_shape(
-		main, main.player.global_position, direction, attack
+		_enemy_candidates(main), main.player.global_position, direction, attack
 	)
 	if targets.is_empty():
 		main.event_bus.post_message(
@@ -198,6 +206,12 @@ static func _damage_targets(main, targets: Array, damage: int, source_name: Stri
 			)
 
 
+static func _enemy_candidates(main) -> Array:
+	if not main.entities:
+		return []
+	return main.entities.entities_by_id.values()
+
+
 static func _player_action_damage_bonus(main) -> int:
 	var bonus := 0
 	var progression = main.get("progression")
@@ -213,6 +227,7 @@ static func _defeat_enemy(main, entity, result: Dictionary) -> void:
 	var defeat_effects := []
 	if entity and entity.data is Dictionary:
 		defeat_effects = entity.data.get("effects_on_defeat", [])
+	_create_body_for_defeated_humanoid(main, entity)
 	main.combat.clear_entity(entity.get_entity_id())
 	main.entities.remove_entity(entity.get_entity_id())
 	main.event_bus.post_message("Defeated %s." % result.get("name", "enemy"))
@@ -224,21 +239,90 @@ static func _defeat_enemy(main, entity, result: Dictionary) -> void:
 		main.event_bus.post_message("Rewards: %s." % reward_text)
 
 
+static func _create_body_for_defeated_humanoid(main, entity) -> void:
+	if not entity or not (entity.data is Dictionary):
+		return
+	var profile: Dictionary = entity.data.get("character_profile", {})
+	if profile.is_empty():
+		return
+	if not main.entities.has_method("add_runtime_entity"):
+		return
+	var owner_id := String(
+		entity.data.get("inventory_owner_id", profile.get("inventory_owner_id", ""))
+	)
+	var equipment_owner_id := String(
+		entity.data.get("equipment_owner_id", profile.get("equipment_owner_id", owner_id))
+	)
+	if owner_id.is_empty():
+		return
+	_seed_body_inventory(main, owner_id, entity.data)
+	var body_profile := profile.duplicate(true)
+	body_profile["state"] = "dead_body"
+	var entity_id: String = entity.get_entity_id()
+	var body_id: String = "body_%s" % entity_id
+	var body_entry := {
+		"id": body_id,
+		"name": "%s Body" % entity.get_display_name(),
+		"kind": "body",
+		"global_tile": [entity.global_tile.x, entity.global_tile.y],
+		"interaction_radius": 128,
+		"character_id": String(profile.get("character_id", "")),
+		"character_profile_id": String(entity.data.get("character_profile_id", "")),
+		"character_profile": body_profile,
+		"inventory_owner_id": owner_id,
+		"equipment_owner_id": equipment_owner_id,
+		"equipped_items": _dictionary_field(entity.data.get("equipped_items", {})),
+		"collapsed_pose_id": "pose_fallen_side"
+	}
+	main.entities.add_runtime_entity(body_entry)
+
+
+static func _seed_body_inventory(main, owner_id: String, data: Dictionary) -> void:
+	for entry in _array_field(data.get("inventory", [])):
+		if not entry is Dictionary:
+			continue
+		var item_id := String(entry.get("item_id", ""))
+		var count := _positive_int_value(entry.get("count", 1), 1)
+		main.inventory.add_item_to_owner(owner_id, item_id, count)
+	for item_id_value in _dictionary_field(data.get("equipped_items", {})).values():
+		var item_id := String(item_id_value)
+		if not item_id.is_empty():
+			main.inventory.add_item_to_owner(owner_id, item_id, 1)
+
+
 static func _spawn_effect(main, visual: String, direction: Vector2, attack: Dictionary) -> void:
 	if not (main is Node):
 		return
 	var effect := CombatActionEffect.new()
 	main.add_child(effect)
-	effect.setup(visual, main.player.global_position, direction, attack)
+	effect.setup(visual, main.player.global_position, _snapped_aim_direction(direction), attack)
 
 
 static func _direction_text(direction: Vector2) -> String:
 	if direction.length() <= MIN_AIM_DIRECTION:
 		return "forward"
-	var normalized := direction.normalized()
+	var normalized := _snapped_aim_direction(direction)
 	if absf(normalized.x) > absf(normalized.y):
 		return "east" if normalized.x > 0.0 else "west"
 	return "south" if normalized.y > 0.0 else "north"
+
+
+static func _snapped_aim_direction(direction: Vector2) -> Vector2:
+	return FacingBuckets.snap_direction(direction, Vector2.DOWN)
+
+
+static func _dictionary_field(value: Variant) -> Dictionary:
+	return value if value is Dictionary else {}
+
+
+static func _array_field(value: Variant) -> Array:
+	return value if value is Array else []
+
+
+static func _positive_int_value(value: Variant, fallback: int) -> int:
+	if not (value is int or value is float):
+		return maxi(1, fallback)
+	return maxi(1, int(value))
 
 
 static func _handle_assign_spell_to_slot(main, spell_id: String, slot_id: String) -> void:

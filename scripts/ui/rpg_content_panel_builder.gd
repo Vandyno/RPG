@@ -4,16 +4,15 @@ extends RefCounted
 const RpgPortraitSilhouette = preload("res://scripts/ui/rpg_portrait_silhouette.gd")
 
 
-static func build(
-	root: Control,
-	new_panel: Callable,
-	add_margin: Callable,
-	new_label: Callable,
-	new_button: Callable,
-	close_callback: Callable,
-	portrait_style: Callable,
-	hud_margin: float
-) -> Dictionary:
+static func build(options: Dictionary) -> Dictionary:
+	var root: Control = options.get("root")
+	var new_panel: Callable = options.get("new_panel")
+	var add_margin: Callable = options.get("add_margin")
+	var new_label: Callable = options.get("new_label")
+	var new_button: Callable = options.get("new_button")
+	var close_callback: Callable = options.get("close_callback")
+	var portrait_style: Callable = options.get("portrait_style")
+	var hud_margin := float(options.get("hud_margin", 0.0))
 	var panel: PanelContainer = new_panel.call("ContentPanel")
 	panel.name = "ContentPanel"
 	panel.anchor_left = 0.0

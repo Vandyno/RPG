@@ -14,28 +14,17 @@ var event_bus
 var feedback_suppression_depth := 0
 
 
-func setup(
-	world_state_manager,
-	quest_manager,
-	inventory_manager,
-	content_database = null,
-	player_controller = null,
-	faction_manager = null,
-	progression_manager = null,
-	time_manager = null,
-	status_effect_manager = null,
-	feedback_event_bus = null
-) -> void:
-	world_state = world_state_manager
-	quests = quest_manager
-	inventory = inventory_manager
-	content = content_database
-	player = player_controller
-	factions = faction_manager
-	progression = progression_manager
-	time = time_manager
-	statuses = status_effect_manager
-	event_bus = feedback_event_bus
+func setup(dependencies: Dictionary) -> void:
+	world_state = dependencies.get("world_state")
+	quests = dependencies.get("quests")
+	inventory = dependencies.get("inventory")
+	content = dependencies.get("content")
+	player = dependencies.get("player")
+	factions = dependencies.get("factions")
+	progression = dependencies.get("progression")
+	time = dependencies.get("time")
+	statuses = dependencies.get("statuses")
+	event_bus = dependencies.get("event_bus")
 
 
 func apply(effect: Dictionary, emit_feedback: bool = true) -> bool:

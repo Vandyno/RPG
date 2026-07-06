@@ -2,6 +2,8 @@ class_name MainContextActions
 extends RefCounted
 
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
+const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
+const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
 
 
 static func build(main, entity) -> Array[Dictionary]:
@@ -15,6 +17,8 @@ static func build(main, entity) -> Array[Dictionary]:
 			actions.append({"id": "inspect:%s" % entity.get_entity_id(), "text": "Inspect"})
 	if entity and entity.get_kind() == "npc":
 		var npc: Dictionary = _npc_for_entity(main, entity)
+		if main.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
+			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
 		var shop_id := String(npc.get("shop_id", ""))
 		if not shop_id.is_empty():
 			actions.append({"id": "trade:%s" % shop_id, "text": "Trade"})
@@ -79,6 +83,8 @@ static func handle(main, action_id: String) -> void:
 			_handle_talk_action_selected(main, String(parsed.get("id", "")))
 		"inspect":
 			_handle_poi_inspect_selected(main, String(parsed.get("id", "")))
+		"pickpocket":
+			_handle_pickpocket_selected(main, String(parsed.get("id", "")))
 		_:
 			main.event_bus.post_message("Unknown action.")
 
@@ -153,6 +159,22 @@ static func _handle_poi_inspect_selected(main, _entity_id: String) -> void:
 		main.event_bus.post_message("No place to inspect.")
 		return
 	PoiInteraction.inspect_with_main(entity, main)
+
+
+static func _handle_pickpocket_selected(main, entity_id: String) -> void:
+	var entity = main._get_nearby_entity()
+	if not entity or entity.get_entity_id() != entity_id:
+		main.event_bus.post_message("No pickpocket target nearby.")
+		main._refresh_hud()
+		return
+	var result := PickpocketRules.access_result(
+		entity, main.player.global_position, main.player.is_sneaking
+	)
+	if not bool(result.get("allowed", false)):
+		main.event_bus.post_message(String(result.get("reason", "Cannot pickpocket.")))
+		main._refresh_hud()
+		return
+	MainInventoryTransfer.open_pickpocket(MainInventoryTransfer.context(main), entity)
 
 
 static func _apply_choice_action(main, action: Dictionary) -> void:

@@ -181,7 +181,17 @@ func _make_systems() -> Dictionary:
 	player.setup(bus, null)
 	var runner := EffectRunner.new()
 	runner.setup(
-		world_state, quests, inventory, content, player, factions, progression, time, statuses
+		{
+			"world_state": world_state,
+			"quests": quests,
+			"inventory": inventory,
+			"content": content,
+			"player": player,
+			"factions": factions,
+			"progression": progression,
+			"time": time,
+			"statuses": statuses
+		}
 	)
 	return {
 		"runner": runner,

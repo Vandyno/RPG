@@ -53,9 +53,11 @@ func equip_item_to_slot(item_id: String, slot_id: String) -> bool:
 
 
 func equip_last_mainhand_weapon() -> bool:
-	if last_mainhand_weapon_id.is_empty() or not _has_item(last_mainhand_weapon_id):
-		return false
-	if get_equipped_item("right_hand") == last_mainhand_weapon_id:
+	var current_item_id := get_equipped_item("right_hand")
+	var needs_fallback := not _is_valid_mainhand_weapon(last_mainhand_weapon_id)
+	if needs_fallback or last_mainhand_weapon_id == current_item_id:
+		last_mainhand_weapon_id = _fallback_mainhand_weapon_id()
+	if last_mainhand_weapon_id.is_empty():
 		return false
 	return equip_item_to_slot(last_mainhand_weapon_id, "right_hand")
 
@@ -188,6 +190,19 @@ func _is_valid_mainhand_weapon(item_id: String) -> bool:
 		and _has_item(item_id)
 		and EquipmentSlots.accepts("right_hand", _item_slot(item_id))
 	)
+
+
+func _fallback_mainhand_weapon_id() -> String:
+	if not inventory:
+		return ""
+	var current_item_id := get_equipped_item("right_hand")
+	var item_ids: Array = inventory.items.keys()
+	item_ids.sort()
+	for item_id_value in item_ids:
+		var item_id := String(item_id_value)
+		if item_id != current_item_id and _is_valid_mainhand_weapon(item_id):
+			return item_id
+	return ""
 
 
 func _has_item(item_id: String) -> bool:

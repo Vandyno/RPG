@@ -1,12 +1,19 @@
+# gdlint:disable=max-file-lines,max-public-methods
 class_name ContentDatabase
 extends Node
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const HumanoidProfileResolver = preload("res://scripts/characters/humanoid_profile_resolver.gd")
+const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
+const SPELL_LOADOUT_SLOTS := ["ability_1", "ability_2", "ability_3"]
 
 var items: Dictionary = {}
 var readables: Dictionary = {}
 var quests: Dictionary = {}
 var npcs: Dictionary = {}
+var character_profiles: Dictionary = {}
+var people: Dictionary = {}
+var people_visual_models: Dictionary = {}
 var dialogues: Dictionary = {}
 var locations: Dictionary = {}
 var factions: Dictionary = {}
@@ -15,13 +22,18 @@ var status_effects: Dictionary = {}
 var spells: Dictionary = {}
 var world_objects: Array[Dictionary] = []
 var world_terrain: Dictionary = {}
+var load_errors: Array[String] = []
 
 
-func load_all() -> void:
+func load_all() -> Array[String]:
+	load_errors.clear()
 	items = _load_dictionary("res://data/items.json")
 	readables = _load_dictionary("res://data/readables.json")
 	quests = _load_dictionary("res://data/quests.json")
 	npcs = _load_dictionary("res://data/npcs.json")
+	character_profiles = _load_dictionary("res://data/character_profiles.json")
+	people = _load_dictionary("res://data/people.json")
+	people_visual_models = _load_dictionary("res://data/people_visual_models.json")
 	dialogues = _load_dictionary("res://data/dialogues.json")
 	locations = _load_dictionary("res://data/locations.json")
 	factions = _load_dictionary("res://data/factions.json")
@@ -30,6 +42,7 @@ func load_all() -> void:
 	spells = _load_dictionary("res://data/spells.json")
 	world_objects = _load_array("res://data/world_objects.json")
 	world_terrain = _load_dictionary("res://data/world_terrain.json")
+	return load_errors.duplicate()
 
 
 func get_item(item_id: String) -> Dictionary:
@@ -46,6 +59,56 @@ func get_quest(quest_id: String) -> Dictionary:
 
 func get_npc(npc_id: String) -> Dictionary:
 	return npcs.get(npc_id, {})
+
+
+func get_character_profile(profile_id: String) -> Dictionary:
+	return HumanoidProfileResolver.character_profile(self, profile_id)
+
+
+func get_character_profile_data(profile_id: String) -> Dictionary:
+	return _dictionary_field(character_profiles.get(profile_id, {})).duplicate(true)
+
+
+func get_people(people_id: String) -> Dictionary:
+	return people.get(people_id, {})
+
+
+func get_people_bonuses(people_id: String) -> Dictionary:
+	return HumanoidProfileResolver.people_bonuses(self, people_id)
+
+
+func get_people_visual_model(people_id: String) -> Dictionary:
+	return people_visual_models.get(people_id, {})
+
+
+func get_people_visual_variant(people_id: String, variant_id: String) -> Dictionary:
+	return HumanoidProfileResolver.people_visual_variant(self, people_id, variant_id)
+
+
+func get_people_visual_variant_profile(
+	people_id: String, variant_id: String, character_id: String = ""
+) -> Dictionary:
+	return HumanoidProfileResolver.people_visual_variant_profile(
+		self, people_id, variant_id, character_id
+	)
+
+
+func get_generated_people_appearance(
+	people_id: String, seed_key: String = "", options: Dictionary = {}
+) -> Dictionary:
+	return HumanoidProfileResolver.generated_people_appearance(self, people_id, seed_key, options)
+
+
+func get_generated_people_profile(
+	people_id: String, character_id: String, seed_key: String = "", options: Dictionary = {}
+) -> Dictionary:
+	return HumanoidProfileResolver.generated_people_profile(
+		self, people_id, character_id, seed_key, options
+	)
+
+
+func get_people_default_proportions(people_id: String) -> Dictionary:
+	return HumanoidProfileResolver.people_default_proportions(self, people_id)
 
 
 func get_dialogue(dialogue_id: String) -> Dictionary:
@@ -78,6 +141,9 @@ func validate_all() -> Array[String]:
 	_validate_readables(errors)
 	_validate_quests(errors)
 	_validate_factions(errors)
+	_validate_people(errors)
+	_validate_people_visual_models(errors)
+	_validate_character_profiles(errors)
 	_validate_npcs(errors)
 	_validate_dialogues(errors)
 	_validate_locations(errors)
@@ -93,7 +159,7 @@ func _load_dictionary(path: String) -> Dictionary:
 	var parsed: Variant = _load_json(path)
 	if parsed is Dictionary:
 		return parsed
-	push_warning("Expected dictionary JSON at %s" % path)
+	_record_load_error("Expected dictionary JSON at %s" % path)
 	return {}
 
 
@@ -105,19 +171,24 @@ func _load_array(path: String) -> Array[Dictionary]:
 			if entry is Dictionary:
 				result.append(entry)
 		return result
-	push_warning("Expected array JSON at %s" % path)
+	_record_load_error("Expected array JSON at %s" % path)
 	return result
 
 
 func _load_json(path: String) -> Variant:
 	if not FileAccess.file_exists(path):
-		push_warning("Missing content file: %s" % path)
+		_record_load_error("Missing content file: %s" % path)
 		return null
 	var raw := FileAccess.get_file_as_string(path)
 	var parsed: Variant = JSON.parse_string(raw)
 	if parsed == null:
-		push_warning("Invalid JSON: %s" % path)
+		_record_load_error("Invalid JSON: %s" % path)
 	return parsed
+
+
+func _record_load_error(message: String) -> void:
+	load_errors.append(message)
+	push_warning(message)
 
 
 func _validate_items(errors: Array[String]) -> void:
@@ -152,6 +223,31 @@ func _validate_item_equipment_fields(
 			_validate_required_positive_number(
 				attack, "attack_interval_seconds", "Item %s weapon_attack" % item_id, errors
 			)
+	_validate_item_avatar_visual(item, item_id, errors)
+
+
+func _validate_item_avatar_visual(item: Dictionary, item_id: String, errors: Array[String]) -> void:
+	if not item.has("equipment_slot"):
+		return
+	var visual_value: Variant = item.get("avatar_visual", {})
+	if not visual_value is Dictionary:
+		errors.append("Item %s avatar_visual must be a dictionary." % item_id)
+		return
+	var visual: Dictionary = visual_value
+	var avatar_slot := String(visual.get("avatar_slot", ""))
+	if avatar_slot.is_empty():
+		errors.append("Item %s avatar_visual is missing avatar_slot." % item_id)
+	elif not EquipmentSlots.accepts(avatar_slot, String(item.get("equipment_slot", ""))):
+		errors.append("Item %s avatar_visual avatar_slot does not match equipment_slot." % item_id)
+	var layer_id := String(visual.get("visual_layer_id", ""))
+	var accepted_placeholder := bool(visual.get("accepted_placeholder", false))
+	if layer_id.is_empty():
+		errors.append("Item %s avatar_visual is missing visual_layer_id." % item_id)
+	if not accepted_placeholder and String(visual.get("paperdoll_sprite_id", "")).is_empty():
+		errors.append(
+			"Item %s avatar_visual needs paperdoll_sprite_id or accepted_placeholder."
+			% item_id
+		)
 
 
 func _validate_readables(errors: Array[String]) -> void:
@@ -232,8 +328,128 @@ func _validate_npcs(errors: Array[String]) -> void:
 		var shop_id := String(npc.get("shop_id", ""))
 		if not shop_id.is_empty() and not shops.has(shop_id):
 			errors.append("NPC %s references missing shop %s." % [npc_id, shop_id])
+		var profile_id := String(npc.get("character_profile_id", ""))
+		if profile_id.is_empty():
+			errors.append("NPC %s is missing character_profile_id." % npc_id)
+		elif not character_profiles.has(profile_id):
+			errors.append("NPC %s references missing character profile %s." % [npc_id, profile_id])
 		_validate_condition_list(npc, "completion_conditions", "NPC %s" % npc_id, errors)
 		_validate_effect_list(npc, "completion_effects", "NPC %s" % npc_id, errors)
+
+
+func _validate_character_profiles(errors: Array[String]) -> void:
+	for profile_id in character_profiles:
+		var profile_value: Variant = character_profiles[profile_id]
+		if not profile_value is Dictionary:
+			errors.append("Character profile %s must be a dictionary." % profile_id)
+			continue
+		var profile: Dictionary = profile_value
+		var people_id := String(profile.get("people_id", ""))
+		if not people.has(people_id):
+			errors.append("Character profile %s references missing people %s." % [profile_id, people_id])
+		var character_id := String(profile.get("character_id", ""))
+		if character_id.is_empty():
+			errors.append("Character profile %s is missing character_id." % profile_id)
+		elif character_id != String(profile_id):
+			errors.append(
+				"Character profile %s has mismatched character_id %s."
+				% [profile_id, character_id]
+			)
+		_validate_appearance_generation(profile, String(profile_id), errors)
+		var validation_profile := HumanoidProfileResolver.profile_source_with_generated_appearance(
+			self, profile
+		)
+		errors.append_array(
+			HumanoidProfile.validate(validation_profile, "Character profile %s" % profile_id)
+		)
+
+
+func _validate_people(errors: Array[String]) -> void:
+	for people_id in people:
+		var definition_value: Variant = people[people_id]
+		if not definition_value is Dictionary:
+			errors.append("People %s must be a dictionary." % people_id)
+			continue
+		var definition: Dictionary = definition_value
+		_validate_keyed_id(definition, String(people_id), "People", errors)
+		if String(definition.get("display_name", "")).is_empty():
+			errors.append("People %s is missing display_name." % people_id)
+		for field_id in ["body_plans", "heads", "palettes", "features"]:
+			if not definition.get(field_id, []) is Array:
+				errors.append("People %s %s must be an array." % [people_id, field_id])
+		var bonuses: Variant = definition.get("bonuses", {})
+		if not bonuses is Dictionary:
+			errors.append("People %s bonuses must be a dictionary." % people_id)
+			continue
+		for bonus_id in bonuses:
+			if String(bonus_id).is_empty():
+				errors.append("People %s has blank bonus id." % people_id)
+			if not _is_number(bonuses[bonus_id]):
+				errors.append("People %s bonus %s must be numeric." % [people_id, String(bonus_id)])
+		if definition.has("default_proportions"):
+			HumanoidProfile.validate_proportions(
+				definition.get("default_proportions", {}),
+				"People %s default_proportions" % people_id,
+				errors
+			)
+
+
+func _validate_people_visual_models(errors: Array[String]) -> void:
+	for model_id in people_visual_models:
+		var model_value: Variant = people_visual_models[model_id]
+		if not model_value is Dictionary:
+			errors.append("People visual model %s must be a dictionary." % model_id)
+			continue
+		var model: Dictionary = model_value
+		var people_id := String(model.get("people_id", ""))
+		if people_id != String(model_id):
+			errors.append(
+				"People visual model %s has mismatched people_id %s." % [model_id, people_id]
+			)
+		if not people.has(people_id):
+			errors.append("People visual model %s references missing people %s." % [model_id, people_id])
+			continue
+		var definition: Dictionary = people.get(people_id, {})
+		var variants := _array_field(model.get("variants", []))
+		if variants.size() < 4:
+			errors.append("People visual model %s must define at least four variants." % model_id)
+		var seen_variant_ids: Dictionary = {}
+		for variant_value in variants:
+			if not variant_value is Dictionary:
+				errors.append("People visual model %s has malformed variant." % model_id)
+				continue
+			var variant: Dictionary = variant_value
+			var variant_id := String(variant.get("id", ""))
+			var owner := "People visual model %s variant %s" % [model_id, variant_id]
+			if variant_id.is_empty():
+				errors.append("People visual model %s has variant with missing id." % model_id)
+			elif seen_variant_ids.has(variant_id):
+				errors.append("People visual model %s has duplicate variant %s." % [model_id, variant_id])
+			seen_variant_ids[variant_id] = true
+			if String(variant.get("display_name", "")).is_empty():
+				errors.append("%s is missing display_name." % owner)
+			var palette_id := String(variant.get("palette_id", ""))
+			if not _array_field(definition.get("palettes", [])).has(palette_id):
+				errors.append("%s references unsupported palette %s." % [owner, palette_id])
+			var head_id := String(variant.get("head_id", ""))
+			if not _array_field(definition.get("heads", [])).has(head_id):
+				errors.append("%s references unsupported head %s." % [owner, head_id])
+			for feature_id in _array_field(variant.get("feature_ids", [])):
+				if not _array_field(definition.get("features", [])).has(String(feature_id)):
+					errors.append("%s references unsupported feature %s." % [owner, String(feature_id)])
+			var deltas_value: Variant = variant.get("proportion_deltas", {})
+			if not deltas_value is Dictionary:
+				errors.append("%s proportion_deltas must be a dictionary." % owner)
+			else:
+				_validate_people_model_proportion_deltas(deltas_value, owner, errors)
+				_validate_people_model_final_proportions(
+					people_id, deltas_value, "%s final proportions" % owner, errors
+				)
+			if String(variant.get("notes", "")).is_empty():
+				errors.append("%s is missing notes." % owner)
+	for people_id in people:
+		if not people_visual_models.has(people_id):
+			errors.append("People %s is missing visual model variants." % people_id)
 
 
 func _validate_factions(errors: Array[String]) -> void:
@@ -402,6 +618,7 @@ func _validate_world_objects(errors: Array[String]) -> void:
 					errors.append(
 						"World object %s references missing NPC %s." % [object_id, npc_id]
 					)
+				_validate_actor_world_object(entry, object_id, errors)
 			"pickup":
 				var item_id := String(entry.get("item_id", ""))
 				if not items.has(item_id):
@@ -423,6 +640,7 @@ func _validate_world_objects(errors: Array[String]) -> void:
 					entry, "effects_on_open", "world object %s" % object_id, errors
 				)
 			"enemy":
+				_validate_actor_world_object(entry, object_id, errors)
 				_validate_required_positive_number(
 					entry, "max_health", "Enemy %s" % object_id, errors
 				)
@@ -478,6 +696,39 @@ func _validate_world_objects(errors: Array[String]) -> void:
 		_validate_effect_list(entry, "effects_on_defeat", "world object %s" % object_id, errors)
 		_validate_condition_list(entry, "conditions", "world object %s" % object_id, errors)
 		_validate_condition_list(entry, "open_conditions", "world object %s" % object_id, errors)
+		_validate_spell_loadout_fields(entry, "World object %s" % object_id, errors)
+
+
+func _validate_actor_world_object(
+	entry: Dictionary, object_id: String, errors: Array[String]
+) -> void:
+	var kind := String(entry.get("kind", ""))
+	var profile_id := String(entry.get("character_profile_id", ""))
+	if kind == "npc":
+		var npc: Dictionary = npcs.get(String(entry.get("npc_id", "")), {})
+		var npc_profile_id := String(npc.get("character_profile_id", ""))
+		if profile_id.is_empty():
+			profile_id = npc_profile_id
+		elif not npc_profile_id.is_empty() and profile_id != npc_profile_id:
+			errors.append(
+				"World object %s character_profile_id must match NPC profile %s."
+				% [object_id, npc_profile_id]
+			)
+	if profile_id.is_empty():
+		errors.append("World object %s is missing character_profile_id." % object_id)
+	elif not character_profiles.has(profile_id):
+		errors.append(
+			"World object %s references missing character profile %s." % [object_id, profile_id]
+		)
+	for owner_field in ["inventory_owner_id", "equipment_owner_id"]:
+		var owner_id := String(entry.get(owner_field, ""))
+		if owner_id.is_empty():
+			errors.append("World object %s is missing %s." % [object_id, owner_field])
+		elif not profile_id.is_empty() and owner_id != profile_id:
+			errors.append(
+				"World object %s %s must match character_profile_id %s."
+				% [object_id, owner_field, profile_id]
+			)
 
 
 func _validate_world_terrain(errors: Array[String]) -> void:
@@ -571,6 +822,88 @@ func _validate_terrain_kind(
 	var kind := String(entry.get(field_id, ""))
 	if not _supported_terrain_kinds().has(kind):
 		errors.append("%s has unsupported terrain kind %s." % [owner, kind])
+
+
+func _validate_appearance_generation(
+	profile: Dictionary, profile_id: String, errors: Array[String]
+) -> void:
+	if not profile.has("appearance_generation"):
+		return
+	var owner := "Character profile %s appearance_generation" % profile_id
+	var generation_value: Variant = profile.get("appearance_generation", {})
+	if not generation_value is Dictionary:
+		errors.append("%s must be a dictionary." % owner)
+		return
+	var generation: Dictionary = generation_value
+	var people_id := String(profile.get("people_id", ""))
+	if generation.has("seed") and not generation.get("seed") is String:
+		errors.append("%s seed must be a string." % owner)
+	if generation.has("variant_id"):
+		if not generation.get("variant_id") is String:
+			errors.append("%s variant_id must be a string." % owner)
+		else:
+			var variant_id := String(generation.get("variant_id", ""))
+			if not variant_id.is_empty() and get_people_visual_variant(people_id, variant_id).is_empty():
+				errors.append("%s references missing variant %s." % [owner, variant_id])
+	if generation.has("proportion_jitter") and not generation.get("proportion_jitter") is bool:
+		errors.append("%s proportion_jitter must be a boolean." % owner)
+	if generation.has("jitter_strength"):
+		if not _is_number(generation.get("jitter_strength")):
+			errors.append("%s jitter_strength must be numeric." % owner)
+		else:
+			var strength := float(generation.get("jitter_strength"))
+			if strength < 0.0 or strength > HumanoidProfileResolver.MAX_JITTER_STRENGTH:
+				errors.append("%s jitter_strength must be between 0.00 and 0.08." % owner)
+	if generation.has("appearance_overrides"):
+		var overrides_value: Variant = generation.get("appearance_overrides", {})
+		if not overrides_value is Dictionary:
+			errors.append("%s appearance_overrides must be a dictionary." % owner)
+		else:
+			var overrides: Dictionary = overrides_value
+			if overrides.has("proportions"):
+				HumanoidProfile.validate_proportions(
+					overrides.get("proportions", {}),
+					"%s appearance_overrides" % owner,
+					errors
+				)
+
+
+func _validate_people_model_proportion_deltas(
+	value: Dictionary, owner: String, errors: Array[String]
+) -> void:
+	for field_id in value:
+		var key := String(field_id)
+		if not HumanoidProfile.DEFAULT_PROPORTIONS.has(key):
+			errors.append("%s has unsupported proportion delta %s." % [owner, key])
+			continue
+		if not _is_number(value[field_id]):
+			errors.append("%s proportion delta %s must be numeric." % [owner, key])
+			continue
+		var amount := float(value[field_id])
+		if amount < -0.25 or amount > 0.25:
+			errors.append("%s proportion delta %s must be between -0.25 and 0.25." % [owner, key])
+
+
+func _validate_people_model_final_proportions(
+	people_id: String, deltas: Dictionary, owner: String, errors: Array[String]
+) -> void:
+	var proportions := get_people_default_proportions(people_id)
+	_apply_proportion_deltas(proportions, deltas)
+	for field_id in proportions:
+		var amount := float(proportions[field_id])
+		if amount < HumanoidProfile.MIN_PROPORTION or amount > HumanoidProfile.MAX_PROPORTION:
+			errors.append(
+				"%s %s must be between %.2f and %.2f."
+				% [owner, String(field_id), HumanoidProfile.MIN_PROPORTION, HumanoidProfile.MAX_PROPORTION]
+			)
+
+
+func _apply_proportion_deltas(proportions: Dictionary, deltas: Dictionary) -> void:
+	for field_id in deltas:
+		var key := String(field_id)
+		if not proportions.has(key) or not _is_number(deltas[field_id]):
+			continue
+		proportions[key] = float(proportions[key]) + float(deltas[field_id])
 
 
 func _validate_effect_list(
@@ -696,6 +1029,28 @@ func _validate_effect(effect: Dictionary, owner: String, errors: Array[String]) 
 			errors.append("%s has unsupported effect type %s." % [owner, effect_type])
 
 
+func _validate_spell_loadout_fields(
+	entry: Dictionary, owner: String, errors: Array[String]
+) -> void:
+	for spell_id in _array_field(entry.get("spell_ids", [])):
+		if not spells.has(String(spell_id)):
+			errors.append("%s references missing spell %s." % [owner, String(spell_id)])
+	var slots_value: Variant = entry.get("loadout_slots", {})
+	if not entry.has("loadout_slots"):
+		return
+	if not slots_value is Dictionary:
+		errors.append("%s loadout_slots must be a dictionary." % owner)
+		return
+	var slots: Dictionary = slots_value
+	for slot_id in slots:
+		var slot := String(slot_id)
+		var spell_id := String(slots[slot_id])
+		if not SPELL_LOADOUT_SLOTS.has(slot):
+			errors.append("%s has unsupported loadout slot %s." % [owner, slot])
+		if not spells.has(spell_id):
+			errors.append("%s loadout slot %s references missing spell %s." % [owner, slot, spell_id])
+
+
 func _validate_condition(condition: Dictionary, owner: String, errors: Array[String]) -> void:
 	var condition_type := String(condition.get("type", ""))
 	match condition_type:
@@ -738,10 +1093,6 @@ func _validate_condition(condition: Dictionary, owner: String, errors: Array[Str
 			_validate_required_number(condition, "reputation", owner, errors)
 		"player_level_at_least":
 			_validate_required_positive_number(condition, "level", owner, errors)
-		"stat_at_least":
-			if String(condition.get("stat_id", "")).is_empty():
-				errors.append("%s has stat_at_least with missing stat_id." % owner)
-			_validate_required_positive_number(condition, "rank", owner, errors)
 		"time_phase":
 			var phase := String(condition.get("phase", ""))
 			if not ["Morning", "Afternoon", "Evening", "Night"].has(phase):
@@ -910,7 +1261,7 @@ func _world_object_id_exists(object_id: String) -> bool:
 
 
 func _supported_system_tabs() -> Array[String]:
-	return ["inventory", "character", "trade", "quests", "map", "journal", "world", "log"]
+	return ["inventory", "character", "trade", "quests", "journal", "log"]
 
 
 func _supported_terrain_kinds() -> Array[String]:

@@ -23,6 +23,8 @@ static func handle_event(main, event: InputEvent) -> void:
 		main._handle_load_requested()
 	elif event.is_action_pressed("toggle_debug"):
 		main.hud.toggle_debug()
+	elif event.is_action_pressed("toggle_character_creator"):
+		main.toggle_debug_character_creator()
 	elif event.is_action_pressed("toggle_systems"):
 		main.hud.toggle_systems()
 	elif event.is_action_pressed("cycle_target"):

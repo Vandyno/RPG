@@ -1,6 +1,7 @@
 extends GutTest
 
 const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
 
 func test_parse_action_id_defaults_to_inventory_use() -> void:
@@ -26,7 +27,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 		"equip_slot:item_hatchet:right_hand",
 		"swap_mainhand:weapon",
 		"unequip:weapon",
-		"train:might",
+		"train:legacy",
 		"buy:item_draught",
 		"sell:item_hatchet",
 		"wait:8",
@@ -44,7 +45,7 @@ func test_handle_routes_system_actions_to_main_methods() -> void:
 			"equip_slot:item_hatchet:right_hand",
 			"swap_mainhand",
 			"unequip:weapon",
-			"train:might",
+			"train:legacy",
 			"buy:item_draught",
 			"sell:item_hatchet",
 			"wait:8",
@@ -143,6 +144,27 @@ func test_handle_aim_attack_swings_without_target() -> void:
 
 	assert_eq(main.player.facing_direction, Vector2.RIGHT)
 	assert_eq(main.calls, ["message:Attacked east.", "refresh"])
+
+
+func test_handle_aim_attack_uses_snapped_bucket_direction_for_hits() -> void:
+	var main := AimMainStub.new()
+	main.equipment.equipped_item_id = "item_hunting_bow"
+	var raw_direction := Vector2(1.0, 0.31)
+	var snapped := FacingBuckets.snap_direction(raw_direction)
+	main.enemies = [AimEntityStub.new("enemy_bucket", "Bucket Dummy", snapped * 88.0)]
+	main.entities = AimEntitiesStub.new(main.enemies)
+
+	MainSystemsActions.handle_aim(main, "attack", raw_direction)
+
+	assert_eq(main.player.facing_direction, snapped)
+	assert_eq(
+		main.calls,
+		[
+			"damage:enemy_bucket:4",
+			"message:Hunting Bow hits Bucket Dummy for 4.",
+			"refresh"
+		]
+	)
 
 
 class MainStub:

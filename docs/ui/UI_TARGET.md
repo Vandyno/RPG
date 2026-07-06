@@ -52,7 +52,7 @@ Required structure:
 - Top-right navigation cluster
   - `Quests`
   - `Journal`
-  - `Map`
+  - future real map view when the world exists
   - `Menu`
   - icon plus label where space allows
 - Bottom-left movement control
@@ -88,12 +88,17 @@ Required structure:
   - currency, carry weight, time, and close button on the right
 - Left vertical navigation
   - `Inventory`
+  - `Spells`
   - `Character`
   - `Quests`
-  - `Map`
   - `Journal`
   - `Trade`
   - large icon plus label rows
+
+Do not include the old text/list Map tab. A final map should be an actual
+visual map of the authored world, added only when the world structure exists.
+Until then, reveal place and route information through world discovery, quests,
+dialogue, notes, signs, and NPCs.
 - Center content pane
   - tab/category row for inventory-like screens
   - selectable rows/cards with icon, name, type, count/weight/value

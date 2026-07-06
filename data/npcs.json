@@ -5,6 +5,7 @@
     "role": "Frontier blacksmith",
     "location": "prototype_crossroads",
     "faction": "faction_marches_of_velcor",
+    "character_profile_id": "char_harrow_venn",
     "quest_id": "quest_missing_tools",
     "dialogue_id": "dialogue_harrow_venn"
   },
@@ -14,6 +15,7 @@
     "role": "Road peddler",
     "location": "prototype_crossroads",
     "faction": "faction_marches_of_velcor",
+    "character_profile_id": "char_maera_pike",
     "dialogue_id": "dialogue_maera_pike",
     "shop_id": "shop_crossroads_peddler"
   }

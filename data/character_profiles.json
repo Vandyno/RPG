@@ -1,0 +1,281 @@
+{
+  "char_player": {
+    "character_id": "char_player",
+    "people_id": "people_human",
+    "faction_id": "faction_marches_of_velcor",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance": {
+      "people_id": "people_human",
+      "body_plan_id": "body_humanoid_average",
+      "head_id": "head_human_round",
+      "palette_id": "palette_human_warm_brown",
+      "hair_id": "hair_short_waves",
+      "hair_color_id": "hair_black",
+      "eye_id": "eyes_dark",
+      "marking_id": "",
+      "base_clothing_id": "",
+      "proportions": {
+        "shoulder_width": 1.0,
+        "torso_width": 1.0,
+        "waist_width": 1.0,
+        "head_size": 1.0,
+        "hand_size": 1.0,
+        "foot_size": 1.0
+      }
+    },
+    "inventory_owner_id": "char_player",
+    "equipment_owner_id": "char_player",
+    "spellbook_owner_id": "char_player",
+    "loadout_id": "loadout_player",
+    "corpse_entity_id": ""
+  },
+  "char_harrow_venn": {
+    "character_id": "char_harrow_venn",
+    "people_id": "people_human",
+    "faction_id": "faction_marches_of_velcor",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance": {
+      "people_id": "people_human",
+      "body_plan_id": "body_humanoid_average",
+      "head_id": "head_human_round",
+      "palette_id": "palette_human_light_olive",
+      "hair_id": "hair_short_waves",
+      "hair_color_id": "hair_grey",
+      "eye_id": "eyes_dark",
+      "marking_id": "",
+      "base_clothing_id": "",
+      "proportions": {
+        "shoulder_width": 1.22,
+        "torso_width": 1.12,
+        "waist_width": 1.05,
+        "head_size": 0.96,
+        "hand_size": 1.18,
+        "foot_size": 1.08
+      }
+    },
+    "inventory_owner_id": "char_harrow_venn",
+    "equipment_owner_id": "char_harrow_venn",
+    "spellbook_owner_id": "char_harrow_venn",
+    "loadout_id": "loadout_harrow_venn",
+    "corpse_entity_id": ""
+  },
+  "char_maera_pike": {
+    "character_id": "char_maera_pike",
+    "people_id": "people_human",
+    "faction_id": "faction_marches_of_velcor",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance": {
+      "people_id": "people_human",
+      "body_plan_id": "body_humanoid_average",
+      "head_id": "head_human_round",
+      "palette_id": "palette_human_deep_brown",
+      "hair_id": "hair_tied_back",
+      "hair_color_id": "hair_black",
+      "eye_id": "eyes_dark",
+      "marking_id": "marking_cheek_dots",
+      "base_clothing_id": "",
+      "proportions": {
+        "shoulder_width": 0.94,
+        "torso_width": 0.96,
+        "waist_width": 0.94,
+        "head_size": 1.02,
+        "hand_size": 0.98,
+        "foot_size": 0.98
+      }
+    },
+    "inventory_owner_id": "char_maera_pike",
+    "equipment_owner_id": "char_maera_pike",
+    "spellbook_owner_id": "char_maera_pike",
+    "loadout_id": "loadout_maera_pike",
+    "corpse_entity_id": ""
+  },
+  "char_road_thug": {
+    "character_id": "char_road_thug",
+    "people_id": "people_human",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance": {
+      "people_id": "people_human",
+      "body_plan_id": "body_humanoid_average",
+      "head_id": "head_human_round",
+      "palette_id": "palette_human_deep_brown",
+      "hair_id": "hair_short_waves",
+      "hair_color_id": "hair_brown",
+      "eye_id": "eyes_dark",
+      "marking_id": "",
+      "base_clothing_id": "",
+      "proportions": {
+        "shoulder_width": 1.06,
+        "torso_width": 1.04,
+        "waist_width": 0.96,
+        "head_size": 0.98,
+        "hand_size": 1.04,
+        "foot_size": 1.0
+      }
+    },
+    "inventory_owner_id": "char_road_thug",
+    "equipment_owner_id": "char_road_thug",
+    "spellbook_owner_id": "char_road_thug",
+    "loadout_id": "loadout_road_thug",
+    "corpse_entity_id": ""
+  },
+  "char_test_raider": {
+    "character_id": "char_test_raider",
+    "people_id": "people_human",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance": {
+      "people_id": "people_human",
+      "body_plan_id": "body_humanoid_average",
+      "head_id": "head_human_round",
+      "palette_id": "palette_human_light_olive",
+      "hair_id": "hair_short_waves",
+      "hair_color_id": "hair_brown",
+      "eye_id": "eyes_dark",
+      "marking_id": "",
+      "base_clothing_id": "",
+      "proportions": {
+        "shoulder_width": 1.14,
+        "torso_width": 1.02,
+        "waist_width": 0.92,
+        "head_size": 0.95,
+        "hand_size": 1.08,
+        "foot_size": 1.02
+      }
+    },
+    "inventory_owner_id": "char_test_raider",
+    "equipment_owner_id": "char_test_raider",
+    "spellbook_owner_id": "char_test_raider",
+    "loadout_id": "loadout_test_raider",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_human": {
+    "character_id": "char_people_test_human",
+    "people_id": "people_human",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_human",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_human",
+    "equipment_owner_id": "char_people_test_human",
+    "spellbook_owner_id": "char_people_test_human",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_tanglekin": {
+    "character_id": "char_people_test_tanglekin",
+    "people_id": "people_tanglekin",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_tanglekin",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_tanglekin",
+    "equipment_owner_id": "char_people_test_tanglekin",
+    "spellbook_owner_id": "char_people_test_tanglekin",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_tuskfolk": {
+    "character_id": "char_people_test_tuskfolk",
+    "people_id": "people_tuskfolk",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_tuskfolk",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_tuskfolk",
+    "equipment_owner_id": "char_people_test_tuskfolk",
+    "spellbook_owner_id": "char_people_test_tuskfolk",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_mirefolk": {
+    "character_id": "char_people_test_mirefolk",
+    "people_id": "people_mirefolk",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_mirefolk",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_mirefolk",
+    "equipment_owner_id": "char_people_test_mirefolk",
+    "spellbook_owner_id": "char_people_test_mirefolk",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_ravenfolk": {
+    "character_id": "char_people_test_ravenfolk",
+    "people_id": "people_ravenfolk",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_ravenfolk",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_ravenfolk",
+    "equipment_owner_id": "char_people_test_ravenfolk",
+    "spellbook_owner_id": "char_people_test_ravenfolk",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  },
+  "char_people_test_rootborn": {
+    "character_id": "char_people_test_rootborn",
+    "people_id": "people_rootborn",
+    "faction_id": "faction_road_bandits",
+    "state": "alive",
+    "level": 1,
+    "stats": {},
+    "derived_bonuses": {},
+    "appearance_generation": {
+      "seed": "people_test_rootborn",
+      "proportion_jitter": true,
+      "jitter_strength": 0.02
+    },
+    "inventory_owner_id": "char_people_test_rootborn",
+    "equipment_owner_id": "char_people_test_rootborn",
+    "spellbook_owner_id": "char_people_test_rootborn",
+    "loadout_id": "",
+    "corpse_entity_id": ""
+  }
+}

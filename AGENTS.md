@@ -4,6 +4,8 @@ Use these files as the current source of truth:
 - `DESIGN.md` for game vision and player experience
 - `ARCHITECTURE.md` for technical boundaries and system ownership
 - `CONTENT_GUIDE.md` for authored content structure and ID conventions
+- `docs/HUMANOID_CHARACTER_PLAN.md` for shared actor, humanoid profile,
+  appearance, equipment, body, loot, and pickpocket direction
 - `docs/ui/UI_TARGET.md` for the player-facing RPG UI mockup target
 - `LORE.md` for setting canon and worldbuilding
 - `MAP.md` for map direction and preserved place names
@@ -40,3 +42,8 @@ For UI work, remove redundant or legacy-shaped UI when current evidence shows it
 hurts the final layout. Do not preserve boxes, buttons, panels, or text just
 because existing tests or old structure expect them. Move actions into the
 player-facing flow that best matches `docs/ui/UI_TARGET.md`.
+
+For player-facing UI behavior, verify with real pointer input whenever possible:
+mouse/touch down, at least one frame, then mouse/touch up. Assert the actual
+game state changed. Direct signal emits like `button.pressed.emit()` are only
+acceptable for tiny unit tests, not for proving a player-facing click works.

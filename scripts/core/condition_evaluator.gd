@@ -50,8 +50,6 @@ func evaluate(condition: Dictionary) -> bool:
 			passed = _faction_reputation_at_least(condition)
 		"player_level_at_least":
 			passed = _player_level_at_least(condition)
-		"stat_at_least":
-			passed = _stat_at_least(condition)
 		"time_phase":
 			passed = _time_phase(condition)
 		"time_hour_between":
@@ -131,17 +129,6 @@ func _faction_reputation_at_least(condition: Dictionary) -> bool:
 func _player_level_at_least(condition: Dictionary) -> bool:
 	var required_level := _int_field(condition, "level", 0)
 	return required_level > 0 and progression and progression.is_level_at_least(required_level)
-
-
-func _stat_at_least(condition: Dictionary) -> bool:
-	var stat_id := String(condition.get("stat_id", ""))
-	var required_rank := _int_field(condition, "rank", 0)
-	return (
-		not stat_id.is_empty()
-		and required_rank > 0
-		and progression
-		and progression.get_stat_rank(stat_id) >= required_rank
-	)
 
 
 func _time_phase(condition: Dictionary) -> bool:

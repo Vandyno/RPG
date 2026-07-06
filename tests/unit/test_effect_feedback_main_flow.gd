@@ -37,9 +37,9 @@ func test_container_feedback_reports_rewards_before_open_confirmation_scrolls_aw
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
 
-	assert_true(main.hud.log_label.text.contains("Gained Gold Coin x2."))
 	assert_true(main.hud.log_label.text.contains("XP +2."))
 	assert_true(main.hud.log_label.text.contains("Opened Roadside Cache."))
+	assert_eq(main.inventory.get_count_for_owner("loot:object_road_cache", "item_gold_coin"), 2)
 
 
 func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> void:

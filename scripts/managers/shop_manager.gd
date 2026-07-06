@@ -39,9 +39,9 @@ func buy_item(shop_id: String, item_id: String) -> bool:
 	return false
 
 
-func sell_item(item_id: String, shop_id: String = "") -> bool:
-	var price := sell_price(item_id)
-	if not shop_id.is_empty() and not is_shop_open(shop_id):
+func sell_item(shop_id: String, item_id: String) -> bool:
+	var price := sell_price(shop_id, item_id)
+	if not is_shop_open(shop_id):
 		return false
 	if price <= 0 or not inventory or not inventory.has_item(item_id, 1) or _is_equipped(item_id):
 		return false
@@ -60,7 +60,13 @@ func buy_price(shop_id: String, item_id: String) -> int:
 	return 0
 
 
-func sell_price(item_id: String) -> int:
+func sell_price(shop_id: String, item_id: String) -> int:
+	if not is_shop_open(shop_id):
+		return 0
+	return base_sell_price(item_id)
+
+
+func base_sell_price(item_id: String) -> int:
 	if item_id == CURRENCY_ITEM_ID or _is_equipped(item_id):
 		return 0
 	var item := _item(item_id)
@@ -119,9 +125,9 @@ func get_buy_actions(shop_id: String) -> Array[Dictionary]:
 	return actions
 
 
-func get_sell_actions(shop_id: String = "") -> Array[Dictionary]:
+func get_sell_actions(shop_id: String) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
-	if not shop_id.is_empty() and not is_shop_open(shop_id):
+	if not is_shop_open(shop_id):
 		return actions
 	if not inventory:
 		return actions
@@ -130,7 +136,7 @@ func get_sell_actions(shop_id: String = "") -> Array[Dictionary]:
 		item_ids.append(String(item_id))
 	item_ids.sort()
 	for item_id in item_ids:
-		var price := sell_price(item_id)
+		var price := sell_price(shop_id, item_id)
 		var item := _item(item_id)
 		if price <= 0 or item.is_empty():
 			continue

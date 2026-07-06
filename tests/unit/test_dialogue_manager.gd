@@ -138,7 +138,16 @@ func _make_systems() -> Dictionary:
 	add_child_autofree(progression)
 	progression.setup(bus)
 	var effects := EffectRunner.new()
-	effects.setup(world_state, quests, inventory, content, null, factions, progression)
+	effects.setup(
+		{
+			"world_state": world_state,
+			"quests": quests,
+			"inventory": inventory,
+			"content": content,
+			"factions": factions,
+			"progression": progression
+		}
+	)
 	var conditions := ConditionEvaluator.new()
 	conditions.setup(world_state, quests, inventory, readables, factions, progression)
 	var dialogues := DialogueManager.new()

@@ -60,7 +60,7 @@ func _sample_state() -> Dictionary:
 		"player_mana_value": 100,
 		"player_max_mana": 100,
 		"locations": "Briarwatch Crossroads",
-		"progression": "Level 1 XP 0/20 Points 0 Might 0 Grit 0",
+		"progression": "Level 1 XP 0/20 Points 0",
 		"inventory": "empty",
 		"inventory_items": [],
 		"spells": [],

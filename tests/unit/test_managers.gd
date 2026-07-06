@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
@@ -41,6 +42,18 @@ func test_inventory_add_remove_and_save_load() -> void:
 	assert_eq(loaded.get_count("item_gold_coin"), 4)
 
 
+func test_inventory_owner_getters_do_not_create_owner_state() -> void:
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+
+	assert_eq(inventory.get_count_for_owner("char_missing", "item_gold_coin"), 0)
+	assert_true(inventory.get_items_for_owner("char_missing").is_empty())
+	assert_false(inventory.owner_items.has("char_missing"))
+
+	inventory.add_item_to_owner("char_missing", "item_gold_coin", 1)
+	assert_true(inventory.owner_items.has("char_missing"))
+
+
 func test_inventory_respects_content_item_contract() -> void:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)
@@ -53,6 +66,9 @@ func test_inventory_respects_content_item_contract() -> void:
 	assert_true(inventory.add_item("item_old_toolbox", 1))
 	assert_false(inventory.add_item("item_old_toolbox", 1))
 	assert_eq(inventory.get_count("item_old_toolbox"), 1)
+	assert_true(inventory.add_item("item_training_sword", 1))
+	assert_true(inventory.add_item("item_training_sword", 1))
+	assert_eq(inventory.get_count("item_training_sword"), 2)
 	assert_true(inventory.add_item("item_gold_coin", 1200))
 	assert_eq(inventory.get_count("item_gold_coin"), 999)
 	assert_false(inventory.add_item("item_gold_coin", 1))
@@ -66,12 +82,15 @@ func test_inventory_respects_content_item_contract() -> void:
 			[
 				{"item_id": "missing_item", "count": 5},
 				{"item_id": "item_old_toolbox", "count": 7},
+				{"item_id": "item_training_sword", "count": 7},
 				{"item_id": "item_gold_coin", "count": 1200}
 			]
 		}
 	)
 
-	assert_eq(loaded.items, {"item_old_toolbox": 1, "item_gold_coin": 999})
+	assert_eq(
+		loaded.items, {"item_old_toolbox": 1, "item_training_sword": 7, "item_gold_coin": 999}
+	)
 
 
 func test_inventory_load_ignores_invalid_entries() -> void:
@@ -195,6 +214,29 @@ func test_equipment_load_ignores_invalid_missing_or_unowned_items() -> void:
 	assert_eq(equipment.get_save_data(), {"equipped": {"offhand": "item_traveler_buckler"}})
 	inventory.remove_item("item_traveler_buckler", 1)
 	assert_eq(equipment.get_equipped_item("offhand"), "")
+
+
+func test_equipment_swap_falls_back_to_carried_mainhand_weapon() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	var inventory := InventoryManager.new()
+	add_child_autofree(inventory)
+	inventory.setup(null, content)
+	inventory.add_item("item_road_hatchet", 1)
+	inventory.add_item("item_training_sword", 1)
+	var equipment := EquipmentManager.new()
+	add_child_autofree(equipment)
+	equipment.setup(null, content, inventory)
+
+	assert_true(equipment.equip_item("item_road_hatchet"))
+	assert_eq(equipment.last_mainhand_weapon_id, "")
+	assert_true(equipment.equip_last_mainhand_weapon())
+	assert_eq(equipment.get_equipped_item("weapon"), "item_training_sword")
+	assert_eq(equipment.last_mainhand_weapon_id, "item_road_hatchet")
+	equipment.last_mainhand_weapon_id = "item_training_sword"
+	assert_true(equipment.equip_last_mainhand_weapon())
+	assert_eq(equipment.get_equipped_item("weapon"), "item_road_hatchet")
 
 
 func test_world_state_flags_and_save_load() -> void:
@@ -395,10 +437,12 @@ func test_spawn_town_uses_authored_tiles_and_walkability() -> void:
 	assert_true(chunks.is_walkable(Vector2i(-3, 0)))
 	assert_eq(chunks.get_tile_kind(Vector2i(-12, -10)), "stone_wall")
 	assert_false(chunks.is_walkable(Vector2i(-12, -10)))
-	assert_eq(chunks.get_tile_kind(Vector2i(-12, 2)), "stone_wall")
-	assert_false(chunks.is_walkable(Vector2i(-12, 2)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-12, -1)), "road")
+	assert_true(chunks.is_walkable(Vector2i(-12, -1)))
 	assert_eq(chunks.get_tile_kind(Vector2i(-12, 0)), "road")
 	assert_true(chunks.is_walkable(Vector2i(-12, 0)))
+	assert_eq(chunks.get_tile_kind(Vector2i(-12, 2)), "road")
+	assert_true(chunks.is_walkable(Vector2i(-12, 2)))
 	assert_eq(chunks.get_tile_kind(Vector2i(8, -1)), "wood_wall")
 	assert_false(chunks.is_walkable(Vector2i(8, -1)))
 	assert_eq(chunks.get_tile_kind(Vector2i(6, 1)), "wood_floor")

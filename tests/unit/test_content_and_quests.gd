@@ -1,10 +1,51 @@
+# gdlint:disable=max-file-lines,max-public-methods
 extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
+const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const QuestManager = preload("res://scripts/managers/quest_manager.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
 const EntityManager = preload("res://scripts/managers/entity_manager.gd")
+
+const PEOPLE_TEST_ENEMIES := [
+	{
+		"entity_id": "enemy_people_test_human",
+		"profile_id": "char_people_test_human",
+		"people_id": "people_human",
+		"tile": Vector2i(-16, 0)
+	},
+	{
+		"entity_id": "enemy_people_test_tanglekin",
+		"profile_id": "char_people_test_tanglekin",
+		"people_id": "people_tanglekin",
+		"tile": Vector2i(-18, -2)
+	},
+	{
+		"entity_id": "enemy_people_test_tuskfolk",
+		"profile_id": "char_people_test_tuskfolk",
+		"people_id": "people_tuskfolk",
+		"tile": Vector2i(-18, 2)
+	},
+	{
+		"entity_id": "enemy_people_test_mirefolk",
+		"profile_id": "char_people_test_mirefolk",
+		"people_id": "people_mirefolk",
+		"tile": Vector2i(-20, 0)
+	},
+	{
+		"entity_id": "enemy_people_test_ravenfolk",
+		"profile_id": "char_people_test_ravenfolk",
+		"people_id": "people_ravenfolk",
+		"tile": Vector2i(-23, -2)
+	},
+	{
+		"entity_id": "enemy_people_test_rootborn",
+		"profile_id": "char_people_test_rootborn",
+		"people_id": "people_rootborn",
+		"tile": Vector2i(-22, 2)
+	}
+]
 
 var content
 
@@ -19,6 +60,9 @@ func test_content_database_loads_seed_content() -> void:
 	assert_false(content.items.is_empty())
 	assert_false(content.quests.is_empty())
 	assert_false(content.npcs.is_empty())
+	assert_false(content.character_profiles.is_empty())
+	assert_false(content.people.is_empty())
+	assert_false(content.people_visual_models.is_empty())
 	assert_false(content.dialogues.is_empty())
 	assert_false(content.locations.is_empty())
 	assert_false(content.factions.is_empty())
@@ -33,10 +77,470 @@ func test_content_database_loads_seed_content() -> void:
 		content.get_location("location_briarwatch_crossroads").get("name"), "Briarwatch Crossroads"
 	)
 	assert_eq(content.get_dialogue("dialogue_harrow_venn").get("id"), "dialogue_harrow_venn")
+	assert_eq(content.get_character_profile("char_player").get("character_id"), "char_player")
+	assert_eq(content.get_character_profile("char_maera_pike").get("character_id"), "char_maera_pike")
+	assert_eq(content.get_people("people_human").get("display_name"), "Human")
+	assert_eq(
+		content.get_people_visual_model("people_tuskfolk").get("people_id"), "people_tuskfolk"
+	)
 	assert_eq(content.get_faction("faction_marches_of_velcor").get("name"), "Marches of Velcor")
 	assert_eq(content.get_spell("spell_fire_blast").get("name"), "Fire Blast")
 	assert_eq(content.get_status_effect("status_road_focus").get("name"), "Road Focus")
 	assert_eq(content.validate_all(), [])
+
+
+func test_all_authored_npcs_and_enemies_are_profile_backed_characters() -> void:
+	for npc_id in content.npcs:
+		var npc: Dictionary = content.npcs[npc_id]
+		var profile_id := String(npc.get("character_profile_id", ""))
+		assert_false(profile_id.is_empty(), "%s should have character_profile_id." % npc_id)
+		var profile: Dictionary = content.get_character_profile(profile_id)
+		assert_eq(profile["character_id"], profile_id)
+		assert_eq(profile["inventory_owner_id"], profile_id)
+		assert_eq(profile["equipment_owner_id"], profile_id)
+
+	for entry in content.world_objects:
+		var kind := String(entry.get("kind", ""))
+		if not ["npc", "enemy"].has(kind):
+			continue
+		var profile_id := String(entry.get("character_profile_id", ""))
+		if kind == "npc" and profile_id.is_empty():
+			var npc: Dictionary = content.get_npc(String(entry.get("npc_id", "")))
+			profile_id = String(npc.get("character_profile_id", ""))
+		assert_false(profile_id.is_empty(), "%s should resolve a profile." % entry.get("id", ""))
+		assert_eq(String(entry.get("inventory_owner_id", "")), profile_id)
+		assert_eq(String(entry.get("equipment_owner_id", "")), profile_id)
+
+
+func test_people_default_proportions_apply_without_overwriting_authored_values() -> void:
+	var tuskfolk: Dictionary = content.get_people("people_tuskfolk")
+	assert_eq(tuskfolk.get("body_plans"), ["body_humanoid_short_heavy"])
+	assert_eq(content.get_people_default_proportions("people_tuskfolk")["body_height"], 0.76)
+	var mirefolk: Dictionary = content.get_people("people_mirefolk")
+	assert_eq(mirefolk.get("body_plans"), ["body_humanoid_low_amphibian"])
+	assert_eq(content.get_people_default_proportions("people_mirefolk")["body_height"], 0.88)
+	for people_id in content.people:
+		var definition: Dictionary = content.people[people_id]
+		assert_false(
+			Dictionary(definition.get("default_proportions", {})).is_empty(),
+			"%s should define default proportions." % people_id
+		)
+		assert_false(
+			Array(definition.get("visual_notes", [])).is_empty(),
+			"%s should define reusable visual notes." % people_id
+		)
+
+	content.character_profiles["char_tuskfolk_test"] = {
+		"character_id": "char_tuskfolk_test",
+		"people_id": "people_tuskfolk",
+		"state": "alive",
+		"appearance": {
+			"people_id": "people_tuskfolk",
+			"body_plan_id": "body_humanoid_short_heavy",
+			"head_id": "head_tuskfolk_broad",
+			"palette_id": "palette_tuskfolk_umber",
+			"proportions": {"head_size": 1.08}
+		},
+		"inventory_owner_id": "char_tuskfolk_test",
+		"equipment_owner_id": "char_tuskfolk_test",
+		"spellbook_owner_id": "char_tuskfolk_test"
+	}
+
+	var profile: Dictionary = content.get_character_profile("char_tuskfolk_test")
+	var proportions: Dictionary = profile["appearance"]["proportions"]
+
+	assert_eq(proportions["body_height"], 0.76)
+	assert_eq(proportions["shoulder_width"], 1.34)
+	assert_eq(proportions["head_size"], 1.08)
+
+
+func test_people_visual_models_define_reusable_variant_archetypes() -> void:
+	for people_id in content.people:
+		var model: Dictionary = content.get_people_visual_model(String(people_id))
+		var definition: Dictionary = content.get_people(String(people_id))
+		var variants: Array = model.get("variants", [])
+		assert_gte(
+			variants.size(), 16, "%s should have at least sixteen visual variants." % people_id
+		)
+		for variant_value in variants:
+			var variant: Dictionary = variant_value
+			assert_false(String(variant.get("display_name", "")).is_empty())
+			assert_true(
+				Array(definition.get("palettes", [])).has(String(variant.get("palette_id", "")))
+			)
+			assert_true(Array(definition.get("heads", [])).has(String(variant.get("head_id", ""))))
+			for feature_id in Array(variant.get("feature_ids", [])):
+				assert_true(Array(definition.get("features", [])).has(String(feature_id)))
+			var deltas: Dictionary = variant.get("proportion_deltas", {})
+			for delta_id in deltas:
+				assert_true(HumanoidProfile.DEFAULT_PROPORTIONS.has(String(delta_id)))
+				assert_true(deltas[delta_id] is int or deltas[delta_id] is float)
+
+	var tuskfolk_model: Dictionary = content.get_people_visual_model("people_tuskfolk")
+	for variant_value in tuskfolk_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var profile: Dictionary = content.get_people_visual_variant_profile(
+			"people_tuskfolk", String(variant.get("id", "")), "preview_%s" % variant.get("id", "")
+		)
+		var proportions: Dictionary = profile["appearance"]["proportions"]
+		var feature_ids: Array = variant.get("feature_ids", [])
+		assert_lte(float(proportions["body_height"]), 0.78)
+		assert_gte(float(proportions["shoulder_width"]), 1.32)
+		assert_gte(float(proportions["waist_width"]), 1.26)
+		assert_gte(float(proportions["foot_size"]), 1.20)
+		assert_true(
+			feature_ids.has("feature_tusks_small") or feature_ids.has("feature_tusks_broad"),
+			"%s should keep visible Tuskfolk tusks." % variant.get("id", "")
+		)
+
+	var human_model: Dictionary = content.get_people_visual_model("people_human")
+	var human_hair_ids := {}
+	for variant_value in human_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var hair_id := String(variant.get("hair_id", ""))
+		assert_false(hair_id.is_empty(), "%s should declare a hair shape." % variant.get("id", ""))
+		human_hair_ids[hair_id] = true
+	assert_gte(human_hair_ids.size(), 5, "Humans should keep broad hair-shape variety.")
+
+	var ravenfolk_model: Dictionary = content.get_people_visual_model("people_ravenfolk")
+	for variant_value in ravenfolk_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var feature_ids: Array = variant.get("feature_ids", [])
+		var profile: Dictionary = content.get_people_visual_variant_profile(
+			"people_ravenfolk", String(variant.get("id", "")), "preview_%s" % variant.get("id", "")
+		)
+		var proportions: Dictionary = profile["appearance"]["proportions"]
+		assert_true(
+			feature_ids.has("feature_ravenfolk_body_feathers"),
+			"%s should keep visible Ravenfolk body feathers." % variant.get("id", "")
+		)
+		assert_true(
+			feature_ids.has("feature_ravenfolk_beak"),
+			"%s should keep the Ravenfolk beak read." % variant.get("id", "")
+		)
+		assert_lte(float(proportions["shoulder_width"]), 0.86)
+		assert_lte(float(proportions["torso_width"]), 0.84)
+		assert_lte(float(proportions["waist_width"]), 0.74)
+
+	var tanglekin_model: Dictionary = content.get_people_visual_model("people_tanglekin")
+	for variant_value in tanglekin_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var feature_ids: Array = variant.get("feature_ids", [])
+		var profile: Dictionary = content.get_people_visual_variant_profile(
+			"people_tanglekin", String(variant.get("id", "")), "preview_%s" % variant.get("id", "")
+		)
+		var proportions: Dictionary = profile["appearance"]["proportions"]
+		assert_true(
+			feature_ids.has("feature_tanglekin_tail"),
+			"%s should keep the Tanglekin tail read." % variant.get("id", "")
+		)
+		assert_true(
+			feature_ids.has("feature_tanglekin_muzzle")
+			or feature_ids.has("feature_tanglekin_brow_tuft"),
+			"%s should keep the Tanglekin simian face read." % variant.get("id", "")
+		)
+		assert_false(feature_ids.has("feature_tanglekin_motion_cord"))
+		assert_false(feature_ids.has("feature_tanglekin_wrap_bands"))
+		assert_lte(float(proportions["body_height"]), 1.00)
+		assert_lte(float(proportions["shoulder_width"]), 0.92)
+		assert_lte(float(proportions["waist_width"]), 0.78)
+		assert_gte(float(proportions["hand_size"]), 1.18)
+		assert_gte(float(proportions["foot_size"]), 1.12)
+
+	var rootborn_model: Dictionary = content.get_people_visual_model("people_rootborn")
+	for variant_value in rootborn_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var feature_ids: Array = variant.get("feature_ids", [])
+		var profile: Dictionary = content.get_people_visual_variant_profile(
+			"people_rootborn", String(variant.get("id", "")), "preview_%s" % variant.get("id", "")
+		)
+		var proportions: Dictionary = profile["appearance"]["proportions"]
+		assert_gte(float(proportions["body_height"]), 1.07)
+		assert_gte(float(proportions["foot_size"]), 1.10)
+		assert_true(
+			feature_ids.has("feature_rootborn_leaf_crown")
+			or feature_ids.has("feature_rootborn_bark_marks"),
+			"%s should keep Rootborn leaf or bark identity." % variant.get("id", "")
+		)
+		if feature_ids.has("feature_rootborn_branch_crown"):
+			assert_true(
+				feature_ids.has("feature_rootborn_leaf_crown")
+				or feature_ids.has("feature_rootborn_bark_marks"),
+				"%s should keep branch crown tied to bark or leaf identity."
+				% variant.get("id", "")
+			)
+
+	var mirefolk_model: Dictionary = content.get_people_visual_model("people_mirefolk")
+	for variant_value in mirefolk_model.get("variants", []):
+		var variant: Dictionary = variant_value
+		var feature_ids: Array = variant.get("feature_ids", [])
+		var profile: Dictionary = content.get_people_visual_variant_profile(
+			"people_mirefolk", String(variant.get("id", "")), "preview_%s" % variant.get("id", "")
+		)
+		var proportions: Dictionary = profile["appearance"]["proportions"]
+		assert_true(
+			feature_ids.has("feature_mirefolk_high_eyes")
+			or feature_ids.has("feature_mirefolk_webbed_hands"),
+			"%s should keep the Mirefolk amphibian read." % variant.get("id", "")
+		)
+		assert_lte(float(proportions["body_height"]), 0.93)
+		assert_lte(float(proportions["shoulder_width"]), 1.02)
+		assert_lte(float(proportions["torso_width"]), 0.94)
+		assert_lte(float(proportions["waist_width"]), 1.00)
+		assert_gte(float(proportions["head_size"]), 1.14)
+		assert_gte(float(proportions["foot_size"]), 1.10)
+
+
+func test_people_visual_variant_composes_preview_profile() -> void:
+	var profile: Dictionary = content.get_people_visual_variant_profile(
+		"people_tuskfolk", "tuskfolk_smith", "preview_tuskfolk_smith"
+	)
+	var appearance: Dictionary = profile["appearance"]
+	var proportions: Dictionary = appearance["proportions"]
+
+	assert_eq(profile["character_id"], "preview_tuskfolk_smith")
+	assert_eq(profile["people_id"], "people_tuskfolk")
+	assert_eq(appearance["visual_model_id"], "tuskfolk_smith")
+	assert_eq(appearance["palette_id"], "palette_tuskfolk_umber")
+	assert_eq(appearance["head_id"], "head_tuskfolk_broad")
+	assert_eq(appearance["marking_id"], "marking_hand_wraps")
+	assert_eq(appearance["feature_ids"], ["feature_tusks_broad", "feature_tuskfolk_clan_marks"])
+	assert_almost_eq(float(proportions["body_height"]), 0.74, 0.001)
+	assert_almost_eq(float(proportions["shoulder_width"]), 1.42, 0.001)
+	assert_almost_eq(float(proportions["hand_size"]), 1.28, 0.001)
+
+	var human_profile: Dictionary = content.get_people_visual_variant_profile(
+		"people_human", "human_orchard_healer", "preview_human_orchard_healer"
+	)
+	var human_appearance: Dictionary = human_profile["appearance"]
+	assert_eq(human_appearance["hair_id"], "hair_wide_curls")
+	assert_eq(human_appearance["hair_color_id"], "hair_grey")
+	assert_eq(human_appearance["marking_id"], "marking_cheek_dots")
+
+
+func test_generated_people_appearance_is_deterministic_and_profile_ready() -> void:
+	var first: Dictionary = content.get_generated_people_appearance("people_tanglekin", "road_seed")
+	var second: Dictionary = content.get_generated_people_appearance("people_tanglekin", "road_seed")
+	assert_eq(first, second)
+	assert_false(String(first.get("visual_model_id", "")).is_empty())
+
+	var seen_variants := {}
+	for seed_index in 32:
+		var appearance: Dictionary = content.get_generated_people_appearance(
+			"people_tanglekin", "seed_%s" % seed_index
+		)
+		seen_variants[String(appearance.get("visual_model_id", ""))] = true
+	assert_gt(seen_variants.size(), 1)
+
+	for people_id in content.people:
+		var profile_id := "char_generated_%s" % String(people_id).replace("people_", "")
+		var generated: Dictionary = content.get_generated_people_profile(
+			String(people_id), profile_id, "profile_seed", {"proportion_jitter": true}
+		)
+		var appearance: Dictionary = generated["appearance"]
+		assert_eq(generated["character_id"], profile_id)
+		assert_eq(generated["people_id"], String(people_id))
+		assert_eq(generated["inventory_owner_id"], profile_id)
+		assert_eq(generated["equipment_owner_id"], profile_id)
+		assert_eq(generated["spellbook_owner_id"], profile_id)
+		assert_eq(appearance["people_id"], String(people_id))
+		assert_false(String(appearance.get("visual_model_id", "")).is_empty())
+		assert_true(appearance.get("feature_ids", []) is Array)
+		for proportion_id in HumanoidProfile.DEFAULT_PROPORTIONS:
+			var amount := float(Dictionary(appearance["proportions"])[proportion_id])
+			assert_gte(amount, HumanoidProfile.MIN_PROPORTION)
+			assert_lte(amount, HumanoidProfile.MAX_PROPORTION)
+
+
+func test_generated_people_appearance_supports_exact_variant_overrides_and_jitter() -> void:
+	var exact: Dictionary = content.get_generated_people_appearance(
+		"people_tuskfolk", "any_seed", {"variant_id": "tuskfolk_smith"}
+	)
+	assert_eq(exact["visual_model_id"], "tuskfolk_smith")
+	assert_almost_eq(float(Dictionary(exact["proportions"])["body_height"]), 0.74, 0.001)
+
+	var jittered: Dictionary = content.get_generated_people_appearance(
+		"people_tuskfolk",
+		"jitter_seed",
+		{"variant_id": "tuskfolk_smith", "proportion_jitter": true, "jitter_strength": 0.03}
+	)
+	assert_eq(jittered["visual_model_id"], "tuskfolk_smith")
+	var changed := false
+	for proportion_id in HumanoidProfile.DEFAULT_PROPORTIONS:
+		if not is_equal_approx(
+			float(Dictionary(exact["proportions"])[proportion_id]),
+			float(Dictionary(jittered["proportions"])[proportion_id])
+		):
+			changed = true
+	assert_true(changed)
+
+	var overridden: Dictionary = content.get_generated_people_appearance(
+		"people_tuskfolk",
+		"override_seed",
+		{
+			"variant_id": "tuskfolk_smith",
+			"appearance_overrides":
+			{
+				"palette_id": "palette_tuskfolk_ash",
+				"feature_ids": ["feature_tusks_small"],
+				"proportions": {"head_size": 1.12}
+			}
+		}
+	)
+	assert_eq(overridden["visual_model_id"], "tuskfolk_smith")
+	assert_eq(overridden["palette_id"], "palette_tuskfolk_ash")
+	assert_eq(overridden["feature_ids"], ["feature_tusks_small"])
+	assert_almost_eq(float(Dictionary(overridden["proportions"])["head_size"]), 1.12, 0.001)
+
+
+func test_character_profile_appearance_generation_resolves_with_authored_overrides() -> void:
+	content.character_profiles["char_generated_tuskfolk"] = {
+		"character_id": "char_generated_tuskfolk",
+		"people_id": "people_tuskfolk",
+		"state": "alive",
+		"appearance_generation":
+		{
+			"seed": "blacksmith_enemy_seed",
+			"variant_id": "tuskfolk_smith",
+			"appearance_overrides": {"marking_id": "marking_chest_band"}
+		},
+		"appearance":
+		{
+			"palette_id": "palette_tuskfolk_ash",
+			"proportions": {"head_size": 1.11}
+		},
+		"inventory_owner_id": "char_generated_tuskfolk",
+		"equipment_owner_id": "char_generated_tuskfolk",
+		"spellbook_owner_id": "char_generated_tuskfolk"
+	}
+
+	var profile: Dictionary = content.get_character_profile("char_generated_tuskfolk")
+	var appearance: Dictionary = profile["appearance"]
+	assert_eq(profile["people_id"], "people_tuskfolk")
+	assert_eq(profile["derived_bonuses"], {})
+	assert_eq(appearance["people_id"], "people_tuskfolk")
+	assert_eq(appearance["visual_model_id"], "tuskfolk_smith")
+	assert_eq(appearance["head_id"], "head_tuskfolk_broad")
+	assert_eq(appearance["marking_id"], "marking_chest_band")
+	assert_eq(appearance["palette_id"], "palette_tuskfolk_ash")
+	assert_almost_eq(float(Dictionary(appearance["proportions"])["head_size"]), 1.11, 0.001)
+
+
+func test_people_test_enemies_use_generated_profiles() -> void:
+	var seen_tiles := {}
+	for data in PEOPLE_TEST_ENEMIES:
+		var entity_id := String(data["entity_id"])
+		var profile_id := String(data["profile_id"])
+		var people_id := String(data["people_id"])
+		var expected_tile: Vector2i = data["tile"]
+		var world_entry := _world_object(entity_id)
+		var profile: Dictionary = content.get_character_profile(profile_id)
+		var appearance: Dictionary = profile["appearance"]
+		var tile_array: Array = world_entry.get("global_tile", [])
+		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
+
+		assert_eq(world_entry.get("kind"), "enemy")
+		assert_eq(world_entry.get("character_profile_id"), profile_id)
+		assert_eq(world_entry.get("inventory_owner_id"), profile_id)
+		assert_eq(world_entry.get("equipment_owner_id"), profile_id)
+		assert_eq(tile, expected_tile)
+		assert_false(seen_tiles.has(GridMath.tile_key(tile)))
+		seen_tiles[GridMath.tile_key(tile)] = true
+		assert_eq(profile["people_id"], people_id)
+		assert_eq(profile["inventory_owner_id"], profile_id)
+		assert_eq(profile["equipment_owner_id"], profile_id)
+		assert_eq(profile["spellbook_owner_id"], profile_id)
+		assert_eq(appearance["people_id"], people_id)
+		assert_false(String(appearance.get("visual_model_id", "")).is_empty())
+		assert_true(world_entry.get("equipped_items", {}).has("right_hand"))
+		assert_eq(int(world_entry.get("max_health")), 6)
+		assert_eq(int(world_entry.get("damage_taken_per_hit")), 6)
+
+
+func test_content_validation_reports_appearance_generation_errors() -> void:
+	var broken := ContentDatabase.new()
+	add_child_autofree(broken)
+	broken.people = content.people.duplicate(true)
+	broken.people_visual_models = content.people_visual_models.duplicate(true)
+	broken.character_profiles = {
+		"char_bad_generation":
+		{
+			"character_id": "char_bad_generation",
+			"people_id": "people_tuskfolk",
+			"state": "alive",
+			"appearance_generation": "bad",
+			"inventory_owner_id": "char_bad_generation",
+			"equipment_owner_id": "char_bad_generation",
+			"spellbook_owner_id": "char_bad_generation"
+		},
+		"char_missing_variant":
+		{
+			"character_id": "char_missing_variant",
+			"people_id": "people_tuskfolk",
+			"state": "alive",
+			"appearance_generation": {"variant_id": "missing_tuskfolk_variant"},
+			"inventory_owner_id": "char_missing_variant",
+			"equipment_owner_id": "char_missing_variant",
+			"spellbook_owner_id": "char_missing_variant"
+		},
+		"char_malformed_generation":
+		{
+			"character_id": "char_malformed_generation",
+			"people_id": "people_tuskfolk",
+			"state": "alive",
+			"appearance_generation":
+			{
+				"seed": 7,
+				"proportion_jitter": "yes",
+				"jitter_strength": "much",
+				"appearance_overrides": "bad"
+			},
+			"inventory_owner_id": "char_malformed_generation",
+			"equipment_owner_id": "char_malformed_generation",
+			"spellbook_owner_id": "char_malformed_generation"
+		}
+	}
+
+	var joined := "\n".join(broken.validate_all())
+
+	assert_true(joined.contains("appearance_generation must be a dictionary"))
+	assert_true(joined.contains("references missing variant missing_tuskfolk_variant"))
+	assert_true(joined.contains("seed must be a string"))
+	assert_true(joined.contains("proportion_jitter must be a boolean"))
+	assert_true(joined.contains("jitter_strength must be numeric"))
+	assert_true(joined.contains("appearance_overrides must be a dictionary"))
+
+
+func test_people_bonuses_apply_to_player_and_npc_profiles() -> void:
+	var player_profile: Dictionary = content.get_character_profile("char_player")
+	var harrow_profile: Dictionary = content.get_character_profile("char_harrow_venn")
+
+	assert_eq(player_profile["stats"], {})
+	assert_eq(harrow_profile["stats"], {})
+	assert_eq(player_profile["derived_bonuses"], {"resolve": 1.0})
+	assert_eq(harrow_profile["derived_bonuses"], {"resolve": 1.0})
+
+
+func test_seed_equipment_items_declare_avatar_visuals_or_placeholders() -> void:
+	for item_id in content.items:
+		var item: Dictionary = content.items[item_id]
+		if not item.has("equipment_slot"):
+			continue
+		var visual: Dictionary = item.get("avatar_visual", {})
+		assert_false(visual.is_empty(), "%s should declare avatar_visual." % item_id)
+		assert_false(
+			String(visual.get("avatar_slot", "")).is_empty(),
+			"%s should declare avatar_slot." % item_id
+		)
+		assert_false(
+			String(visual.get("visual_layer_id", "")).is_empty(),
+			"%s should declare visual_layer_id." % item_id
+		)
+		assert_true(
+			bool(visual.get("accepted_placeholder", false))
+			or not String(visual.get("paperdoll_sprite_id", "")).is_empty(),
+			"%s should declare a drawable layer or accepted placeholder." % item_id
+		)
 
 
 func test_content_validation_reports_missing_references() -> void:
@@ -215,7 +719,6 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 					"reputation": "high"
 				},
 				{"type": "player_level_at_least", "level": "high"},
-				{"type": "stat_at_least", "stat_id": "", "rank": "strong"},
 				{"type": "time_phase", "phase": "Dawn"},
 				{"type": "time_hour_between", "start_hour": "late", "end_hour": 24},
 				{"type": "unknown_condition"},
@@ -422,8 +925,6 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("invalid state"))
 	assert_true(joined.contains("reputation must be numeric"))
 	assert_true(joined.contains("level must be numeric"))
-	assert_true(joined.contains("missing stat_id"))
-	assert_true(joined.contains("rank must be numeric"))
 	assert_true(joined.contains("invalid phase Dawn"))
 	assert_true(joined.contains("start_hour must be numeric"))
 	assert_true(joined.contains("end_hour must be between"))
@@ -450,6 +951,9 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("Enemy enemy_bad_numeric max_health must be numeric"))
 	assert_true(joined.contains("Enemy enemy_bad_numeric damage_taken_per_hit must be numeric"))
 	assert_true(joined.contains("Enemy enemy_bad_numeric attack_damage must be numeric"))
+	assert_true(joined.contains("World object enemy_bad_numeric is missing character_profile_id"))
+	assert_true(joined.contains("World object enemy_bad_numeric is missing inventory_owner_id"))
+	assert_true(joined.contains("World object enemy_bad_numeric is missing equipment_owner_id"))
 	assert_true(
 		joined.contains("Location object location_bad_numeric discovery_radius must be numeric")
 	)
@@ -457,6 +961,7 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("quest quest_bad rewards add_experience must have positive amount"))
 	assert_true(joined.contains("NPC npc_bad completion_conditions has malformed condition"))
 	assert_true(joined.contains("NPC npc_bad completion_effects has malformed effect"))
+	assert_true(joined.contains("NPC npc_bad is missing character_profile_id"))
 	assert_true(joined.contains("choices has malformed choice"))
 	assert_true(joined.contains("choice  is missing text"))
 	assert_true(joined.contains("world object object_bad effects_on_pickup has malformed effect"))
@@ -516,6 +1021,7 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		"object_warden_cache",
 		"object_sealed_strongbox",
 		"enemy_road_thug",
+		"enemy_test_raider",
 		"object_north_gate",
 		"object_training_gate",
 		"object_roadside_campfire",
@@ -548,7 +1054,7 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 			assert_true(chunks.is_walkable(tile), "%s should not sit on blocked terrain." % entity_id)
 			assert_lte(
 				distance_from_spawn / GridMath.TILE_SIZE,
-				9.0,
+				11.0,
 				"%s should stay near spawn, but not be interactable from spawn." % entity_id
 			)
 		found_ids.append(entity_id)
@@ -556,6 +1062,30 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 	found_ids.sort()
 	expected_ids.sort()
 	assert_eq(found_ids, expected_ids)
+
+
+func test_people_enemy_range_stays_outside_town_but_reachable() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+	var town_bounds := Rect2i(Vector2i(-12, -10), Vector2i(27, 21))
+	var seen_tiles := {}
+
+	for data in PEOPLE_TEST_ENEMIES:
+		var entity_id := String(data["entity_id"])
+		var entry := _world_object(entity_id)
+		var tile_array: Array = entry.get("global_tile", [0, 0])
+		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
+		var tile_key := GridMath.tile_key(tile)
+
+		assert_eq(tile, data["tile"])
+		assert_false(town_bounds.has_point(tile), "%s should stay outside Briarwatch." % entity_id)
+		assert_false(seen_tiles.has(tile_key), "%s should not share a test tile." % entity_id)
+		seen_tiles[tile_key] = true
+		assert_true(chunks.is_walkable(tile), "%s should not sit on blocked terrain." % entity_id)
+		assert_true(
+			_has_walkable_path(chunks, Vector2i.ZERO, tile, 32),
+			"%s should remain reachable from spawn through the west gate." % entity_id
+		)
 
 
 func test_quest_lifecycle() -> void:
@@ -767,3 +1297,10 @@ func _has_walkable_path(chunks, start: Vector2i, target: Vector2i, max_steps: in
 			visited[next_key] = true
 			frontier.append({"tile": next_tile, "steps": steps + 1})
 	return false
+
+
+func _world_object(entity_id: String) -> Dictionary:
+	for entry in content.world_objects:
+		if String(entry.get("id", "")) == entity_id:
+			return entry
+	return {}

@@ -2,6 +2,7 @@ extends GutTest
 
 const PlayerController = preload("res://scripts/player/player_controller.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
 
 class BlockingChunks:
@@ -49,6 +50,36 @@ func test_try_move_uses_continuous_motion() -> void:
 	assert_eq(player.get_facing_direction(), Vector2.RIGHT)
 
 
+func test_toggle_sneaking_flips_state() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+
+	assert_false(player.is_sneaking)
+	assert_true(player.toggle_sneaking())
+	assert_true(player.is_sneaking)
+	assert_true(player.humanoid_avatar.is_sneaking)
+	assert_false(player.toggle_sneaking())
+	assert_false(player.is_sneaking)
+
+
+func test_sneak_movement_is_slower_than_walk() -> void:
+	var walking := PlayerController.new()
+	add_child_autofree(walking)
+	walking.setup(null, null, Vector2i.ZERO)
+
+	var sneaking := PlayerController.new()
+	add_child_autofree(sneaking)
+	sneaking.setup(null, null, Vector2i.ZERO)
+	sneaking.set_sneaking(true)
+
+	walking.try_move(Vector2.RIGHT, 0.1)
+	sneaking.try_move(Vector2.RIGHT, 0.1)
+
+	assert_gt(walking.position.x, sneaking.position.x)
+	assert_almost_eq(sneaking.position.x, 17.9, 0.001)
+
+
 func test_facing_direction_can_be_set_without_moving() -> void:
 	var player := PlayerController.new()
 	add_child_autofree(player)
@@ -57,7 +88,22 @@ func test_facing_direction_can_be_set_without_moving() -> void:
 	player.set_facing_direction(Vector2.LEFT)
 	player.set_facing_direction(Vector2.ZERO)
 
-	assert_eq(player.get_facing_direction(), Vector2.LEFT)
+	assert_lt(player.get_facing_direction().distance_to(Vector2.LEFT), 0.001)
+
+
+func test_facing_direction_snaps_to_visual_bucket_without_snapping_movement() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+	var raw_direction := Vector2(1.0, 0.31)
+	var snapped := FacingBuckets.snap_direction(raw_direction)
+
+	player.try_move(raw_direction, 0.1)
+
+	assert_eq(player.get_facing_direction(), snapped)
+	assert_eq(player.humanoid_avatar.facing_direction, snapped)
+	assert_gt(player.position.x, 8.0)
+	assert_gt(player.position.y, 8.0)
 
 
 func test_external_move_vector_drives_continuous_motion() -> void:

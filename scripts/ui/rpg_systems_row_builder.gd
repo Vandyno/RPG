@@ -14,8 +14,6 @@ static func rows(
 			return _category_filtered_rows(_character_rows(state), category)
 		"quests":
 			return _quest_rows(state, category)
-		"map":
-			return _map_rows(state, category)
 		"journal":
 			return _category_filtered_rows(_journal_rows(state, message_log), category)
 		"trade":
@@ -30,7 +28,6 @@ static func category_labels(tab_id: String) -> Array[String]:
 		"spells": ["All", "Fire", "Frost", "Storm", "Restore", "Utility"],
 		"character": ["Overview", "Training", "Gear", "Effects"],
 		"quests": ["Active", "Routes", "Rewards"],
-		"map": ["Known", "Routes", "Nearby"],
 		"journal": ["Recent", "Factions", "Time", "System"],
 		"trade": ["Stock", "Buy", "Sell"]
 	}.get(tab_id, ["Overview"])
@@ -38,6 +35,15 @@ static func category_labels(tab_id: String) -> Array[String]:
 	for label in labels:
 		result.append(String(label))
 	return result
+
+
+static func clear_non_button_children(container: Node) -> void:
+	for index in range(container.get_child_count() - 1, -1, -1):
+		var child := container.get_child(index)
+		if child is Button:
+			continue
+		container.remove_child(child)
+		child.free()
 
 
 static func w(label: String, fallback: float, compact: bool) -> float:
@@ -94,11 +100,11 @@ static func hidden_text(rows_data: Array[Dictionary]) -> String:
 
 
 static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	if bool(state.get("transfer_open", false)):
+		return _transfer_rows(state, category)
 	var typed_rows := _typed_inventory_rows(state, category)
 	if not typed_rows.is_empty():
 		return typed_rows
-	if category != "all":
-		return [_empty_inventory_category(category)]
 	var details_by_name := _detail_lines_by_name(String(state.get("inventory_details", "")))
 	var rows_data: Array[Dictionary] = []
 	for entry in _summary_entries(String(state.get("inventory", "empty"))):
@@ -111,15 +117,80 @@ static func _inventory_rows(state: Dictionary, category: String) -> Array[Dictio
 			"meta": "Inventory",
 			"detail": "%s\n\n%s" % [String(entry.get("summary", title)), detail]
 		})
+	return rows_data
+
+
+static func _transfer_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var rows_data: Array[Dictionary] = []
+	var target_value: Variant = state.get("transfer_target", {})
+	var target: Dictionary = target_value if target_value is Dictionary else {}
+	var target_name := String(target.get("name", "Container"))
+	_append_transfer_side_rows(
+		rows_data, _array_field(state.get("transfer_player_items", [])),
+		"player", "Player Pack", "put", category
+	)
+	_append_transfer_side_rows(
+		rows_data, _array_field(state.get("transfer_target_items", [])),
+		"target", target_name, "take", category
+	)
 	if rows_data.is_empty():
 		rows_data.append({
-			"id": "inventory_empty",
-			"title": "Pack Empty",
-			"subtitle": "Nothing in your pack.",
-			"meta": "Inventory",
-			"detail": "Your pack is empty."
+			"id": "transfer_empty",
+			"title": "No Transfer Items",
+			"subtitle": "Both inventories are empty.",
+			"meta": "Transfer",
+			"detail": "No items available to move."
 		})
 	return rows_data
+
+
+static func _append_transfer_side_rows(
+	rows_data: Array[Dictionary],
+	items: Array,
+	side: String,
+	side_name: String,
+	action: String,
+	category: String
+) -> void:
+	for item in items:
+		if not item is Dictionary:
+			continue
+		var item_category := _inventory_category(item)
+		if not _transfer_category_matches(category, side, item_category):
+			continue
+		var item_id := String(item.get("item_id", ""))
+		var name := String(item.get("name", item_id))
+		var count := maxi(0, int(item.get("count", 0)))
+		if item_id.is_empty() or name.is_empty() or count <= 0:
+			continue
+		var action_text := "Take" if action == "take" else "Put"
+		var description := String(item.get("description", "No item details available."))
+		var value := maxi(0, int(item.get("value", 0)))
+		var weight := maxf(0.0, float(item.get("weight", 0.0)))
+		rows_data.append({
+			"id": "transfer_%s_%s" % [side, item_id],
+			"item_id": item_id,
+			"action_id": "%s:%s" % [action, item_id],
+			"title": name,
+			"subtitle": "%s - Count %d - %s" % [side_name, count, action_text],
+			"meta": action_text,
+			"detail": "%s\n%s x%d\n\n%s" % [
+				side_name,
+				name,
+				count,
+				_inventory_item_detail(name, count, description, value, weight)
+			]
+		})
+
+
+static func _transfer_category_matches(
+	category: String, side: String, item_category: String
+) -> bool:
+	if category.is_empty() or category == "all":
+		return true
+	if category == "player" or category == "target":
+		return category == side
+	return category == item_category
 
 
 static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:
@@ -162,17 +233,6 @@ static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[
 			"detail": _inventory_item_detail(name, count, description, value, weight)
 		})
 	return rows_data
-
-
-static func _empty_inventory_category(category: String) -> Dictionary:
-	var label := _inventory_category_label(category)
-	return {
-		"id": "inventory_empty_%s" % category,
-		"title": "No %s" % label,
-		"subtitle": "Nothing in this category.",
-		"meta": label,
-		"detail": "No %s in your pack." % label.to_lower()
-	}
 
 
 static func _inventory_category(item: Dictionary) -> String:
@@ -341,14 +401,6 @@ static func _quest_rows(state: Dictionary, category: String) -> Array[Dictionary
 			"meta": "Route",
 			"detail": text
 		})
-	if rows_data.is_empty():
-		rows_data.append({
-			"id": "quests_empty",
-			"title": "No Active Quests",
-			"subtitle": "Briarwatch is quiet for now.",
-			"meta": "Quest",
-			"detail": "No active quests."
-		})
 	return rows_data
 
 
@@ -402,133 +454,6 @@ static func _quest_reward_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": "No quest rewards are ready."
 		})
 	return rows_data
-
-
-static func _map_rows(state: Dictionary, category: String) -> Array[Dictionary]:
-	if category == "routes":
-		return _map_route_rows(state)
-	if category == "nearby":
-		return _map_nearby_rows(state)
-	var rows_data: Array[Dictionary] = []
-	for location in _comma_entries(String(state.get("locations", "none"))):
-		var detail := _map_detail_for_location(state, location)
-		rows_data.append({
-			"id": "map_location_%d" % rows_data.size(),
-			"title": location,
-			"subtitle": _location_region(detail),
-			"meta": "Known",
-			"detail": detail
-		})
-	if rows_data.is_empty():
-		rows_data.append({
-			"id": "map_empty",
-			"title": "No Known Places",
-			"subtitle": "Explore to discover landmarks.",
-			"meta": "Map",
-			"detail": "No known places."
-		})
-	return rows_data
-
-
-static func _map_route_rows(state: Dictionary) -> Array[Dictionary]:
-	var rows_data: Array[Dictionary] = []
-	var quest_directions := String(state.get("quest_directions", "none"))
-	if not quest_directions.is_empty() and quest_directions != "none":
-		for line in quest_directions.split("\n", false):
-			rows_data.append({
-				"id": "map_route_%d" % rows_data.size(),
-				"title": _title_before_colon(line),
-				"subtitle": _route_after_colon(line, "Quest route"),
-				"meta": "Route",
-				"detail": RpgNavigationTextBuilder.friendly_route_line(line)
-			})
-	if rows_data.is_empty():
-		rows_data.append({
-			"id": "map_routes_empty",
-			"title": "No Routes",
-			"subtitle": "No mapped route selected.",
-			"meta": "Route",
-			"detail": "No routes available."
-		})
-	return rows_data
-
-
-static func _map_nearby_rows(state: Dictionary) -> Array[Dictionary]:
-	var rows_data: Array[Dictionary] = []
-	for target in _array_field(state.get("nearby_targets", [])):
-		if not target is Dictionary:
-			continue
-		var name := String(target.get("name", "Nearby target"))
-		if name.is_empty():
-			continue
-		rows_data.append({
-			"id": "map_nearby_%d" % rows_data.size(),
-			"title": name,
-			"subtitle": RpgNavigationTextBuilder.friendly_navigation(
-				String(target.get("navigation", target.get("detail", "Nearby")))
-			),
-			"meta": String(target.get("kind", "Nearby")).capitalize(),
-			"detail": String(target.get("detail", name))
-		})
-	if rows_data.is_empty():
-		rows_data.append({
-			"id": "map_nearby_empty",
-			"title": "Nothing Nearby",
-			"subtitle": "Move through town to find targets.",
-			"meta": "Nearby",
-			"detail": "No nearby targets."
-		})
-	return rows_data
-
-
-static func _map_detail_for_location(state: Dictionary, location: String) -> String:
-	var detail := _detail_for_named_block(String(state.get("location_details", "")), location)
-	var lines := [_first_non_empty(detail, location)]
-	var routes := String(state.get("quest_directions", ""))
-	if not routes.is_empty() and routes != "none":
-		lines.append("")
-		lines.append("Mapped Route")
-		lines.append(RpgNavigationTextBuilder.friendly_route_lines(routes))
-	var nearby := _nearby_summary_lines(state)
-	if not nearby.is_empty():
-		lines.append("")
-		lines.append("Nearby Leads")
-		lines.append_array(nearby)
-	return "\n".join(lines)
-
-
-static func _detail_for_named_block(details: String, title: String) -> String:
-	for block in details.split("\n\n", false):
-		var stripped := block.strip_edges()
-		if stripped == title or stripped.begins_with("%s -" % title):
-			return stripped
-	return ""
-
-
-static func _location_region(detail: String) -> String:
-	var first := _first_line(detail)
-	var marker := first.find(" - ")
-	return first.substr(marker + 3).strip_edges() if marker >= 0 else "Known place"
-
-
-static func _nearby_summary_lines(state: Dictionary) -> Array[String]:
-	var lines: Array[String] = []
-	var total := 0
-	for target in _array_field(state.get("nearby_targets", [])):
-		if not target is Dictionary:
-			continue
-		var name := String(target.get("name", ""))
-		if name.is_empty():
-			continue
-		total += 1
-		if lines.size() < 4:
-			var route := RpgNavigationTextBuilder.friendly_navigation(
-				String(target.get("navigation", "Nearby"))
-			)
-			lines.append("- %s: %s" % [name, route])
-	if total > lines.size():
-		lines.append("+ %d more nearby" % (total - lines.size()))
-	return lines
 
 
 static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Array[Dictionary]:

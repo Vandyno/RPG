@@ -1,3 +1,4 @@
+# gdlint:disable=max-file-lines
 extends Node2D
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator.gd")
@@ -23,6 +24,7 @@ const EquipmentManagerScript = preload("res://scripts/managers/equipment_manager
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const SaveManagerScript = preload("res://scripts/managers/save_manager.gd")
 const RpgHudScript = preload("res://scripts/ui/rpg_hud.gd")
+const DebugCharacterCreatorScript = preload("res://scripts/ui/debug_character_creator.gd")
 const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
 const MainHudState = preload("res://scripts/main/main_hud_state.gd")
@@ -31,6 +33,7 @@ const MainSaveProviders = preload("res://scripts/main/main_save_providers.gd")
 const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
 const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
 const MainCameraFraming = preload("res://scripts/main/main_camera_framing.gd")
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
 var event_bus
@@ -56,11 +59,13 @@ var spells
 var player
 var save_manager
 var hud
+var debug_character_creator
 var camera: Camera2D
 var active_interaction_id := ""
 var target_cycle_index := 0
 var selected_target_id := ""
 var manual_target_locked := false
+var seeded_inventory_owner_ids: Dictionary = {}
 var auto_interact_target_id := ""
 var auto_interact_previous_distance := INF
 var auto_interact_stuck_seconds := 0.0
@@ -71,12 +76,14 @@ var auto_move_stuck_seconds := 0.0
 var auto_move_path: Array = []
 var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
+var active_transfer_owner_id := ""
+var active_transfer_name := ""
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
 var held_weapon_attack_elapsed: Dictionary = {}
 func _ready() -> void:
-	_bootstrap()
-	event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
+	if _bootstrap():
+		event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
 func _unhandled_input(event: InputEvent) -> void:
 	MainInputRouter.handle_event(self, event)
 func _process(delta: float) -> void:
@@ -90,14 +97,20 @@ func get_hud_state() -> Dictionary:
 	return MainHudState.build(self)
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
-func _bootstrap() -> void:
+func _bootstrap() -> bool:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
 	add_child(event_bus)
 	content = ContentDatabaseScript.new()
 	content.name = "ContentDatabase"
 	add_child(content)
-	content.load_all()
+	var content_load_errors: Array[String] = content.load_all()
+	if not content_load_errors.is_empty():
+		for error in content_load_errors:
+			push_error(error)
+		event_bus.post_message("Content failed to load. Check content file errors.")
+		set_process(false)
+		return false
 	world_state = WorldStateManagerScript.new()
 	world_state.name = "WorldStateManager"
 	add_child(world_state)
@@ -131,16 +144,17 @@ func _bootstrap() -> void:
 
 	effect_runner = EffectRunnerScript.new()
 	effect_runner.setup(
-		world_state,
-		quests,
-		inventory,
-		content,
-		null,
-		factions,
-		progression,
-		time,
-		statuses,
-		event_bus
+		{
+			"world_state": world_state,
+			"quests": quests,
+			"inventory": inventory,
+			"content": content,
+			"factions": factions,
+			"progression": progression,
+			"time": time,
+			"statuses": statuses,
+			"event_bus": event_bus
+		}
 	)
 
 	readables = ReadableManagerScript.new()
@@ -170,7 +184,7 @@ func _bootstrap() -> void:
 	entities = EntityManagerScript.new()
 	entities.name = "EntityManager"
 	add_child(entities)
-	entities.setup(event_bus, content, chunks, condition_evaluator)
+	entities.setup(event_bus, content, chunks, condition_evaluator, inventory)
 
 	equipment = EquipmentManagerScript.new()
 	equipment.name = "EquipmentManager"
@@ -196,7 +210,12 @@ func _bootstrap() -> void:
 	player.name = "Player"
 	add_child(player)
 	player.setup(event_bus, chunks, Vector2i.ZERO)
+	player.set_humanoid_profile(content.get_character_profile("char_player"))
 	effect_runner.player = player
+	event_bus.equipment_changed.connect(
+		func(equipped_by_slot: Dictionary) -> void:
+			player.set_equipped_items(equipped_by_slot, content)
+	)
 
 	camera = Camera2D.new()
 	camera.name = "Camera2D"
@@ -234,9 +253,27 @@ func _bootstrap() -> void:
 	hud.save_pressed.connect(_handle_save_requested)
 	hud.load_pressed.connect(_handle_load_requested)
 	hud.move_vector_changed.connect(player.set_external_move_vector)
+	hud.sneak_pressed.connect(_handle_sneak_pressed)
+	hud.systems_panel_closed.connect(_handle_systems_panel_closed)
+	hud.systems_tab_changed.connect(_handle_systems_tab_changed)
+
+	debug_character_creator = DebugCharacterCreatorScript.new()
+	debug_character_creator.name = "DebugCharacterCreator"
+	add_child(debug_character_creator)
+	debug_character_creator.setup(content, player)
+	debug_character_creator.appearance_applied.connect(
+		func(profile: Dictionary) -> void:
+			event_bus.post_message(
+				"Applied %s appearance." % content.get_people(String(profile.get("people_id", ""))).get(
+					"display_name", String(profile.get("people_id", ""))
+				)
+			)
+			_refresh_hud()
+	)
 	event_bus.player_tile_changed.connect(_on_player_tile_changed)
 	streamer.update_center(player.global_tile)
 	_sync_camera_to_player()
+	return true
 
 
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
@@ -310,6 +347,21 @@ func _handle_interact_requested() -> void:
 	MainInputRouter.handle_interact_requested(self)
 
 
+func _handle_sneak_pressed() -> void:
+	var sneaking: bool = player.toggle_sneaking()
+	event_bus.post_message("Sneaking." if sneaking else "Standing.")
+	_refresh_hud()
+
+
+func _handle_systems_panel_closed() -> void:
+	_clear_active_transfer(false)
+
+
+func _handle_systems_tab_changed(tab_id: String) -> void:
+	if tab_id != "inventory":
+		_clear_active_transfer(false)
+
+
 func _handle_cycle_target_requested() -> void:
 	if hud and hud.is_content_card_visible():
 		hud.hide_content_card()
@@ -375,21 +427,42 @@ func _handle_load_requested() -> void:
 	save_manager.load_game()
 
 
+func toggle_debug_character_creator() -> void:
+	if not debug_character_creator:
+		return
+	if not debug_character_creator.is_open():
+		_close_open_overlay_panel(false)
+	debug_character_creator.toggle_open()
+
+
 func _close_open_overlay_panel(consume_action: bool = true) -> bool:
 	if not hud:
 		return false
 	var closed := false
+	if debug_character_creator and debug_character_creator.is_open():
+		debug_character_creator.set_open(false)
+		closed = true
 	if hud.is_content_card_visible():
 		hud.hide_content_card()
 		active_content_choices.clear()
 		closed = true
 	if hud.is_systems_panel_visible():
 		hud.hide_systems_panel()
+		_clear_active_transfer(false)
 		closed = true
 	if hud.is_target_picker_visible():
 		hud.hide_target_picker()
 		closed = true
 	return closed and consume_action
+
+
+func _clear_active_transfer(refresh_hud: bool = true) -> void:
+	if active_transfer_owner_id.is_empty() and active_transfer_name.is_empty():
+		return
+	active_transfer_owner_id = ""
+	active_transfer_name = ""
+	if refresh_hud:
+		_refresh_hud()
 
 
 func _interact() -> void:
@@ -403,6 +476,8 @@ func _interact() -> void:
 		"pickup":
 			_interact_pickup(entity)
 		"container":
+			_interact_container(entity)
+		"body":
 			_interact_container(entity)
 		"door":
 			_interact_container(entity)
@@ -448,12 +523,15 @@ func _interact_pickup(entity) -> void:
 
 func _interact_container(entity) -> void:
 	var entity_id: String = entity.get_entity_id()
-	if chunks.is_object_opened(entity_id, entity.global_tile):
-		event_bus.post_message("%s is already open." % entity.get_display_name())
-		return
 	var locked_text := ObjectInteractionRules.access_locked_text(entity.data, condition_evaluator)
 	if not locked_text.is_empty():
 		event_bus.post_message(locked_text)
+		return
+	if ["container", "body"].has(entity.get_kind()):
+		MainInventoryTransfer.open(MainInventoryTransfer.context(self), entity)
+		return
+	if chunks.is_object_opened(entity_id, entity.global_tile):
+		event_bus.post_message("%s is already open." % entity.get_display_name())
 		return
 	var opened := false
 	for effect in _array_field(entity.data.get("effects_on_open", [])):
@@ -610,12 +688,12 @@ func _handle_equip_item(item_id: String) -> void:
 
 
 func _handle_swap_mainhand_weapon() -> void:
-	var last_item_id: String = equipment.last_mainhand_weapon_id
-	var item: Dictionary = content.get_item(last_item_id)
-	if item.is_empty() or not equipment.equip_last_mainhand_weapon():
+	if not equipment.equip_last_mainhand_weapon():
 		event_bus.post_message("No previous main hand weapon.")
 	else:
-		event_bus.post_message("Equipped %s." % String(item.get("name", last_item_id)))
+		var item_id: String = equipment.get_equipped_item("right_hand")
+		var item: Dictionary = content.get_item(item_id)
+		event_bus.post_message("Equipped %s." % String(item.get("name", item_id)))
 	_refresh_hud()
 
 
@@ -658,9 +736,10 @@ func _handle_buy_item(item_id: String) -> void:
 
 
 func _handle_sell_item(item_id: String) -> void:
+	var shop_id: String = _current_shop_id()
 	var item: Dictionary = content.get_item(item_id)
-	var price: int = shops.sell_price(item_id)
-	if item.is_empty() or not shops.sell_item(item_id, _current_shop_id()):
+	var price: int = shops.sell_price(shop_id, item_id)
+	if item.is_empty() or not shops.sell_item(shop_id, item_id):
 		event_bus.post_message("Could not sell that.")
 		_refresh_hud()
 		return
@@ -790,6 +869,8 @@ func _target_detail_text(entity) -> String:
 			detail = _npc_detail_text(entity)
 		"enemy":
 			detail = _enemy_detail_text(entity)
+		"body":
+			detail = "Body: loot"
 		"rest":
 			detail = _rest_detail_text(entity)
 	return detail

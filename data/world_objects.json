@@ -12,14 +12,43 @@
     "name": "Harrow Venn",
     "kind": "npc",
     "global_tile": [5, 1],
-    "npc_id": "npc_harrow_venn"
+    "npc_id": "npc_harrow_venn",
+    "inventory_owner_id": "char_harrow_venn",
+    "equipment_owner_id": "char_harrow_venn",
+    "facing_direction": [1, 0],
+    "equipped_items": {
+      "chest": "item_smith_apron"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      },
+      {
+        "item_id": "item_smith_apron",
+        "count": 1
+      }
+    ]
   },
   {
     "id": "npc_maera_pike_world",
     "name": "Maera Pike",
     "kind": "npc",
     "global_tile": [3, -5],
-    "npc_id": "npc_maera_pike"
+    "npc_id": "npc_maera_pike",
+    "inventory_owner_id": "char_maera_pike",
+    "equipment_owner_id": "char_maera_pike",
+    "facing_direction": [0, 1],
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 2
+      },
+      {
+        "item_id": "item_roadside_draught",
+        "count": 1
+      }
+    ]
   },
   {
     "id": "poi_briarwatch_square",
@@ -283,6 +312,18 @@
     "kind": "enemy",
     "global_tile": [-6, 1],
     "interaction_radius": 128,
+    "character_profile_id": "char_road_thug",
+    "inventory_owner_id": "char_road_thug",
+    "equipment_owner_id": "char_road_thug",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_hunting_bow",
+        "count": 1
+      }
+    ],
     "max_health": 12,
     "damage_taken_per_hit": 6,
     "attack_damage": 4,
@@ -307,6 +348,172 @@
         "amount": 10
       }
     ]
+  },
+  {
+    "id": "enemy_test_raider",
+    "name": "Test Raider",
+    "kind": "enemy",
+    "global_tile": [-10, 1],
+    "interaction_radius": 128,
+    "character_profile_id": "char_test_raider",
+    "inventory_owner_id": "char_test_raider",
+    "equipment_owner_id": "char_test_raider",
+    "spellbook_owner_id": "char_test_raider",
+    "loadout_id": "loadout_test_raider",
+    "spell_ids": ["spell_fire_blast"],
+    "loadout_slots": {
+      "ability_1": "spell_fire_blast"
+    },
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_hunting_bow",
+        "count": 1
+      }
+    ],
+    "max_health": 10,
+    "damage_taken_per_hit": 5,
+    "attack_damage": 3,
+    "effects_on_defeat": [
+      {
+        "type": "add_experience",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "enemy_people_test_human",
+    "name": "Human Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-16, 0],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_human",
+    "inventory_owner_id": "char_people_test_human",
+    "equipment_owner_id": "char_people_test_human",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
+  },
+  {
+    "id": "enemy_people_test_tanglekin",
+    "name": "Tanglekin Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-18, -2],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_tanglekin",
+    "inventory_owner_id": "char_people_test_tanglekin",
+    "equipment_owner_id": "char_people_test_tanglekin",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
+  },
+  {
+    "id": "enemy_people_test_tuskfolk",
+    "name": "Tuskfolk Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-18, 2],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_tuskfolk",
+    "inventory_owner_id": "char_people_test_tuskfolk",
+    "equipment_owner_id": "char_people_test_tuskfolk",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
+  },
+  {
+    "id": "enemy_people_test_mirefolk",
+    "name": "Mirefolk Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-20, 0],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_mirefolk",
+    "inventory_owner_id": "char_people_test_mirefolk",
+    "equipment_owner_id": "char_people_test_mirefolk",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
+  },
+  {
+    "id": "enemy_people_test_ravenfolk",
+    "name": "Ravenfolk Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-23, -2],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_ravenfolk",
+    "inventory_owner_id": "char_people_test_ravenfolk",
+    "equipment_owner_id": "char_people_test_ravenfolk",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
+  },
+  {
+    "id": "enemy_people_test_rootborn",
+    "name": "Rootborn Test Enemy",
+    "kind": "enemy",
+    "global_tile": [-22, 2],
+    "interaction_radius": 128,
+    "character_profile_id": "char_people_test_rootborn",
+    "inventory_owner_id": "char_people_test_rootborn",
+    "equipment_owner_id": "char_people_test_rootborn",
+    "equipped_items": {
+      "right_hand": "item_training_sword"
+    },
+    "inventory": [
+      {
+        "item_id": "item_gold_coin",
+        "count": 1
+      }
+    ],
+    "max_health": 6,
+    "damage_taken_per_hit": 6,
+    "attack_damage": 1
   },
   {
     "id": "object_north_gate",
@@ -341,12 +548,12 @@
     "interaction_radius": 176,
     "open_conditions": [
       {
-        "type": "stat_at_least",
-        "stat_id": "might",
-        "rank": 1
+        "type": "has_item",
+        "item_id": "item_training_sword",
+        "count": 1
       }
     ],
-    "locked_text": "The training gate's counterweight needs a stronger pull.",
+    "locked_text": "The training gate's lever is notched for a training sword.",
     "effects_on_open": [
       {
         "type": "set_flag",

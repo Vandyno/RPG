@@ -11,18 +11,21 @@ var event_bus
 var content
 var chunk_manager
 var condition_evaluator
+var inventory
 var entities_by_id: Dictionary = {}
+var runtime_entities_by_id: Dictionary = {}
 var highlighted_entity_id := ""
 var active_chunk_keys: Dictionary = {}
 var has_active_chunk_filter := false
 var respawn_queued := false
 
 
-func setup(bus, content_database, chunks, conditions = null) -> void:
+func setup(bus, content_database, chunks, conditions = null, inventory_manager = null) -> void:
 	event_bus = bus
 	content = content_database
 	chunk_manager = chunks
 	condition_evaluator = conditions
+	inventory = inventory_manager
 	if event_bus:
 		event_bus.chunks_changed.connect(_on_chunks_changed)
 		event_bus.world_flag_changed.connect(_queue_respawn)
@@ -46,17 +49,23 @@ func spawn_all() -> void:
 		if entity_id.is_empty() or seen_ids.has(entity_id) or not _has_valid_tile(entry):
 			continue
 		seen_ids[entity_id] = true
-		if not _conditions_pass(entry):
+		_spawn_entry(entry)
+	for entity_id in runtime_entities_by_id:
+		if seen_ids.has(entity_id):
 			continue
-		var tile := _tile_from_entry(entry)
-		if not _is_in_active_chunk_window(tile):
-			continue
-		if chunk_manager.is_entity_removed(entity_id, tile):
-			continue
-		var entity := WorldEntityScript.new()
-		add_child(entity)
-		entity.setup(entry)
-		entities_by_id[entity_id] = entity
+		seen_ids[entity_id] = true
+		_spawn_entry(runtime_entities_by_id[entity_id])
+
+
+func add_runtime_entity(entry: Dictionary):
+	var entity_id := String(entry.get("id", ""))
+	if entity_id.is_empty() or not _has_valid_tile(entry):
+		return null
+	runtime_entities_by_id[entity_id] = entry.duplicate(true)
+	if entities_by_id.has(entity_id):
+		remove_entity(entity_id)
+	_spawn_entry(runtime_entities_by_id[entity_id])
+	return entities_by_id.get(entity_id)
 
 
 func remove_entity(entity_id: String) -> void:
@@ -209,6 +218,23 @@ func get_entity(entity_id: String):
 	return entities_by_id.get(entity_id)
 
 
+func refresh_equipment_for_owner(owner_id: String) -> void:
+	if owner_id.is_empty():
+		return
+	for entity_id in entities_by_id:
+		var entity = entities_by_id[entity_id]
+		if not _entry_matches_equipment_owner(entity.data, owner_id):
+			continue
+		if not entity.data.has("_authored_equipped_items"):
+			entity.data["_authored_equipped_items"] = _dictionary_field(
+				entity.data.get("equipped_items", {})
+			)
+		var equipped := _filtered_equipped_items(entity.data)
+		entity.data["equipped_items"] = equipped
+		if entity.humanoid_avatar:
+			entity.humanoid_avatar.set_equipped_items(equipped, content)
+
+
 func get_interaction_radius(entity, fallback: float = DEFAULT_INTERACTION_RADIUS_PIXELS) -> float:
 	return _interaction_radius_for(entity, fallback)
 
@@ -217,6 +243,22 @@ func _clear_spawned_entities() -> void:
 	for child in get_children():
 		remove_child(child)
 		child.free()
+
+
+func _spawn_entry(entry: Dictionary) -> void:
+	if not _conditions_pass(entry):
+		return
+	var entity_id := String(entry.get("id", ""))
+	var tile := _tile_from_entry(entry)
+	if not _is_in_active_chunk_window(tile):
+		return
+	if chunk_manager.is_entity_removed(entity_id, tile):
+		return
+	var spawn_entry := _entry_with_filtered_equipment(_entry_with_profile(entry))
+	var entity := WorldEntityScript.new()
+	add_child(entity)
+	entity.setup(spawn_entry, content)
+	entities_by_id[entity_id] = entity
 
 
 func _on_chunks_changed(loaded_chunks: Array) -> void:
@@ -262,6 +304,88 @@ func _conditions_pass(entry: Dictionary) -> bool:
 	if not conditions is Array or conditions.is_empty():
 		return true
 	return condition_evaluator and condition_evaluator.evaluate_all(conditions)
+
+
+func _entry_with_profile(entry: Dictionary) -> Dictionary:
+	var profile_value: Variant = entry.get("character_profile", {})
+	if profile_value is Dictionary and not profile_value.is_empty():
+		return entry
+	if not content:
+		return entry
+	if not content.has_method("get_character_profile"):
+		return entry
+	var profile_id := String(entry.get("character_profile_id", ""))
+	var should_use_npc_profile := profile_id.is_empty() and String(entry.get("kind", "")) == "npc"
+	if should_use_npc_profile and content.has_method("get_npc"):
+		var npc: Dictionary = content.get_npc(String(entry.get("npc_id", "")))
+		profile_id = String(npc.get("character_profile_id", ""))
+	if profile_id.is_empty():
+		return entry
+	var profile: Dictionary = content.get_character_profile(profile_id)
+	if profile.is_empty():
+		return entry
+	var next_entry := entry.duplicate(true)
+	next_entry["character_profile_id"] = profile_id
+	next_entry["character_profile"] = profile
+	return next_entry
+
+
+func _entry_with_filtered_equipment(entry: Dictionary) -> Dictionary:
+	var equipped := _filtered_equipped_items(entry)
+	if equipped == _dictionary_field(entry.get("equipped_items", {})):
+		return entry
+	var next_entry := entry.duplicate(true)
+	next_entry["_authored_equipped_items"] = _base_equipped_items(entry)
+	next_entry["equipped_items"] = equipped
+	return next_entry
+
+
+func _filtered_equipped_items(entry: Dictionary) -> Dictionary:
+	var equipped := _base_equipped_items(entry)
+	if equipped.is_empty() or not inventory or not inventory.has_method("get_items_for_owner"):
+		return equipped.duplicate(true)
+	var owner_id := _entry_inventory_owner_id(entry)
+	if owner_id.is_empty():
+		return equipped.duplicate(true)
+	var owner_inventory_known := false
+	if inventory.has_method("has_inventory_for_owner"):
+		owner_inventory_known = inventory.has_inventory_for_owner(owner_id)
+		if not owner_inventory_known:
+			return equipped.duplicate(true)
+	var owner_items: Dictionary = inventory.get_items_for_owner(owner_id)
+	if owner_items.is_empty() and not owner_inventory_known:
+		return equipped.duplicate(true)
+	var filtered := {}
+	for slot_id in equipped:
+		var item_id := String(equipped[slot_id])
+		if inventory.has_item_for_owner(owner_id, item_id, 1):
+			filtered[slot_id] = item_id
+	return filtered
+
+
+func _base_equipped_items(entry: Dictionary) -> Dictionary:
+	var authored := _dictionary_field(entry.get("_authored_equipped_items", {}))
+	if not authored.is_empty():
+		return authored
+	return _dictionary_field(entry.get("equipped_items", {}))
+
+
+func _entry_matches_equipment_owner(entry: Dictionary, owner_id: String) -> bool:
+	if String(entry.get("equipment_owner_id", "")) == owner_id:
+		return true
+	if _entry_inventory_owner_id(entry) == owner_id:
+		return true
+	return false
+
+
+func _entry_inventory_owner_id(entry: Dictionary) -> String:
+	var owner_id := String(entry.get("inventory_owner_id", ""))
+	if not owner_id.is_empty():
+		return owner_id
+	var profile: Variant = entry.get("character_profile", {})
+	if profile is Dictionary:
+		return String(profile.get("inventory_owner_id", ""))
+	return ""
 
 
 func _interaction_radius_for(entity, fallback: float) -> float:
@@ -311,3 +435,7 @@ func _direction_label(delta: Vector2) -> String:
 
 func _is_number(value: Variant) -> bool:
 	return value is int or value is float
+
+
+func _dictionary_field(value: Variant) -> Dictionary:
+	return value.duplicate(true) if value is Dictionary else {}

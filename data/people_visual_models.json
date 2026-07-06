@@ -1,0 +1,1654 @@
+{
+  "people_human": {
+    "people_id": "people_human",
+    "variants": [
+      {
+        "id": "human_marches_worker",
+        "display_name": "Marches Worker",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_short_waves",
+        "hair_color_id": "hair_brown",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "shoulder_width": 0.04,
+          "torso_width": 0.03,
+          "hand_size": 0.03
+        },
+        "notes": "Practical local baseline for farmers, labourers, militia, and road workers."
+      },
+      {
+        "id": "human_road_guard",
+        "display_name": "Road Guard",
+        "palette_id": "palette_human_deep_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_close_crop",
+        "hair_color_id": "hair_black",
+        "marking_id": "marking_brow_left",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": 0.10,
+          "torso_width": 0.06,
+          "waist_width": 0.04
+        },
+        "notes": "Harder, broader human silhouette for guards, soldiers, and caravan muscle."
+      },
+      {
+        "id": "human_town_scribe",
+        "display_name": "Town Scribe",
+        "palette_id": "palette_human_light_olive",
+        "head_id": "head_human_round",
+        "hair_id": "hair_side_part",
+        "hair_color_id": "hair_grey",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": -0.05,
+          "torso_width": -0.03,
+          "head_size": 0.04,
+          "hand_size": -0.04
+        },
+        "notes": "Slightly narrower civilian shape for clerks, healers, priests, and scholars."
+      },
+      {
+        "id": "human_border_traveller",
+        "display_name": "Border Traveller",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_tied_back",
+        "hair_color_id": "hair_black",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.02,
+          "torso_width": -0.02,
+          "foot_size": 0.05
+        },
+        "notes": "Taller travel-read silhouette for guides, messengers, and mixed-road NPCs."
+      },
+      {
+        "id": "human_field_healer",
+        "display_name": "Field Healer",
+        "palette_id": "palette_human_light_olive",
+        "head_id": "head_human_round",
+        "hair_id": "hair_wide_curls",
+        "hair_color_id": "hair_brown",
+        "marking_id": "marking_cheek_dots",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "shoulder_width": -0.03,
+          "torso_width": -0.02,
+          "head_size": 0.03,
+          "hand_size": 0.03
+        },
+        "notes": "Gentler practical civilian read for medics, caretakers, and shrine helpers."
+      },
+      {
+        "id": "human_river_peddler",
+        "display_name": "River Peddler",
+        "palette_id": "palette_human_deep_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_shaved_crown",
+        "hair_color_id": "hair_grey",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": 0.02,
+          "waist_width": 0.06,
+          "foot_size": 0.04
+        },
+        "notes": "Compact road-and-river merchant shape, sturdy without becoming guard-like."
+      },
+      {
+        "id": "human_mill_elder",
+        "display_name": "Mill Elder",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_side_part",
+        "hair_color_id": "hair_grey",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.04,
+          "shoulder_width": -0.02,
+          "waist_width": 0.05,
+          "head_size": 0.05
+        },
+        "notes": "Older village silhouette with a heavier middle and slower posture."
+      },
+      {
+        "id": "human_court_runner",
+        "display_name": "Court Runner",
+        "palette_id": "palette_human_light_olive",
+        "head_id": "head_human_round",
+        "hair_id": "hair_tied_back",
+        "hair_color_id": "hair_black",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.06,
+          "waist_width": -0.04,
+          "foot_size": -0.03
+        },
+        "notes": "Narrow messenger or young official read for towns, temples, and errands."
+      },
+      {
+        "id": "human_granary_boss",
+        "display_name": "Granary Boss",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_close_crop",
+        "hair_color_id": "hair_brown",
+        "marking_id": "marking_chest_band",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": 0.06,
+          "torso_width": 0.08,
+          "waist_width": 0.08,
+          "hand_size": 0.04
+        },
+        "notes": "Stocky civilian authority shape for foremen, quartermasters, and storekeepers."
+      },
+      {
+        "id": "human_road_widow",
+        "display_name": "Road Widow",
+        "palette_id": "palette_human_deep_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_shaved_crown",
+        "hair_color_id": "hair_grey",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": -0.06,
+          "torso_width": -0.04,
+          "head_size": 0.06,
+          "hand_size": -0.02
+        },
+        "notes": "Spare village silhouette for mourners, refugees, and hard-road civilians."
+      },
+      {
+        "id": "human_chantry_adept",
+        "display_name": "Chantry Adept",
+        "palette_id": "palette_human_light_olive",
+        "head_id": "head_human_round",
+        "hair_id": "hair_short_waves",
+        "hair_color_id": "hair_brown",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": -0.03,
+          "torso_width": -0.01,
+          "head_size": 0.03,
+          "foot_size": -0.02
+        },
+        "notes": "Quiet ritual or apprentice read without drifting into non-human shapes."
+      },
+      {
+        "id": "human_ditch_digger",
+        "display_name": "Ditch Digger",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_close_crop",
+        "hair_color_id": "hair_black",
+        "marking_id": "marking_hand_wraps",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": 0.08,
+          "torso_width": 0.03,
+          "waist_width": 0.02,
+          "hand_size": 0.07,
+          "foot_size": 0.05
+        },
+        "notes": "Heavy labourer read for muddy, practical town work."
+      },
+      {
+        "id": "human_orchard_healer",
+        "display_name": "Orchard Healer",
+        "palette_id": "palette_human_light_olive",
+        "head_id": "head_human_round",
+        "hair_id": "hair_wide_curls",
+        "hair_color_id": "hair_grey",
+        "marking_id": "marking_cheek_dots",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.04,
+          "head_size": 0.04,
+          "hand_size": 0.04
+        },
+        "notes": "Rural caretaker read for herbalists, birth helpers, and field medics."
+      },
+      {
+        "id": "human_roof_mason",
+        "display_name": "Roof Mason",
+        "palette_id": "palette_human_deep_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_shaved_crown",
+        "hair_color_id": "hair_black",
+        "marking_id": "marking_hand_wraps",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": 0.07,
+          "torso_width": 0.05,
+          "hand_size": 0.08,
+          "foot_size": 0.03
+        },
+        "notes": "Hands-forward town builder silhouette without becoming military."
+      },
+      {
+        "id": "human_market_broker",
+        "display_name": "Market Broker",
+        "palette_id": "palette_human_warm_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_side_part",
+        "hair_color_id": "hair_brown",
+        "marking_id": "marking_chest_band",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": 0.00,
+          "shoulder_width": 0.02,
+          "torso_width": 0.02,
+          "waist_width": 0.05,
+          "head_size": 0.03
+        },
+        "notes": "Public-facing market and contract silhouette with social weight."
+      },
+      {
+        "id": "human_gate_veteran",
+        "display_name": "Gate Veteran",
+        "palette_id": "palette_human_deep_brown",
+        "head_id": "head_human_round",
+        "hair_id": "hair_close_crop",
+        "hair_color_id": "hair_grey",
+        "marking_id": "marking_brow_left",
+        "feature_ids": [],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": 0.09,
+          "torso_width": 0.06,
+          "waist_width": 0.04,
+          "head_size": 0.02
+        },
+        "notes": "Older fortified-town guard read for retired soldiers and gate crews."
+      }
+    ]
+  },
+  "people_tanglekin": {
+    "people_id": "people_tanglekin",
+    "variants": [
+      {
+        "id": "tanglekin_courier",
+        "display_name": "Pass Courier",
+        "palette_id": "palette_tanglekin_sun_ochre",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.03,
+          "hand_size": 0.04,
+          "foot_size": 0.04
+        },
+        "notes": "Fast courier read: long arms, light frame, visible tail, and grasping feet."
+      },
+      {
+        "id": "tanglekin_duelist",
+        "display_name": "Ridge Duelist",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": 0.02,
+          "torso_width": -0.02,
+          "hand_size": 0.08
+        },
+        "notes": "Lean duelist read with sharper brow, strong hands, and balanced tail."
+      },
+      {
+        "id": "tanglekin_monk",
+        "display_name": "Stepcliff Monk",
+        "palette_id": "palette_tanglekin_sun_ochre",
+        "head_id": "head_tanglekin_narrow",
+        "marking_id": "marking_brow_left",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "shoulder_width": -0.02,
+          "torso_width": 0.02,
+          "head_size": 0.03,
+          "hand_size": 0.02
+        },
+        "notes": "Calmer simian posture for teachers, monks, and disciplined travellers."
+      },
+      {
+        "id": "tanglekin_performer",
+        "display_name": "Branch Performer",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.06,
+          "waist_width": -0.06,
+          "head_size": 0.02,
+          "hand_size": 0.06,
+          "foot_size": 0.06
+        },
+        "notes": "Most acrobatic simian read; useful for thieves, performers, and tricksters."
+      },
+      {
+        "id": "tanglekin_canopy_scout",
+        "display_name": "Canopy Scout",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.05,
+          "torso_width": -0.03,
+          "hand_size": 0.04,
+          "foot_size": 0.05
+        },
+        "notes": "Light scout read for cliffs, rooftops, branches, and narrow passes."
+      },
+      {
+        "id": "tanglekin_seed_picker",
+        "display_name": "Seed Picker",
+        "palette_id": "palette_tanglekin_dust_gold",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.08,
+          "waist_width": -0.04,
+          "hand_size": 0.06,
+          "foot_size": 0.02
+        },
+        "notes": "Small careful gatherer shape with nimble hands and a low tail read."
+      },
+      {
+        "id": "tanglekin_ridge_herald",
+        "display_name": "Ridge Herald",
+        "palette_id": "palette_tanglekin_sun_ochre",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.03,
+          "head_size": 0.04,
+          "hand_size": 0.03
+        },
+        "notes": "Visible caller silhouette with expressive brow and upright simian posture."
+      },
+      {
+        "id": "tanglekin_branch_picker",
+        "display_name": "Branch Picker",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": -0.02,
+          "waist_width": -0.08,
+          "hand_size": 0.10,
+          "foot_size": 0.04
+        },
+        "notes": "Nimble hands-forward read for pickers, climbers, and delicate tool users."
+      },
+      {
+        "id": "tanglekin_roof_runner",
+        "display_name": "Roof Runner",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.07,
+          "torso_width": -0.04,
+          "waist_width": -0.06,
+          "hand_size": 0.05,
+          "foot_size": 0.06
+        },
+        "notes": "Highest-climb silhouette for roof workers, scouts, and alarm runners."
+      },
+      {
+        "id": "tanglekin_wind_listener",
+        "display_name": "Wind Listener",
+        "palette_id": "palette_tanglekin_dust_gold",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.06,
+          "torso_width": -0.05,
+          "head_size": 0.05,
+          "hand_size": 0.01
+        },
+        "notes": "Ceremonial listener shape with alert brow, narrow frame, and visible tail."
+      },
+      {
+        "id": "tanglekin_tail_juggler",
+        "display_name": "Tail Juggler",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.04,
+          "waist_width": -0.05,
+          "hand_size": 0.10,
+          "foot_size": 0.04
+        },
+        "notes": "Hands-forward entertainment and dexterity read, with tail balance visible."
+      },
+      {
+        "id": "tanglekin_low_forager",
+        "display_name": "Low Forager",
+        "palette_id": "palette_tanglekin_sun_ochre",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": -0.04,
+          "shoulder_width": -0.05,
+          "waist_width": -0.02,
+          "hand_size": 0.04,
+          "foot_size": 0.04
+        },
+        "notes": "Small gatherer shape that keeps the simian hands, feet, and tail read."
+      },
+      {
+        "id": "tanglekin_cliff_guide",
+        "display_name": "Cliff Guide",
+        "palette_id": "palette_tanglekin_dust_gold",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.05,
+          "waist_width": -0.04,
+          "hand_size": 0.04,
+          "foot_size": 0.05
+        },
+        "notes": "Vertical guide silhouette for cliff paths, exposed roads, and difficult climbs."
+      },
+      {
+        "id": "tanglekin_memory_scribe",
+        "display_name": "Memory Scribe",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_muzzle",
+          "feature_tanglekin_brow_tuft"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": -0.03,
+          "torso_width": -0.02,
+          "head_size": 0.05,
+          "hand_size": 0.05
+        },
+        "notes": "Record-keeper shape using face, posture, and hands rather than baked clothing."
+      },
+      {
+        "id": "tanglekin_awning_climber",
+        "display_name": "Awning Climber",
+        "palette_id": "palette_tanglekin_fur_brown",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.02,
+          "waist_width": -0.05,
+          "hand_size": 0.09,
+          "foot_size": 0.04
+        },
+        "notes": "Market-roof worker silhouette with long reach and grasping feet."
+      },
+      {
+        "id": "tanglekin_salt_runner",
+        "display_name": "Salt Runner",
+        "palette_id": "palette_tanglekin_dust_gold",
+        "head_id": "head_tanglekin_narrow",
+        "feature_ids": [
+          "feature_tanglekin_tail",
+          "feature_tanglekin_grasping_hands",
+          "feature_tanglekin_muzzle"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.06,
+          "shoulder_width": -0.07,
+          "torso_width": -0.05,
+          "waist_width": -0.06,
+          "hand_size": 0.04,
+          "foot_size": 0.06
+        },
+        "notes": "Hard-travel runner for urgent messages, thin-road commerce, and fast climbs."
+      }
+    ]
+  },
+  "people_tuskfolk": {
+    "people_id": "people_tuskfolk",
+    "variants": [
+      {
+        "id": "tuskfolk_smith",
+        "display_name": "Oath Smith",
+        "palette_id": "palette_tuskfolk_umber",
+        "head_id": "head_tuskfolk_broad",
+        "marking_id": "marking_hand_wraps",
+        "feature_ids": ["feature_tusks_broad", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": 0.08,
+          "torso_width": 0.06,
+          "hand_size": 0.08
+        },
+        "notes": "Broadest practical craft silhouette."
+      },
+      {
+        "id": "tuskfolk_guard",
+        "display_name": "Fort Guard",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_broad"],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": 0.10,
+          "torso_width": 0.04,
+          "waist_width": 0.06,
+          "foot_size": 0.04
+        },
+        "notes": "Defensive military read: short, wide, stable."
+      },
+      {
+        "id": "tuskfolk_road_clan",
+        "display_name": "Road Clan Trader",
+        "palette_id": "palette_tuskfolk_red_clay",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": -0.02,
+          "torso_width": 0.02,
+          "hand_size": 0.02
+        },
+        "notes": "Less martial but still stockier than human baseline."
+      },
+      {
+        "id": "tuskfolk_veteran",
+        "display_name": "Old Veteran",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "marking_id": "marking_ash_streak",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.04,
+          "shoulder_width": 0.04,
+          "waist_width": 0.08,
+          "head_size": 0.04
+        },
+        "notes": "Compressed, heavy, old-soldier silhouette."
+      },
+      {
+        "id": "tuskfolk_kiln_keeper",
+        "display_name": "Kiln Keeper",
+        "palette_id": "palette_tuskfolk_red_clay",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": 0.02,
+          "torso_width": 0.08,
+          "hand_size": 0.06
+        },
+        "notes": "Craft-heavy but calmer than smith; barrel torso and strong hands."
+      },
+      {
+        "id": "tuskfolk_clan_aunt",
+        "display_name": "Clan Aunt",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small"],
+        "proportion_deltas": {
+          "body_height": -0.06,
+          "shoulder_width": 0.00,
+          "waist_width": 0.12,
+          "head_size": 0.03
+        },
+        "notes": "Short grounded elder/caretaker silhouette with family authority."
+      },
+      {
+        "id": "tuskfolk_gate_broker",
+        "display_name": "Gate Broker",
+        "palette_id": "palette_tuskfolk_umber",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_broad", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": 0.00,
+          "shoulder_width": 0.06,
+          "torso_width": 0.02,
+          "waist_width": 0.04,
+          "hand_size": 0.02
+        },
+        "notes": "Negotiator or toll keeper: broad presence without full guard bulk."
+      },
+      {
+        "id": "tuskfolk_low_mason",
+        "display_name": "Low Mason",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_broad"],
+        "proportion_deltas": {
+          "body_height": -0.08,
+          "shoulder_width": 0.10,
+          "torso_width": 0.08,
+          "foot_size": 0.08
+        },
+        "notes": "Lowest heaviest practical labour silhouette; the stocky rule at maximum."
+      },
+      {
+        "id": "tuskfolk_brew_keeper",
+        "display_name": "Brew Keeper",
+        "palette_id": "palette_tuskfolk_umber",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.05,
+          "shoulder_width": 0.02,
+          "torso_width": 0.10,
+          "waist_width": 0.10,
+          "hand_size": 0.05
+        },
+        "notes": "Rounder craft/cellar silhouette while staying short and solid."
+      },
+      {
+        "id": "tuskfolk_shield_sibling",
+        "display_name": "Shield Sibling",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_broad"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": 0.10,
+          "torso_width": 0.06,
+          "waist_width": 0.04,
+          "foot_size": 0.06
+        },
+        "notes": "Broad defender shape for family guards and shield crews."
+      },
+      {
+        "id": "tuskfolk_stone_herald",
+        "display_name": "Stone Herald",
+        "palette_id": "palette_tuskfolk_umber",
+        "head_id": "head_tuskfolk_broad",
+        "marking_id": "marking_chest_band",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": 0.04,
+          "torso_width": 0.04,
+          "waist_width": 0.02,
+          "head_size": 0.05
+        },
+        "notes": "Public voice silhouette with weight and authority, not extra height."
+      },
+      {
+        "id": "tuskfolk_salt_carver",
+        "display_name": "Salt Carver",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small"],
+        "proportion_deltas": {
+          "body_height": -0.04,
+          "shoulder_width": 0.06,
+          "torso_width": 0.02,
+          "waist_width": 0.04,
+          "hand_size": 0.10
+        },
+        "notes": "Hand-heavy maker silhouette for carvers, butchers, and stone detailers."
+      },
+      {
+        "id": "tuskfolk_hearth_midwife",
+        "display_name": "Hearth Midwife",
+        "palette_id": "palette_tuskfolk_red_clay",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.07,
+          "shoulder_width": 0.02,
+          "torso_width": 0.08,
+          "waist_width": 0.12,
+          "head_size": 0.04
+        },
+        "notes": "Very grounded family-caretaker shape with clan authority."
+      },
+      {
+        "id": "tuskfolk_oath_warden",
+        "display_name": "Oath Warden",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "marking_id": "marking_ash_streak",
+        "feature_ids": ["feature_tusks_broad", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": 0.10,
+          "torso_width": 0.08,
+          "waist_width": 0.06,
+          "foot_size": 0.08
+        },
+        "notes": "Maximum civic defender silhouette while still short-heavy."
+      },
+      {
+        "id": "tuskfolk_bronze_broker",
+        "display_name": "Bronze Broker",
+        "palette_id": "palette_tuskfolk_red_clay",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_small", "feature_tuskfolk_clan_marks"],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": 0.06,
+          "torso_width": 0.05,
+          "waist_width": 0.08,
+          "head_size": 0.03
+        },
+        "notes": "Negotiator shape with compact mass and visible clan marks."
+      },
+      {
+        "id": "tuskfolk_quarry_worker",
+        "display_name": "Quarry Worker",
+        "palette_id": "palette_tuskfolk_ash",
+        "head_id": "head_tuskfolk_broad",
+        "feature_ids": ["feature_tusks_broad"],
+        "proportion_deltas": {
+          "body_height": -0.06,
+          "shoulder_width": 0.10,
+          "torso_width": 0.10,
+          "hand_size": 0.12,
+          "foot_size": 0.10
+        },
+        "notes": "Deep labour silhouette for stone, road, and heavy hauling crews."
+      }
+    ]
+  },
+  "people_mirefolk": {
+    "people_id": "people_mirefolk",
+    "variants": [
+      {
+        "id": "mirefolk_ferryman",
+        "display_name": "Ferry Guide",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "marking_id": "marking_hand_wraps",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "shoulder_width": 0.04,
+          "waist_width": 0.04,
+          "foot_size": 0.08
+        },
+        "notes": "Broad wetland guide shape with grounded feet."
+      },
+      {
+        "id": "mirefolk_herbalist",
+        "display_name": "Bog Herbalist",
+        "palette_id": "palette_mirefolk_bog_blue",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_reed_marks", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.02,
+          "head_size": 0.08,
+          "hand_size": 0.04
+        },
+        "notes": "Quiet healer/alchemist read: head and hands carry the silhouette."
+      },
+      {
+        "id": "mirefolk_scout",
+        "display_name": "Reed Scout",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": [
+          "feature_mirefolk_high_eyes",
+          "feature_mirefolk_reed_marks",
+          "feature_mirefolk_webbed_hands"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.04,
+          "waist_width": -0.02,
+          "foot_size": 0.10
+        },
+        "notes": "Leanest Mirefolk option while keeping broad feet and amphibian head."
+      },
+      {
+        "id": "mirefolk_plague_handler",
+        "display_name": "Plague Handler",
+        "palette_id": "palette_mirefolk_bog_blue",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": 0.06,
+          "torso_width": 0.06,
+          "head_size": 0.04
+        },
+        "notes": "Heavier practical silhouette for feared but necessary work."
+      },
+      {
+        "id": "mirefolk_reed_midwife",
+        "display_name": "Reed Midwife",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_reed_marks", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.04,
+          "shoulder_width": 0.02,
+          "waist_width": 0.08,
+          "head_size": 0.06
+        },
+        "notes": "Calm broad caretaker shape for wetland healers and family roles."
+      },
+      {
+        "id": "mirefolk_bog_runner",
+        "display_name": "Bog Runner",
+        "palette_id": "palette_mirefolk_bog_blue",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_high_eyes"],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.08,
+          "waist_width": -0.06,
+          "foot_size": 0.12
+        },
+        "notes": "Long-footed runner read for messengers who cross mud and water quickly."
+      },
+      {
+        "id": "mirefolk_silt_priest",
+        "display_name": "Silt Priest",
+        "palette_id": "palette_mirefolk_bog_blue",
+        "head_id": "head_mirefolk_wide_eyed",
+        "marking_id": "marking_chest_band",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_reed_marks"],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": 0.00,
+          "torso_width": 0.04,
+          "head_size": 0.10
+        },
+        "notes": "Ritual wetland silhouette with the head and eyes doing most of the read."
+      },
+      {
+        "id": "mirefolk_net_mender",
+        "display_name": "Net Mender",
+        "palette_id": "palette_mirefolk_silt_olive",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_reed_marks", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.04,
+          "hand_size": 0.08,
+          "foot_size": 0.06
+        },
+        "notes": "Hands-and-feet worker shape for fishers, net menders, and marsh craft."
+      },
+      {
+        "id": "mirefolk_pool_watcher",
+        "display_name": "Pool Watcher",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "marking_id": "marking_cheek_dots",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": 0.02,
+          "waist_width": 0.06,
+          "head_size": 0.12,
+          "foot_size": 0.08
+        },
+        "notes": "Still wetland watcher shape with eyes and feet doing the read."
+      },
+      {
+        "id": "mirefolk_reed_basketter",
+        "display_name": "Reed Basketter",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_reed_marks", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": -0.02,
+          "torso_width": 0.02,
+          "hand_size": 0.10,
+          "foot_size": 0.04
+        },
+        "notes": "Craft worker read with visible hands and damp reed identity."
+      },
+      {
+        "id": "mirefolk_mud_physic",
+        "display_name": "Mud Physic",
+        "palette_id": "palette_mirefolk_bog_blue",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": [
+          "feature_mirefolk_high_eyes",
+          "feature_mirefolk_reed_marks",
+          "feature_mirefolk_webbed_hands"
+        ],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": 0.00,
+          "torso_width": 0.04,
+          "head_size": 0.09,
+          "hand_size": 0.06
+        },
+        "notes": "Wetland doctor/alchemist silhouette with broad head and careful hands."
+      },
+      {
+        "id": "mirefolk_marsh_smallhand",
+        "display_name": "Marsh Smallhand",
+        "palette_id": "palette_mirefolk_silt_olive",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_high_eyes"],
+        "proportion_deltas": {
+          "body_height": -0.06,
+          "shoulder_width": -0.04,
+          "waist_width": 0.02,
+          "head_size": 0.06,
+          "foot_size": 0.10
+        },
+        "notes": "Smaller adult Mirefolk read for shy workers and quiet marsh villagers."
+      },
+      {
+        "id": "mirefolk_leech_healer",
+        "display_name": "Leech Healer",
+        "palette_id": "palette_mirefolk_silt_olive",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_reed_marks", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": -0.02,
+          "head_size": 0.10,
+          "hand_size": 0.08
+        },
+        "notes": "Wetland medical silhouette with careful hands and large watchful head."
+      },
+      {
+        "id": "mirefolk_drift_courier",
+        "display_name": "Drift Courier",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_webbed_hands"],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.06,
+          "waist_width": -0.04,
+          "foot_size": 0.14
+        },
+        "notes": "Long-footed wet-road courier for water margins and soft ground."
+      },
+      {
+        "id": "mirefolk_fen_elder",
+        "display_name": "Fen Elder",
+        "palette_id": "palette_mirefolk_silt_olive",
+        "head_id": "head_mirefolk_wide_eyed",
+        "marking_id": "marking_ash_streak",
+        "feature_ids": ["feature_mirefolk_high_eyes", "feature_mirefolk_reed_marks"],
+        "proportion_deltas": {
+          "body_height": -0.05,
+          "shoulder_width": 0.02,
+          "waist_width": 0.10,
+          "head_size": 0.12
+        },
+        "notes": "Old marsh authority silhouette with broad head and low stance."
+      },
+      {
+        "id": "mirefolk_lily_warden",
+        "display_name": "Lily Warden",
+        "palette_id": "palette_mirefolk_reed_green",
+        "head_id": "head_mirefolk_wide_eyed",
+        "feature_ids": [
+          "feature_mirefolk_high_eyes",
+          "feature_mirefolk_reed_marks",
+          "feature_mirefolk_webbed_hands"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.00,
+          "shoulder_width": 0.08,
+          "torso_width": 0.06,
+          "foot_size": 0.10
+        },
+        "notes": "Protective wetland watch shape without losing amphibian softness."
+      }
+    ]
+  },
+  "people_ravenfolk": {
+    "people_id": "people_ravenfolk",
+    "variants": [
+      {
+        "id": "ravenfolk_archive_witness",
+        "display_name": "Archive Witness",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.03,
+          "torso_width": -0.02,
+          "waist_width": -0.04
+        },
+        "notes": "Core Ravenfolk read: narrow feathered body, small crest, true beak, and quill marks."
+      },
+      {
+        "id": "ravenfolk_grave_scribe",
+        "display_name": "Grave Scribe",
+        "palette_id": "palette_ravenfolk_archive_grey",
+        "head_id": "head_ravenfolk_beaked",
+        "marking_id": "marking_ash_streak",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": -0.04,
+          "torso_width": -0.04,
+          "head_size": 0.03
+        },
+        "notes": "Record-keeper shape: slim, feathered, beaked, with fine quill marks."
+      },
+      {
+        "id": "ravenfolk_gate_keeper",
+        "display_name": "Blackrook Gatekeeper",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers"
+        ],
+        "proportion_deltas": {
+          "shoulder_width": 0.03,
+          "torso_width": 0.02,
+          "waist_width": 0.01,
+          "hand_size": 0.02
+        },
+        "notes": "The sturdier Ravenfolk shape, still narrow beside human guards."
+      },
+      {
+        "id": "ravenfolk_omen_bearer",
+        "display_name": "Omen Bearer",
+        "palette_id": "palette_ravenfolk_archive_grey",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.06,
+          "shoulder_width": -0.06,
+          "torso_width": -0.05,
+          "waist_width": -0.06,
+          "foot_size": -0.02
+        },
+        "notes": "Most uncanny option: very tall, narrow, crested, and visibly feathered."
+      },
+      {
+        "id": "ravenfolk_lamp_keeper",
+        "display_name": "Lamp Keeper",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.00,
+          "shoulder_width": -0.02,
+          "torso_width": -0.04,
+          "head_size": 0.02
+        },
+        "notes": "Quieter civic Ravenfolk: feather body and beak do the species read."
+      },
+      {
+        "id": "ravenfolk_rook_bailiff",
+        "display_name": "Rook Bailiff",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": 0.04,
+          "torso_width": 0.03,
+          "waist_width": 0.02
+        },
+        "notes": "Physical authority variant; broader for Ravenfolk, not broad for the world."
+      },
+      {
+        "id": "ravenfolk_bell_mourner",
+        "display_name": "Bell Mourner",
+        "palette_id": "palette_ravenfolk_archive_grey",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.06,
+          "torso_width": -0.04,
+          "waist_width": -0.02,
+          "hand_size": -0.04
+        },
+        "notes": "Smaller grief-ritual silhouette with sharp beak and quiet feather detail."
+      },
+      {
+        "id": "ravenfolk_ink_judge",
+        "display_name": "Ink Judge",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "marking_id": "marking_chest_band",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.08,
+          "shoulder_width": -0.02,
+          "torso_width": -0.02,
+          "head_size": 0.04
+        },
+        "notes": "Tall authority silhouette with crest, beak, and strong feather rows."
+      },
+      {
+        "id": "ravenfolk_candle_notary",
+        "display_name": "Candle Notary",
+        "palette_id": "palette_ravenfolk_blue_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": -0.05,
+          "torso_width": -0.03,
+          "head_size": 0.02,
+          "hand_size": -0.02
+        },
+        "notes": "Small office silhouette; anatomy remains feather-first."
+      },
+      {
+        "id": "ravenfolk_ash_usher",
+        "display_name": "Ash Usher",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.03,
+          "torso_width": -0.03,
+          "waist_width": -0.05,
+          "foot_size": -0.03
+        },
+        "notes": "Tall quiet attendant shape with crest and dark body feathers."
+      },
+      {
+        "id": "ravenfolk_silent_factor",
+        "display_name": "Silent Factor",
+        "palette_id": "palette_ravenfolk_blue_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": 0.02,
+          "torso_width": 0.02,
+          "waist_width": 0.01,
+          "hand_size": 0.02
+        },
+        "notes": "Negotiator shape with a slightly stronger frame and tail-feather read."
+      },
+      {
+        "id": "ravenfolk_black_quill",
+        "display_name": "Black Quill",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.07,
+          "shoulder_width": -0.07,
+          "torso_width": -0.04,
+          "waist_width": -0.06,
+          "head_size": 0.03
+        },
+        "notes": "Most severe narrow variant: crest, tail feathers, beak, and quill marks."
+      },
+      {
+        "id": "ravenfolk_crow_scribe",
+        "display_name": "Crow Scribe",
+        "palette_id": "palette_ravenfolk_blue_black",
+        "head_id": "head_ravenfolk_beaked",
+        "marking_id": "marking_brow_left",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": -0.05,
+          "torso_width": -0.03,
+          "head_size": 0.05
+        },
+        "notes": "Narrow record-keeper with beak and feather rows doing the identity work."
+      },
+      {
+        "id": "ravenfolk_oath_witness",
+        "display_name": "Oath Witness",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "marking_id": "marking_ash_streak",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_head_crest",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_quill_marks"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": -0.03,
+          "torso_width": -0.02,
+          "waist_width": -0.04,
+          "head_size": 0.03
+        },
+        "notes": "Ceremonial witness shape: slender, crested, feathered, and beaked."
+      },
+      {
+        "id": "ravenfolk_dusk_mourner",
+        "display_name": "Dusk Mourner",
+        "palette_id": "palette_ravenfolk_blue_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers"
+        ],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": -0.07,
+          "torso_width": -0.04,
+          "hand_size": -0.03
+        },
+        "notes": "Small mourning silhouette with narrow shoulders and tail feathers."
+      },
+      {
+        "id": "ravenfolk_gate_warden",
+        "display_name": "Gate Warden",
+        "palette_id": "palette_ravenfolk_black",
+        "head_id": "head_ravenfolk_beaked",
+        "feature_ids": [
+          "feature_ravenfolk_body_feathers",
+          "feature_ravenfolk_beak",
+          "feature_ravenfolk_tail_feathers"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": 0.04,
+          "torso_width": 0.03,
+          "waist_width": 0.02
+        },
+        "notes": "Broadest Ravenfolk guard shape, still feathered and slender beside humans."
+      }
+    ]
+  },
+  "people_rootborn": {
+    "people_id": "people_rootborn",
+    "variants": [
+      {
+        "id": "rootborn_warden",
+        "display_name": "Grove Warden",
+        "palette_id": "palette_rootborn_moss",
+        "head_id": "head_rootborn_leaf_crowned",
+        "marking_id": "marking_leaf_specks",
+        "feature_ids": [
+          "feature_rootborn_leaf_crown",
+          "feature_rootborn_bark_marks",
+          "feature_rootborn_branch_crown"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": 0.04,
+          "foot_size": 0.04
+        },
+        "notes": "Guarded old-growth silhouette; taller and rooted without elf language."
+      },
+      {
+        "id": "rootborn_grove_memory",
+        "display_name": "Grove Memory",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_bark_marks", "feature_rootborn_branch_crown"],
+        "proportion_deltas": {
+          "body_height": 0.06,
+          "shoulder_width": -0.02,
+          "torso_width": -0.02,
+          "head_size": 0.06
+        },
+        "notes": "Older stranger read, with bark marks doing more work than leaves."
+      },
+      {
+        "id": "rootborn_shade_tender",
+        "display_name": "Shade Tender",
+        "palette_id": "palette_rootborn_lichen_grey",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown"],
+        "proportion_deltas": {
+          "body_height": -0.01,
+          "shoulder_width": -0.04,
+          "waist_width": -0.04,
+          "hand_size": 0.04
+        },
+        "notes": "Softer healer/gardener shape; still plant-linked, not elven."
+      },
+      {
+        "id": "rootborn_old_root",
+        "display_name": "Old Root",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": [
+          "feature_rootborn_leaf_crown",
+          "feature_rootborn_bark_marks",
+          "feature_rootborn_branch_crown"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": 0.08,
+          "waist_width": 0.06,
+          "foot_size": 0.08
+        },
+        "notes": "Heavy, patient, rooted elder silhouette."
+      },
+      {
+        "id": "rootborn_bark_scribe",
+        "display_name": "Bark Scribe",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "marking_id": "marking_chest_band",
+        "feature_ids": ["feature_rootborn_bark_marks", "feature_rootborn_branch_crown"],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": -0.04,
+          "torso_width": -0.04,
+          "head_size": 0.08
+        },
+        "notes": "Memory-keeper silhouette with bark marks and an older head-heavy read."
+      },
+      {
+        "id": "rootborn_moss_gatherer",
+        "display_name": "Moss Gatherer",
+        "palette_id": "palette_rootborn_moss",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown"],
+        "proportion_deltas": {
+          "body_height": -0.03,
+          "shoulder_width": -0.06,
+          "waist_width": -0.02,
+          "hand_size": 0.06
+        },
+        "notes": "Smaller working Rootborn read for gatherers, tenders, and quiet villagers."
+      },
+      {
+        "id": "rootborn_ironwood_guard",
+        "display_name": "Ironwood Guard",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_bark_marks"],
+        "proportion_deltas": {
+          "body_height": 0.01,
+          "shoulder_width": 0.12,
+          "torso_width": 0.08,
+          "foot_size": 0.06
+        },
+        "notes": "Guarded trunk-like silhouette without turning into a stone golem."
+      },
+      {
+        "id": "rootborn_sapling_voice",
+        "display_name": "Sapling Voice",
+        "palette_id": "palette_rootborn_moss",
+        "head_id": "head_rootborn_leaf_crowned",
+        "marking_id": "marking_leaf_specks",
+        "feature_ids": [
+          "feature_rootborn_leaf_crown",
+          "feature_rootborn_bark_marks",
+          "feature_rootborn_branch_crown"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.08,
+          "shoulder_width": -0.08,
+          "waist_width": -0.06,
+          "head_size": 0.02
+        },
+        "notes": "Tall thin young-root silhouette for singers, speakers, and spirit-touched NPCs."
+      },
+      {
+        "id": "rootborn_seed_keeper",
+        "display_name": "Seed Keeper",
+        "palette_id": "palette_rootborn_lichen_grey",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown", "feature_rootborn_bark_marks"],
+        "proportion_deltas": {
+          "body_height": -0.02,
+          "shoulder_width": -0.02,
+          "waist_width": 0.02,
+          "head_size": 0.05,
+          "hand_size": 0.05
+        },
+        "notes": "Small caretaker of seeds, groves, and stored living things."
+      },
+      {
+        "id": "rootborn_windbreak",
+        "display_name": "Windbreak",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_bark_marks", "feature_rootborn_branch_crown"],
+        "proportion_deltas": {
+          "body_height": 0.04,
+          "shoulder_width": 0.14,
+          "torso_width": 0.10,
+          "waist_width": 0.06,
+          "foot_size": 0.08
+        },
+        "notes": "Wide sheltering trunk silhouette for guards, elders, and boundary keepers."
+      },
+      {
+        "id": "rootborn_lichen_pilgrim",
+        "display_name": "Lichen Pilgrim",
+        "palette_id": "palette_rootborn_lichen_grey",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown"],
+        "proportion_deltas": {
+          "body_height": 0.06,
+          "shoulder_width": -0.07,
+          "torso_width": -0.05,
+          "waist_width": -0.04,
+          "foot_size": 0.02
+        },
+        "notes": "Tall walking-root pilgrim shape with moss and patience."
+      },
+      {
+        "id": "rootborn_ring_speaker",
+        "display_name": "Ring Speaker",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": [
+          "feature_rootborn_leaf_crown",
+          "feature_rootborn_bark_marks",
+          "feature_rootborn_branch_crown"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.02,
+          "shoulder_width": 0.02,
+          "torso_width": 0.00,
+          "head_size": 0.10,
+          "hand_size": 0.02
+        },
+        "notes": "Head-heavy speaker or mediator shape for councils and old-memory roles."
+      },
+      {
+        "id": "rootborn_root_healer",
+        "display_name": "Root Healer",
+        "palette_id": "palette_rootborn_lichen_grey",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown", "feature_rootborn_bark_marks"],
+        "proportion_deltas": {
+          "body_height": 0.00,
+          "shoulder_width": -0.05,
+          "waist_width": -0.02,
+          "head_size": 0.06,
+          "hand_size": 0.06
+        },
+        "notes": "Gentle grove-medicine shape, plantlike but not elven."
+      },
+      {
+        "id": "rootborn_bark_elder",
+        "display_name": "Bark Elder",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_bark_marks", "feature_rootborn_branch_crown"],
+        "proportion_deltas": {
+          "body_height": 0.05,
+          "shoulder_width": 0.04,
+          "torso_width": 0.02,
+          "waist_width": 0.04,
+          "head_size": 0.08
+        },
+        "notes": "Old bark-heavy authority shape for memory, judgment, and grove law."
+      },
+      {
+        "id": "rootborn_thorn_warden",
+        "display_name": "Thorn Warden",
+        "palette_id": "palette_rootborn_moss",
+        "head_id": "head_rootborn_leaf_crowned",
+        "marking_id": "marking_leaf_specks",
+        "feature_ids": [
+          "feature_rootborn_leaf_crown",
+          "feature_rootborn_bark_marks",
+          "feature_rootborn_branch_crown"
+        ],
+        "proportion_deltas": {
+          "body_height": 0.03,
+          "shoulder_width": 0.10,
+          "torso_width": 0.06,
+          "foot_size": 0.08
+        },
+        "notes": "Boundary guard silhouette with rooted feet and thorn-crown read."
+      },
+      {
+        "id": "rootborn_grove_pilgrim",
+        "display_name": "Grove Pilgrim",
+        "palette_id": "palette_rootborn_bark",
+        "head_id": "head_rootborn_leaf_crowned",
+        "feature_ids": ["feature_rootborn_leaf_crown"],
+        "proportion_deltas": {
+          "body_height": 0.07,
+          "shoulder_width": -0.06,
+          "torso_width": -0.04,
+          "waist_width": -0.04,
+          "foot_size": 0.05
+        },
+        "notes": "Tall travelling-root shape for roads, rites, and seasonal movement."
+      }
+    ]
+  }
+}

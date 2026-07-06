@@ -50,9 +50,11 @@ Map orientation:
 
 ## Regional Layout
 
-The Marches of Velcor form the central human heartland. Cairnwall anchors the
-western-central side of the heartland, while Dunmere anchors the river trade
-network near River Veyn.
+The Marches of Velcor form the central human heartland and the main playable
+province. Cairnwall anchors the western-central side of the heartland, while
+Dunmere anchors the river trade network near River Veyn. Other peoples remain
+important inside this human homeland through treaty, trade, old conflict,
+religion, labour, prejudice, and road politics.
 
 The Elderweald dominates the northwest. Mosshollow sits inside it, and
 Blackrook Archive lies near the northwest coast.
@@ -68,6 +70,8 @@ The Iron March occupies the southeast beyond the Greyfang Range and the Silent
 Barrows. Karag-Tor and Ashforge Hold sit along the Oathroad.
 
 The Mireveil fills the southwest coast and wetlands below Redfield and Oakholt.
+It is the main Mirefolk homeland in the current region, with frog-like wetland
+communities, ferry routes, herbalists, fishing places, and smuggling pressure.
 The Weeping Vale sits south of the Red Fields and west of the Greyfang Range.
 
 The Blackwater lies east of Lake Orin and feels remote, dark, and forbidding.
@@ -285,6 +289,10 @@ Type: Ravenfolk site
 
 Map position: Northwest coast near the Elderweald.
 
+Role: Small guarded Ravenfolk archive-outpost. This is the only known Ravenfolk
+holding in the playable world. It should not be treated as a normal town, city,
+or participant in the human, Rootborn, and Tanglekin conflict.
+
 ### Mosshollow
 
 Type: Rootborn gathering
@@ -302,12 +310,6 @@ Map position: High in the Tangle Heights.
 Type: Tanglekin trade hub
 
 Map position: Southern approach to the Tangle Heights, northeast of Lake Orin.
-
-### The Last Perch
-
-Type: Ravenfolk site
-
-Map position: Far northeast, beyond Branchrest.
 
 ### Karag-Tor
 
@@ -336,7 +338,6 @@ Map position: Southeast Iron March, south/east of Karag-Tor along the Oathroad.
 - Stepcliff Monastery
 - Branchrest
 - Blackrook Archive
-- The Last Perch
 - Lake Orin
 - The Blackwater
 - The Greyfang Range
@@ -370,10 +371,10 @@ Preserve these major named places and keep them clearly labeled:
 
 The Marches of Velcor, Cairnwall, Dunmere, Hallowrest, Briarwatch, The
 Elderweald, The Shadegroves, Mosshollow, The Greenwood Boundary, The Tangle
-Heights, Stepcliff Monastery, Branchrest, Blackrook Archive, The Last Perch,
-Lake Orin, The Blackwater, The Greyfang Range, The Iron March, Karag-Tor,
-Ashforge Hold, The Oathroad, The Mireveil, The Weeping Vale, The Silent
-Barrows, The Red Fields, Hollow Coast, and River Veyn.
+Heights, Stepcliff Monastery, Branchrest, Blackrook Archive, Lake Orin, The
+Blackwater, The Greyfang Range, The Iron March, Karag-Tor, Ashforge Hold, The
+Oathroad, The Mireveil, The Weeping Vale, The Silent Barrows, The Red Fields,
+Hollow Coast, and River Veyn.
 
 Make settlements, roads, borders, and region boundaries easy to distinguish.
 Include a small clean legend, north arrow, and scale bar, but keep them

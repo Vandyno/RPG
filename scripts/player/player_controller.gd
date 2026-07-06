@@ -2,12 +2,17 @@ class_name PlayerController
 extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
+const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
 const COLLISION_RADIUS := 10.0
 const MAX_COLLISION_STEP := 8.0
 const BLOCKED_MESSAGE_INTERVAL := 0.35
 const DEFAULT_MAX_HEALTH := 100
 const DEFAULT_MAX_MANA := 100.0
+const SNEAK_SPEED_MULTIPLIER := 0.45
+const MOVE_INPUT_THRESHOLD := 0.01
 
 var event_bus
 var chunk_manager
@@ -20,18 +25,25 @@ var max_mana := DEFAULT_MAX_MANA
 var mana := DEFAULT_MAX_MANA
 var external_move_vector := Vector2.ZERO
 var facing_direction := Vector2.DOWN
+var humanoid_profile: Dictionary = HumanoidProfile.from_data({"character_id": "char_player"})
+var humanoid_avatar: HumanoidAvatar2D
+var is_sneaking := false
 
 
 func setup(bus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
 	event_bus = bus
 	chunk_manager = chunks
+	_ensure_humanoid_avatar()
 	set_global_tile(start_tile)
 
 
 func _process(delta: float) -> void:
 	blocked_message_cooldown = maxf(0.0, blocked_message_cooldown - delta)
 	var direction := _read_direction()
-	if direction != Vector2.ZERO:
+	var is_moving := direction.length() > MOVE_INPUT_THRESHOLD
+	if humanoid_avatar:
+		humanoid_avatar.set_locomotion(is_moving, is_sneaking, delta)
+	if is_moving:
 		try_move(direction, delta)
 
 
@@ -39,8 +51,11 @@ func try_move(direction: Vector2, delta: float = 1.0) -> void:
 	var normalized_direction := direction.normalized()
 	if normalized_direction == Vector2.ZERO or delta <= 0.0:
 		return
-	facing_direction = normalized_direction
-	var remaining_distance := move_speed * delta
+	facing_direction = FacingBuckets.snap_direction(normalized_direction, facing_direction)
+	if humanoid_avatar:
+		humanoid_avatar.set_facing_direction(facing_direction)
+	var speed := move_speed * (SNEAK_SPEED_MULTIPLIER if is_sneaking else 1.0)
+	var remaining_distance := speed * delta
 	while remaining_distance > 0.0:
 		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
 		var motion := normalized_direction * step_distance
@@ -173,13 +188,37 @@ func set_external_move_vector(value: Vector2) -> void:
 	external_move_vector = value.limit_length(1.0)
 
 
+func toggle_sneaking() -> bool:
+	return set_sneaking(not is_sneaking)
+
+
+func set_sneaking(value: bool) -> bool:
+	is_sneaking = value
+	if humanoid_avatar:
+		humanoid_avatar.set_sneaking(is_sneaking)
+	return is_sneaking
+
+
 func set_facing_direction(value: Vector2) -> void:
 	if value.length() > 0.01:
-		facing_direction = value.normalized()
+		facing_direction = FacingBuckets.snap_direction(value, facing_direction)
+		if humanoid_avatar:
+			humanoid_avatar.set_facing_direction(facing_direction)
 
 
 func get_facing_direction() -> Vector2:
 	return facing_direction
+
+
+func set_humanoid_profile(profile_data: Dictionary) -> void:
+	humanoid_profile = HumanoidProfile.from_data(profile_data)
+	_ensure_humanoid_avatar()
+	humanoid_avatar.set_profile(humanoid_profile)
+
+
+func set_equipped_items(equipped_by_slot: Dictionary, content = null) -> void:
+	_ensure_humanoid_avatar()
+	humanoid_avatar.set_equipped_items(equipped_by_slot, content)
 
 
 func _read_direction() -> Vector2:
@@ -240,8 +279,11 @@ func _is_number(value: Variant) -> bool:
 	return value is int or value is float
 
 
-func _draw() -> void:
-	draw_circle(Vector2.ZERO, 12.0, Color(0.92, 0.36, 0.24))
-	draw_circle(Vector2.ZERO, 12.0, Color(0.05, 0.03, 0.02), false, 2.0)
-	draw_line(Vector2.ZERO, facing_direction * 14.0, Color(1.0, 0.84, 0.56), 2.0)
-	draw_circle(Vector2(4, -4), 3.0, Color(1.0, 0.84, 0.56))
+func _ensure_humanoid_avatar() -> void:
+	if humanoid_avatar:
+		return
+	humanoid_avatar = HumanoidAvatar2D.new()
+	humanoid_avatar.name = "HumanoidAvatar2D"
+	add_child(humanoid_avatar)
+	humanoid_avatar.setup(humanoid_profile)
+	humanoid_avatar.set_facing_direction(facing_direction)

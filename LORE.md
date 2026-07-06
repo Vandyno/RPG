@@ -26,6 +26,18 @@ The setting should support Skyrim-like worldbuilding through regions, peoples,
 religions, cults, political tensions, towns, hubs, local conflicts, readables,
 and dangerous roads.
 
+The main playable region is the human homeland: the Marches of Velcor. It
+should work like a province with its own identity, laws, roads, grudges,
+religions, old wars, local prejudices, ruins, books, and contradictory
+histories. Other peoples are not side dressing; they have historic, religious,
+economic, and political relevance inside the Marches even when coexistence is
+uncomfortable.
+
+Different cultures should explain the same events differently. A human road
+history, a Rootborn grove-memory, a Tanglekin pass-song, a Tuskfolk oath-record,
+a Mirefolk wetland tale, and a Ravenfolk archive note may all disagree while
+each preserves part of the truth.
+
 Design principle:
 
 High-imagination world, low-friction gameplay.
@@ -94,6 +106,18 @@ marked as working names.
 
 # Major Peoples
 
+The main peoples are intended to be playable eventually. Race choice should
+change starting flavour and a few practical strengths without forcing a broad
+character-build system too early.
+
+Early playable-race rule:
+- one simple combat or survival bonus
+- one exploration, social, or lore bonus
+- one small drawback or reputation complication where useful
+- no people is innately evil
+- every people has ordinary workers, heroes, criminals, fools, priests,
+  soldiers, merchants, and outcasts
+
 ## Humans
 
 Humans are the baseline people of Velcor.
@@ -119,12 +143,20 @@ Core tension:
 
 Humans need to grow. Rootborn need old places respected.
 
+Playable direction:
+- adaptable baseline
+- easier reputation, trade, or quest-reward hooks
+- broad social access in human towns
+- fewer innate survival advantages than older or more specialized peoples
+
 ## Tanglekin
 
 Working name: Tanglekin.
 
-Agile, clever, physical people. They should feel adventurous and mythic without
-becoming comic relief.
+Monkey-like, agile, clever, physical people. They should feel adventurous and
+mythic without becoming comic relief. Their visual language should come from
+simian anatomy: long arms, grasping hands and feet, tails, expressive brows,
+small muzzles, and quick physical posture.
 
 Common roles:
 - climbers
@@ -144,6 +176,12 @@ Their culture values:
 - stories passed through action
 - self-overcoming
 
+Playable direction:
+- faster movement, dodge, or critical openings
+- future climbing, route, courier, or escape advantages
+- social complication in towns that stereotype them as thieves, performers, or
+  unreliable wanderers
+
 ## Tuskfolk
 
 Working name: Tuskfolk.
@@ -155,10 +193,37 @@ oath-keeping, endurance, and old military routes.
 They can be allies, rivals, soldiers, merchants, smiths, guards, or enemies
 depending on circumstance.
 
+Playable direction:
+- strength, guard, armour, and weapon-use advantages
+- smithing, durability, or oath-based social hooks later
+- social complication where old wars or mercenary politics still matter
+
+## Mirefolk
+
+Mirefolk are frog-like humanoids from the Mireveil and other wet places. They
+are amphibious, practical, weather-wise, and deeply familiar with rot, reeds,
+ferries, bog medicine, drowned paths, and hidden crossings.
+
+They are not monsters. In human lands they may be ferrymen, herbalists,
+plague-handlers, fishers, guides, smugglers, dock workers, scouts, or quiet
+neighbours in low, damp districts.
+
+Humans often distrust them because of swamp superstition, disease fears,
+smuggling rumours, and Hollow Mercy activity near the wetlands. Some distrust
+is practical fear; some is prejudice.
+
+Playable direction:
+- poison and disease resistance
+- better movement or survival in swamp, water, rain, and wetland terrain
+- herb, tonic, or alchemy advantages later
+- social complication in dry chapel towns or places afraid of Mireveil trade
+
 ## Ravenfolk
 
-Ravenfolk are rare and mysterious. They should not be common townspeople.
-Seeing one should feel meaningful, like an omen or an important event.
+Ravenfolk are rare and mysterious. They are not common townspeople, not a normal
+political faction in the Marches, and not active participants in the human,
+Rootborn, and Tanglekin stalemate. Seeing one should feel meaningful, like an
+omen, a judgment, or an important event.
 
 Associated with:
 - knowledge
@@ -171,6 +236,22 @@ Associated with:
 
 Use them sparingly to preserve their mystery.
 
+Known holding rule:
+
+Blackrook Archive is the only known Ravenfolk holding in the playable world. It
+is a small, guarded archive-outpost, not a city. Outsiders may reach its gates,
+but most are kept out unless they are Ravenfolk, invited, useful, or have earned
+Ravenfolk respect through quests, recovered records, or grave matters.
+
+Ravenfolk record conflicts but do not join them. They may know truths that would
+humiliate every side, but they do not settle public arguments cheaply.
+
+Playable direction:
+- lore, memory, readable-insight, detection, or secret-finding advantages
+- easier access to Blackrook Archive
+- social complication because many people treat Ravenfolk as omen, spy, judge,
+  or corpse-scribe
+
 ## Rootborn
 
 Rootborn are plant and nature-linked people associated with roots, soil, shade,
@@ -181,6 +262,11 @@ more tied to place.
 
 Their conflict with humans is one of the major grounded tensions of the setting:
 human expansion versus respect for old growth and sacred natural places.
+
+Playable direction:
+- durability, poison or nature resistance, and better recovery in wild places
+- stronger ties to old-growth, burial, memory, and grove-related quests
+- social complication where human expansionists see Rootborn as obstructionists
 
 ---
 
@@ -527,6 +613,30 @@ Addiction, grief, exploitation, relief, numbness, supernatural risk.
 
 # Relations Between Peoples
 
+## The Old Stalemate
+
+The Marches of Velcor are human-ruled now, but their borders were shaped by an
+old stalemate between humans, Rootborn, and Tanglekin.
+
+Humans could hold towns, farms, bridges, chapels, and stone roads. Rootborn
+could make old forests impossible to truly conquer, erase careless paths, and
+turn every forbidden grove into a long memory of trespass. Tanglekin could
+control high passes, courier routes, cliff roads, raids, and supply lines.
+
+No side could fully win without bleeding itself dry. The result was not warm
+peace. It was a treaty-bound stalemate:
+- humans kept the central Marches, towns, farms, and major roads
+- Rootborn kept forbidden old-growth zones and sacred groves
+- Tanglekin kept high-road rights, pass customs, and mountain approaches
+- neutral roads and boundary stones marked legal travel, logging, and settlement
+- frontier towns like Briarwatch became treaty pressure points
+
+Each side tells the history differently. Humans often say they civilized the
+roads. Rootborn say humans stole living memory. Tanglekin say humans rewrote
+maps and broke passage rights. Tuskfolk remember old oaths that made the
+stalemate enforceable. Mirefolk remember who was pushed into the wet margins.
+Ravenfolk may have records, but they do not freely open them.
+
 ## Humans And Rootborn
 
 Major tension.
@@ -554,12 +664,32 @@ Common contact.
 Humans may stereotype Tanglekin as thieves, performers, wanderers, or unreliable
 tricksters. In reality, Tanglekin culture has discipline and deep tradition.
 
+Old conflict remains under the surface. Tanglekin families remember pass-rights,
+burned rope bridges, broken courier oaths, and human maps that renamed routes
+they did not build. Humans remember raids, ambushes, and unsafe roads.
+
+## Humans And Mirefolk
+
+Uneasy coexistence.
+
+Humans rely on Mirefolk ferries, wetland guides, herbal medicine, fish trade,
+and swamp knowledge, especially near the Mireveil and low river routes. They
+also distrust Mirefolk because of disease fear, smuggling, strange wetland
+customs, and Hollow Mercy rumours.
+
+Mirefolk often see human towns as dry, loud, quick to blame, and eager to drain
+places they do not understand.
+
 ## Humans And Ravenfolk
 
 Reverence mixed with fear.
 
 Ravenfolk are too rare to be treated normally. A Ravenfolk arrival often creates
 anxiety, rumours, political attention, and religious interpretation.
+
+Ravenfolk do not take sides in the old Marches conflicts. They observe, record,
+withhold, and occasionally intervene only when a record, grave, oath, or hidden
+truth matters enough.
 
 ## Tuskfolk And Rootborn
 
@@ -587,6 +717,30 @@ accounts.
 
 Quiet respect. Both care about memory, death, continuity, and what must not be
 forgotten.
+
+## Mirefolk And Rootborn
+
+Practical but wary.
+
+Both understand wet soil, rot, growth, and old places better than most humans,
+but Rootborn may distrust Mirefolk trade with smugglers or drug-makers, while
+Mirefolk may resent Rootborn treating every wetland plant as sacred memory.
+
+## Mirefolk And Tanglekin
+
+Useful contact along difficult routes.
+
+Tanglekin cross high places; Mirefolk cross low places. They trade route
+knowledge, warnings, and gossip, but each culture may find the other's pace and
+habits difficult.
+
+## Mirefolk And Tuskfolk
+
+Practical respect when work is clear.
+
+Tuskfolk value kept bargains and useful craft. Mirefolk value survival,
+weather-sense, and knowing when the ground will swallow a cart. Both can work
+together well on roads, bridges, ferries, and frontier repairs.
 
 ---
 
@@ -732,15 +886,17 @@ towns.
 
 ### Blackrook Archive
 
-A remote Ravenfolk record-house.
+A remote Ravenfolk record-house and the only known Ravenfolk holding in the
+playable world.
 
-A place of old records, witnessed truths, sealed knowledge, and guarded memory.
-It should feel important and difficult to access.
+It is a small, guarded archive-outpost, not a city. It has black towers, locked
+stacks, witness halls, sealed lower records, and a rookery. Outsiders may reach
+the gate, but the inner archive is closed unless the visitor is Ravenfolk,
+invited, useful, or has earned respect.
 
-### The Last Perch
-
-A hidden Ravenfolk sanctuary or watch-site. Sparse, elevated, and mysterious.
-The kind of place people speak of more than they see.
+Blackrook should feel important, difficult to access, and politically separate
+from the old human, Rootborn, and Tanglekin conflict. Its power is memory, not
+soldiers.
 
 ## Tuskfolk Lands
 
@@ -801,7 +957,13 @@ human heartland.
 
 A swamp region of mist, bad footing, and drowned paths.
 
-Good for isolation, secrets, strange creatures, smugglers, and cult activity.
+Good for isolation, secrets, strange creatures, smugglers, cult activity,
+ferries, bog medicine, and Mirefolk settlements.
+
+The Mireveil is the main Mirefolk homeland in the current region. It should not
+be treated as empty monster swamp. It contains reed villages, wetland paths,
+ferry routes, fishing places, herbalist huts, and communities that know how to
+live where dryland law becomes weak.
 
 ### The Weeping Vale
 
@@ -819,13 +981,21 @@ history.
 
 # Current Conflicts
 
+- The old human, Rootborn, and Tanglekin stalemate still shaping land, roads,
+  forests, maps, borders, and local prejudice.
 - Human expansion versus Rootborn protection of old forests.
+- Tanglekin passage rights, high-road memory, and old raid history versus human
+  road authority.
+- Mirefolk wetland survival and trade versus human suspicion, drainage, disease
+  fear, and Hollow Mercy rumours.
 - Sainted Church authority versus old local faiths and scholar-magic.
 - Hollow Mercy exploiting grief, pain, addiction, and numbness.
 - The Ashen Choir trying to purify "soft heresies" through coercion.
 - The Noonday Cult seeking freedom from consequence through shadowlessness.
 - Trade roads, frontier towns, and border settlements becoming pressure points
   for cultural and political conflict.
+- Ravenfolk withholding records that could change how old conflicts are
+  understood.
 
 ---
 
@@ -838,6 +1008,9 @@ approved in story planning.
 - Can a waning shadow be restored?
 - Do the Rootborn remember things humans have intentionally forgotten?
 - What records does Blackrook Archive refuse to open?
+- What really happened in the old stalemate, and which side's public history is
+  most incomplete?
+- Why did Mirefolk communities retreat deeper into the Mireveil?
 - Is Hollow Mercy only a drug, or also a ritual substance?
 - Which priests quietly support the Ashen Choir?
 - What does the Noonday Cult know that ordinary scholars do not?
@@ -875,6 +1048,14 @@ stones and discovers Hollow Mercy smugglers using the dispute as cover.
 - Generated quest ideas are proposals, not canon.
 - Do not make Shadow Wane the explanation for every villain or conflict.
 - Do not make any people innately evil.
+- Treat the Marches of Velcor as the human homeland and main playable province,
+  with other peoples visibly relevant inside it.
+- Keep Ravenfolk rare, neutral in the old race conflicts, and centered on
+  Blackrook Archive as their only known holding in the playable world.
+- Treat Mirefolk as frog-like humanoids with real culture, not swamp monsters.
+- Use Skyrim-like worldbuilding structure: playable peoples, old conflicts,
+  local prejudice, faction politics, religion, books, ruins, and contradictory
+  histories.
 - Keep combat and immediate gameplay readable.
 - Let lore and consequences add depth without overcomplicating the first slice.
 - Prefer local problems that connect to larger tensions.

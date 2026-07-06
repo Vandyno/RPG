@@ -97,7 +97,7 @@ func test_navigation_controls_use_icon_buttons() -> void:
 	for child in hud.top_nav_buttons.get_children():
 		assert_true(child is RpgIconButton)
 		assert_eq((child as RpgIconButton).icon_layout, "top")
-	for tab_id in ["inventory", "spells", "character", "quests", "map", "journal", "trade"]:
+	for tab_id in ["inventory", "spells", "character", "quests", "journal", "trade"]:
 		var button := hud.systems_tab_buttons[tab_id] as RpgIconButton
 		assert_not_null(button)
 		assert_eq(button.icon_kind, tab_id)
@@ -271,10 +271,10 @@ func test_target_picker_stays_closed_in_rpg_hud() -> void:
 	assert_false(hud.target_panel.visible)
 
 
-func test_systems_routes_use_player_facing_distance_text() -> void:
+func test_quest_routes_use_player_facing_distance_text() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
-	hud.show_systems_panel("map")
+	hud.show_systems_panel("quests")
 
 	var routes := _button_containing(hud.systems_category_row, "Routes") as Button
 	assert_not_null(routes)
@@ -285,13 +285,7 @@ func test_systems_routes_use_player_facing_distance_text() -> void:
 	assert_false(route_row.text.contains("E 5.0t"))
 	assert_true(hud.systems_detail_label.text.contains("5 tiles east to Harrow Venn"))
 
-	var nearby := _button_containing(hud.systems_category_row, "Nearby") as Button
-	assert_not_null(nearby)
-	nearby.pressed.emit()
-	var nearby_row := _button_containing(hud.systems_item_list, "Road Notice") as Button
-	assert_not_null(nearby_row)
-	assert_true(nearby_row.text.contains("6.3 tiles southeast"))
-	assert_false(nearby_row.text.contains("SE 6.3t"))
+	assert_null(_button_containing(hud.systems_category_row, "Nearby"))
 
 
 func _new_hud() -> RpgHud:

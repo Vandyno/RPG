@@ -2,6 +2,7 @@ class_name WorldEntity
 extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 
 const ACTION_HINT_FONT_SIZE := 11
 const ACTION_HINT_HEIGHT := 22.0
@@ -23,13 +24,15 @@ var action_hint_selected := false
 var action_hint_offset_y := 0.0
 var quest_marker_visible := false
 var quest_marker_text := ""
+var humanoid_avatar: HumanoidAvatar2D
 
 
-func setup(entity_data: Dictionary) -> void:
+func setup(entity_data: Dictionary, content = null) -> void:
 	data = entity_data.duplicate(true)
 	global_tile = _tile_from_data(data.get("global_tile", [0, 0]))
 	position = _center_of_tile(global_tile)
 	name = String(data.get("id", "entity"))
+	_setup_humanoid_avatar(content)
 	queue_redraw()
 
 
@@ -108,6 +111,8 @@ func _draw() -> void:
 	if highlighted:
 		draw_circle(Vector2.ZERO, 15.0, Color(1.0, 0.88, 0.32, 0.28))
 		draw_circle(Vector2.ZERO, 15.0, Color(1.0, 0.88, 0.32), false, 2.0)
+	if humanoid_avatar:
+		return
 	draw_circle(Vector2.ZERO, 10.0, color)
 	draw_circle(Vector2.ZERO, 10.0, Color(0.04, 0.04, 0.04), false, 2.0)
 	if get_kind() == "npc":
@@ -125,6 +130,9 @@ func _draw() -> void:
 	elif get_kind() == "enemy":
 		draw_line(Vector2(-5, -5), Vector2(5, 5), Color(0.12, 0.02, 0.02), 2.0)
 		draw_line(Vector2(5, -5), Vector2(-5, 5), Color(0.12, 0.02, 0.02), 2.0)
+	elif get_kind() == "body":
+		draw_ellipse(Vector2(0.0, 2.0), 11.0, 6.0, Color(0.36, 0.25, 0.17))
+		draw_ellipse(Vector2(0.0, 2.0), 11.0, 6.0, Color(0.05, 0.04, 0.03), false, 1.5)
 	elif get_kind() == "rest":
 		draw_circle(Vector2.ZERO, 5.0, Color(1.0, 0.45, 0.16))
 		draw_line(Vector2(-6, 6), Vector2(6, 6), Color(0.25, 0.12, 0.05), 2.0)
@@ -262,3 +270,21 @@ func _center_of_tile(tile: Vector2i) -> Vector2:
 
 func _is_number(value: Variant) -> bool:
 	return value is int or value is float
+
+
+func _setup_humanoid_avatar(content = null) -> void:
+	if not ["npc", "enemy", "body"].has(get_kind()):
+		return
+	if not (data.get("character_profile", {}) is Dictionary):
+		return
+	humanoid_avatar = HumanoidAvatar2D.new()
+	humanoid_avatar.name = "HumanoidAvatar2D"
+	add_child(humanoid_avatar)
+	var equipped: Dictionary = {}
+	if data.get("equipped_items", {}) is Dictionary:
+		equipped = data.get("equipped_items", {})
+	humanoid_avatar.setup(data.get("character_profile", {}), equipped, content)
+	if get_kind() == "body":
+		humanoid_avatar.rotation = PI * 0.5
+		humanoid_avatar.position = Vector2(2.0, 4.0)
+		humanoid_avatar.scale = Vector2(0.88, 0.88)

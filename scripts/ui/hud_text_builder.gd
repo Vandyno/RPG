@@ -8,15 +8,6 @@ static func status_text(state: Dictionary) -> String:
 	var statuses := String(state.get("statuses", "none"))
 	if statuses != "none":
 		lines.append("Effects: %s" % statuses)
-	var quests := _array_field(state.get("quests", []))
-	if not quests.is_empty():
-		lines.append("Quest: %s" % _quest_title_with_count(quests))
-		var objective := _quest_objective(quests[0])
-		if not objective.is_empty():
-			lines.append("Goal: %s" % _ellipsized(objective, 48))
-	var next_target := _first_quest_target_direction(state)
-	if not next_target.is_empty():
-		lines.append("Next: %s" % next_target)
 	return "\n".join(lines)
 
 
@@ -73,12 +64,12 @@ static func systems_text(
 			return _systems_trade_text(state)
 		"quests":
 			return _systems_quests_text(state)
-		"map", "world":
-			return _systems_map_text(state)
 		"journal", "log":
 			return _systems_journal_text(state, message_log)
-		_:
+		"inventory":
 			return _systems_inventory_text(state)
+		_:
+			return ""
 
 
 static func _systems_inventory_text(state: Dictionary) -> String:
@@ -134,32 +125,6 @@ static func _systems_quests_text(state: Dictionary) -> String:
 	return "\n".join(lines)
 
 
-static func _systems_map_text(state: Dictionary) -> String:
-	var lines := _screen_header("Map", "Known places, routes, and nearby leads.")
-	lines.append("Now: %s" % state.get("time", "Day 1, 08:00"))
-	var locations := String(state.get("locations", "none"))
-	if locations == "none" or locations.is_empty():
-		lines.append("Known places: none")
-	else:
-		lines.append("Known places: %s" % locations)
-	var location_details := String(state.get("location_details", ""))
-	if not location_details.is_empty() and location_details != "none":
-		lines.append("")
-		lines.append("Place Notes:")
-		lines.append(location_details)
-	var quest_directions := String(state.get("quest_directions", "none"))
-	if quest_directions != "none":
-		lines.append("")
-		lines.append("Quest Routes:")
-		lines.append(quest_directions)
-	var navigation := String(state.get("navigation", "none"))
-	if navigation != "none":
-		lines.append("")
-		lines.append("Nearby:")
-		lines.append(navigation)
-	return "\n".join(lines)
-
-
 static func _systems_journal_text(state: Dictionary, message_log: Array[String]) -> String:
 	var lines := _screen_header("Journal", "Time, reputation, and recent events.")
 	lines.append(String(state.get("time_details", state.get("time", ""))))
@@ -184,49 +149,6 @@ static func _screen_header(title: String, subtitle: String) -> Array[String]:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
-
-
-static func _quest_title(value: Variant) -> String:
-	var text := String(value)
-	var separator := text.find(":")
-	if separator <= 0:
-		return text
-	return text.substr(0, separator)
-
-
-static func _quest_title_with_count(quests: Array) -> String:
-	var title := _quest_title(quests[0])
-	if quests.size() <= 1:
-		return title
-	return "%s (+%d)" % [title, quests.size() - 1]
-
-
-static func _quest_objective(value: Variant) -> String:
-	var text := String(value)
-	var separator := text.find(":")
-	if separator < 0 or separator + 1 >= text.length():
-		return ""
-	return text.substr(separator + 1).strip_edges()
-
-
-static func _first_quest_target_direction(state: Dictionary) -> String:
-	var directions := String(state.get("quest_directions", "none"))
-	if directions.is_empty() or directions == "none":
-		return ""
-	var direction_lines := directions.split("\n", false)
-	if direction_lines.is_empty():
-		return ""
-	var first_line := direction_lines[0]
-	var separator := first_line.find(":")
-	if separator < 0:
-		return _with_extra_count(first_line, direction_lines.size())
-	return _with_extra_count(first_line.substr(separator + 1).strip_edges(), direction_lines.size())
-
-
-static func _with_extra_count(text: String, count: int) -> String:
-	if count <= 1:
-		return text
-	return "%s (+%d)" % [text, count - 1]
 
 
 static func _primary_location_name(state: Dictionary) -> String:

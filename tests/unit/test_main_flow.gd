@@ -1,3 +1,4 @@
+# gdlint:disable=max-file-lines,max-public-methods
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
@@ -31,8 +32,14 @@ func test_sneak_button_does_not_open_or_cycle_targets() -> void:
 	var second = main._get_nearby_entity()
 	assert_not_null(second)
 
+	assert_true(main.player.is_sneaking)
+	assert_eq(main.hud.message_log[-1], "Sneaking.")
 	assert_eq(second.get_entity_id(), first_id)
 	assert_false(main.hud.is_target_picker_visible())
+
+	next_button.pressed.emit()
+	assert_false(main.player.is_sneaking)
+	assert_eq(main.hud.message_log[-1], "Standing.")
 
 	main.hud.toggle_target_picker()
 	assert_false(main.hud.is_target_picker_visible())
@@ -180,6 +187,153 @@ func test_npc_completion_requires_authored_conditions() -> void:
 	assert_true(main.hud.content_body_label.text.contains("The toolbox should be nearby."))
 
 
+func test_profile_backed_harrow_avatar_keeps_dialogue_interaction() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	assert_not_null(main.player.humanoid_avatar)
+	assert_eq(main.player.humanoid_profile["character_id"], "char_player")
+
+	var harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_not_null(harrow)
+	assert_not_null(harrow.humanoid_avatar)
+	assert_eq(harrow.data["character_profile_id"], "char_harrow_venn")
+	assert_true(harrow.humanoid_avatar.has_equipment_visual("chest"))
+
+	_select_entity(main, "npc_harrow_venn_world")
+	main._handle_interact_requested()
+
+	assert_true(main.hud.is_content_card_visible())
+	assert_eq(main.hud.content_kind_label.text, "Dialogue")
+	assert_true(main.hud.content_body_label.text.contains("need my old toolbox"))
+
+
+func test_maera_is_profile_backed_and_pickpocketable_when_sneaking() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	_select_entity(main, "npc_maera_pike_world")
+	var maera = main.entities.get_entity("npc_maera_pike_world")
+
+	assert_eq(maera.data["character_profile_id"], "char_maera_pike")
+	assert_eq(maera.data["inventory_owner_id"], "char_maera_pike")
+	assert_eq(maera.data["equipment_owner_id"], "char_maera_pike")
+	assert_true(maera.data["character_profile"] is Dictionary)
+	assert_not_null(maera.humanoid_avatar)
+	assert_null(_button_containing(main.hud.context_action_buttons, "Pickpocket"))
+
+	main.player.set_sneaking(true)
+	main._refresh_hud()
+	var pickpocket_button := _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	assert_not_null(pickpocket_button)
+	pickpocket_button.pressed.emit()
+
+	assert_true(main.hud.is_systems_panel_visible())
+	assert_eq(main.active_transfer_owner_id, "char_maera_pike")
+	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_gold_coin"), 2)
+
+
+func test_pickpocket_requires_sneaking_and_unseen() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	_select_entity(main, "npc_harrow_venn_world")
+	var pickpocket_button := _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	assert_null(pickpocket_button)
+
+	assert_false(main.hud.is_systems_panel_visible())
+	assert_eq(main.active_transfer_owner_id, "")
+
+	main.player.set_sneaking(true)
+	var harrow = main.entities.get_entity("npc_harrow_venn_world")
+	main.player.set_world_position(harrow.global_position + Vector2(8.0, 0.0))
+	main.selected_target_id = "npc_harrow_venn_world"
+	main.manual_target_locked = true
+	main._update_nearby()
+	pickpocket_button = _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	assert_not_null(pickpocket_button)
+	pickpocket_button.pressed.emit()
+
+	assert_false(main.hud.is_systems_panel_visible())
+	assert_eq(main.active_transfer_owner_id, "")
+	assert_true(main.hud.log_label.text.contains("Harrow Venn can see you."))
+
+
+func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	_select_entity(main, "npc_harrow_venn_world")
+	main.player.set_sneaking(true)
+	main._refresh_hud()
+	var pickpocket_button := _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	assert_not_null(pickpocket_button)
+	pickpocket_button.pressed.emit()
+
+	assert_true(main.hud.is_systems_panel_visible())
+	assert_eq(main.hud.get_systems_tab(), "inventory")
+	assert_eq(main.active_transfer_owner_id, "char_harrow_venn")
+	assert_true(main.get_hud_state()["transfer_open"])
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_gold_coin"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_smith_apron"), 1)
+	var harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_true(harrow.humanoid_avatar.has_equipment_visual("chest"))
+	assert_true(main.hud.log_label.text.contains("Pickpocketing Harrow Venn."))
+
+	var target_pane: Node = main.hud.systems_item_list.find_child(
+		"TransferTargetInventory", true, false
+	)
+	var take_apron := _button_named(target_pane, "TransferTake_ItemSmithApron")
+	assert_not_null(take_apron)
+	_press_transfer_button(take_apron)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_smith_apron"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_smith_apron"), 0)
+	harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_false(harrow.humanoid_avatar.has_equipment_visual("chest"))
+
+	var player_pane: Node = main.hud.systems_item_list.find_child(
+		"TransferPlayerInventory", true, false
+	)
+	var put_apron := _button_named(player_pane, "TransferPut_ItemSmithApron")
+	assert_not_null(put_apron)
+	_press_transfer_button(put_apron)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_smith_apron"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_smith_apron"), 1)
+	harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_true(harrow.humanoid_avatar.has_equipment_visual("chest"))
+
+	target_pane = main.hud.systems_item_list.find_child("TransferTargetInventory", true, false)
+	take_apron = _button_named(target_pane, "TransferTake_ItemSmithApron")
+	assert_not_null(take_apron)
+	_press_transfer_button(take_apron)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_smith_apron"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_smith_apron"), 0)
+	harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_false(harrow.humanoid_avatar.has_equipment_visual("chest"))
+
+	target_pane = main.hud.systems_item_list.find_child("TransferTargetInventory", true, false)
+	var take_gold := _button_named(target_pane, "TransferTake_ItemGoldCoin")
+	assert_not_null(take_gold)
+	_press_transfer_button(take_gold)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_gold_coin"), 0)
+	harrow = main.entities.get_entity("npc_harrow_venn_world")
+	assert_false(harrow.humanoid_avatar.has_equipment_visual("chest"))
+	main.hud.hide_systems_panel()
+	_select_entity(main, "npc_harrow_venn_world")
+	main.player.set_sneaking(true)
+	_button_containing(main.hud.context_action_buttons, "Pickpocket").pressed.emit()
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_gold_coin"), 0)
+
+
 func test_open_systems_panel_consumes_interact_and_target_actions() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -225,6 +379,33 @@ func test_keyboard_action_echo_does_not_repeat_one_shot_actions() -> void:
 
 	main._unhandled_input(echo)
 	assert_true(main.hud.is_systems_panel_visible())
+
+
+func test_debug_character_creator_toggles_with_p_and_applies_player_appearance() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	var press := InputEventKey.new()
+	press.keycode = KEY_P
+	press.pressed = true
+
+	assert_false(main.debug_character_creator.is_open())
+
+	main._unhandled_input(press)
+
+	assert_true(main.debug_character_creator.is_open())
+	assert_eq(main.debug_character_creator.get_current_people_id(), "people_human")
+	assert_true(main.debug_character_creator.select_people("people_ravenfolk"))
+	assert_true(main.debug_character_creator.select_variant("ravenfolk_archive_witness"))
+	assert_true(main.debug_character_creator.apply_to_player())
+	assert_eq(main.player.humanoid_profile["people_id"], "people_ravenfolk")
+	assert_eq(
+		Dictionary(main.player.humanoid_profile["appearance"])["visual_model_id"],
+		"ravenfolk_archive_witness"
+	)
+
+	main._unhandled_input(press)
+
+	assert_false(main.debug_character_creator.is_open())
 
 
 func test_save_and_load_hide_open_systems_panel_while_running() -> void:
@@ -334,19 +515,15 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.hud.systems_body_label.text.contains("Offhand: Traveler Buckler"))
 	main.hud.set_systems_tab("character")
 	assert_true(main.hud.systems_body_label.text.contains("Unspent points: 1"))
-	var train_might_button := _button_containing(main.hud.systems_action_list, "Train Might")
-	assert_not_null(train_might_button)
-	train_might_button.pressed.emit()
-	assert_eq(main.progression.skill_points, 0)
-	assert_eq(main.progression.get_stat_rank("might"), 1)
-	assert_true(main.hud.log_label.text.contains("Trained Might."))
-	assert_true(main.hud.systems_body_label.text.contains("Might 1"))
+	assert_null(_button_containing(main.hud.systems_action_list, "Train "))
+	assert_eq(main.progression.skill_points, 1)
 	main.hud.set_systems_tab("quests")
 	assert_true(main.hud.systems_body_label.text.contains("The Missing Tools: complete"))
 	main.hud.set_systems_tab("journal")
 	assert_true(main.hud.systems_body_label.text.contains("Marches of Velcor +5"))
 	main.hud.set_systems_tab("character")
 	assert_true(main.hud.systems_body_label.text.contains("Level: 2"))
+	main.hud.hide_systems_panel()
 
 	_select_entity(main, "npc_maera_pike_world")
 	assert_true(main.get_debug_state()["target_detail"].contains("trader"))
@@ -418,6 +595,9 @@ func test_full_spawn_yard_system_loop() -> void:
 	_select_entity(main, "object_road_cache")
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: closed"))
 	main._handle_interact_requested()
+	assert_eq(main.inventory.get_count_for_owner("loot:object_road_cache", "item_gold_coin"), 2)
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main._handle_inventory_item_selected("take:item_gold_coin")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 22)
 	assert_eq(main.progression.experience, 12)
 	assert_true(main.chunks.is_object_opened("object_road_cache", Vector2i(-7, 2)))
@@ -425,18 +605,20 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 	main._handle_interact_requested()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 22)
-	assert_true(main.hud.log_label.text.contains("Roadside Cache is already open."))
+	assert_true(main.hud.log_label.text.contains("Opened Roadside Cache."))
 	_select_entity(main, "object_warden_cache")
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: closed"))
 	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_gold_coin")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 23)
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
-	main.hud.toggle_systems()
+	main.hud.hide_systems_panel()
+	main.hud.show_systems_panel("inventory")
 	main.hud.set_systems_tab("inventory")
 	assert_true(main.hud.systems_body_label.text.contains("Gold Coin x23"))
 	main.hud.set_systems_tab("character")
 	assert_true(main.hud.systems_body_label.text.contains("XP: 12/40"))
-	main.hud.toggle_systems()
+	main.hud.hide_systems_panel()
 
 	_select_kind(main, "rest")
 	main._handle_interact_requested()
@@ -537,6 +719,8 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	_attack_enemy_once(main, "enemy_road_thug")
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main._handle_inventory_item_selected("take:item_gold_coin")
 	assert_true(main.time.advance_hours(6))
 
 	assert_true(main.save_manager.save_game())
@@ -600,6 +784,167 @@ func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
 	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
 
 
+func test_humanoid_enemy_defeat_creates_lootable_body_inventory() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.inventory.add_item("item_hunting_bow", 1)
+	main.inventory.add_item("item_training_sword", 1)
+	var enemy = main.entities.get_entity("enemy_road_thug")
+	assert_not_null(enemy)
+	assert_eq(enemy.data["character_profile_id"], "char_road_thug")
+	assert_eq(enemy.data["inventory_owner_id"], "char_road_thug")
+	assert_eq(enemy.data["equipment_owner_id"], "char_road_thug")
+	assert_not_null(enemy.humanoid_avatar)
+	assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
+	var death_tile: Vector2i = enemy.global_tile
+
+	_attack_enemy_until_defeated(main, "enemy_road_thug")
+
+	var body = main.entities.get_entity("body_enemy_road_thug")
+	assert_not_null(body)
+	assert_eq(body.get_kind(), "body")
+	assert_eq(body.global_tile, death_tile)
+	assert_eq(body.data["character_id"], "char_road_thug")
+	assert_eq(body.data["inventory_owner_id"], "char_road_thug")
+	assert_eq(body.data["equipment_owner_id"], "char_road_thug")
+	assert_eq(body.data["collapsed_pose_id"], "pose_fallen_side")
+	assert_eq(body.data["character_profile"]["state"], "dead_body")
+	assert_not_null(body.humanoid_avatar)
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_hunting_bow"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), 1)
+
+	_select_entity(main, "body_enemy_road_thug")
+	main._handle_interact_requested()
+
+	assert_eq(main.active_transfer_owner_id, "char_road_thug")
+	assert_true(main.hud.is_systems_panel_visible())
+	main._handle_inventory_item_selected("take:item_hunting_bow")
+	main._handle_inventory_item_selected("take:item_training_sword")
+	assert_eq(main.inventory.get_count("item_hunting_bow"), 2)
+	assert_eq(main.inventory.get_count("item_training_sword"), 2)
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_hunting_bow"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), 0)
+	main.hud.hide_systems_panel()
+	assert_eq(main.active_transfer_owner_id, "")
+	main.hud.show_systems_panel("inventory")
+	assert_false(main.get_hud_state()["transfer_open"])
+
+
+func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	var enemy = main.entities.get_entity("enemy_test_raider")
+	assert_not_null(enemy)
+	assert_eq(enemy.global_tile, Vector2i(-10, 1))
+	assert_eq(enemy.data["character_profile_id"], "char_test_raider")
+	assert_eq(enemy.data["inventory_owner_id"], "char_test_raider")
+	assert_eq(enemy.data["equipment_owner_id"], "char_test_raider")
+	assert_eq(enemy.data["spellbook_owner_id"], "char_test_raider")
+	assert_eq(enemy.data["loadout_id"], "loadout_test_raider")
+	assert_eq(enemy.data["loadout_slots"]["ability_1"], "spell_fire_blast")
+	assert_not_null(enemy.humanoid_avatar)
+	assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
+
+	_attack_enemy_until_defeated(main, "enemy_test_raider")
+
+	var body = main.entities.get_entity("body_enemy_test_raider")
+	assert_not_null(body)
+	assert_eq(body.get_kind(), "body")
+	assert_eq(body.data["character_id"], "char_test_raider")
+	assert_eq(body.data["inventory_owner_id"], "char_test_raider")
+	assert_eq(body.data["equipment_owner_id"], "char_test_raider")
+	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_hunting_bow"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_training_sword"), 1)
+
+	_select_entity(main, "body_enemy_test_raider")
+	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_hunting_bow")
+	main._handle_inventory_item_selected("take:item_training_sword")
+	assert_eq(main.inventory.get_count("item_hunting_bow"), 1)
+	assert_eq(main.inventory.get_count("item_training_sword"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_hunting_bow"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_training_sword"), 0)
+
+
+func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	var expected := {
+		"enemy_people_test_human": "people_human",
+		"enemy_people_test_tanglekin": "people_tanglekin",
+		"enemy_people_test_tuskfolk": "people_tuskfolk",
+		"enemy_people_test_mirefolk": "people_mirefolk",
+		"enemy_people_test_ravenfolk": "people_ravenfolk",
+		"enemy_people_test_rootborn": "people_rootborn"
+	}
+	for entity_id in expected:
+		var enemy = main.entities.get_entity(String(entity_id))
+		assert_not_null(enemy)
+		assert_not_null(enemy.humanoid_avatar)
+		var profile: Dictionary = enemy.data.get("character_profile", {})
+		var appearance: Dictionary = profile.get("appearance", {})
+		assert_eq(profile.get("people_id"), expected[entity_id])
+		assert_false(String(appearance.get("visual_model_id", "")).is_empty())
+		assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
+
+	_attack_enemy_until_defeated(main, "enemy_people_test_tuskfolk")
+
+	var body = main.entities.get_entity("body_enemy_people_test_tuskfolk")
+	assert_not_null(body)
+	assert_eq(body.get_kind(), "body")
+	assert_eq(body.data["character_id"], "char_people_test_tuskfolk")
+	assert_eq(body.data["inventory_owner_id"], "char_people_test_tuskfolk")
+	assert_eq(body.data["equipment_owner_id"], "char_people_test_tuskfolk")
+	assert_eq(body.data["character_profile"]["people_id"], "people_tuskfolk")
+	assert_eq(body.data["character_profile"]["state"], "dead_body")
+	assert_not_null(body.humanoid_avatar)
+	assert_eq(main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_gold_coin"), 1)
+	assert_eq(
+		main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_training_sword"), 1
+	)
+
+	_select_entity(main, "body_enemy_people_test_tuskfolk")
+	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main._handle_inventory_item_selected("take:item_training_sword")
+	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
+	assert_eq(main.inventory.get_count("item_training_sword"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_gold_coin"), 0)
+	assert_eq(
+		main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_training_sword"), 0
+	)
+
+
+func test_transfer_take_and_put_buttons_move_items() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	_attack_enemy_until_defeated(main, "enemy_people_test_human")
+	_select_entity(main, "body_enemy_people_test_human")
+	main._handle_interact_requested()
+
+	var target_pane: Node = main.hud.systems_item_list.find_child(
+		"TransferTargetInventory", true, false
+	)
+	var take_gold := _button_named(target_pane, "TransferTake_ItemGoldCoin")
+	assert_not_null(take_gold)
+	_press_transfer_button(take_gold)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
+	assert_eq(main.inventory.get_count_for_owner("char_people_test_human", "item_gold_coin"), 0)
+
+	var player_pane: Node = main.hud.systems_item_list.find_child(
+		"TransferPlayerInventory", true, false
+	)
+	var put_gold := _button_named(player_pane, "TransferPut_ItemGoldCoin")
+	assert_not_null(put_gold)
+	_press_transfer_button(put_gold)
+	await get_tree().process_frame
+
+	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_people_test_human", "item_gold_coin"), 1)
+
+
 func _select_kind(main, kind: String) -> void:
 	for candidate in main.entities.entities_by_id.values():
 		if candidate and candidate.get_kind() == kind:
@@ -613,6 +958,14 @@ func _select_kind(main, kind: String) -> void:
 			return
 		main._handle_cycle_target_requested()
 	fail_test("Could not select nearby kind: %s" % kind)
+
+
+func _press_transfer_button(button: Button) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = button.size * 0.5
+	button._gui_input(press)
 
 
 func _stand_by_enemy(main, entity_id: String) -> void:
@@ -654,6 +1007,18 @@ func _button_containing(parent: Node, text: String) -> Button:
 	for child in parent.get_children():
 		if child is Button and child.text.contains(text):
 			return child
+	return null
+
+
+func _button_named(parent: Node, button_name: String) -> Button:
+	if not parent:
+		return null
+	for child in parent.get_children():
+		if child is Button and child.name == button_name:
+			return child
+		var descendant := _button_named(child, button_name)
+		if descendant:
+			return descendant
 	return null
 
 

@@ -19,9 +19,9 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(hud.status_label.text.contains("Day 1, 16:00"))
 	assert_false(hud.status_label.text.contains("Inventory: Old Toolbox x1"))
 	assert_false(hud.status_label.text.contains("Tile (0, 0)"))
-	assert_true(hud.status_label.text.contains("Quest: The Missing Tools"))
-	assert_true(hud.status_label.text.contains("Goal: Return the toolbox to Harrow Venn."))
-	assert_true(hud.status_label.text.contains("Next: E 5.0t Harrow Venn"))
+	assert_false(hud.status_label.text.contains("Quest:"))
+	assert_false(hud.status_label.text.contains("Goal:"))
+	assert_false(hud.status_label.text.contains("Next:"))
 	assert_true(hud.prompt_label.text.begins_with("Read\nRoad Notice"))
 	assert_true(hud.prompt_label.text.contains("Road Notice"))
 	assert_true(hud.prompt_label.text.contains("Readable: Briarwatch Road Notice"))
@@ -129,7 +129,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	)
 	(hud.systems_action_list.get_child(0) as Button).pressed.emit()
 	assert_eq(selected_items, ["use:item_roadside_draught"])
-	assert_eq(hud.systems_tabs.get_child_count(), 7)
+	assert_eq(hud.systems_tabs.get_child_count(), 6)
 	assert_true(hud.systems_tab_buttons["inventory"].button_pressed)
 	var close_menu_button := hud.systems_tabs.get_node("SystemsCloseButton") as Button
 	assert_not_null(close_menu_button)
@@ -142,12 +142,8 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(hud.systems_tab_buttons["character"].button_pressed)
 	assert_true(hud.systems_body_label.text.contains("Character"))
 	assert_true(hud.systems_body_label.text.contains("Health, training, effects, and equipment."))
-	assert_true(hud.systems_body_label.text.contains("Might 1"))
-	assert_true(hud.systems_action_list.visible)
-	var train_button := _button_containing(hud.systems_action_list, "Train Might")
-	assert_not_null(train_button)
-	train_button.pressed.emit()
-	assert_eq(selected_items, ["use:item_roadside_draught", "train:might"])
+	assert_false(hud.systems_action_list.visible)
+	assert_null(_button_containing(hud.systems_action_list, "Train"))
 
 	hud.set_systems_tab("trade")
 	assert_true(hud.systems_tab_buttons["trade"].button_pressed)
@@ -157,9 +153,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	var buy_button := _button_containing(hud.systems_action_list, "Buy Roadside Draught")
 	assert_not_null(buy_button)
 	buy_button.pressed.emit()
-	assert_eq(
-		selected_items, ["use:item_roadside_draught", "train:might", "buy:item_roadside_draught"]
-	)
+	assert_eq(selected_items, ["use:item_roadside_draught", "buy:item_roadside_draught"])
 
 	hud.set_systems_tab("quests")
 	assert_true(hud.systems_tab_buttons["quests"].button_pressed)
@@ -175,16 +169,9 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	target_button.pressed.emit()
 
 	hud.set_systems_tab("map")
-	assert_true(hud.systems_tab_buttons["map"].button_pressed)
-	assert_true(hud.systems_body_label.text.contains("Map"))
-	assert_true(hud.systems_body_label.text.contains("Known places, routes, and nearby leads."))
-	assert_true(hud.systems_body_label.text.contains("Now: Day 1, 16:00"))
-	assert_true(hud.systems_body_label.text.contains("Known places: Briarwatch Crossroads"))
-	assert_true(hud.systems_body_label.text.contains("Place Notes:"))
-	assert_true(hud.systems_body_label.text.contains("Briarwatch road meets the old trade track"))
-	assert_true(hud.systems_body_label.text.contains("Quest Routes:"))
-	assert_true(hud.systems_body_label.text.contains("SE 5.7t Old Toolbox"))
-	assert_true(hud.systems_body_label.text.contains("Nearby:"))
+	assert_true(hud.systems_tab_buttons["journal"].button_pressed)
+	assert_false(hud.systems_tab_buttons.has("map"))
+	assert_true(hud.systems_body_label.text.contains("Journal"))
 	assert_true(hud.systems_action_list.visible)
 
 	hud.set_systems_tab("journal")
@@ -208,7 +195,6 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 		selected_items,
 		[
 			"use:item_roadside_draught",
-			"train:might",
 			"buy:item_roadside_draught",
 			"target:npc_harrow_venn_world",
 			"wait:1",
@@ -700,11 +686,9 @@ func _sample_state() -> Dictionary:
 		"progression_details":
 		(
 			"Level: 2\nXP: 10/40\nUnspent points: 1\n"
-			+ "Might 1: +1 attack damage\nGrit 0: -5% guarded counter damage\n"
-			+ "Damage bonus: +2\nGuard multiplier: 50%"
+			+ "Damage bonus: +1"
 		),
-		"progression_actions":
-		[{"id": "train:might", "text": "Train Might"}, {"id": "train:grit", "text": "Train Grit"}],
+		"progression_actions": [],
 		"time": "Day 1, 16:00 (Afternoon)",
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}],
 		"time_details": "Time: 16:00\nDay: 1\nPhase: Afternoon",

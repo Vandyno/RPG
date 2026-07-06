@@ -6,18 +6,18 @@ const SystemsActionBuilder = preload("res://scripts/ui/systems_action_builder.gd
 func test_actions_for_tab_routes_each_system_tab() -> void:
 	var state := {
 		"inventory_actions": [{"id": "use:item", "text": "Use Item"}],
-		"progression_actions": [{"id": "train:might", "text": "Train Might"}],
+		"progression_actions": [{"id": "train:legacy", "text": "Train Legacy"}],
 		"trade_actions": [{"id": "buy:item", "text": "Buy Item"}],
 		"quest_target_actions": [{"id": "target:npc", "text": "Target Guide"}],
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}]
 	}
 
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "inventory")[0]["id"], "use:item")
-	assert_eq(SystemsActionBuilder.actions_for_tab(state, "character")[0]["id"], "train:might")
+	assert_eq(SystemsActionBuilder.actions_for_tab(state, "character")[0]["id"], "train:legacy")
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "trade")[0]["id"], "buy:item")
 	assert_eq(SystemsActionBuilder.actions_for_tab(state, "quests")[0]["id"], "target:npc")
-	assert_eq(SystemsActionBuilder.actions_for_tab(state, "map")[0]["id"], "target:npc")
-	assert_eq(SystemsActionBuilder.actions_for_tab(state, "world")[0]["id"], "target:npc")
+	assert_true(SystemsActionBuilder.actions_for_tab(state, "map").is_empty())
+	assert_true(SystemsActionBuilder.actions_for_tab(state, "world").is_empty())
 
 	var journal_actions := SystemsActionBuilder.actions_for_tab(state, "journal")
 	assert_eq(journal_actions[0]["id"], "wait:1")

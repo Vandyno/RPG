@@ -45,8 +45,7 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
 	assert_false(main.hud.is_content_card_visible())
 	assert_true(main.hud.log_label.text.contains("road thug west of Briarwatch"))
-	assert_true(main.hud.status_label.text.contains("Quest: The Missing Tools (+1)"))
-	assert_true(main.hud.status_label.text.contains("Old Toolbox (+1)"))
+	assert_false(main.hud.status_label.text.contains("Quest:"))
 
 
 func test_shop_poi_opens_trade_panel_directly() -> void:
@@ -112,6 +111,9 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 	main._handle_interact_requested()
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
 	_select_entity(main, "poi_harrow_forge")
@@ -137,6 +139,9 @@ func test_forge_service_can_be_used_from_context_action_when_requirements_are_me
 	main._handle_interact_requested()
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main._handle_inventory_item_selected("take:item_gold_coin")
+	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
 	_select_entity(main, "poi_harrow_forge")

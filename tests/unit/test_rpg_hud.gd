@@ -1,3 +1,4 @@
+# gdlint:disable=max-file-lines
 extends GutTest
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const Main = preload("res://scripts/main/main.gd")
@@ -6,6 +7,9 @@ const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
 const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
+
+var _hud_state_override := {}
+
 func test_main_uses_player_facing_rpg_hud() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -33,11 +37,11 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.top_nav_panel.visible)
 	assert_eq(
 		_button_texts(hud.top_nav_buttons),
-		["Quests", "Journal", "Map", "Menu"]
+		["Quests", "Journal", "Menu"]
 	)
 	assert_true(hud.status_label.text.contains("Adventurer"))
 	assert_true(hud.status_label.text.contains("Level 2"))
-	assert_true(hud.status_label.text.contains("Quest: The Missing Tools"))
+	assert_false(hud.status_label.text.contains("Quest:"))
 	assert_false(hud.status_label.text.contains("Briarwatch  Day"))
 	assert_false(hud.debug_panel.visible)
 	hud.toggle_debug()
@@ -68,10 +72,6 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "journal")
 
-	_press_nav(hud, "Map")
-	assert_true(hud.is_systems_panel_visible())
-	assert_eq(hud.get_systems_tab(), "map")
-
 	hud.hide_systems_panel()
 	_press_nav(hud, "Menu")
 	assert_true(hud.is_systems_panel_visible())
@@ -84,7 +84,7 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_eq(hud.get_systems_tab(), "spells")
 	assert_eq(
 		_button_texts(hud.systems_nav),
-		["Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"]
+		["Inventory", "Spells", "Character", "Quests", "Journal", "Trade"]
 	)
 	assert_eq(hud.systems_subtitle_label.text, "Spells - Known magic and assigned abilities.")
 	assert_eq(hud.systems_detail_title_label.text, "Spell Details")
@@ -136,7 +136,9 @@ func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	hud._apply_layout_for_size(Vector2(640, 360))
 
 	var used_targets: Array[String] = []
+	var sneak_events := []
 	hud.target_used.connect(func(entity_id: String) -> void: used_targets.append(entity_id))
+	hud.sneak_pressed.connect(func() -> void: sneak_events.append("sneak"))
 	hud.toggle_target_picker()
 
 	assert_false(hud.is_target_picker_visible())
@@ -149,6 +151,7 @@ func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	assert_null(close)
 	assert_eq(hud.target_action_button.text, "Sneak")
 	hud.target_action_button.pressed.emit()
+	assert_eq(sneak_events, ["sneak"])
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
 	assert_true(hud.move_pad.visible)
@@ -209,8 +212,10 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 
 	var interact_events := []
 	var cycle_events := []
+	var sneak_events := []
 	hud.interact_pressed.connect(func() -> void: interact_events.append("interact"))
 	hud.cycle_target_pressed.connect(func() -> void: cycle_events.append("cycle"))
+	hud.sneak_pressed.connect(func() -> void: sneak_events.append("sneak"))
 	var aim_events: Array[Dictionary] = []
 	var utility_events: Array[String] = []
 	hud.inventory_item_selected.connect(
@@ -222,7 +227,11 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	)
 
 	var utility_stack := hud.action_buttons.find_child("UtilityButtonStack", true, false)
+	var ability_stack := hud.action_buttons.find_child("AbilityButtonStack", true, false)
 	assert_not_null(utility_stack)
+	assert_not_null(ability_stack)
+	assert_eq(hud.action_buttons.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+	assert_eq(ability_stack.mouse_filter, Control.MOUSE_FILTER_IGNORE)
 	var weapon_swap := utility_stack.find_child("WeaponSwapButton", true, false) as Button
 	var sneak := utility_stack.find_child("SneakButton", true, false) as Button
 	var menu := utility_stack.find_child("MenuButton", true, false) as Button
@@ -247,6 +256,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(interact_events, [])
 
 	sneak.pressed.emit()
+	assert_eq(sneak_events, ["sneak"])
 	assert_eq(cycle_events, [])
 	assert_false(hud.is_target_picker_visible())
 	ability._start_aim(Vector2.ZERO)
@@ -434,9 +444,9 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_subtitle_label.text.contains("Gear"))
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
 	assert_true(hud.systems_resources_label.text.contains("Gold"))
-	assert_true(hud.systems_resources_label.text.contains("Load"))
+	assert_true(hud.systems_resources_label.text.contains("Carry"))
 	assert_eq(_button_texts(hud.systems_nav), [
-		"Inventory", "Spells", "Character", "Quests", "Map", "Journal", "Trade"
+		"Inventory", "Spells", "Character", "Quests", "Journal", "Trade"
 	])
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(hud.systems_scroll.get_child(0), hud.systems_item_list)
@@ -521,14 +531,8 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(_button_containing(hud.systems_action_list, "Target Harrow Venn"))
 
 	hud.set_systems_tab("map")
-	assert_eq(_button_texts(hud.systems_category_row), ["Known", "Routes", "Nearby"])
-	assert_eq(hud.systems_detail_title_label.text, "Location Details")
-	var map_row := _button_containing(hud.systems_item_list, "Briarwatch Crossroads")
-	assert_not_null(map_row)
-	assert_true(map_row.text.contains("Known"))
-	assert_true(map_row.text.contains("Marches of Velcor"))
-	assert_true(hud.systems_detail_label.text.contains("Mapped Route"))
-	assert_true(hud.systems_detail_label.text.contains("Nearby Leads"))
+	assert_eq(hud.get_systems_tab(), "journal")
+	assert_false(hud.systems_tab_buttons.has("map"))
 
 	hud.set_systems_tab("journal")
 	assert_eq(hud.systems_title_label.text, "Briarwatch")
@@ -578,6 +582,28 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_null(_button_containing(hud.systems_item_list, "Training"))
 	assert_not_null(_button_containing(hud.systems_item_list, "Equipment"))
 	assert_true(hud.systems_detail_label.text.contains("Drag gear onto body slots"))
+
+
+func test_empty_inventory_and_quests_do_not_create_fake_rows() -> void:
+	var state := _sample_state()
+	state["inventory"] = "empty"
+	state["inventory_items"] = []
+	state["inventory_details"] = ""
+	state["inventory_actions"] = []
+	state["quests"] = []
+	state["quest_target_actions"] = []
+	state["quest_directions"] = "none"
+	var hud := _new_hud(state)
+	hud._apply_layout_for_size(Vector2(1152, 648))
+
+	hud.show_systems_panel("inventory")
+	assert_null(_button_containing(hud.systems_item_list, "Pack Empty"))
+	assert_null(_button_containing(hud.systems_item_list, "No Inventory"))
+	assert_true(hud.systems_detail_label.text.contains("Select an item"))
+
+	hud.set_systems_tab("quests")
+	assert_null(_button_containing(hud.systems_item_list, "No Active Quests"))
+	assert_true(hud.systems_detail_label.text.contains("No active quests"))
 
 
 func test_rpg_systems_menu_shows_right_character_pane_on_wide_desktop() -> void:
@@ -665,7 +691,7 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 		[
 			{"id": "accept", "text": "Accept"},
 			{"id": "inspect", "text": "Inspect notice"},
-			{"id": "mark", "text": "Mark on map"},
+			{"id": "note", "text": "Make note"},
 			{"id": "close", "text": "Close"}
 		],
 		"readable"
@@ -718,13 +744,18 @@ func test_rpg_hud_keeps_same_chrome_on_compact_landscape() -> void:
 	assert_eq(choice_scroll.vertical_scroll_mode, ScrollContainer.SCROLL_MODE_AUTO)
 
 
-func _new_hud() -> RpgHud:
+func _new_hud(state_override: Dictionary = {}) -> RpgHud:
+	_hud_state_override = state_override
 	var bus := EventBus.new()
 	add_child_autofree(bus)
 	var hud := RpgHud.new()
 	add_child_autofree(hud)
-	hud.setup(bus, Callable(self, "_sample_state"))
+	hud.setup(bus, Callable(self, "_hud_state"))
 	return hud
+
+
+func _hud_state() -> Dictionary:
+	return _hud_state_override if not _hud_state_override.is_empty() else _sample_state()
 
 
 func _sample_state() -> Dictionary:

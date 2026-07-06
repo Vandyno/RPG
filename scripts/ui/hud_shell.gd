@@ -1,3 +1,4 @@
+# gdlint:disable=max-file-lines
 class_name HudShell
 extends CanvasLayer
 signal interact_pressed
@@ -12,6 +13,8 @@ signal context_action_selected(action_id: String)
 signal save_pressed
 signal load_pressed
 signal move_vector_changed(direction: Vector2)
+signal systems_panel_closed
+signal systems_tab_changed(tab_id: String)
 const BUTTON_SIZE := Vector2(58, 58)
 const UiActionButtons = preload("res://scripts/ui/ui_action_buttons.gd")
 const ButtonTextFormatter = preload("res://scripts/ui/button_text_formatter.gd")
@@ -34,7 +37,7 @@ const CONTEXT_ACTION_H_SEPARATION := 8.0
 const CONTEXT_ACTION_V_SEPARATION := 8.0
 const CONTEXT_ACTION_MARGIN := 6.0
 const HOLD_ACTIONS := ["move_up", "move_down", "move_left", "move_right"]
-const SYSTEMS_TAB_IDS := ["inventory", "spells", "character", "trade", "quests", "map", "journal"]
+const SYSTEMS_TAB_IDS := ["inventory", "spells", "character", "trade", "quests", "journal"]
 const PANEL_COLOR := Color(0.06, 0.08, 0.07, 0.78)
 const PANEL_BORDER := Color(0.86, 0.78, 0.58, 0.38)
 var event_bus
@@ -141,7 +144,10 @@ func toggle_systems() -> void:
 		hide_content_card()
 	if target_panel:
 		target_panel.visible = false
+	var was_visible := systems_panel.visible
 	systems_panel.visible = not systems_panel.visible
+	if was_visible and not systems_panel.visible:
+		systems_panel_closed.emit()
 	refresh()
 
 
@@ -155,14 +161,20 @@ func show_systems_panel(tab_id: String = "") -> void:
 	systems_panel.visible = true
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if SYSTEMS_TAB_IDS.has(normalized_tab):
+		var previous_tab := systems_active_tab
 		systems_active_tab = normalized_tab
 		_refresh_systems_tabs()
+		if previous_tab != systems_active_tab:
+			systems_tab_changed.emit(systems_active_tab)
 	refresh()
 
 
 func hide_systems_panel() -> void:
 	if systems_panel:
+		var was_visible := systems_panel.visible
 		systems_panel.visible = false
+		if was_visible:
+			systems_panel_closed.emit()
 		refresh()
 
 func is_systems_panel_visible() -> bool:
@@ -194,8 +206,11 @@ func set_systems_tab(tab_id: String) -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if not SYSTEMS_TAB_IDS.has(normalized_tab):
 		return
+	var previous_tab := systems_active_tab
 	systems_active_tab = normalized_tab
 	_refresh_systems_tabs()
+	if previous_tab != systems_active_tab:
+		systems_tab_changed.emit(systems_active_tab)
 	refresh()
 
 
@@ -454,7 +469,6 @@ func _build_systems_panel() -> void:
 	_add_systems_tab("character", "Hero")
 	_add_systems_tab("trade", "Trade")
 	_add_systems_tab("quests", "Quest")
-	_add_systems_tab("map", "Map")
 	_add_systems_tab("journal", "Log")
 	var close := _new_button("X", Vector2(42, 40))
 	close.name = "SystemsCloseButton"
@@ -756,16 +770,18 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	context_action_panel.offset_right = -HUD_MARGIN
 	context_action_panel.offset_top = 106.0 if compact else 112.0
 	var context_height := UiActionButtons.wrapped_panel_height(
-		context_width,
-		visible_context_action_count,
-		CONTEXT_ACTION_BUTTON_SIZE,
-		Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
-		CONTEXT_ACTION_MARGIN,
-		100.0 if compact else 104.0,
-		106.0 if compact else 112.0,
-		80.0 if compact else HUD_MARGIN,
-		HUD_MARGIN,
-		viewport_size.y
+		{
+			"panel_width": context_width,
+			"action_count": visible_context_action_count,
+			"button_size": CONTEXT_ACTION_BUTTON_SIZE,
+			"separation": Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
+			"margin": CONTEXT_ACTION_MARGIN,
+			"base_height": 100.0 if compact else 104.0,
+			"top": 106.0 if compact else 112.0,
+			"reserved_bottom": 80.0 if compact else HUD_MARGIN,
+			"outer_margin": HUD_MARGIN,
+			"viewport_height": viewport_size.y
+		}
 	)
 	context_action_panel.offset_bottom = context_action_panel.offset_top + context_height
 func _set_action_button_layout(compact: bool) -> void:
@@ -947,8 +963,15 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 		return
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
 	systems_action_list.visible = UiActionButtons.refresh(
-		systems_action_list, actions, self, "inventory_item_selected",
-		"item_id", Vector2(0, 50), 14
+		{
+			"container": systems_action_list,
+			"actions": actions,
+			"owner": self,
+			"signal_id": "inventory_item_selected",
+			"meta_id": "item_id",
+			"min_size": Vector2(0, 50),
+			"font_size": 14
+		}
 	)
 
 func _refresh_context_actions(state: Dictionary) -> void:
@@ -971,13 +994,15 @@ func _refresh_context_actions(state: Dictionary) -> void:
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = UiActionButtons.refresh(
-		context_action_buttons,
-		actions,
-		self,
-		signal_id,
-		"action_id",
-		CONTEXT_ACTION_BUTTON_SIZE,
-		13
+		{
+			"container": context_action_buttons,
+			"actions": actions,
+			"owner": self,
+			"signal_id": signal_id,
+			"meta_id": "action_id",
+			"min_size": CONTEXT_ACTION_BUTTON_SIZE,
+			"font_size": 13
+		}
 	)
 
 func _on_message_posted(text: String) -> void:
@@ -988,7 +1013,7 @@ func _on_message_posted(text: String) -> void:
 func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
 func _normalize_systems_tab(tab_id: String) -> String:
-	return {"world": "map", "log": "journal"}.get(tab_id, tab_id)
+	return {"map": "journal", "world": "journal", "log": "journal"}.get(tab_id, tab_id)
 
 func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
 	var value: Variant = source.get(field_id, fallback)

@@ -157,7 +157,7 @@ chunk_coord = Vector2i(15, 6)
 
 ## WorldStreamingManager
 
-Owns the active world window around the player.
+Owns the rendered chunk window around the player.
 
 Responsibilities:
 
@@ -165,17 +165,17 @@ Responsibilities:
 - calculate current chunk
 - decide which chunks should be loaded
 - request chunk data
-- instantiate terrain visuals
-- instantiate active entities
-- unload distant chunks
-- preserve modified chunk state
-- notify systems when chunks load/unload
+- instantiate and free chunk terrain renderers
+- notify systems when the loaded chunk window changes
 
-The streamer coordinates loading. It should not own quest, dialogue, inventory, readable, or combat rules.
+The streamer coordinates the visible terrain window. It should not own entity
+spawning, modified chunk state, quest, dialogue, inventory, readable, or combat
+rules. Entity systems react to chunk-window notifications instead of being
+called through the streamer.
 
 ## ChunkManager
 
-Owns chunk data access.
+Owns chunk data access and modified chunk state.
 
 Responsibilities:
 
@@ -194,11 +194,57 @@ Owns live scene instances for entities.
 
 Responsibilities:
 
-- spawn entities from chunk placement data
-- despawn entities when chunks unload
+- listen for chunk-window changes
+- spawn authored and runtime entities for active chunks
+- despawn entities outside the active chunk filter
 - maintain stable IDs for persistent entities
 - route save/load data for persistent entities
 - expose entity lookup by ID and position where needed
+
+## Actor And Character Profiles
+
+Future owner area for persistent actor and humanoid character profiles.
+
+The player should be treated as one humanoid actor, not as the only character
+with inventory, equipment, spells, and appearance. Humanoid NPCs should be able
+to use the same profile shape with their own inventories, equipped items,
+spellbooks, loadouts, stats, people/race bonuses, and layered visual
+appearance. Current placeholder NPCs should migrate to this system when the
+profile/avatar path is ready.
+When a humanoid dies, the resulting body should still reference the same
+profile/inventory/equipment identity so it can be inspected and looted.
+Pickpocketing should inspect a living humanoid's inventory through the same
+owner model, gated by theft/stealth rules.
+
+Humanoid presentation is owned by `HumanoidAvatar2D`. The current 2D renderer
+uses 16 facing buckets and explicit back/body/front layer bands so attached
+parts, worn layers, hands, and held items can sort correctly without needing a
+separate actor model.
+Player movement position may remain continuous, but facing, avatar body math,
+attack hit shapes, and attack VFX should use the same snapped bucket direction.
+Appearance data may define anatomy, people features, palette, hair, markings,
+and proportions. It should not make a character visibly wear clothing. Visible
+clothing and armour should come from equipped item state.
+
+Beasts and monsters may share actor systems such as health, AI, faction,
+detection, death state, persistence, and loot ownership where useful. They
+should not be forced into humanoid-only equipment slots, spellbooks, or layered
+paper-doll appearance unless that creature type explicitly needs them.
+
+Early systems may stay player-scoped while the first slice is being proven, but
+new work should avoid designs that permanently split `player_inventory`,
+`player_equipment`, or `player_spells` away from NPC-capable owner IDs.
+
+Responsibilities later:
+
+- own player and humanoid NPC profile references
+- distinguish humanoid, creature, monster, and object actor categories
+- expose appearance data for avatar renderers
+- connect humanoids to inventory, equipment, spellbook, and loadout owner IDs
+- expose stats and people/race bonuses for player and NPC humanoids
+- track alive/dead state and corpse/body entity references
+- serialize profile state that is not owned by another manager
+- keep presentation data separate from movement controllers
 
 ---
 
@@ -231,6 +277,13 @@ Owns dialogue loading, condition evaluation, choice display, and dialogue effect
 ## InventoryManager
 
 Owns player inventory, item counts, item lookup, and container integration where appropriate.
+The current implementation may be player-focused, but the target shape should
+support inventories by owner ID so NPCs, containers, and the player can share
+the same inventory rules where appropriate.
+Dead humanoid bodies and pickpocket targets should expose inventory through
+their owner IDs rather than generating unrelated loot bags.
+Creatures and monsters may also use inventory or loot owner IDs, but they do
+not need humanoid equipment or spell ownership unless specifically authored.
 
 ## ShopManager
 
@@ -243,6 +296,15 @@ shop with `shop_id`.
 
 Owns equipped item slots, validates equipment against inventory and item
 definitions, exposes combat modifiers, and serializes equipped state.
+The current implementation may be player-focused, but the target shape should
+support equipment by humanoid owner ID so NPCs and the player can share the same
+equipment rules.
+
+## Spellbook Or Ability Manager
+
+Future owner for humanoid spell lists, prepared abilities, and loadouts. It
+should support owner IDs for player and NPC humanoids instead of becoming a
+player-only spell list.
 
 ## ReadableManager
 
@@ -251,6 +313,9 @@ Owns readable content, read/discovered tracking, readable UI opening, and read e
 ## CombatManager
 
 Owns combat coordination, damage rules, enemy/player combat state integration, and combat events.
+When a humanoid dies, combat should report enough actor identity for the entity
+or profile layer to create a persistent lootable body instead of only removing
+the live NPC.
 
 ## FactionManager
 
@@ -261,11 +326,9 @@ conditions, and reputation save/load.
 
 Owns player level, experience, unspent skill points, progression save/load, and
 small progression-derived combat modifiers.
-
-Implemented training stats:
-
-- `might`: increases player attack damage.
-- `grit`: improves guarded counter-damage reduction.
+Skill points are banked for now; no trainable stat model is implemented.
+The current implementation is player-focused. Full NPC progression does not
+need to be built now.
 
 ## StatusEffectManager
 
@@ -306,6 +369,9 @@ The player controller should not own:
 - quest rules
 - dialogue trees
 - inventory data
+- equipment data
+- spellbook data
+- appearance profile data
 - readable content
 - faction reputation
 - global world-state flags
@@ -315,15 +381,32 @@ The player controller should not own:
 
 NPC scenes should own presentation and local behavior.
 
+Humanoid NPCs and humanoid enemies should be treated as full actors, not static
+markers. Even when an early fixture stands still, its data path should allow
+movement, attacking, interaction, inventory/equipment ownership, profile-backed
+appearance, and later AI without replacing the actor shape.
+
 NPCs should reference:
 
 - NPC ID
 - dialogue ID
 - faction ID
 - schedule ID later
-- inventory ID later
+- character profile ID later
+- inventory owner ID later
+- equipment owner ID later
+- spellbook owner ID later
+- stats/profile reference later
+- people/race bonus source later
+- appearance data or appearance profile ID later
+- corpse/body persistence ID after death
 
 NPCs should not hardcode full quest logic.
+Humanoid NPCs should not become one-off colored markers long term; they should
+share the same avatar/profile/equipment/spell contracts used by the player.
+Dead humanoid NPCs should remain as lootable body entities when the game state
+calls for it, and living humanoid NPC inventories should be accessible through
+future pickpocket rules.
 
 ## Objects
 
@@ -360,9 +443,9 @@ simple job-board interactions such as starting or reporting quests.
 Service POIs can also open a named Systems tab directly; shop POIs expose a
 `shop_id` so the Trade tab can operate from a place, not only an NPC.
 
-`open_conditions` and spawn `conditions` can use progression checks such as
-`stat_at_least`, allowing trained stats to unlock authored doors, containers,
-dialogue, or spawned objects without special-case code.
+`open_conditions` and spawn `conditions` can use concrete checks such as
+`has_item`, `has_flag`, or `player_level_at_least`, allowing authored doors,
+containers, dialogue, or spawned objects to unlock without special-case code.
 
 Interactable world objects can include `interaction_radius` to expand their
 targeting range without changing global defaults. This lets dense spawn-yard
@@ -480,10 +563,15 @@ hiding the primary result.
 1. Enemy health reaches zero.
 2. Enemy emits or reports `enemy_defeated(enemy_id, enemy_type, global_tile)`.
 3. `CombatManager` resolves combat state.
-4. `LootDropComponent` creates loot if configured.
-5. `QuestManager` checks kill/clear objectives.
-6. `WorldStateManager` records persistent defeated state if needed.
-7. `SaveManager` persists the relevant entity/chunk state.
+4. If the enemy is a humanoid actor, the entity/profile layer creates a
+   persistent lootable body tied to that actor's inventory and equipment owner
+   IDs.
+5. If the enemy is a creature or monster, the entity layer may create a simpler
+   body/loot entity tied to a loot owner ID, or `LootDropComponent` can create
+   direct drops if configured.
+6. `QuestManager` checks kill/clear objectives.
+7. `WorldStateManager` records persistent defeated state if needed.
+8. `SaveManager` persists the relevant entity/chunk/profile state.
 
 ---
 
@@ -837,7 +925,6 @@ Possible condition types:
 - `faction_reputation_at_least`
 - `location_discovered`
 - `player_level_at_least`
-- `stat_at_least`
 - `time_phase`
 - `time_hour_between`
 

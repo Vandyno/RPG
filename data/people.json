@@ -1,0 +1,173 @@
+{
+  "people_human": {
+    "id": "people_human",
+    "display_name": "Human",
+    "body_plans": ["body_humanoid_average"],
+    "heads": ["head_human_round"],
+    "palettes": [
+      "palette_human_warm_brown",
+      "palette_human_light_olive",
+      "palette_human_deep_brown"
+    ],
+    "features": [],
+    "default_proportions": {
+      "body_height": 1.0,
+      "shoulder_width": 1.0,
+      "torso_width": 1.0,
+      "waist_width": 1.0,
+      "head_size": 1.0,
+      "hand_size": 1.0,
+      "foot_size": 1.0
+    },
+    "visual_notes": [
+      "Readable baseline humanoid used to compare every other people silhouette.",
+      "Keep broad variation through hair, palette, clothing, and equipment."
+    ],
+    "bonuses": {
+      "resolve": 1
+    }
+  },
+  "people_tanglekin": {
+    "id": "people_tanglekin",
+    "display_name": "Tanglekin",
+    "body_plans": ["body_humanoid_lean"],
+    "heads": ["head_tanglekin_narrow"],
+    "palettes": [
+      "palette_tanglekin_sun_ochre",
+      "palette_tanglekin_fur_brown",
+      "palette_tanglekin_dust_gold"
+    ],
+    "features": [
+      "feature_tanglekin_tail",
+      "feature_tanglekin_grasping_hands",
+      "feature_tanglekin_muzzle",
+      "feature_tanglekin_brow_tuft"
+    ],
+    "default_proportions": {
+      "body_height": 0.94,
+      "shoulder_width": 0.90,
+      "torso_width": 0.86,
+      "waist_width": 0.78,
+      "head_size": 1.00,
+      "hand_size": 1.18,
+      "foot_size": 1.12
+    },
+    "visual_notes": [
+      "Monkey-like agile humanoids with long arms, expressive faces, tails, and grasping hands and feet.",
+      "Use tail shape, hands/feet, muzzle, brow tufts, and nimble posture for variants. Clothing and wraps must come from equipment."
+    ],
+    "bonuses": {}
+  },
+  "people_tuskfolk": {
+    "id": "people_tuskfolk",
+    "display_name": "Tuskfolk",
+    "body_plans": ["body_humanoid_short_heavy"],
+    "heads": ["head_tuskfolk_broad"],
+    "palettes": ["palette_tuskfolk_umber", "palette_tuskfolk_ash", "palette_tuskfolk_red_clay"],
+    "features": ["feature_tusks_small", "feature_tusks_broad", "feature_tuskfolk_clan_marks"],
+    "default_proportions": {
+      "body_height": 0.76,
+      "shoulder_width": 1.34,
+      "torso_width": 1.30,
+      "waist_width": 1.30,
+      "head_size": 1.02,
+      "hand_size": 1.20,
+      "foot_size": 1.20
+    },
+    "visual_notes": [
+      "A little shorter and stockier than humans as a default rule.",
+      "Broad shoulders, broad waist, strong hands and feet, visible tusk and clan-mark layers.",
+      "Even taller variants should stay below the human baseline and read squat before they read tall."
+    ],
+    "bonuses": {}
+  },
+  "people_mirefolk": {
+    "id": "people_mirefolk",
+    "display_name": "Mirefolk",
+    "body_plans": ["body_humanoid_low_amphibian"],
+    "heads": ["head_mirefolk_wide_eyed"],
+    "palettes": [
+      "palette_mirefolk_reed_green",
+      "palette_mirefolk_bog_blue",
+      "palette_mirefolk_silt_olive"
+    ],
+    "features": [
+      "feature_mirefolk_high_eyes",
+      "feature_mirefolk_reed_marks",
+      "feature_mirefolk_webbed_hands"
+    ],
+    "default_proportions": {
+      "body_height": 0.88,
+      "shoulder_width": 0.94,
+      "torso_width": 0.88,
+      "waist_width": 0.90,
+      "head_size": 1.14,
+      "hand_size": 1.02,
+      "foot_size": 1.10
+    },
+    "visual_notes": [
+      "Frog-like wetland humanoid, not a monster.",
+      "Shorter, slender body with wide head, high eyes, webbed hands/feet, damp reed/bog palette."
+    ],
+    "bonuses": {}
+  },
+  "people_ravenfolk": {
+    "id": "people_ravenfolk",
+    "display_name": "Ravenfolk",
+    "body_plans": ["body_humanoid_slender_feathered"],
+    "heads": ["head_ravenfolk_beaked"],
+    "palettes": [
+      "palette_ravenfolk_black",
+      "palette_ravenfolk_archive_grey",
+      "palette_ravenfolk_blue_black"
+    ],
+    "features": [
+      "feature_ravenfolk_body_feathers",
+      "feature_ravenfolk_head_crest",
+      "feature_ravenfolk_beak",
+      "feature_ravenfolk_tail_feathers",
+      "feature_ravenfolk_quill_marks"
+    ],
+    "default_proportions": {
+      "body_height": 1.04,
+      "shoulder_width": 0.82,
+      "torso_width": 0.80,
+      "waist_width": 0.72,
+      "head_size": 0.94,
+      "hand_size": 0.84,
+      "foot_size": 0.88
+    },
+    "visual_notes": [
+      "Slender feathered humanoids, narrower than most peoples by default.",
+      "Use visible body feathers, head crests, beaks, quill marks, and small tail-feather attachments as anatomy.",
+      "No baked-in robes or clothing; worn gear must come from inventory/equipment. Avoid functional wings in the first playable avatar pass."
+    ],
+    "bonuses": {}
+  },
+  "people_rootborn": {
+    "id": "people_rootborn",
+    "display_name": "Rootborn",
+    "body_plans": ["body_humanoid_tall_rooted"],
+    "heads": ["head_rootborn_leaf_crowned"],
+    "palettes": ["palette_rootborn_moss", "palette_rootborn_bark", "palette_rootborn_lichen_grey"],
+    "features": [
+      "feature_rootborn_leaf_crown",
+      "feature_rootborn_bark_marks",
+      "feature_rootborn_branch_crown"
+    ],
+    "default_proportions": {
+      "body_height": 1.10,
+      "shoulder_width": 1.06,
+      "torso_width": 0.96,
+      "waist_width": 0.92,
+      "head_size": 1.04,
+      "hand_size": 1.04,
+      "foot_size": 1.10
+    },
+    "visual_notes": [
+      "Older, stranger, rooted silhouette; not elves.",
+      "Use bark lines, branch crown, leaf crown, moss/olive palette, and vertical patience."
+    ],
+    "bonuses": {}
+  }
+}

@@ -24,6 +24,8 @@ func test_sneak_button_does_not_select_or_use_targets() -> void:
 
 	main.hud.target_action_button.pressed.emit()
 
+	assert_true(main.player.is_sneaking)
+	assert_eq(main.hud.message_log[-1], "Sneaking.")
 	assert_false(main.hud.is_target_picker_visible())
 	assert_eq(main.selected_target_id, selected_before)
 	assert_false(main.hud.is_content_card_visible())

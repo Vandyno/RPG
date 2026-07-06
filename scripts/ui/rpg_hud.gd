@@ -2,8 +2,10 @@ class_name RpgHud
 extends HudShell
 signal aim_action_released(action_id: String, direction: Vector2)
 signal aim_action_held(action_id: String, direction: Vector2, delta: float)
+signal sneak_pressed
 const RpgSystemsRowBuilder = preload("res://scripts/ui/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/rpg_systems_text_builder.gd")
+const RpgTransferPaneBuilder = preload("res://scripts/ui/rpg_transfer_pane_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/rpg_content_panel_builder.gd")
 const RpgContentChoiceBuilder = preload("res://scripts/ui/rpg_content_choice_builder.gd")
 const RpgContextActionPanelBuilder = preload("res://scripts/ui/rpg_context_action_panel_builder.gd")
@@ -185,7 +187,6 @@ func _build_systems_panel() -> void:
 	outer.name = "SystemsOuter"
 	outer.add_theme_constant_override("separation", 10)
 	systems_frame.add_child(outer)
-
 	_build_systems_top_bar(outer)
 	_build_systems_body(outer)
 	_refresh_systems_tabs()
@@ -194,7 +195,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	top_bar.name = "SystemsTopBar"
 	top_bar.add_theme_constant_override("separation", 12)
 	parent.add_child(top_bar)
-
 	var title_stack := VBoxContainer.new()
 	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_stack.add_theme_constant_override("separation", 2)
@@ -202,7 +202,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	systems_title_label = _new_label(26)
 	systems_title_label.name = "SystemsTitle"
 	title_stack.add_child(systems_title_label)
-
 	systems_subtitle_label = _new_label(15)
 	systems_subtitle_label.name = "SystemsSubtitle"
 	systems_subtitle_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
@@ -213,7 +212,6 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	systems_resources_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	systems_resources_label.custom_minimum_size = Vector2(270, 48)
 	top_bar.add_child(systems_resources_label)
-
 	var close := _new_button("X", Vector2(54, 48))
 	close.name = "SystemsCloseButton"
 	close.tooltip_text = "Close menu"
@@ -225,11 +223,9 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	systems_main_row.add_theme_constant_override("separation", 10)
 	parent.add_child(systems_main_row)
-
 	systems_left_panel = _new_panel("SystemsNavPanel")
 	systems_left_panel.custom_minimum_size = Vector2(176, 0)
 	systems_main_row.add_child(systems_left_panel)
-
 	systems_nav = VBoxContainer.new()
 	systems_nav.name = "SystemsNav"
 	systems_nav.add_theme_constant_override("separation", 8)
@@ -242,56 +238,44 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	_add_systems_tab("spells", "Spells")
 	_add_systems_tab("character", "Character")
 	_add_systems_tab("quests", "Quests")
-	_add_systems_tab("map", "Map")
 	_add_systems_tab("journal", "Journal")
 	_add_systems_tab("trade", "Trade")
-
 	systems_center_panel = _new_panel("SystemsContentPanel")
 	systems_center_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_main_row.add_child(systems_center_panel)
-
 	var center_stack := VBoxContainer.new()
 	center_stack.name = "SystemsCenterStack"
 	center_stack.add_theme_constant_override("separation", 8)
 	_add_margin(systems_center_panel, center_stack, 12)
-
 	systems_category_row = HFlowContainer.new()
 	systems_category_row.name = "SystemsCategoryRow"
 	systems_category_row.add_theme_constant_override("separation", 6)
 	center_stack.add_child(systems_category_row)
-
 	systems_scroll = ScrollContainer.new()
 	systems_scroll.name = "SystemsScroll"
 	systems_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center_stack.add_child(systems_scroll)
-
 	systems_item_list = VBoxContainer.new()
 	systems_item_list.name = "SystemsItemList"
 	systems_item_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_item_list.add_theme_constant_override("separation", 8)
 	systems_scroll.add_child(systems_item_list)
-
 	systems_body_label = _new_label(15)
 	systems_body_label.name = "SystemsBody"
 	systems_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_body_label.visible = false
 	center_stack.add_child(systems_body_label)
-
 	systems_action_list = systems_item_list
-
 	systems_detail_panel = _new_panel("SystemsDetailPanel")
 	systems_detail_panel.custom_minimum_size = Vector2(232, 0)
 	systems_main_row.add_child(systems_detail_panel)
-
 	var detail_stack := VBoxContainer.new()
 	detail_stack.add_theme_constant_override("separation", 8)
 	_add_margin(systems_detail_panel, detail_stack, 12)
-
 	systems_detail_title_label = _new_label(17)
 	systems_detail_title_label.text = "Details"
 	detail_stack.add_child(systems_detail_title_label)
-
 	systems_detail_label = RpgDetailLabel.new()
 	systems_detail_label.name = "SystemsDetail"
 	systems_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -355,7 +339,6 @@ func _build_top_nav() -> void:
 
 	_add_nav_button("Quests", "quests", func() -> void: show_systems_panel("quests"))
 	_add_nav_button("Journal", "journal", func() -> void: show_systems_panel("journal"))
-	_add_nav_button("Map", "map", func() -> void: show_systems_panel("map"))
 	_add_nav_button("Menu", "menu", toggle_systems)
 
 func _add_nav_button(text: String, icon: String, callback: Callable) -> void:
@@ -404,17 +387,18 @@ func _build_touch_controls() -> void:
 	)
 	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
 	target_action_button = utility_buttons["sneak"] as Button
+	target_action_button.toggle_mode = true
 	target_action_button.pressed.connect(Callable(self, "_press_target_control"))
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
-		root,
-		Callable(self, "_new_panel"),
-		Callable(self, "_add_margin"),
-		Callable(self, "_new_label"),
-		Callable(self, "_new_button"),
-		Callable(self, "hide_content_card"),
-		Callable(self, "_apply_portrait_style"),
-		HUD_MARGIN
+		{
+			"root": root, "new_panel": Callable(self, "_new_panel"),
+			"add_margin": Callable(self, "_add_margin"), "new_label": Callable(self, "_new_label"),
+			"new_button": Callable(self, "_new_button"),
+			"close_callback": Callable(self, "hide_content_card"),
+			"portrait_style": Callable(self, "_apply_portrait_style"),
+			"hud_margin": HUD_MARGIN
+		}
 	)
 	content_panel = nodes["panel"]
 	content_identity_panel = nodes["identity_panel"]
@@ -599,7 +583,6 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 			(button as RpgIconButton).set_compact(compact)
 	if systems_item_list:
 		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
-
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	RpgContentPanelBuilder.apply_layout(
 		content_panel, content_identity_panel, content_portrait_panel, content_right_stack,
@@ -609,7 +592,6 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	)
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
-
 func _rpg_location_name(state: Dictionary) -> String:
 	var locations := String(state.get("locations", ""))
 	if locations.is_empty() or locations == "none":
@@ -638,22 +620,22 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
 	if not target_action_button:
 		return
+	var is_sneaking := bool(state.get("player_sneaking", false))
 	target_action_button.text = "Sneak"
-	target_action_button.tooltip_text = "Sneak"
+	target_action_button.tooltip_text = "Standing." if is_sneaking else "Sneak"
+	target_action_button.button_pressed = is_sneaking
 	target_action_button.add_theme_font_size_override(
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)
 
 func _press_target_control() -> void:
-	if event_bus:
-		event_bus.post_message("Sneaking.")
+	sneak_pressed.emit()
 func toggle_target_picker() -> void:
 	if target_panel:
 		target_panel.visible = false
 
 func is_target_picker_visible() -> bool:
 	return false
-
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
 		return
@@ -680,6 +662,12 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	RpgActionClusterBuilder.refresh_ability_buttons(ability_slot_buttons, spell_slots)
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
+	if systems_active_tab == "inventory" and bool(state.get("transfer_open", false)):
+		if systems_detail_panel:
+			systems_detail_panel.visible = false
+		if systems_character_panel:
+			systems_character_panel.visible = false
+		return
 	if systems_detail_equipment_panel:
 		var char_tab := ["inventory", "character"].has(systems_active_tab)
 		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
@@ -688,6 +676,20 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
+	if systems_active_tab == "inventory" and bool(state.get("transfer_open", false)):
+		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		var target: Dictionary = state.get("transfer_target", {})
+		_refresh_category_row(systems_active_tab)
+		RpgTransferPaneBuilder.refresh(
+			systems_item_list, state, systems_active_category,
+			func(action_id: String) -> void: inventory_item_selected.emit(action_id), compact
+		)
+		systems_selected_row_id = ""
+		systems_detail_label.text = "Move items between your inventory and %s." % String(
+			target.get("name", "container")
+		)
+		return
+	RpgSystemsRowBuilder.clear_non_button_children(systems_item_list)
 	var rows := RpgSystemsRowBuilder.rows(
 		state, systems_active_tab, message_log, systems_active_category
 	)
@@ -816,7 +818,6 @@ func _default_category_for_tab(tab_id: String) -> String:
 		"spells": "all",
 		"character": "overview",
 		"quests": "active",
-		"map": "known",
 		"journal": "recent",
 		"trade": "stock"
 	}.get(tab_id, "all")
@@ -827,7 +828,6 @@ func _systems_detail_title() -> String:
 		"spells": "Spell Details",
 		"character": "Character Details",
 		"quests": "Quest Details",
-		"map": "Location Details",
 		"journal": "Journal Details",
 		"trade": "Trade Details"
 	}.get(systems_active_tab, "Details")

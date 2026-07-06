@@ -1,6 +1,8 @@
 class_name DirectionalAttack
 extends RefCounted
 
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+
 const DEFAULT_ATTACK := {
 	"name": "Unarmed",
 	"shape": "swing",
@@ -35,13 +37,11 @@ static func equipped_weapon(content, equipment) -> Dictionary:
 
 
 static func targets_in_shape(
-	main, origin: Vector2, direction: Vector2, attack: Dictionary
+	candidate_entities: Array, origin: Vector2, direction: Vector2, attack: Dictionary
 ) -> Array:
-	var facing := direction.normalized()
-	if facing.length() <= 0.01:
-		facing = Vector2.RIGHT
+	var facing := FacingBuckets.snap_direction(direction, Vector2.RIGHT)
 	var result := []
-	for entity in main.entities.entities_by_id.values():
+	for entity in candidate_entities:
 		if not entity or entity.get_kind() != "enemy":
 			continue
 		if contains_point(origin, facing, entity.global_position, attack):

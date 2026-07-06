@@ -436,17 +436,15 @@ Examples:
 Implemented condition types currently include `has_flag`, `not_flag`,
 `has_item`, `quest_state`, `quest_stage`, `read_readable`,
 `location_discovered`, `faction_reputation_at_least`,
-`player_level_at_least`, `stat_at_least`, `time_phase`, and
-`time_hour_between`.
+`player_level_at_least`, `time_phase`, and `time_hour_between`.
 
 Progression conditions can gate dialogue, quest choices, spawned objects, or
 object access:
 
 ```json
 {
-  "type": "stat_at_least",
-  "stat_id": "might",
-  "rank": 1
+  "type": "player_level_at_least",
+  "level": 2
 }
 ```
 
@@ -526,10 +524,8 @@ effects. Use XP for character growth:
 }
 ```
 
-Level-ups grant skill points. Current training stats are:
-
-- `Might`: increases attack damage.
-- `Grit`: improves guarded counter-damage reduction.
+Level-ups grant skill points. Skill points are intentionally banked for now;
+there are no implemented trainable stats until the stat model is designed.
 
 Status effects are defined in `data/status_effects.json` and can be applied by
 any authored effect list:
@@ -1176,12 +1172,12 @@ authored access without custom code:
   "interaction_radius": 128,
   "open_conditions": [
     {
-      "type": "stat_at_least",
-      "stat_id": "might",
-      "rank": 1
+      "type": "has_item",
+      "item_id": "item_training_sword",
+      "count": 1
     }
   ],
-  "locked_text": "The training gate's counterweight needs a stronger pull.",
+  "locked_text": "The training gate's lever is notched for a training sword.",
   "effects_on_open": [
     {
       "type": "set_flag",

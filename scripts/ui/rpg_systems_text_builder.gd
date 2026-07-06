@@ -10,7 +10,6 @@ static func title(tab_id: String) -> String:
 		"spells": "Spells",
 		"character": "Character",
 		"quests": "Quests",
-		"map": "Map",
 		"journal": "Journal",
 		"trade": "Trade"
 	}.get(tab_id, "Menu")
@@ -22,7 +21,6 @@ static func subtitle(tab_id: String) -> String:
 		"spells": "Known magic and assigned abilities.",
 		"character": "Training, health, equipment, and effects.",
 		"quests": "Active work and nearby objectives.",
-		"map": "Known places, routes, and nearby leads.",
 		"journal": "Time, reputation, and recent events.",
 		"trade": "Buy and sell with the selected merchant."
 	}.get(tab_id, "Briarwatch")
@@ -35,7 +33,7 @@ static func resource_text(state: Dictionary) -> String:
 	var carry := _carry_weight(_array_field(state.get("inventory_items", [])))
 	var capacity := maxf(1.0, float(state.get("carry_capacity", 90.0)))
 	var mana := String(state.get("player_mana", "0/0"))
-	return "Gold %d     MP %s     Load %s/%s     %s" % [
+	return "Gold %d     MP %s     Carry %s/%s     %s" % [
 		gold, mana, _format_weight(carry), _format_weight(capacity), _short_time(time)
 	]
 
@@ -56,11 +54,6 @@ static func detail_text(state: Dictionary, tab_id: String) -> String:
 			)
 		"quests":
 			return _quest_detail_text(state)
-		"map":
-			return _first_non_empty(
-				String(state.get("location_details", "")),
-				String(state.get("locations", "No known places."))
-			)
 		"journal":
 			return _first_non_empty(String(state.get("factions", "")), "No reputation notes.")
 		"trade":
