@@ -1,8 +1,8 @@
 class_name MainInputRouter
 extends RefCounted
 
-const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
-const MainPathfinder = preload("res://scripts/main/main_pathfinder.gd")
+const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
+const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 
 const AUTO_INTERACT_STUCK_SECONDS := 0.7
 const AUTO_MOVE_ARRIVAL_DISTANCE := 8.0

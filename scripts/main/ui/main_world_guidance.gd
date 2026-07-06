@@ -2,8 +2,8 @@ class_name MainWorldGuidance
 extends RefCounted
 
 const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
-const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
-const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
+const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
+const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
 
 const MAX_WORLD_ACTION_HINTS := 2

@@ -1,7 +1,7 @@
 extends GutTest
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
-const MainPathfinder = preload("res://scripts/main/main_pathfinder.gd")
+const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 const PlayerController = preload("res://scripts/player/player_controller.gd")
 
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
 

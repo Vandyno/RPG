@@ -2,7 +2,7 @@ class_name MainDebugState
 extends RefCounted
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
-const MainHudState = preload("res://scripts/main/main_hud_state.gd")
+const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
 
 
 static func build(main) -> Dictionary:

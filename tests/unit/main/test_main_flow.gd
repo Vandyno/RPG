@@ -2,7 +2,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const TEST_SAVE_PATH := "user://test_main_flow.json"
 
 

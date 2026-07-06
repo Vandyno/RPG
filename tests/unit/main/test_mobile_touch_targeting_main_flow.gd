@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
+const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 
 
 func test_mobile_touch_assist_reaches_small_pickup_without_mouse_precision() -> void:

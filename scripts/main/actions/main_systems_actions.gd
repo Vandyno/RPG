@@ -1,7 +1,7 @@
 class_name MainSystemsActions
 extends RefCounted
 
-const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
+const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")

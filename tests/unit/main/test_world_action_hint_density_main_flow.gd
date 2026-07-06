@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainWorldGuidance = preload("res://scripts/main/main_world_guidance.gd")
+const MainWorldGuidance = preload("res://scripts/main/ui/main_world_guidance.gd")
 
 
 func test_nearby_spawn_hints_stay_sparse_around_selected_target() -> void:

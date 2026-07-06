@@ -1,6 +1,6 @@
 extends GutTest
 
-const MainCameraFraming = preload("res://scripts/main/main_camera_framing.gd")
+const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framing.gd")
 
 
 func test_default_landscape_camera_stays_centered_on_player() -> void:

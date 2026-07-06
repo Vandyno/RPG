@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainPathfinder = preload("res://scripts/main/main_pathfinder.gd")
+const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 
 
 func test_spawn_town_places_existing_content_in_logical_groups() -> void:

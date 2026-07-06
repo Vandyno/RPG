@@ -1,6 +1,6 @@
 extends GutTest
 
-const InteractionTargetSelector = preload("res://scripts/main/interaction_target_selector.gd")
+const InteractionTargetSelector = preload("res://scripts/main/input/interaction_target_selector.gd")
 
 
 func test_forward_target_beats_closer_side_clutter() -> void:

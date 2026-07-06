@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
+const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 
 
 func test_town_hall_job_board_shows_place_card() -> void:

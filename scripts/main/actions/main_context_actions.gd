@@ -1,8 +1,8 @@
 class_name MainContextActions
 extends RefCounted
 
-const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
-const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
+const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
+const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
 
 

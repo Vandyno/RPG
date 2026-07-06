@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
+const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 
 
 func test_effectful_npc_choice_can_be_used_from_context_action() -> void:

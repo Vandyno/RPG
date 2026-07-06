@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
+const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 
 
