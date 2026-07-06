@@ -2,6 +2,7 @@ class_name RpgSystemsQuestRows
 extends RefCounted
 
 const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 
 static func category_labels() -> Array:
@@ -13,8 +14,9 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 		return _quest_route_rows(state)
 	if category == "rewards":
 		return _quest_reward_rows(state)
+	var tab := SystemsTabState.quests(state)
 	var rows_data: Array[Dictionary] = []
-	for quest in RpgSystemsRowBuilder.array_field(state.get("quests", [])):
+	for quest in RpgSystemsRowBuilder.array_field(tab.get("quests", [])):
 		var text := String(quest)
 		rows_data.append({
 			"id": "quest_%d" % rows_data.size(),
@@ -23,7 +25,7 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 			"meta": "Quest",
 			"detail": RpgSystemsRowBuilder.quest_detail_for_text(state, text)
 		})
-	for action in RpgSystemsRowBuilder.array_field(state.get("quest_target_actions", [])):
+	for action in RpgSystemsRowBuilder.array_field(tab.get("actions", [])):
 		if not action is Dictionary:
 			continue
 		var text := String(action.get("text", ""))
@@ -41,8 +43,9 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 
 
 static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
+	var tab := SystemsTabState.quests(state)
 	var rows_data: Array[Dictionary] = []
-	var directions := String(state.get("quest_directions", "none"))
+	var directions := String(tab.get("directions", "none"))
 	if not directions.is_empty() and directions != "none":
 		for line in directions.split("\n", false):
 			var stripped := line.strip_edges()
@@ -67,7 +70,8 @@ static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
 
 
 static func _quest_reward_rows(state: Dictionary) -> Array[Dictionary]:
-	var actions := RpgSystemsRowBuilder.array_field(state.get("quest_target_actions", []))
+	var tab := SystemsTabState.quests(state)
+	var actions := RpgSystemsRowBuilder.array_field(tab.get("actions", []))
 	var rows_data: Array[Dictionary] = []
 	for action in actions:
 		if not action is Dictionary:

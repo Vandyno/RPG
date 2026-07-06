@@ -1,6 +1,8 @@
 class_name RpgSystemsInventoryRows
 extends RefCounted
 
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+
 const ARMOUR_EQUIPMENT_SLOTS := [
 	"left_hand",
 	"chest",
@@ -20,16 +22,18 @@ static func category_labels() -> Array:
 
 
 static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
-	if bool(state.get("transfer_open", false)):
-		return _transfer_rows(state, category)
-	var typed_rows := _typed_inventory_rows(state, category)
+	var tab := SystemsTabState.inventory(state)
+	var transfer: Dictionary = tab.get("transfer", {})
+	if bool(transfer.get("open", false)):
+		return _transfer_rows(tab, category)
+	var typed_rows := _typed_inventory_rows(tab, category)
 	if not typed_rows.is_empty():
 		return typed_rows
 	var details_by_name := RpgSystemsRowBuilder.detail_lines_by_name(
-		String(state.get("inventory_details", ""))
+		String(tab.get("details", ""))
 	)
 	var rows_data: Array[Dictionary] = []
-	for entry in RpgSystemsRowBuilder.summary_entries(String(state.get("inventory", "empty"))):
+	for entry in RpgSystemsRowBuilder.summary_entries(String(tab.get("summary", "empty"))):
 		var title := String(entry.get("title", "Item"))
 		var detail := String(details_by_name.get(title, "No item details available."))
 		rows_data.append({
@@ -42,14 +46,15 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 	return rows_data
 
 
-static func _transfer_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+static func _transfer_rows(tab: Dictionary, category: String) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
-	var target_value: Variant = state.get("transfer_target", {})
+	var transfer: Dictionary = tab.get("transfer", {})
+	var target_value: Variant = transfer.get("target", {})
 	var target: Dictionary = target_value if target_value is Dictionary else {}
 	var target_name := String(target.get("name", "Container"))
 	_append_transfer_side_rows(
 		rows_data,
-		RpgSystemsRowBuilder.array_field(state.get("transfer_player_items", [])),
+		RpgSystemsRowBuilder.array_field(transfer.get("player_items", [])),
 		"player",
 		"Player Pack",
 		"put",
@@ -57,7 +62,7 @@ static func _transfer_rows(state: Dictionary, category: String) -> Array[Diction
 	)
 	_append_transfer_side_rows(
 		rows_data,
-		RpgSystemsRowBuilder.array_field(state.get("transfer_target_items", [])),
+		RpgSystemsRowBuilder.array_field(transfer.get("target_items", [])),
 		"target",
 		target_name,
 		"take",
@@ -123,9 +128,9 @@ static func _transfer_category_matches(
 	return category == item_category
 
 
-static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[Dictionary]:
+static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
-	for item in RpgSystemsRowBuilder.array_field(state.get("inventory_items", [])):
+	for item in RpgSystemsRowBuilder.array_field(tab.get("items", [])):
 		if not item is Dictionary:
 			continue
 		var item_category := _inventory_category(item)
@@ -136,7 +141,7 @@ static func _typed_inventory_rows(state: Dictionary, category: String) -> Array[
 		if name.is_empty() or count <= 0:
 			continue
 		var action := RpgSystemsRowBuilder.action_for_item_id(
-			RpgSystemsRowBuilder.array_field(state.get("inventory_actions", [])),
+			RpgSystemsRowBuilder.array_field(tab.get("actions", [])),
 			String(item.get("item_id", ""))
 		)
 		var action_id := String(action.get(

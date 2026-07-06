@@ -2,6 +2,7 @@ class_name RpgTransferPaneBuilder
 extends RefCounted
 
 const RpgTransferItemButton = preload("res://scripts/ui/controls/rpg_transfer_item_button.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 static func refresh(
 	container: BoxContainer,
@@ -11,7 +12,9 @@ static func refresh(
 	compact: bool
 ) -> void:
 	_clear_children(container)
-	var target: Dictionary = state.get("transfer_target", {})
+	var inventory_tab := SystemsTabState.inventory(state)
+	var transfer: Dictionary = inventory_tab.get("transfer", {})
+	var target: Dictionary = transfer.get("target", {})
 	var target_name := String(target.get("name", "Container"))
 	var target_short := "Body" if target_name.ends_with(" Body") else "Target"
 	var panes: BoxContainer = VBoxContainer.new() if compact else HBoxContainer.new()
@@ -23,12 +26,12 @@ static func refresh(
 	container.add_child(panes)
 	_add_side(
 		panes, "TransferPlayerInventory", "Your Inventory",
-		_array_field(state.get("transfer_player_items", [])), "put", target_short,
+		_array_field(transfer.get("player_items", [])), "put", target_short,
 		category, action_selected
 	)
 	_add_side(
 		panes, "TransferTargetInventory", target_name,
-		_array_field(state.get("transfer_target_items", [])), "take", "Pack",
+		_array_field(transfer.get("target_items", [])), "take", "Pack",
 		category, action_selected
 	)
 

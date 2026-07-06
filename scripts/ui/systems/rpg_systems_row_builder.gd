@@ -8,6 +8,7 @@ const RpgSystemsCharacterRows = preload("res://scripts/ui/systems/rpg_systems_ch
 const RpgSystemsQuestRows = preload("res://scripts/ui/systems/rpg_systems_quest_rows.gd")
 const RpgSystemsJournalRows = preload("res://scripts/ui/systems/rpg_systems_journal_rows.gd")
 const RpgSystemsTradeRows = preload("res://scripts/ui/systems/rpg_systems_trade_rows.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 
 static func rows(
@@ -284,7 +285,8 @@ static func detail_lines_by_name(details: String) -> Dictionary:
 
 static func quest_detail_for_text(state: Dictionary, quest_text: String) -> String:
 	var lines: Array[String] = [quest_text]
-	var directions := String(state.get("quest_directions", "none"))
+	var quest_tab := SystemsTabState.quests(state)
+	var directions := String(quest_tab.get("directions", "none"))
 	if not directions.is_empty() and directions != "none":
 		lines.append("")
 		lines.append(RpgNavigationTextBuilder.friendly_route_lines(directions))

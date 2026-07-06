@@ -1,6 +1,8 @@
 class_name RpgSystemsCharacterRows
 extends RefCounted
 
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+
 
 static func category_labels() -> Array:
 	return ["Overview", "Training", "Gear", "Effects"]
@@ -11,11 +13,12 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 
 
 static func _character_rows(state: Dictionary) -> Array[Dictionary]:
-	var health := String(state.get("player_health", "Health unknown"))
-	var mana := String(state.get("player_mana", "Mana unknown"))
-	var progression := String(state.get("progression", "Level 1"))
-	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
-	var statuses := String(state.get("statuses", "none"))
+	var tab := SystemsTabState.character(state)
+	var health := String(tab.get("health", "Health unknown"))
+	var mana := String(tab.get("mana", "Mana unknown"))
+	var progression := String(tab.get("progression", "Level 1"))
+	var equipment := String(tab.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
+	var statuses := String(tab.get("statuses", "none"))
 	var rows_data: Array[Dictionary] = [
 		{
 			"id": "character_health",
@@ -32,7 +35,7 @@ static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 			"subtitle": progression,
 			"meta": "Progression",
 			"detail": RpgSystemsRowBuilder.first_non_empty(
-				String(state.get("progression_details", "")),
+				String(tab.get("progression_details", "")),
 				progression
 			)
 		},
@@ -49,12 +52,12 @@ static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 			"subtitle": "None" if statuses == "none" else statuses,
 			"meta": "Status",
 			"detail": RpgSystemsRowBuilder.first_non_empty(
-				String(state.get("status_details", "")),
+				String(tab.get("status_details", "")),
 				"No active effects."
 			)
 		}
 	]
-	var actions := RpgSystemsRowBuilder.array_field(state.get("progression_actions", []))
+	var actions := RpgSystemsRowBuilder.array_field(tab.get("actions", []))
 	if not actions.is_empty() and actions[0] is Dictionary:
 		rows_data[1]["title"] = String(actions[0].get("text", "Training"))
 		rows_data[1]["action_id"] = String(actions[0].get("id", ""))

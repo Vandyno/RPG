@@ -1,25 +1,12 @@
 class_name SystemsActionBuilder
 extends RefCounted
 
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+
 
 static func actions_for_tab(state: Dictionary, active_tab: String) -> Array:
-	match active_tab:
-		"character":
-			return _array_field(state.get("progression_actions", []))
-		"trade":
-			return _array_field(state.get("trade_actions", []))
-		"quests":
-			return _array_field(state.get("quest_target_actions", []))
-		"journal", "log":
-			var actions := _array_field(state.get("time_actions", []))
-			actions.append({"id": "save:game", "text": "Save Game"})
-			actions.append({"id": "load:game", "text": "Load Game"})
-			return actions
-		"inventory":
-			return _array_field(state.get("inventory_actions", []))
-		_:
-			return []
-
-
-static func _array_field(value: Variant) -> Array:
-	return value if value is Array else []
+	var actions := SystemsTabState.actions_for_tab(state, active_tab)
+	if active_tab == "journal" or active_tab == "log":
+		actions.append({"id": "save:game", "text": "Save Game"})
+		actions.append({"id": "load:game", "text": "Load Game"})
+	return actions

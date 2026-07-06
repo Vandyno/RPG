@@ -85,11 +85,45 @@ static func build(source) -> Dictionary:
 	var shop_id: String = String(ctx.shop_id_for_entity.call(nearby))
 	var target_name := "Destination" if ctx.auto_move_active else _target_name(displayed)
 	var target_detail := "Moving" if ctx.auto_move_active else _target_detail(ctx, displayed)
+	var inventory_summary := String(ctx.inventory_text.call())
+	var inventory_items := _inventory_items_data(ctx)
+	var inventory_details := String(ctx.inventory_details_text.call())
+	var inventory_actions = ctx.inventory_actions_data.call()
+	var transfer_open := not ctx.active_transfer_owner_id.is_empty()
+	var transfer_target := {
+		"owner_id": ctx.active_transfer_owner_id,
+		"name": ctx.active_transfer_name
+	}
+	var transfer_target_items := _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id)
+	var trade_summary := String(ctx.trade_text.call(shop_id))
+	var trade_actions: Array = ctx.trade_actions_data.call(shop_id)
+	var progression_summary := String(ctx.progression.get_summary())
+	var progression_details := String(ctx.progression.get_details())
+	var progression_actions: Array = ctx.progression_actions_data.call()
+	var status_summary := String(ctx.statuses.get_summary())
+	var status_details := String(ctx.statuses.get_details())
+	var time_summary := String(ctx.time.get_summary())
+	var time_actions := [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}]
+	var location_names := LocationTextBuilder.names(ctx.world_state.discovered_locations, ctx.content)
+	var location_details := LocationTextBuilder.details(
+		ctx.world_state.discovered_locations, ctx.content
+	)
+	var quest_directions := QuestTargetTextBuilder.directions(
+		ctx.quests, ctx.entities, ctx.player.global_position
+	)
+	var quest_target_actions := _quest_target_actions(ctx)
+	var active_quests: Array = ctx.quests.get_active_summary()
+	var player_health := "%d/%d" % [ctx.player.health, ctx.player.max_health]
+	var player_mana := "%d/%d" % [
+		int(roundf(ctx.player.mana)), int(roundf(ctx.player.max_mana))
+	]
+	var equipment_summary := String(ctx.equipment.get_summary())
+	var faction_summary := String(ctx.factions.get_summary())
 	return {
-		"player_health": "%d/%d" % [ctx.player.health, ctx.player.max_health],
+		"player_health": player_health,
 		"player_health_value": ctx.player.health,
 		"player_max_health": ctx.player.max_health,
-		"player_mana": "%d/%d" % [int(roundf(ctx.player.mana)), int(roundf(ctx.player.max_mana))],
+		"player_mana": player_mana,
 		"player_mana_value": ctx.player.mana,
 		"player_max_mana": ctx.player.max_mana,
 		"player_sneaking": ctx.player.is_sneaking,
@@ -98,39 +132,61 @@ static func build(source) -> Dictionary:
 		"target_detail": target_detail,
 		"nearby_targets": ctx.nearby_targets_data.call(),
 		"context_actions": MainContextActions.secondary(ctx.context_actions_context, nearby),
-		"inventory": String(ctx.inventory_text.call()),
-		"inventory_items": _inventory_items_data(ctx),
-		"inventory_details": String(ctx.inventory_details_text.call()),
-		"inventory_actions": ctx.inventory_actions_data.call(),
-		"transfer_open": not ctx.active_transfer_owner_id.is_empty(),
-		"transfer_target": {
-			"owner_id": ctx.active_transfer_owner_id,
-			"name": ctx.active_transfer_name
-		},
-		"transfer_player_items": _inventory_items_data(ctx),
-		"transfer_target_items": _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id),
+		"inventory": inventory_summary,
+		"inventory_items": inventory_items,
+		"inventory_details": inventory_details,
+		"inventory_actions": inventory_actions,
+		"transfer_open": transfer_open,
+		"transfer_target": transfer_target,
+		"transfer_player_items": inventory_items,
+		"transfer_target_items": transfer_target_items,
 		"spells": _spells_data(ctx),
 		"spell_slots": _spell_slots_data(ctx),
-		"trade": String(ctx.trade_text.call(shop_id)),
-		"trade_actions": ctx.trade_actions_data.call(shop_id),
-		"equipment": ctx.equipment.get_summary(),
+		"trade": trade_summary,
+		"trade_actions": trade_actions,
+		"equipment": equipment_summary,
 		"equipment_slots": _equipment_slots_data(ctx),
-		"factions": ctx.factions.get_summary(),
-		"progression": ctx.progression.get_summary(),
-		"progression_details": ctx.progression.get_details(),
-		"progression_actions": ctx.progression_actions_data.call(),
-		"statuses": ctx.statuses.get_summary(),
-		"status_details": ctx.statuses.get_details(),
-		"time": ctx.time.get_summary(),
-		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}],
+		"factions": faction_summary,
+		"progression": progression_summary,
+		"progression_details": progression_details,
+		"progression_actions": progression_actions,
+		"statuses": status_summary,
+		"status_details": status_details,
+		"time": time_summary,
+		"time_actions": time_actions,
 		"time_details": ctx.time.get_details(),
-		"locations": LocationTextBuilder.names(ctx.world_state.discovered_locations, ctx.content),
-		"location_details":
-		LocationTextBuilder.details(ctx.world_state.discovered_locations, ctx.content),
-		"quest_directions":
-		QuestTargetTextBuilder.directions(ctx.quests, ctx.entities, ctx.player.global_position),
-		"quest_target_actions": _quest_target_actions(ctx),
-		"quests": ctx.quests.get_active_summary()
+		"locations": location_names,
+		"location_details": location_details,
+		"quest_directions": quest_directions,
+		"quest_target_actions": quest_target_actions,
+		"quests": active_quests,
+		"system_tabs": _system_tabs({
+			"inventory_summary": inventory_summary,
+			"inventory_items": inventory_items,
+			"inventory_details": inventory_details,
+			"inventory_actions": inventory_actions,
+			"transfer_open": transfer_open,
+			"transfer_target": transfer_target,
+			"transfer_target_items": transfer_target_items,
+			"player_health": player_health,
+			"player_mana": player_mana,
+			"progression": progression_summary,
+			"progression_details": progression_details,
+			"progression_actions": progression_actions,
+			"equipment": equipment_summary,
+			"statuses": status_summary,
+			"status_details": status_details,
+			"trade": trade_summary,
+			"trade_actions": trade_actions,
+			"quests": active_quests,
+			"quest_directions": quest_directions,
+			"quest_target_actions": quest_target_actions,
+			"time": time_summary,
+			"time_actions": time_actions,
+			"factions": faction_summary,
+			"locations": location_names,
+			"location_details": location_details
+		})
 	}
 
 
@@ -147,6 +203,49 @@ static func _primary_action(ctx: HudContext, nearby, auto_target) -> String:
 	if nearby and nearby.get_kind() == "poi":
 		return PoiInteraction.primary_action_text(nearby)
 	return PrimaryActionTextBuilder.for_kind(nearby.get_kind()) if nearby else "Explore"
+
+
+static func _system_tabs(values: Dictionary) -> Dictionary:
+	return {
+		"inventory": {
+			"summary": values.get("inventory_summary", "empty"),
+			"items": values.get("inventory_items", []),
+			"details": values.get("inventory_details", ""),
+			"actions": values.get("inventory_actions", []),
+			"transfer": {
+				"open": values.get("transfer_open", false),
+				"target": values.get("transfer_target", {}),
+				"player_items": values.get("inventory_items", []),
+				"target_items": values.get("transfer_target_items", [])
+			}
+		},
+		"character": {
+			"health": values.get("player_health", "Health unknown"),
+			"mana": values.get("player_mana", "Mana unknown"),
+			"progression": values.get("progression", "Level 1"),
+			"progression_details": values.get("progression_details", ""),
+			"equipment": values.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"),
+			"statuses": values.get("statuses", "none"),
+			"status_details": values.get("status_details", ""),
+			"actions": values.get("progression_actions", [])
+		},
+		"trade": {
+			"summary": values.get("trade", "No trader selected."),
+			"actions": values.get("trade_actions", [])
+		},
+		"quests": {
+			"quests": values.get("quests", []),
+			"directions": values.get("quest_directions", "none"),
+			"actions": values.get("quest_target_actions", [])
+		},
+		"journal": {
+			"time": values.get("time", "Day 1, 08:00"),
+			"actions": values.get("time_actions", []),
+			"factions": values.get("factions", ""),
+			"locations": values.get("locations", ""),
+			"location_details": values.get("location_details", "")
+		}
+	}
 
 
 static func _target_name(entity) -> String:

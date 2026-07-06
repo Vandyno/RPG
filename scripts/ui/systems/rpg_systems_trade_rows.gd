@@ -1,14 +1,18 @@
 class_name RpgSystemsTradeRows
 extends RefCounted
 
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+
 
 static func category_labels() -> Array:
 	return ["Stock", "Buy", "Sell"]
 
 
 static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var tab := SystemsTabState.trade(state)
+	var actions := RpgSystemsRowBuilder.array_field(tab.get("actions", []))
 	var rows_data: Array[Dictionary] = []
-	var trade_text := String(state.get("trade", "No trader selected."))
+	var trade_text := String(tab.get("summary", "No trader selected."))
 	var lines := RpgSystemsRowBuilder.non_empty_lines(trade_text)
 	if not lines.is_empty() and not lines[0].contains(":") and not lines[0].begins_with("-"):
 		var merchant_name := lines[0]
@@ -31,8 +35,7 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 				var item_name := RpgSystemsRowBuilder.title_before_colon(stock_text)
 				var price := RpgSystemsRowBuilder.text_after_colon(stock_text, "").strip_edges()
 				var action_id := RpgSystemsRowBuilder.action_id_for_text(
-					RpgSystemsRowBuilder.array_field(state.get("trade_actions", [])),
-					"Buy %s" % item_name
+					actions, "Buy %s" % item_name
 				)
 				rows_data.append({
 					"id": "trade_stock_%d" % rows_data.size(),
@@ -52,7 +55,7 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 				"meta": "Sell",
 				"detail": "No sellable items in your pack."
 			})
-		for action in RpgSystemsRowBuilder.array_field(state.get("trade_actions", [])):
+		for action in actions:
 			if not action is Dictionary:
 				continue
 			var text := String(action.get("text", ""))

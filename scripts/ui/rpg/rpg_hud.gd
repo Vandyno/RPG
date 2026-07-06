@@ -1,3 +1,4 @@
+# gdlint:disable=max-file-lines
 class_name RpgHud
 extends "res://scripts/ui/shell/hud_runtime_base.gd"
 signal aim_action_released(action_id: String, direction: Vector2)
@@ -5,6 +6,7 @@ signal aim_action_held(action_id: String, direction: Vector2, delta: float)
 signal sneak_pressed
 const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/text/rpg_systems_text_builder.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgTransferPaneBuilder = preload("res://scripts/ui/systems/rpg_transfer_pane_builder.gd")
 const RpgContentPanelBuilder = preload("res://scripts/ui/content/rpg_content_panel_builder.gd")
 const RpgContentChoiceBuilder = preload("res://scripts/ui/content/rpg_content_choice_builder.gd")
@@ -663,7 +665,9 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	RpgActionClusterBuilder.refresh_ability_buttons(ability_slot_buttons, spell_slots)
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
-	if systems_active_tab == "inventory" and bool(state.get("transfer_open", false)):
+	var inventory_tab := SystemsTabState.inventory(state)
+	var transfer: Dictionary = inventory_tab.get("transfer", {})
+	if systems_active_tab == "inventory" and bool(transfer.get("open", false)):
 		if systems_detail_panel:
 			systems_detail_panel.visible = false
 		if systems_character_panel:
@@ -677,9 +681,11 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
-	if systems_active_tab == "inventory" and bool(state.get("transfer_open", false)):
+	var inventory_tab := SystemsTabState.inventory(state)
+	var transfer: Dictionary = inventory_tab.get("transfer", {})
+	if systems_active_tab == "inventory" and bool(transfer.get("open", false)):
 		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-		var target: Dictionary = state.get("transfer_target", {})
+		var target: Dictionary = transfer.get("target", {})
 		_refresh_category_row(systems_active_tab)
 		RpgTransferPaneBuilder.refresh(
 			systems_item_list, state, systems_active_category,

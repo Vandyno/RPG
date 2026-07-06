@@ -2,6 +2,7 @@ class_name RpgSystemsTextBuilder
 extends RefCounted
 
 const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 
 static func title(tab_id: String) -> String:
@@ -27,10 +28,12 @@ static func subtitle(tab_id: String) -> String:
 
 
 static func resource_text(state: Dictionary) -> String:
-	var inventory := String(state.get("inventory", "empty"))
+	var inventory_tab := SystemsTabState.inventory(state)
+	var journal_tab := SystemsTabState.journal(state)
+	var inventory := String(inventory_tab.get("summary", "empty"))
 	var gold := _count_named_entry(inventory, "Gold Coin")
-	var time := String(state.get("time", "Day 1, 08:00"))
-	var carry := _carry_weight(_array_field(state.get("inventory_items", [])))
+	var time := String(journal_tab.get("time", "Day 1, 08:00"))
+	var carry := _carry_weight(_array_field(inventory_tab.get("items", [])))
 	var capacity := maxf(1.0, float(state.get("carry_capacity", 90.0)))
 	var mana := String(state.get("player_mana", "0/0"))
 	return "Gold %d     MP %s     Carry %s/%s     %s" % [
@@ -41,34 +44,39 @@ static func resource_text(state: Dictionary) -> String:
 static func detail_text(state: Dictionary, tab_id: String) -> String:
 	match tab_id:
 		"inventory":
+			var inventory_tab := SystemsTabState.inventory(state)
 			return _first_non_empty(
-				String(state.get("inventory_details", "")),
+				String(inventory_tab.get("details", "")),
 				"Select an item to see details."
 			)
 		"spells":
 			return "Drag known spells into Ability I, II, or III."
 		"character":
+			var character_tab := SystemsTabState.character(state)
 			return _first_non_empty(
-				String(state.get("progression_details", "")),
-				String(state.get("progression", "Level 1"))
+				String(character_tab.get("progression_details", "")),
+				String(character_tab.get("progression", "Level 1"))
 			)
 		"quests":
 			return _quest_detail_text(state)
 		"journal":
-			return _first_non_empty(String(state.get("factions", "")), "No reputation notes.")
+			var journal_tab := SystemsTabState.journal(state)
+			return _first_non_empty(String(journal_tab.get("factions", "")), "No reputation notes.")
 		"trade":
-			return _first_non_empty(String(state.get("trade", "")), "No trader selected.")
+			var trade_tab := SystemsTabState.trade(state)
+			return _first_non_empty(String(trade_tab.get("summary", "")), "No trader selected.")
 	return ""
 
 
 static func character_text(state: Dictionary) -> String:
+	var tab := SystemsTabState.character(state)
 	var lines: Array[String] = []
-	lines.append("Health %s" % String(state.get("player_health", "unknown")))
-	lines.append("Mana %s" % String(state.get("player_mana", "unknown")))
-	lines.append(String(state.get("progression", "Level 1")))
+	lines.append("Health %s" % String(tab.get("health", "unknown")))
+	lines.append("Mana %s" % String(tab.get("mana", "unknown")))
+	lines.append(String(tab.get("progression", "Level 1")))
 	lines.append("")
-	lines.append(String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty")))
-	var statuses := String(state.get("statuses", "none"))
+	lines.append(String(tab.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty")))
+	var statuses := String(tab.get("statuses", "none"))
 	if statuses != "none":
 		lines.append("")
 		lines.append("Effects: %s" % statuses)
@@ -76,10 +84,11 @@ static func character_text(state: Dictionary) -> String:
 
 
 static func character_rows(state: Dictionary) -> Array[Dictionary]:
-	var equipment := String(state.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
-	var statuses := String(state.get("statuses", "none"))
-	var health := String(state.get("player_health", "unknown"))
-	var mana := String(state.get("player_mana", "unknown"))
+	var tab := SystemsTabState.character(state)
+	var equipment := String(tab.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"))
+	var statuses := String(tab.get("statuses", "none"))
+	var health := String(tab.get("health", "unknown"))
+	var mana := String(tab.get("mana", "unknown"))
 	return [
 		{
 			"title": "Vitals",
@@ -87,7 +96,7 @@ static func character_rows(state: Dictionary) -> Array[Dictionary]:
 		},
 		{
 			"title": "Training",
-			"value": String(state.get("progression", "Level 1"))
+			"value": String(tab.get("progression", "Level 1"))
 		},
 		{
 			"title": "Equipment",
@@ -111,13 +120,14 @@ static func level_from_progression(text: String) -> int:
 
 
 static func _quest_detail_text(state: Dictionary) -> String:
-	var quests := _array_field(state.get("quests", []))
+	var tab := SystemsTabState.quests(state)
+	var quests := _array_field(tab.get("quests", []))
 	if quests.is_empty():
 		return "No active quests."
 	var lines: Array[String] = []
 	for quest in quests:
 		lines.append(String(quest))
-	var directions := String(state.get("quest_directions", "none"))
+	var directions := String(tab.get("directions", "none"))
 	if directions != "none" and not directions.is_empty():
 		lines.append("")
 		lines.append(RpgNavigationTextBuilder.friendly_route_lines(directions))

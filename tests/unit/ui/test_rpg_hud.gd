@@ -18,6 +18,11 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_true(main.hud is RpgHud)
 	assert_eq(main.get_hud_state()["primary_action"], main.get_debug_state()["primary_action"])
 	assert_true(main.get_hud_state()["inventory_items"] is Array)
+	var system_tabs: Dictionary = main.get_hud_state()["system_tabs"]
+	assert_true(system_tabs["inventory"]["items"] is Array)
+	assert_true(system_tabs["inventory"]["actions"] is Array)
+	assert_true(system_tabs["character"].has("progression"))
+	assert_true(system_tabs["quests"].has("directions"))
 	assert_true(main.inventory.add_item("item_road_hatchet"))
 	var hud_items: Array = main.get_hud_state()["inventory_items"]
 	assert_gt(hud_items.size(), 0)
