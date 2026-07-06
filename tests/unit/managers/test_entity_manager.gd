@@ -1,8 +1,8 @@
 # gdlint:disable=max-public-methods
 extends GutTest
 
-const EntityManager = preload("res://scripts/managers/entity_manager.gd")
-const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const EntityManager = preload("res://scripts/managers/world/entity_manager.gd")
+const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")

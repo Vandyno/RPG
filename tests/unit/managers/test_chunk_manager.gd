@@ -1,6 +1,6 @@
 extends GutTest
 
-const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
 
 
 func test_chunk_manager_constructor_does_not_load_authored_terrain() -> void:

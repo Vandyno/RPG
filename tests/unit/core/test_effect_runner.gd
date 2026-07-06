@@ -3,14 +3,14 @@ extends GutTest
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const EffectRunner = preload("res://scripts/core/effect_runner.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const FactionManager = preload("res://scripts/managers/faction_manager.gd")
-const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
+const FactionManager = preload("res://scripts/managers/content/faction_manager.gd")
+const InventoryManager = preload("res://scripts/managers/actors/inventory_manager.gd")
 const PlayerController = preload("res://scripts/player/player_controller.gd")
-const ProgressionManager = preload("res://scripts/managers/progression_manager.gd")
-const QuestManager = preload("res://scripts/managers/quest_manager.gd")
-const StatusEffectManager = preload("res://scripts/managers/status_effect_manager.gd")
-const TimeManager = preload("res://scripts/managers/time_manager.gd")
-const WorldStateManager = preload("res://scripts/managers/world_state_manager.gd")
+const ProgressionManager = preload("res://scripts/managers/actors/progression_manager.gd")
+const QuestManager = preload("res://scripts/managers/content/quest_manager.gd")
+const StatusEffectManager = preload("res://scripts/managers/actors/status_effect_manager.gd")
+const TimeManager = preload("res://scripts/managers/content/time_manager.gd")
+const WorldStateManager = preload("res://scripts/managers/world/world_state_manager.gd")
 
 
 func test_effect_runner_applies_supported_effects() -> void:

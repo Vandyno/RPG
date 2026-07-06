@@ -1,13 +1,13 @@
 # gdlint:disable=max-public-methods
 extends GutTest
 
-const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
+const InventoryManager = preload("res://scripts/managers/actors/inventory_manager.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
-const WorldStateManager = preload("res://scripts/managers/world_state_manager.gd")
-const ReadableManager = preload("res://scripts/managers/readable_manager.gd")
-const EquipmentManager = preload("res://scripts/managers/equipment_manager.gd")
-const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
-const WorldStreamingManager = preload("res://scripts/managers/world_streaming_manager.gd")
+const WorldStateManager = preload("res://scripts/managers/world/world_state_manager.gd")
+const ReadableManager = preload("res://scripts/managers/content/readable_manager.gd")
+const EquipmentManager = preload("res://scripts/managers/actors/equipment_manager.gd")
+const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
+const WorldStreamingManager = preload("res://scripts/managers/world/world_streaming_manager.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 

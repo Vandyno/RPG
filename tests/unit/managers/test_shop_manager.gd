@@ -2,10 +2,10 @@ extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const EquipmentManager = preload("res://scripts/managers/equipment_manager.gd")
-const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
-const ShopManager = preload("res://scripts/managers/shop_manager.gd")
-const TimeManager = preload("res://scripts/managers/time_manager.gd")
+const EquipmentManager = preload("res://scripts/managers/actors/equipment_manager.gd")
+const InventoryManager = preload("res://scripts/managers/actors/inventory_manager.gd")
+const ShopManager = preload("res://scripts/managers/content/shop_manager.gd")
+const TimeManager = preload("res://scripts/managers/content/time_manager.gd")
 
 
 func test_shop_buys_and_sells_with_gold_and_item_caps() -> void:

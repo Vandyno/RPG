@@ -1,6 +1,6 @@
 extends GutTest
 
-const SaveManager = preload("res://scripts/managers/save_manager.gd")
+const SaveManager = preload("res://scripts/managers/persistence/save_manager.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 const TEST_SAVE_PATH := "user://test_save_manager.json"

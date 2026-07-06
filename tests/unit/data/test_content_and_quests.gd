@@ -3,10 +3,10 @@ extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
-const QuestManager = preload("res://scripts/managers/quest_manager.gd")
+const QuestManager = preload("res://scripts/managers/content/quest_manager.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
-const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
-const EntityManager = preload("res://scripts/managers/entity_manager.gd")
+const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
+const EntityManager = preload("res://scripts/managers/world/entity_manager.gd")
 
 const PEOPLE_TEST_ENEMIES := [
 	{

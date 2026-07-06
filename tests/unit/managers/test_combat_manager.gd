@@ -1,6 +1,6 @@
 extends GutTest
 
-const CombatManager = preload("res://scripts/managers/combat_manager.gd")
+const CombatManager = preload("res://scripts/managers/actors/combat_manager.gd")
 
 
 class EnemyStub:

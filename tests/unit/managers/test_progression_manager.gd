@@ -1,7 +1,7 @@
 extends GutTest
 
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const ProgressionManager = preload("res://scripts/managers/progression_manager.gd")
+const ProgressionManager = preload("res://scripts/managers/actors/progression_manager.gd")
 
 
 func test_progression_adds_xp_levels_up_and_emits_changes() -> void:

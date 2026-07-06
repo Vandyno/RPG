@@ -2,7 +2,7 @@ extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const FactionManager = preload("res://scripts/managers/faction_manager.gd")
+const FactionManager = preload("res://scripts/managers/content/faction_manager.gd")
 
 
 func test_faction_reputation_changes_clamps_summarizes_and_saves() -> void:

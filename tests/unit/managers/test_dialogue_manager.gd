@@ -2,15 +2,15 @@ extends GutTest
 
 const ConditionEvaluator = preload("res://scripts/core/condition_evaluator.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
-const DialogueManager = preload("res://scripts/managers/dialogue_manager.gd")
+const DialogueManager = preload("res://scripts/managers/content/dialogue_manager.gd")
 const EffectRunner = preload("res://scripts/core/effect_runner.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const FactionManager = preload("res://scripts/managers/faction_manager.gd")
-const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
-const ProgressionManager = preload("res://scripts/managers/progression_manager.gd")
-const QuestManager = preload("res://scripts/managers/quest_manager.gd")
-const ReadableManager = preload("res://scripts/managers/readable_manager.gd")
-const WorldStateManager = preload("res://scripts/managers/world_state_manager.gd")
+const FactionManager = preload("res://scripts/managers/content/faction_manager.gd")
+const InventoryManager = preload("res://scripts/managers/actors/inventory_manager.gd")
+const ProgressionManager = preload("res://scripts/managers/actors/progression_manager.gd")
+const QuestManager = preload("res://scripts/managers/content/quest_manager.gd")
+const ReadableManager = preload("res://scripts/managers/content/readable_manager.gd")
+const WorldStateManager = preload("res://scripts/managers/world/world_state_manager.gd")
 
 
 func test_dialogue_manager_resolves_first_valid_line_and_applies_effects() -> void:

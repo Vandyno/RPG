@@ -1,7 +1,7 @@
 extends GutTest
 
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const TimeManager = preload("res://scripts/managers/time_manager.gd")
+const TimeManager = preload("res://scripts/managers/content/time_manager.gd")
 
 
 func test_time_advances_across_day_boundaries_and_emits_changes() -> void:

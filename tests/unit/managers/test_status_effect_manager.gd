@@ -2,7 +2,7 @@ extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
-const StatusEffectManager = preload("res://scripts/managers/status_effect_manager.gd")
+const StatusEffectManager = preload("res://scripts/managers/actors/status_effect_manager.gd")
 
 
 func test_status_effects_apply_summarize_consume_and_save() -> void:

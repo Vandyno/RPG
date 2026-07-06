@@ -1,8 +1,8 @@
 extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
-const EquipmentManager = preload("res://scripts/managers/equipment_manager.gd")
-const InventoryManager = preload("res://scripts/managers/inventory_manager.gd")
+const EquipmentManager = preload("res://scripts/managers/actors/equipment_manager.gd")
+const InventoryManager = preload("res://scripts/managers/actors/inventory_manager.gd")
 
 
 func test_equipment_supports_full_character_slot_contract() -> void:
