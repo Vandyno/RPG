@@ -15,7 +15,6 @@ const RpgStatusTextBuilder = preload("res://scripts/ui/rpg_status_text_builder.g
 const RpgSystemsCharacterPaneBuilder = preload(
 	"res://scripts/ui/rpg_systems_character_pane_builder.gd"
 )
-const RpgTargetPanelBuilder = preload("res://scripts/ui/rpg_target_panel_builder.gd")
 const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
 const RpgIconButton = preload("res://scripts/ui/rpg_icon_button.gd")
 const RpgDetailLabel = preload("res://scripts/ui/rpg_detail_label.gd")
@@ -351,14 +350,9 @@ func _add_nav_button(text: String, icon: String, callback: Callable) -> void:
 	button.pressed.connect(callback)
 	top_nav_buttons.add_child(button)
 func _build_target_panel() -> void:
-	var nodes := RpgTargetPanelBuilder.build(
-		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
-		Callable(self, "_new_label"), Callable(self, "_new_button"),
-		Callable(self, "hide_target_picker")
-	)
-	target_panel = nodes["panel"]
-	target_scroll = nodes["scroll"]
-	target_list = nodes["list"]
+	target_panel = null
+	target_scroll = null
+	target_list = null
 func _build_context_action_panel() -> void:
 	var nodes := RpgContextActionPanelBuilder.build(
 		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
@@ -463,7 +457,6 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 		context_action_panel, context_action_buttons, visible_context_action_count,
 		viewport_size, compact, HUD_MARGIN
 	)
-	RpgTargetPanelBuilder.apply_layout(target_panel, target_list, viewport_size, compact, HUD_MARGIN)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 	_layout_message_panel(viewport_size, compact)
@@ -629,12 +622,6 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 
 func _press_target_control() -> void:
 	sneak_pressed.emit()
-func toggle_target_picker() -> void:
-	if target_panel:
-		target_panel.visible = false
-
-func is_target_picker_visible() -> bool:
-	return false
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
 		return
@@ -866,9 +853,6 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if content_preview_panel:
 		content_preview_panel.visible = not content_preview_label.text.is_empty()
 
-func _refresh_target_picker(_state: Dictionary) -> void:
-	if target_panel:
-		target_panel.visible = false
 func _refresh_context_actions(state: Dictionary) -> void:
 	if not context_action_buttons:
 		return

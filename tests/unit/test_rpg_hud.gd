@@ -142,13 +142,11 @@ func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	hud.toggle_target_picker()
 
 	assert_false(hud.is_target_picker_visible())
-	assert_false(hud.target_panel.visible)
+	assert_null(hud.target_panel)
 	assert_eq(used_targets, [])
 	assert_true(hud.action_buttons.visible)
 	assert_true(hud.move_pad.visible)
 
-	var close := hud.target_panel.find_child("TargetCloseButton", true, false) as Button
-	assert_null(close)
 	assert_eq(hud.target_action_button.text, "Sneak")
 	hud.target_action_button.pressed.emit()
 	assert_eq(sneak_events, ["sneak"])

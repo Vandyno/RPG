@@ -754,16 +754,17 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	debug_panel.offset_bottom = debug_bottom
 
 	var target_width := minf(320.0, maxf(220.0, viewport_size.x - HUD_MARGIN * 2.0))
-	target_panel.offset_left = -target_width - HUD_MARGIN
-	target_panel.offset_right = -HUD_MARGIN
-	var target_top := 108.0 if compact else 112.0
-	var target_bottom := (
-		viewport_size.y - 80.0 if compact else minf(344.0, viewport_size.y - HUD_MARGIN)
-	)
-	if target_bottom - target_top < 132.0:
-		target_top = maxf(HUD_MARGIN, target_bottom - 132.0)
-	target_panel.offset_top = target_top
-	target_panel.offset_bottom = target_bottom
+	if target_panel:
+		target_panel.offset_left = -target_width - HUD_MARGIN
+		target_panel.offset_right = -HUD_MARGIN
+		var target_top := 108.0 if compact else 112.0
+		var target_bottom := (
+			viewport_size.y - 80.0 if compact else minf(344.0, viewport_size.y - HUD_MARGIN)
+		)
+		if target_bottom - target_top < 132.0:
+			target_top = maxf(HUD_MARGIN, target_bottom - 132.0)
+		target_panel.offset_top = target_top
+		target_panel.offset_bottom = target_bottom
 
 	var context_width := minf(304.0, maxf(220.0, viewport_size.x - HUD_MARGIN * 2.0))
 	context_action_panel.offset_left = -context_width - HUD_MARGIN

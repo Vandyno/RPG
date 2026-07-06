@@ -10,7 +10,7 @@ func test_rpg_target_picker_is_disabled() -> void:
 	main.hud.toggle_target_picker()
 
 	assert_false(main.hud.is_target_picker_visible())
-	assert_false(main.hud.target_panel.visible)
+	assert_null(main.hud.target_panel)
 	assert_eq(main.hud.target_action_button.text, "Sneak")
 
 

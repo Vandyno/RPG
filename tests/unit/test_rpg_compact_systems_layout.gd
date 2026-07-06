@@ -268,7 +268,7 @@ func test_target_picker_stays_closed_in_rpg_hud() -> void:
 	hud.toggle_target_picker()
 
 	assert_false(hud.is_target_picker_visible())
-	assert_false(hud.target_panel.visible)
+	assert_null(hud.target_panel)
 
 
 func test_quest_routes_use_player_facing_distance_text() -> void:
