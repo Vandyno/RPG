@@ -2,8 +2,8 @@ class_name RpgSystemsCharacterPaneBuilder
 extends RefCounted
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
-const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
-const RpgPortraitSilhouette = preload("res://scripts/ui/rpg_portrait_silhouette.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/controls/rpg_equipment_slot.gd")
+const RpgPortraitSilhouette = preload("res://scripts/ui/controls/rpg_portrait_silhouette.gd")
 
 
 static func build(

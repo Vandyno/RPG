@@ -1,6 +1,6 @@
 extends GutTest
 
-const HudTextBuilder = preload("res://scripts/ui/hud_text_builder.gd")
+const HudTextBuilder = preload("res://scripts/ui/text/hud_text_builder.gd")
 
 
 func test_status_text_omits_quests_and_targets() -> void:

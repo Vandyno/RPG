@@ -1,7 +1,7 @@
 class_name TargetUiTextBuilder
 extends RefCounted
 
-const ButtonTextFormatter = preload("res://scripts/ui/button_text_formatter.gd")
+const ButtonTextFormatter = preload("res://scripts/ui/text/button_text_formatter.gd")
 
 
 static func action_button_text(targets: Array, compact: bool, picker_visible: bool) -> String:

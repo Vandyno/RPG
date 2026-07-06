@@ -1,7 +1,7 @@
 class_name RpgTransferPaneBuilder
 extends RefCounted
 
-const RpgTransferItemButton = preload("res://scripts/ui/rpg_transfer_item_button.gd")
+const RpgTransferItemButton = preload("res://scripts/ui/controls/rpg_transfer_item_button.gd")
 
 static func refresh(
 	container: BoxContainer,

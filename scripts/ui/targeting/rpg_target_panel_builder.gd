@@ -1,7 +1,7 @@
 class_name RpgTargetPanelBuilder
 extends RefCounted
 
-const RpgNavigationTextBuilder = preload("res://scripts/ui/rpg_navigation_text_builder.gd")
+const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
 
 
 static func build(

@@ -1,6 +1,6 @@
 extends GutTest
 
-const HudLayoutMetrics = preload("res://scripts/ui/hud_layout_metrics.gd")
+const HudLayoutMetrics = preload("res://scripts/ui/shell/hud_layout_metrics.gd")
 
 
 func test_status_panel_metrics_keep_compact_empty_state_short() -> void:

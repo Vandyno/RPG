@@ -1,7 +1,7 @@
 class_name RpgSystemsTextBuilder
 extends RefCounted
 
-const RpgNavigationTextBuilder = preload("res://scripts/ui/rpg_navigation_text_builder.gd")
+const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
 
 
 static func title(tab_id: String) -> String:

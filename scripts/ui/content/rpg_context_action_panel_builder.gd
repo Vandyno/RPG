@@ -1,7 +1,7 @@
 class_name RpgContextActionPanelBuilder
 extends RefCounted
 
-const RpgContentChoiceButton = preload("res://scripts/ui/rpg_content_choice_button.gd")
+const RpgContentChoiceButton = preload("res://scripts/ui/controls/rpg_content_choice_button.gd")
 
 
 static func build(

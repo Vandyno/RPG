@@ -1,9 +1,9 @@
 class_name MainHudState
 extends RefCounted
 
-const LocationTextBuilder = preload("res://scripts/ui/location_text_builder.gd")
-const QuestTargetTextBuilder = preload("res://scripts/ui/quest_target_text_builder.gd")
-const PrimaryActionTextBuilder = preload("res://scripts/ui/primary_action_text_builder.gd")
+const LocationTextBuilder = preload("res://scripts/ui/text/location_text_builder.gd")
+const QuestTargetTextBuilder = preload("res://scripts/ui/text/quest_target_text_builder.gd")
+const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const MainContextActions = preload("res://scripts/main/main_context_actions.gd")
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")

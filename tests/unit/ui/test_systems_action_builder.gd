@@ -1,6 +1,6 @@
 extends GutTest
 
-const SystemsActionBuilder = preload("res://scripts/ui/systems_action_builder.gd")
+const SystemsActionBuilder = preload("res://scripts/ui/systems/systems_action_builder.gd")
 
 
 func test_actions_for_tab_routes_each_system_tab() -> void:

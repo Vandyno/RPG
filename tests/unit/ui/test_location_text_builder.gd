@@ -1,7 +1,7 @@
 extends GutTest
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
-const LocationTextBuilder = preload("res://scripts/ui/location_text_builder.gd")
+const LocationTextBuilder = preload("res://scripts/ui/text/location_text_builder.gd")
 
 
 func test_location_text_builder_summarizes_discovered_locations() -> void:

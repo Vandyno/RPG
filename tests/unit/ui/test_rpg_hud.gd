@@ -2,11 +2,11 @@
 extends GutTest
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const Main = preload("res://scripts/main/main.gd")
-const RpgHud = preload("res://scripts/ui/rpg_hud.gd")
-const RpgEquipmentSlot = preload("res://scripts/ui/rpg_equipment_slot.gd")
-const RpgInventoryItemButton = preload("res://scripts/ui/rpg_inventory_item_button.gd")
-const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
-const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
+const RpgHud = preload("res://scripts/ui/rpg/rpg_hud.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/controls/rpg_equipment_slot.gd")
+const RpgInventoryItemButton = preload("res://scripts/ui/controls/rpg_inventory_item_button.gd")
+const RpgAimJoystick = preload("res://scripts/ui/controls/rpg_aim_joystick.gd")
+const RpgSpellSlot = preload("res://scripts/ui/controls/rpg_spell_slot.gd")
 
 var _hud_state_override := {}
 

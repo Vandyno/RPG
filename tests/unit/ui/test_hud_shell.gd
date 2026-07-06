@@ -1,6 +1,6 @@
 extends GutTest
 
-const HudShell = preload("res://scripts/ui/hud_shell.gd")
+const HudShell = preload("res://scripts/ui/shell/hud_shell.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 

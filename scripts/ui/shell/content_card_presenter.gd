@@ -1,7 +1,7 @@
 class_name ContentCardPresenter
 extends RefCounted
 
-const UiActionButtons = preload("res://scripts/ui/ui_action_buttons.gd")
+const UiActionButtons = preload("res://scripts/ui/shell/ui_action_buttons.gd")
 
 
 static func build(

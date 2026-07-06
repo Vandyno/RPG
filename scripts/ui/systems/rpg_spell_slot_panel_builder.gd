@@ -1,7 +1,7 @@
 class_name RpgSpellSlotPanelBuilder
 extends RefCounted
 
-const RpgSpellSlot = preload("res://scripts/ui/rpg_spell_slot.gd")
+const RpgSpellSlot = preload("res://scripts/ui/controls/rpg_spell_slot.gd")
 const SLOT_IDS := ["ability_1", "ability_2", "ability_3"]
 
 

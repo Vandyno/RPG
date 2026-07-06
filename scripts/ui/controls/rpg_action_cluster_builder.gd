@@ -1,8 +1,8 @@
 class_name RpgActionClusterBuilder
 extends RefCounted
 
-const RpgAimJoystick = preload("res://scripts/ui/rpg_aim_joystick.gd")
-const RpgIconButton = preload("res://scripts/ui/rpg_icon_button.gd")
+const RpgAimJoystick = preload("res://scripts/ui/controls/rpg_aim_joystick.gd")
+const RpgIconButton = preload("res://scripts/ui/controls/rpg_icon_button.gd")
 
 
 static func build(
