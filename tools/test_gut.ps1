@@ -37,9 +37,9 @@ try {
   }
 
   $realClickScripts = @(
-    "scripts\tools\verify_body_loot_transfer_click.gd",
-    "scripts\tools\verify_rpg_ui_real_clicks.gd",
-    "scripts\tools\verify_debug_character_creator_clicks.gd"
+    "scripts\tools\verify\verify_body_loot_transfer_click.gd",
+    "scripts\tools\verify\verify_rpg_ui_real_clicks.gd",
+    "scripts\tools\verify\verify_debug_character_creator_clicks.gd"
   )
   foreach ($script in $realClickScripts) {
     & "$PSScriptRoot\godot.ps1" --headless --path . --script $script

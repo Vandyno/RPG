@@ -32,7 +32,7 @@ try {
     -replace 'window/size/viewport_width=\d+', "window/size/viewport_width=$Width" `
     -replace 'window/size/viewport_height=\d+', "window/size/viewport_height=$Height"
   [System.IO.File]::WriteAllText($projectPath, $nextProjectText, $utf8NoBom)
-  & $godot --path "." --script "res://scripts/tools/capture_quick_actions.gd" -- $Width $Height $outputPath
+  & $godot --path "." --script "res://scripts/tools/capture/capture_quick_actions.gd" -- $Width $Height $outputPath
   if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
   }

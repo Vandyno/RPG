@@ -33,7 +33,7 @@ try {
     -replace 'window/size/viewport_width=\d+', "window/size/viewport_width=$Width" `
     -replace 'window/size/viewport_height=\d+', "window/size/viewport_height=$Height"
   [System.IO.File]::WriteAllText($projectPath, $nextProjectText, $utf8NoBom)
-  & $godot --path "." --script "res://scripts/tools/capture_systems_menu.gd" -- $Width $Height $outputPath $Tab
+  & $godot --path "." --script "res://scripts/tools/capture/capture_systems_menu.gd" -- $Width $Height $outputPath $Tab
   if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
   }
