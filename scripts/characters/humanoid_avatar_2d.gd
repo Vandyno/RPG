@@ -5,6 +5,10 @@ extends Node2D
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const HumanoidPeopleFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_people_feature_drawer.gd"
+)
+const HumanoidEquipmentDrawer = preload("res://scripts/characters/humanoid_equipment_drawer.gd")
 
 const PALETTES := {
 	"palette_human_warm_brown":
@@ -229,7 +233,9 @@ func get_debug_draw_layer_order() -> Array[String]:
 	var appearance: Dictionary = profile.get("appearance", {})
 	var proportions: Dictionary = appearance.get("proportions", {})
 	var people_id := String(profile.get("people_id", ""))
-	order.append_array(_debug_people_feature_layer_entries(people_id, PEOPLE_FEATURE_LAYER_BACK))
+	order.append_array(
+		HumanoidPeopleFeatureDrawer.debug_layer_entries(self, people_id, PEOPLE_FEATURE_LAYER_BACK)
+	)
 	if equipped_visuals.has("back") and not _is_back_view():
 		order.append("equipment:back:rear")
 	order.append("body:feet")
@@ -244,10 +250,14 @@ func get_debug_draw_layer_order() -> Array[String]:
 		order.append("equipment:back:front")
 	if equipped_visuals.has("chest"):
 		order.append("equipment:chest")
-	order.append_array(_debug_people_feature_layer_entries(people_id, PEOPLE_FEATURE_LAYER_BODY))
+	order.append_array(
+		HumanoidPeopleFeatureDrawer.debug_layer_entries(self, people_id, PEOPLE_FEATURE_LAYER_BODY)
+	)
 	_append_debug_hand_layer(order, PEOPLE_FEATURE_LAYER_FRONT, proportions)
 	order.append("body:head")
-	order.append_array(_debug_people_feature_layer_entries(people_id, PEOPLE_FEATURE_LAYER_FRONT))
+	order.append_array(
+		HumanoidPeopleFeatureDrawer.debug_layer_entries(self, people_id, PEOPLE_FEATURE_LAYER_FRONT)
+	)
 	if _should_draw_hair(people_id):
 		order.append("hair")
 	if equipped_visuals.has("head"):
@@ -304,23 +314,23 @@ func _draw() -> void:
 		0.0,
 		Vector2(1.0, _proportion(proportions, "body_height"))
 	)
-	_draw_people_feature_layer(skin, proportions, PEOPLE_FEATURE_LAYER_BACK)
-	_draw_back_equipment_layer(proportions, PEOPLE_FEATURE_LAYER_BACK)
+	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_BACK)
+	HumanoidEquipmentDrawer.draw_back_layer(self, proportions, PEOPLE_FEATURE_LAYER_BACK)
 	_draw_feet(skin, proportions)
-	_draw_boot_equipment_layer(proportions)
+	HumanoidEquipmentDrawer.draw_boot_layer(self, proportions)
 	_draw_waist(skin, proportions)
-	_draw_leg_equipment_layer(proportions)
+	HumanoidEquipmentDrawer.draw_leg_layer(self, proportions)
 	_draw_hand_layer(skin, proportions, PEOPLE_FEATURE_LAYER_BACK)
 	_draw_torso(skin, proportions)
-	_draw_back_equipment_layer(proportions, PEOPLE_FEATURE_LAYER_FRONT)
-	_draw_chest_equipment_layer(proportions)
-	_draw_people_feature_layer(skin, proportions, PEOPLE_FEATURE_LAYER_BODY)
+	HumanoidEquipmentDrawer.draw_back_layer(self, proportions, PEOPLE_FEATURE_LAYER_FRONT)
+	HumanoidEquipmentDrawer.draw_chest_layer(self, proportions)
+	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_BODY)
 	_draw_hand_layer(skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	_draw_head(skin, proportions)
-	_draw_people_feature_layer(skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
+	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	if _should_draw_hair(people_id):
 		_draw_hair(hair_id, hair, proportions)
-	_draw_head_equipment_layer(proportions)
+	HumanoidEquipmentDrawer.draw_head_layer(self, proportions)
 	_draw_marking(String(appearance.get("marking_id", "")), skin, proportions)
 	if _should_draw_generic_face(people_id):
 		_draw_face(proportions)
