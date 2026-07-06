@@ -33,7 +33,8 @@ Runs `gdformat` on project GDScript files, excluding third-party addons.
 .\tools\test_gut.cmd
 ```
 
-Runs the primary GUT unit test suite in `tests/unit`.
+Runs the primary GUT unit test suite in `tests/unit`, then runs the real-click
+UI smoke checks for player-facing pointer flows.
 
 ```powershell
 .\tools\test_gdunit.cmd
@@ -60,7 +61,7 @@ override cannot leak into another capture.
 .\tools\verify_all.cmd
 ```
 
-Runs project parse, lint, GUT tests, and GdUnit tests.
+Runs project parse, lint, GUT plus real-click smoke checks, and GdUnit tests.
 
 # Notes
 

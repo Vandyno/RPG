@@ -12,15 +12,6 @@ try {
   & "$PSScriptRoot\test_gut.ps1"
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-  & "$PSScriptRoot\godot.ps1" --headless --path . --script scripts\tools\verify_body_loot_transfer_click.gd
-  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-  & "$PSScriptRoot\godot.ps1" --headless --path . --script scripts\tools\verify_rpg_ui_real_clicks.gd
-  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-  & "$PSScriptRoot\godot.ps1" --headless --path . --script scripts\tools\verify_debug_character_creator_clicks.gd
-  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
   & "$PSScriptRoot\test_gdunit.ps1"
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
