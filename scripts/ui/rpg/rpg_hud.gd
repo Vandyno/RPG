@@ -406,14 +406,16 @@ func _build_touch_controls() -> void:
 	target_action_button.pressed.connect(Callable(self, "_press_target_control"))
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
-		root,
-		Callable(self, "_new_panel"),
-		Callable(self, "_add_margin"),
-		Callable(self, "_new_label"),
-		Callable(self, "_new_button"),
-		Callable(self, "hide_content_card"),
-		Callable(self, "_apply_portrait_style"),
-		HUD_MARGIN
+		RpgContentPanelBuilder.BuildContext.new(
+			root,
+			Callable(self, "_new_panel"),
+			Callable(self, "_add_margin"),
+			Callable(self, "_new_label"),
+			Callable(self, "_new_button"),
+			Callable(self, "hide_content_card"),
+			Callable(self, "_apply_portrait_style"),
+			HUD_MARGIN
+		)
 	)
 	content_panel = nodes["panel"]
 	content_identity_panel = nodes["identity_panel"]
@@ -597,12 +599,23 @@ func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
 	if systems_item_list:
 		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
-	RpgContentPanelBuilder.apply_layout(
-		content_panel, content_identity_panel, content_portrait_panel, content_right_stack,
-		content_choice_panel, content_preview_panel, content_title_label, content_kind_label,
-		content_body_label, content_preview_title_label, content_preview_reward_label,
-		content_choice_list, viewport_size, compact, HUD_MARGIN
-	)
+	var request := RpgContentPanelBuilder.LayoutRequest.new()
+	request.content_panel = content_panel
+	request.identity_panel = content_identity_panel
+	request.portrait_panel = content_portrait_panel
+	request.right_stack = content_right_stack
+	request.choice_panel = content_choice_panel
+	request.preview_panel = content_preview_panel
+	request.title_label = content_title_label
+	request.kind_label = content_kind_label
+	request.body_label = content_body_label
+	request.preview_title_label = content_preview_title_label
+	request.preview_reward_label = content_preview_reward_label
+	request.choice_list = content_choice_list
+	request.viewport_size = viewport_size
+	request.compact = compact
+	request.hud_margin = HUD_MARGIN
+	RpgContentPanelBuilder.apply_layout(request)
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
 func _rpg_location_name(state: Dictionary) -> String:

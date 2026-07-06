@@ -4,14 +4,58 @@ extends RefCounted
 const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
 
 
-static func build(
-	root: Control,
-	new_panel: Callable,
-	add_margin: Callable,
-	new_label: Callable,
-	_new_button: Callable,
-	_close_callback: Callable
-) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var new_panel: Callable
+	var add_margin: Callable
+	var new_label: Callable
+
+	func _init(
+		p_root: Control,
+		p_new_panel: Callable,
+		p_add_margin: Callable,
+		p_new_label: Callable
+	) -> void:
+		root = p_root
+		new_panel = p_new_panel
+		add_margin = p_add_margin
+		new_label = p_new_label
+
+
+class RefreshRequest:
+	var target_list: VBoxContainer
+	var targets: Array
+	var new_label: Callable
+	var new_button: Callable
+	var row_style: Callable
+	var target_callback: Callable
+	var compact: bool
+
+	func _init(
+		p_target_list: VBoxContainer,
+		p_targets: Array,
+		p_new_label: Callable,
+		p_new_button: Callable,
+		p_row_style: Callable,
+		p_target_callback: Callable,
+		p_compact: bool
+	) -> void:
+		target_list = p_target_list
+		targets = p_targets
+		new_label = p_new_label
+		new_button = p_new_button
+		row_style = p_row_style
+		target_callback = p_target_callback
+		compact = p_compact
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
+	var root := context.root
+	var new_panel := context.new_panel
+	var add_margin := context.add_margin
+	var new_label := context.new_label
 	var panel: PanelContainer = new_panel.call("TargetPanel")
 	panel.anchor_left = 1.0
 	panel.anchor_right = 1.0
@@ -65,40 +109,37 @@ static func build(
 	return {"panel": panel, "scroll": scroll, "list": list}
 
 
-static func refresh(
-	target_list: VBoxContainer,
-	targets: Array,
-	new_label: Callable,
-	new_button: Callable,
-	row_style: Callable,
-	target_callback: Callable,
-	compact: bool
-) -> void:
+static func refresh(request: RefreshRequest) -> void:
+	if not request or not request.target_list:
+		return
+	var target_list := request.target_list
 	for child in target_list.get_children():
 		target_list.remove_child(child)
 		child.queue_free()
-	if targets.is_empty():
-		var empty: Label = new_label.call(14)
+	if request.targets.is_empty():
+		var empty: Label = request.new_label.call(14)
 		empty.text = "No reachable targets."
 		target_list.add_child(empty)
 		return
-	for target_data in targets:
+	for target_data in request.targets:
 		if not target_data is Dictionary:
 			continue
 		var entity_id := String(target_data.get("id", ""))
 		if entity_id.is_empty():
 			continue
-		var button: Button = new_button.call(_target_text(target_data, compact), Vector2(0, 68))
+		var button: Button = request.new_button.call(
+			_target_text(target_data, request.compact), Vector2(0, 68)
+		)
 		button.name = "TargetRow_%s" % entity_id.to_pascal_case()
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		button.tooltip_text = _target_tooltip(target_data)
-		button.add_theme_font_size_override("font_size", 14 if compact else 13)
+		button.add_theme_font_size_override("font_size", 14 if request.compact else 13)
 		button.set_meta("selected_target", bool(target_data.get("selected", false)))
-		row_style.call(button, bool(target_data.get("selected", false)))
-		button.pressed.connect(func() -> void: target_callback.call(entity_id))
+		request.row_style.call(button, bool(target_data.get("selected", false)))
+		button.pressed.connect(func() -> void: request.target_callback.call(entity_id))
 		target_list.add_child(button)
 
 

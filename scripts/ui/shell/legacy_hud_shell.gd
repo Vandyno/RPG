@@ -771,16 +771,18 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	context_action_panel.offset_right = -HUD_MARGIN
 	context_action_panel.offset_top = 106.0 if compact else 112.0
 	var context_height := UiActionButtons.wrapped_panel_height(
-		context_width,
-		visible_context_action_count,
-		CONTEXT_ACTION_BUTTON_SIZE,
-		Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
-		CONTEXT_ACTION_MARGIN,
-		100.0 if compact else 104.0,
-		106.0 if compact else 112.0,
-		80.0 if compact else HUD_MARGIN,
-		HUD_MARGIN,
-		viewport_size.y
+		UiActionButtons.WrappedPanelMetrics.new(
+			context_width,
+			visible_context_action_count,
+			CONTEXT_ACTION_BUTTON_SIZE,
+			Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
+			CONTEXT_ACTION_MARGIN,
+			100.0 if compact else 104.0,
+			106.0 if compact else 112.0,
+			80.0 if compact else HUD_MARGIN,
+			HUD_MARGIN,
+			viewport_size.y
+		)
 	)
 	context_action_panel.offset_bottom = context_action_panel.offset_top + context_height
 func _set_action_button_layout(compact: bool) -> void:
@@ -962,13 +964,15 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 		return
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
 	systems_action_list.visible = UiActionButtons.refresh(
-		systems_action_list,
-		actions,
-		self,
-		"inventory_item_selected",
-		"item_id",
-		Vector2(0, 50),
-		14
+		UiActionButtons.RefreshRequest.new(
+			systems_action_list,
+			actions,
+			self,
+			"inventory_item_selected",
+			"item_id",
+			Vector2(0, 50),
+			14
+		)
 	)
 
 func _refresh_context_actions(state: Dictionary) -> void:
@@ -991,13 +995,15 @@ func _refresh_context_actions(state: Dictionary) -> void:
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = UiActionButtons.refresh(
-		context_action_buttons,
-		actions,
-		self,
-		signal_id,
-		"action_id",
-		CONTEXT_ACTION_BUTTON_SIZE,
-		13
+		UiActionButtons.RefreshRequest.new(
+			context_action_buttons,
+			actions,
+			self,
+			signal_id,
+			"action_id",
+			CONTEXT_ACTION_BUTTON_SIZE,
+			13
+		)
 	)
 
 func _on_message_posted(text: String) -> void:

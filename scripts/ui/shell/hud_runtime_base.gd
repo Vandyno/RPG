@@ -518,16 +518,18 @@ func _layout_context_action_panel(viewport_size: Vector2, compact: bool) -> void
 	context_action_panel.offset_right = -HUD_MARGIN
 	context_action_panel.offset_top = 106.0 if compact else 112.0
 	var context_height := UiActionButtons.wrapped_panel_height(
-		context_width,
-		visible_context_action_count,
-		CONTEXT_ACTION_BUTTON_SIZE,
-		Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
-		CONTEXT_ACTION_MARGIN,
-		100.0 if compact else 104.0,
-		106.0 if compact else 112.0,
-		80.0 if compact else HUD_MARGIN,
-		HUD_MARGIN,
-		viewport_size.y
+		UiActionButtons.WrappedPanelMetrics.new(
+			context_width,
+			visible_context_action_count,
+			CONTEXT_ACTION_BUTTON_SIZE,
+			Vector2(CONTEXT_ACTION_H_SEPARATION, CONTEXT_ACTION_V_SEPARATION),
+			CONTEXT_ACTION_MARGIN,
+			100.0 if compact else 104.0,
+			106.0 if compact else 112.0,
+			80.0 if compact else HUD_MARGIN,
+			HUD_MARGIN,
+			viewport_size.y
+		)
 	)
 	context_action_panel.offset_bottom = context_action_panel.offset_top + context_height
 

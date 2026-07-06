@@ -6,16 +6,65 @@ const RpgPortraitSilhouette = preload(
 )
 
 
-static func build(
-	root: Control,
-	new_panel: Callable,
-	add_margin: Callable,
-	new_label: Callable,
-	new_button: Callable,
-	close_callback: Callable,
-	portrait_style: Callable,
-	hud_margin: float
-) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var new_panel: Callable
+	var add_margin: Callable
+	var new_label: Callable
+	var new_button: Callable
+	var close_callback: Callable
+	var portrait_style: Callable
+	var hud_margin: float
+
+	func _init(
+		p_root: Control,
+		p_new_panel: Callable,
+		p_add_margin: Callable,
+		p_new_label: Callable,
+		p_new_button: Callable,
+		p_close_callback: Callable,
+		p_portrait_style: Callable,
+		p_hud_margin: float
+	) -> void:
+		root = p_root
+		new_panel = p_new_panel
+		add_margin = p_add_margin
+		new_label = p_new_label
+		new_button = p_new_button
+		close_callback = p_close_callback
+		portrait_style = p_portrait_style
+		hud_margin = p_hud_margin
+
+
+class LayoutRequest:
+	var content_panel: PanelContainer
+	var identity_panel: PanelContainer
+	var portrait_panel: Panel
+	var right_stack: VBoxContainer
+	var choice_panel: PanelContainer
+	var preview_panel: PanelContainer
+	var title_label: Label
+	var kind_label: Label
+	var body_label: Label
+	var preview_title_label: Label
+	var preview_reward_label: Label
+	var choice_list: VBoxContainer
+	var viewport_size: Vector2
+	var compact: bool
+	var hud_margin: float
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
+	var root := context.root
+	var new_panel := context.new_panel
+	var add_margin := context.add_margin
+	var new_label := context.new_label
+	var new_button := context.new_button
+	var close_callback := context.close_callback
+	var portrait_style := context.portrait_style
+	var hud_margin := context.hud_margin
 	var panel: PanelContainer = new_panel.call("ContentPanel")
 	panel.name = "ContentPanel"
 	panel.anchor_left = 0.0
@@ -171,23 +220,24 @@ static func build(
 	}
 
 
-static func apply_layout(
-	content_panel: PanelContainer,
-	identity_panel: PanelContainer,
-	portrait_panel: Panel,
-	right_stack: VBoxContainer,
-	choice_panel: PanelContainer,
-	preview_panel: PanelContainer,
-	title_label: Label,
-	kind_label: Label,
-	body_label: Label,
-	preview_title_label: Label,
-	preview_reward_label: Label,
-	choice_list: VBoxContainer,
-	viewport_size: Vector2,
-	compact: bool,
-	hud_margin: float
-) -> void:
+static func apply_layout(request: LayoutRequest) -> void:
+	if not request:
+		return
+	var content_panel := request.content_panel
+	var identity_panel := request.identity_panel
+	var portrait_panel := request.portrait_panel
+	var right_stack := request.right_stack
+	var choice_panel := request.choice_panel
+	var preview_panel := request.preview_panel
+	var title_label := request.title_label
+	var kind_label := request.kind_label
+	var body_label := request.body_label
+	var preview_title_label := request.preview_title_label
+	var preview_reward_label := request.preview_reward_label
+	var choice_list := request.choice_list
+	var viewport_size := request.viewport_size
+	var compact := request.compact
+	var hud_margin := request.hud_margin
 	if not content_panel:
 		return
 	content_panel.anchor_left = 0.0
