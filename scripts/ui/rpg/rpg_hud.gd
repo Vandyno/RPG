@@ -13,16 +13,20 @@ const RpgContentChoiceBuilder = preload("res://scripts/ui/content/rpg_content_ch
 const RpgContextActionPanelBuilder = preload(
 	"res://scripts/ui/content/rpg_context_action_panel_builder.gd"
 )
-const RpgActionClusterBuilder = preload("res://scripts/ui/controls/rpg_action_cluster_builder.gd")
-const RpgMovePadBuilder = preload("res://scripts/ui/controls/rpg_move_pad_builder.gd")
+const RpgActionClusterBuilder = preload(
+	"res://scripts/ui/controls/buttons/rpg_action_cluster_builder.gd"
+)
+const RpgMovePadBuilder = preload("res://scripts/ui/controls/input/rpg_move_pad_builder.gd")
 const RpgStatusTextBuilder = preload("res://scripts/ui/text/rpg_status_text_builder.gd")
 const RpgSystemsCharacterPaneBuilder = preload(
 	"res://scripts/ui/systems/rpg_systems_character_pane_builder.gd"
 )
-const RpgInventoryItemButton = preload("res://scripts/ui/controls/rpg_inventory_item_button.gd")
-const RpgIconButton = preload("res://scripts/ui/controls/rpg_icon_button.gd")
-const RpgDetailLabel = preload("res://scripts/ui/controls/rpg_detail_label.gd")
-const RpgEquipmentSlot = preload("res://scripts/ui/controls/rpg_equipment_slot.gd")
+const RpgInventoryItemButton = preload(
+	"res://scripts/ui/controls/buttons/rpg_inventory_item_button.gd"
+)
+const RpgIconButton = preload("res://scripts/ui/controls/buttons/rpg_icon_button.gd")
+const RpgDetailLabel = preload("res://scripts/ui/controls/display/rpg_detail_label.gd")
+const RpgEquipmentSlot = preload("res://scripts/ui/controls/slots/rpg_equipment_slot.gd")
 const RpgSpellSlotPanelBuilder = preload(
 	"res://scripts/ui/systems/rpg_spell_slot_panel_builder.gd"
 )

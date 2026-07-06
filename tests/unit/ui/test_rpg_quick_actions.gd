@@ -2,7 +2,9 @@ extends GutTest
 
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const RpgHud = preload("res://scripts/ui/rpg/rpg_hud.gd")
-const RpgContentChoiceButton = preload("res://scripts/ui/controls/rpg_content_choice_button.gd")
+const RpgContentChoiceButton = preload(
+	"res://scripts/ui/controls/buttons/rpg_content_choice_button.gd"
+)
 
 
 func test_quick_actions_use_player_facing_icon_cards_and_route() -> void:

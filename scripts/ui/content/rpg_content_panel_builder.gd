@@ -1,7 +1,9 @@
 class_name RpgContentPanelBuilder
 extends RefCounted
 
-const RpgPortraitSilhouette = preload("res://scripts/ui/controls/rpg_portrait_silhouette.gd")
+const RpgPortraitSilhouette = preload(
+	"res://scripts/ui/controls/display/rpg_portrait_silhouette.gd"
+)
 
 
 static func build(

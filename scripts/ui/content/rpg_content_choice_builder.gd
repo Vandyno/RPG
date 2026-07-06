@@ -1,7 +1,9 @@
 class_name RpgContentChoiceBuilder
 extends RefCounted
 
-const RpgContentChoiceButton = preload("res://scripts/ui/controls/rpg_content_choice_button.gd")
+const RpgContentChoiceButton = preload(
+	"res://scripts/ui/controls/buttons/rpg_content_choice_button.gd"
+)
 
 
 static func refresh(

@@ -1,6 +1,6 @@
 extends GutTest
 
-const RpgAimJoystick = preload("res://scripts/ui/controls/rpg_aim_joystick.gd")
+const RpgAimJoystick = preload("res://scripts/ui/controls/input/rpg_aim_joystick.gd")
 
 
 func test_aim_joystick_emits_held_direction_while_dragging() -> void:
