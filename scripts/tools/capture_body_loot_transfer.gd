@@ -53,7 +53,7 @@ func _defeat_enemy(main) -> void:
 	for _index in range(8):
 		if not main.entities.get_entity("enemy_road_thug"):
 			return
-		MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
 
 func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:

@@ -94,7 +94,7 @@ func _process(delta: float) -> void:
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
 func get_hud_state() -> Dictionary:
-	return MainHudState.build(self)
+	return MainHudState.build(MainHudState.context(self))
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
 func _bootstrap() -> bool:
@@ -244,11 +244,13 @@ func _bootstrap() -> bool:
 	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
-			MainSystemsActions.handle_aim(self, action_id, direction)
+			MainSystemsActions.handle_aim(MainSystemsActions.context(self), action_id, direction)
 	)
 	hud.aim_action_held.connect(
 		func(action_id: String, direction: Vector2, delta: float) -> void:
-			MainSystemsActions.handle_aim_held(self, action_id, direction, delta)
+			MainSystemsActions.handle_aim_held(
+				MainSystemsActions.context(self), action_id, direction, delta
+			)
 	)
 	hud.context_action_selected.connect(_handle_context_action_selected)
 	hud.save_pressed.connect(_handle_save_requested)
@@ -560,7 +562,7 @@ func _interact_npc(entity) -> void:
 
 
 func _handle_context_action_selected(action_id: String) -> void:
-	MainContextActions.handle(self, action_id)
+	MainContextActions.handle(MainContextActions.context(self), action_id)
 
 
 func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
@@ -647,7 +649,7 @@ func _handle_content_card_closed() -> void:
 
 
 func _handle_inventory_item_selected(item_id: String) -> void:
-	MainSystemsActions.handle(self, item_id)
+	MainSystemsActions.handle(MainSystemsActions.context(self), item_id)
 
 
 func _handle_wait_action(hours: int) -> void:

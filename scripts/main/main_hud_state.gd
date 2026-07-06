@@ -10,71 +10,169 @@ const ObjectInteractionRules = preload("res://scripts/core/object_interaction_ru
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 
 
-static func build(main) -> Dictionary:
-	var nearby = main._get_nearby_entity()
-	var auto_target = main.entities.get_entity(main.auto_interact_target_id)
+class HudContext:
+	var active_transfer_name: String
+	var active_transfer_owner_id: String
+	var auto_interact_target_id: String
+	var auto_move_active: bool
+	var chunks
+	var condition_evaluator
+	var content
+	var context_actions_context
+	var entities
+	var equipment
+	var factions
+	var inventory
+	var player
+	var progression
+	var quests
+	var spells
+	var statuses
+	var time
+	var world_state
+	var _get_nearby_entity: Callable
+	var _inventory_actions_data: Callable
+	var _inventory_details_text: Callable
+	var _inventory_text: Callable
+	var _nearby_targets_data: Callable
+	var _progression_actions_data: Callable
+	var _shop_id_for_entity: Callable
+	var _target_detail_text: Callable
+	var _trade_actions_data: Callable
+	var _trade_text: Callable
+
+	func _init(main) -> void:
+		active_transfer_name = String(main.active_transfer_name)
+		active_transfer_owner_id = String(main.active_transfer_owner_id)
+		auto_interact_target_id = String(main.auto_interact_target_id)
+		auto_move_active = bool(main.auto_move_active)
+		chunks = main.chunks
+		condition_evaluator = main.condition_evaluator
+		content = main.content
+		context_actions_context = MainContextActions.context(main)
+		entities = main.entities
+		equipment = main.equipment
+		factions = main.factions
+		inventory = main.inventory
+		player = main.player
+		progression = main.progression
+		quests = main.quests
+		spells = main.spells
+		statuses = main.statuses
+		time = main.time
+		world_state = main.world_state
+		_get_nearby_entity = Callable(main, "_get_nearby_entity")
+		_inventory_actions_data = Callable(main, "_inventory_actions_data")
+		_inventory_details_text = Callable(main, "_inventory_details_text")
+		_inventory_text = Callable(main, "_inventory_text")
+		_nearby_targets_data = Callable(main, "_nearby_targets_data")
+		_progression_actions_data = Callable(main, "_progression_actions_data")
+		_shop_id_for_entity = Callable(main, "_shop_id_for_entity")
+		_target_detail_text = Callable(main, "_target_detail_text")
+		_trade_actions_data = Callable(main, "_trade_actions_data")
+		_trade_text = Callable(main, "_trade_text")
+
+	func inventory_actions_data() -> Array[Dictionary]:
+		return _inventory_actions_data.call()
+
+	func inventory_details_text() -> String:
+		return String(_inventory_details_text.call())
+
+	func inventory_text() -> String:
+		return String(_inventory_text.call())
+
+	func nearby_entity():
+		return _get_nearby_entity.call()
+
+	func nearby_targets_data() -> Array[Dictionary]:
+		return _nearby_targets_data.call()
+
+	func progression_actions_data() -> Array[Dictionary]:
+		return _progression_actions_data.call()
+
+	func shop_id_for_entity(entity) -> String:
+		return String(_shop_id_for_entity.call(entity))
+
+	func target_detail_text(entity) -> String:
+		return String(_target_detail_text.call(entity))
+
+	func trade_actions_data(shop_id: String) -> Array[Dictionary]:
+		return _trade_actions_data.call(shop_id)
+
+	func trade_text(shop_id: String) -> String:
+		return String(_trade_text.call(shop_id))
+
+
+static func context(main) -> HudContext:
+	return HudContext.new(main)
+
+
+static func build(source) -> Dictionary:
+	var ctx := _context(source)
+	var nearby = ctx.nearby_entity()
+	var auto_target = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	var displayed = auto_target if auto_target else nearby
-	var shop_id: String = main._shop_id_for_entity(nearby)
-	var target_name := "Destination" if main.auto_move_active else _target_name(displayed)
-	var target_detail := "Moving" if main.auto_move_active else _target_detail(main, displayed)
+	var shop_id: String = ctx.shop_id_for_entity(nearby)
+	var target_name := "Destination" if ctx.auto_move_active else _target_name(displayed)
+	var target_detail := "Moving" if ctx.auto_move_active else _target_detail(ctx, displayed)
 	return {
-		"player_health": "%d/%d" % [main.player.health, main.player.max_health],
-		"player_health_value": main.player.health,
-		"player_max_health": main.player.max_health,
-		"player_mana": "%d/%d" % [int(roundf(main.player.mana)), int(roundf(main.player.max_mana))],
-		"player_mana_value": main.player.mana,
-		"player_max_mana": main.player.max_mana,
-		"player_sneaking": main.player.is_sneaking,
+		"player_health": "%d/%d" % [ctx.player.health, ctx.player.max_health],
+		"player_health_value": ctx.player.health,
+		"player_max_health": ctx.player.max_health,
+		"player_mana": "%d/%d" % [int(roundf(ctx.player.mana)), int(roundf(ctx.player.max_mana))],
+		"player_mana_value": ctx.player.mana,
+		"player_max_mana": ctx.player.max_mana,
+		"player_sneaking": ctx.player.is_sneaking,
 		"nearby": target_name,
-		"primary_action": _primary_action(main, nearby, auto_target),
+		"primary_action": _primary_action(ctx, nearby, auto_target),
 		"target_detail": target_detail,
-		"nearby_targets": main._nearby_targets_data(),
-		"context_actions": MainContextActions.secondary(main, nearby),
-		"inventory": main._inventory_text(),
-		"inventory_items": _inventory_items_data(main),
-		"inventory_details": main._inventory_details_text(),
-		"inventory_actions": main._inventory_actions_data(),
-		"transfer_open": not String(main.active_transfer_owner_id).is_empty(),
+		"nearby_targets": ctx.nearby_targets_data(),
+		"context_actions": MainContextActions.secondary(ctx.context_actions_context, nearby),
+		"inventory": ctx.inventory_text(),
+		"inventory_items": _inventory_items_data(ctx),
+		"inventory_details": ctx.inventory_details_text(),
+		"inventory_actions": ctx.inventory_actions_data(),
+		"transfer_open": not ctx.active_transfer_owner_id.is_empty(),
 		"transfer_target": {
-			"owner_id": String(main.active_transfer_owner_id),
-			"name": String(main.active_transfer_name)
+			"owner_id": ctx.active_transfer_owner_id,
+			"name": ctx.active_transfer_name
 		},
-		"transfer_player_items": _inventory_items_data(main),
-		"transfer_target_items": _inventory_items_for_owner(main, String(main.active_transfer_owner_id)),
-		"spells": _spells_data(main),
-		"spell_slots": _spell_slots_data(main),
-		"trade": main._trade_text(shop_id),
-		"trade_actions": main._trade_actions_data(shop_id),
-		"equipment": main.equipment.get_summary(),
-		"equipment_slots": _equipment_slots_data(main),
-		"factions": main.factions.get_summary(),
-		"progression": main.progression.get_summary(),
-		"progression_details": main.progression.get_details(),
-		"progression_actions": main._progression_actions_data(),
-		"statuses": main.statuses.get_summary(),
-		"status_details": main.statuses.get_details(),
-		"time": main.time.get_summary(),
+		"transfer_player_items": _inventory_items_data(ctx),
+		"transfer_target_items": _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id),
+		"spells": _spells_data(ctx),
+		"spell_slots": _spell_slots_data(ctx),
+		"trade": ctx.trade_text(shop_id),
+		"trade_actions": ctx.trade_actions_data(shop_id),
+		"equipment": ctx.equipment.get_summary(),
+		"equipment_slots": _equipment_slots_data(ctx),
+		"factions": ctx.factions.get_summary(),
+		"progression": ctx.progression.get_summary(),
+		"progression_details": ctx.progression.get_details(),
+		"progression_actions": ctx.progression_actions_data(),
+		"statuses": ctx.statuses.get_summary(),
+		"status_details": ctx.statuses.get_details(),
+		"time": ctx.time.get_summary(),
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}],
-		"time_details": main.time.get_details(),
-		"locations": LocationTextBuilder.names(main.world_state.discovered_locations, main.content),
+		"time_details": ctx.time.get_details(),
+		"locations": LocationTextBuilder.names(ctx.world_state.discovered_locations, ctx.content),
 		"location_details":
-		LocationTextBuilder.details(main.world_state.discovered_locations, main.content),
+		LocationTextBuilder.details(ctx.world_state.discovered_locations, ctx.content),
 		"quest_directions":
-		QuestTargetTextBuilder.directions(main.quests, main.entities, main.player.global_position),
-		"quest_target_actions": _quest_target_actions(main),
-		"quests": main.quests.get_active_summary()
+		QuestTargetTextBuilder.directions(ctx.quests, ctx.entities, ctx.player.global_position),
+		"quest_target_actions": _quest_target_actions(ctx),
+		"quests": ctx.quests.get_active_summary()
 	}
 
 
-static func _primary_action(_main, nearby, auto_target) -> String:
-	if _main.auto_move_active or auto_target:
+static func _primary_action(ctx: HudContext, nearby, auto_target) -> String:
+	if ctx.auto_move_active or auto_target:
 		return "Stop"
-	var preferred := MainContextActions.preferred_primary(_main, nearby)
+	var preferred := MainContextActions.preferred_primary(ctx.context_actions_context, nearby)
 	if not preferred.is_empty():
 		return String(preferred.get("text", "Interact"))
 	if nearby and ["container", "door"].has(nearby.get_kind()):
 		return ObjectInteractionRules.access_action_text(
-			nearby, _main.chunks, _main.condition_evaluator
+			nearby, ctx.chunks, ctx.condition_evaluator
 		)
 	if nearby and nearby.get_kind() == "poi":
 		return PoiInteraction.primary_action_text(nearby)
@@ -85,18 +183,18 @@ static func _target_name(entity) -> String:
 	return entity.get_display_name() if entity else "none"
 
 
-static func _target_detail(main, entity) -> String:
-	return main._target_detail_text(entity) if entity else ""
+static func _target_detail(ctx: HudContext, entity) -> String:
+	return ctx.target_detail_text(entity) if entity else ""
 
 
-static func _quest_target_actions(main) -> Array[Dictionary]:
+static func _quest_target_actions(ctx: HudContext) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
 	var seen: Dictionary = {}
-	for objective in main.quests.get_active_objectives_data():
+	for objective in ctx.quests.get_active_objectives_data():
 		var target_id := String(objective.get("target_id", ""))
 		if target_id.is_empty() or seen.has(target_id):
 			continue
-		var entity = main.entities.get_entity(target_id)
+		var entity = ctx.entities.get_entity(target_id)
 		if not entity:
 			continue
 		seen[target_id] = true
@@ -104,17 +202,17 @@ static func _quest_target_actions(main) -> Array[Dictionary]:
 	return actions
 
 
-static func _inventory_items_data(main) -> Array[Dictionary]:
-	return _inventory_items_for_owner(main, "char_player")
+static func _inventory_items_data(ctx: HudContext) -> Array[Dictionary]:
+	return _inventory_items_for_owner(ctx, "char_player")
 
 
-static func _inventory_items_for_owner(main, owner_id: String) -> Array[Dictionary]:
+static func _inventory_items_for_owner(ctx: HudContext, owner_id: String) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
 	if owner_id.is_empty():
 		return entries
-	for item_id in _sorted_owner_inventory_ids(main, owner_id):
-		var item: Dictionary = main.content.get_item(item_id)
-		var count: int = main.inventory.get_count_for_owner(owner_id, item_id)
+	for item_id in _sorted_owner_inventory_ids(ctx, owner_id):
+		var item: Dictionary = ctx.content.get_item(item_id)
+		var count: int = ctx.inventory.get_count_for_owner(owner_id, item_id)
 		if item.is_empty() or count <= 0:
 			continue
 		entries.append({
@@ -131,18 +229,18 @@ static func _inventory_items_for_owner(main, owner_id: String) -> Array[Dictiona
 	return entries
 
 
-static func _sorted_owner_inventory_ids(main, owner_id: String) -> Array:
-	var source: Dictionary = main.inventory.get_items_for_owner(owner_id)
+static func _sorted_owner_inventory_ids(ctx: HudContext, owner_id: String) -> Array:
+	var source: Dictionary = ctx.inventory.get_items_for_owner(owner_id)
 	var item_ids: Array = source.keys()
 	item_ids.sort()
 	return item_ids
 
 
-static func _equipment_slots_data(main) -> Dictionary:
+static func _equipment_slots_data(ctx: HudContext) -> Dictionary:
 	var slots := {}
 	for slot in EquipmentSlots.SLOTS:
-		var item_id: String = main.equipment.get_equipped_item(slot)
-		var item: Dictionary = main.content.get_item(item_id)
+		var item_id: String = ctx.equipment.get_equipped_item(slot)
+		var item: Dictionary = ctx.content.get_item(item_id)
 		slots[slot] = {
 			"slot": slot,
 			"label": EquipmentSlots.label(slot),
@@ -152,13 +250,13 @@ static func _equipment_slots_data(main) -> Dictionary:
 	return slots
 
 
-static func _spells_data(main) -> Array[Dictionary]:
+static func _spells_data(ctx: HudContext) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
-	var spell_ids: Array = main.content.spells.keys()
+	var spell_ids: Array = ctx.content.spells.keys()
 	spell_ids.sort_custom(
 		func(a, b) -> bool:
-			var spell_a: Dictionary = main.content.get_spell(String(a))
-			var spell_b: Dictionary = main.content.get_spell(String(b))
+			var spell_a: Dictionary = ctx.content.get_spell(String(a))
+			var spell_b: Dictionary = ctx.content.get_spell(String(b))
 			var school_a := String(spell_a.get("school", ""))
 			var school_b := String(spell_b.get("school", ""))
 			if school_a == school_b:
@@ -166,26 +264,26 @@ static func _spells_data(main) -> Array[Dictionary]:
 			return school_a < school_b
 	)
 	for spell_id in spell_ids:
-		var spell: Dictionary = main.content.get_spell(String(spell_id))
+		var spell: Dictionary = ctx.content.get_spell(String(spell_id))
 		if spell.is_empty():
 			continue
-		entries.append(_spell_data(main, String(spell_id), spell))
+		entries.append(_spell_data(ctx, String(spell_id), spell))
 	return entries
 
 
-static func _spell_slots_data(main) -> Dictionary:
+static func _spell_slots_data(ctx: HudContext) -> Dictionary:
 	var slots := {}
-	for slot in main.spells.SLOTS:
-		var spell_id: String = main.spells.get_assigned_spell(slot)
-		var spell: Dictionary = main.content.get_spell(spell_id)
-		slots[slot] = _spell_data(main, spell_id, spell)
+	for slot in ctx.spells.SLOTS:
+		var spell_id: String = ctx.spells.get_assigned_spell(slot)
+		var spell: Dictionary = ctx.content.get_spell(spell_id)
+		slots[slot] = _spell_data(ctx, spell_id, spell)
 		slots[slot]["slot"] = slot
 		slots[slot]["slot_label"] = _spell_slot_label(slot)
 	return slots
 
 
-static func _spell_data(main, spell_id: String, spell: Dictionary) -> Dictionary:
-	var assigned := _assigned_spell_slot(main, spell_id)
+static func _spell_data(ctx: HudContext, spell_id: String, spell: Dictionary) -> Dictionary:
+	var assigned := _assigned_spell_slot(ctx, spell_id)
 	return {
 		"spell_id": spell_id,
 		"name": String(spell.get("name", "")),
@@ -202,11 +300,11 @@ static func _spell_data(main, spell_id: String, spell: Dictionary) -> Dictionary
 	}
 
 
-static func _assigned_spell_slot(main, spell_id: String) -> String:
+static func _assigned_spell_slot(ctx: HudContext, spell_id: String) -> String:
 	if spell_id.is_empty():
 		return ""
-	for slot in main.spells.SLOTS:
-		if main.spells.get_assigned_spell(slot) == spell_id:
+	for slot in ctx.spells.SLOTS:
+		if ctx.spells.get_assigned_spell(slot) == spell_id:
 			return slot
 	return ""
 
@@ -219,3 +317,7 @@ static func _spell_slot_label(slot_id: String) -> String:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+static func _context(source) -> HudContext:
+	return source if source is HudContext else context(source)

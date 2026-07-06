@@ -197,7 +197,9 @@ static func _hint_text_for_width(
 
 static func _action_text(main, entity, selected: bool) -> String:
 	if selected:
-		var preferred := MainContextActions.preferred_primary(main, entity)
+		var preferred := MainContextActions.preferred_primary(
+			MainContextActions.context(main), entity
+		)
 		if not preferred.is_empty():
 			return String(
 				preferred.get("text", PrimaryActionTextBuilder.for_kind(entity.get_kind()))
