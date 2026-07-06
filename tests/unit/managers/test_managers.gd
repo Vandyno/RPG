@@ -157,7 +157,7 @@ func test_equipment_equip_unequip_modifiers_and_save_load() -> void:
 	assert_true(equipment.equip_item("item_traveler_buckler"))
 	assert_false(equipment.equip_item("item_missing"))
 	assert_false(equipment.equip_item("item_training_sword"))
-	assert_eq(equipment.get_equipped_item("weapon"), "item_training_sword")
+	assert_eq(equipment.get_equipped_item("right_hand"), "item_training_sword")
 	assert_eq(equipment.get_equipped_item("right_hand"), "item_training_sword")
 	assert_eq(equipment.last_mainhand_weapon_id, "item_road_hatchet")
 	assert_true(equipment.equip_last_mainhand_weapon())
@@ -168,7 +168,7 @@ func test_equipment_equip_unequip_modifiers_and_save_load() -> void:
 	assert_eq(equipment.guarded_counter_multiplier(0.5), 0.25)
 	assert_true(equipment.get_summary().contains("Weapon: Road Hatchet"))
 	var save_data := equipment.get_save_data()
-	assert_true(equipment.unequip_slot("weapon"))
+	assert_true(equipment.unequip_slot("right_hand"))
 	assert_eq(equipment.get_player_damage_bonus(), 0)
 
 	var loaded := EquipmentManager.new()
@@ -176,9 +176,25 @@ func test_equipment_equip_unequip_modifiers_and_save_load() -> void:
 	loaded.setup(null, content, inventory)
 	loaded.load_save_data(save_data)
 
-	assert_eq(loaded.get_equipped_item("weapon"), "item_road_hatchet")
-	assert_eq(loaded.get_equipped_item("offhand"), "item_traveler_buckler")
+	assert_eq(loaded.get_equipped_item("right_hand"), "item_road_hatchet")
+	assert_eq(loaded.get_equipped_item("left_hand"), "item_traveler_buckler")
 	assert_eq(loaded.last_mainhand_weapon_id, "item_training_sword")
+
+	var legacy_loaded := EquipmentManager.new()
+	add_child_autofree(legacy_loaded)
+	legacy_loaded.setup(null, content, inventory)
+	legacy_loaded.load_save_data(
+		{
+			"equipped":
+			{
+				"weapon": "item_road_hatchet",
+				"offhand": "item_traveler_buckler"
+			}
+		}
+	)
+
+	assert_eq(legacy_loaded.get_equipped_item("right_hand"), "item_road_hatchet")
+	assert_eq(legacy_loaded.get_equipped_item("left_hand"), "item_traveler_buckler")
 
 
 func test_equipment_load_ignores_invalid_missing_or_unowned_items() -> void:
@@ -208,12 +224,12 @@ func test_equipment_load_ignores_invalid_missing_or_unowned_items() -> void:
 		}
 	)
 
-	assert_eq(equipment.get_equipped_item("weapon"), "")
-	assert_eq(equipment.get_equipped_item("offhand"), "item_traveler_buckler")
+	assert_eq(equipment.get_equipped_item("right_hand"), "")
+	assert_eq(equipment.get_equipped_item("left_hand"), "item_traveler_buckler")
 	assert_eq(equipment.last_mainhand_weapon_id, "")
 	assert_eq(equipment.get_save_data(), {"equipped": {"left_hand": "item_traveler_buckler"}})
 	inventory.remove_item("item_traveler_buckler", 1)
-	assert_eq(equipment.get_equipped_item("offhand"), "")
+	assert_eq(equipment.get_equipped_item("left_hand"), "")
 
 
 func test_equipment_swap_falls_back_to_carried_mainhand_weapon() -> void:
@@ -232,11 +248,11 @@ func test_equipment_swap_falls_back_to_carried_mainhand_weapon() -> void:
 	assert_true(equipment.equip_item("item_road_hatchet"))
 	assert_eq(equipment.last_mainhand_weapon_id, "")
 	assert_true(equipment.equip_last_mainhand_weapon())
-	assert_eq(equipment.get_equipped_item("weapon"), "item_training_sword")
+	assert_eq(equipment.get_equipped_item("right_hand"), "item_training_sword")
 	assert_eq(equipment.last_mainhand_weapon_id, "item_road_hatchet")
 	equipment.last_mainhand_weapon_id = "item_training_sword"
 	assert_true(equipment.equip_last_mainhand_weapon())
-	assert_eq(equipment.get_equipped_item("weapon"), "item_road_hatchet")
+	assert_eq(equipment.get_equipped_item("right_hand"), "item_road_hatchet")
 
 
 func test_world_state_flags_and_save_load() -> void:

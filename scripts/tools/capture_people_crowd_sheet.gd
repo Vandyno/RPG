@@ -634,15 +634,15 @@ func _equipment_for_population_index(row: int, column: int) -> Dictionary:
 	var equipped := {}
 	match (row * 3 + column) % 6:
 		0:
-			equipped["weapon"] = "item_training_sword"
+			equipped["right_hand"] = "item_training_sword"
 		1:
-			equipped["weapon"] = "item_road_hatchet"
+			equipped["right_hand"] = "item_road_hatchet"
 		2:
-			equipped["weapon"] = "item_hunting_bow"
+			equipped["right_hand"] = "item_hunting_bow"
 		3:
-			equipped["weapon"] = "item_test_polearm"
+			equipped["right_hand"] = "item_test_polearm"
 	if (row + column) % 4 == 0:
-		equipped["offhand"] = "item_traveler_buckler"
+		equipped["left_hand"] = "item_traveler_buckler"
 	return equipped
 
 

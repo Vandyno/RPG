@@ -24,10 +24,15 @@ const LEGACY_ALIASES := {
 
 static func normalize(slot_id: String) -> String:
 	var slot := slot_id.to_lower()
-	if LEGACY_ALIASES.has(slot):
-		return String(LEGACY_ALIASES[slot])
 	if slot == "ring":
 		return "ring_1"
+	return slot
+
+
+static func normalize_loaded_slot(slot_id: String) -> String:
+	var slot := normalize(slot_id)
+	if LEGACY_ALIASES.has(slot):
+		return String(LEGACY_ALIASES[slot])
 	return slot
 
 

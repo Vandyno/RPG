@@ -29,10 +29,9 @@ static func weapon_attack(content, equipment) -> Dictionary:
 static func equipped_weapon(content, equipment) -> Dictionary:
 	if not content or not equipment or not equipment.has_method("get_equipped_item"):
 		return {}
-	for slot in ["weapon", "right_hand"]:
-		var item_id: String = equipment.get_equipped_item(slot)
-		if not item_id.is_empty():
-			return content.get_item(item_id)
+	var item_id: String = equipment.get_equipped_item("right_hand")
+	if not item_id.is_empty():
+		return content.get_item(item_id)
 	return {}
 
 

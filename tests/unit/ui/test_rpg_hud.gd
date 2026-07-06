@@ -507,7 +507,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	var weapon_hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
 	assert_not_null(weapon_hatchet_row)
 	assert_eq(weapon_hatchet_row.get_meta("item_id"), "item_road_hatchet")
-	assert_eq(weapon_hatchet_row.get_meta("equipment_slot"), "weapon")
+	assert_eq(weapon_hatchet_row.get_meta("equipment_slot"), "right_hand")
 	assert_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
 	_press_category(hud, "Armour")
 	assert_not_null(_button_containing(hud.systems_item_list, "Traveler Buckler"))
@@ -636,7 +636,7 @@ func test_rpg_equipment_slots_accept_dropped_items_and_route_equip_action() -> v
 	var hatchet_drag := {
 		"type": "inventory_item",
 		"item_id": "item_road_hatchet",
-		"equipment_slot": "weapon"
+		"equipment_slot": "right_hand"
 	}
 
 	assert_true(right_hand._can_drop_data(Vector2.ZERO, hatchet_drag))
@@ -793,7 +793,7 @@ func _sample_state() -> Dictionary:
 				"count": 1,
 				"type": "weapon",
 				"tags": ["weapon"],
-				"equipment_slot": "weapon",
+				"equipment_slot": "right_hand",
 				"value": 18,
 				"weight": 1.6,
 				"description": "A short iron hatchet."
@@ -804,7 +804,7 @@ func _sample_state() -> Dictionary:
 				"count": 1,
 				"type": "shield",
 				"tags": ["shield"],
-				"equipment_slot": "offhand",
+				"equipment_slot": "left_hand",
 				"value": 16,
 				"weight": 2.5,
 				"description": "A scarred round shield."

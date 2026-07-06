@@ -3,7 +3,11 @@ extends Node
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const EQUIPMENT_SLOTS := EquipmentSlots.SLOTS
-const LEGACY_SUMMARY_SLOTS := ["weapon", "offhand", "body"]
+const SUMMARY_SLOTS := [
+	{"slot": "right_hand", "label": "Weapon"},
+	{"slot": "left_hand", "label": "Offhand"},
+	{"slot": "chest", "label": "Body"}
+]
 
 var event_bus: EventBus
 var content: ContentDatabase
@@ -100,13 +104,15 @@ func guarded_counter_multiplier(base_multiplier: float) -> float:
 
 func get_summary() -> String:
 	var lines: Array[String] = []
-	for slot in LEGACY_SUMMARY_SLOTS:
+	for entry in SUMMARY_SLOTS:
+		var slot := String(entry.get("slot", ""))
+		var label := String(entry.get("label", EquipmentSlots.label(slot)))
 		var item_id := get_equipped_item(slot)
 		if item_id.is_empty():
-			lines.append("%s: empty" % _slot_label(slot))
+			lines.append("%s: empty" % label)
 			continue
 		var item := _item(item_id)
-		lines.append("%s: %s" % [_slot_label(slot), String(item.get("name", item_id))])
+		lines.append("%s: %s" % [label, String(item.get("name", item_id))])
 	return "\n".join(lines)
 
 
@@ -133,7 +139,7 @@ func load_save_data(data: Dictionary) -> void:
 	equipped_by_slot.clear()
 	var equipped := _dictionary_field(data.get("equipped", {}))
 	for slot_id in equipped:
-		var slot := EquipmentSlots.normalize(String(slot_id))
+		var slot := EquipmentSlots.normalize_loaded_slot(String(slot_id))
 		var item_id := String(equipped[slot_id])
 		if (
 			EQUIPMENT_SLOTS.has(slot)
@@ -209,17 +215,6 @@ func _fallback_mainhand_weapon_id() -> String:
 
 func _has_item(item_id: String) -> bool:
 	return not inventory or inventory.has_item(item_id)
-
-
-func _slot_label(slot: String) -> String:
-	match slot:
-		"weapon":
-			return "Weapon"
-		"offhand":
-			return "Offhand"
-		"body":
-			return "Body"
-	return EquipmentSlots.label(slot)
 
 
 func _dictionary_field(value: Variant) -> Dictionary:

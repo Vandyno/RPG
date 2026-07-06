@@ -43,7 +43,7 @@ func test_shop_blocks_selling_equipped_items_and_reports_actions() -> void:
 	assert_false(shops.sell_item("shop_crossroads_peddler", "item_road_hatchet"))
 	assert_true(inventory.has_item("item_road_hatchet"))
 
-	assert_true(equipment.unequip_slot("weapon"))
+	assert_true(equipment.unequip_slot("right_hand"))
 	assert_eq(shops.sell_price("shop_crossroads_peddler", "item_road_hatchet"), 9)
 	assert_true(shops.get_shop_summary("shop_crossroads_peddler").contains("Roadside Draught: 8g"))
 	assert_true(shops.get_buy_actions("shop_crossroads_peddler")[0]["text"].contains("Buy"))

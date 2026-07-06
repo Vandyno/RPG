@@ -64,7 +64,7 @@
     "value": 18,
     "weight": 1.6,
     "tags": ["weapon"],
-    "equipment_slot": "weapon",
+    "equipment_slot": "right_hand",
     "avatar_visual": {
       "avatar_slot": "right_hand",
       "visual_layer_id": "placeholder_hatchet",
@@ -94,7 +94,7 @@
     "value": 22,
     "weight": 2.2,
     "tags": ["weapon"],
-    "equipment_slot": "weapon",
+    "equipment_slot": "right_hand",
     "avatar_visual": {
       "avatar_slot": "right_hand",
       "visual_layer_id": "placeholder_sword",
@@ -124,7 +124,7 @@
     "value": 26,
     "weight": 4.8,
     "tags": ["weapon"],
-    "equipment_slot": "weapon",
+    "equipment_slot": "right_hand",
     "avatar_visual": {
       "avatar_slot": "right_hand",
       "visual_layer_id": "placeholder_polearm",
@@ -153,7 +153,7 @@
     "value": 30,
     "weight": 2.0,
     "tags": ["weapon", "bow"],
-    "equipment_slot": "weapon",
+    "equipment_slot": "right_hand",
     "avatar_visual": {
       "avatar_slot": "right_hand",
       "visual_layer_id": "placeholder_bow",
@@ -182,7 +182,7 @@
     "value": 16,
     "weight": 2.5,
     "tags": ["shield"],
-    "equipment_slot": "offhand",
+    "equipment_slot": "left_hand",
     "avatar_visual": {
       "avatar_slot": "left_hand",
       "visual_layer_id": "placeholder_buckler",

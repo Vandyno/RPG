@@ -129,7 +129,7 @@ func test_avatar_has_required_body_stack_and_equipment_refresh() -> void:
 
 	avatar.set_equipped_items({"right_hand": "item_training_sword"}, ContentStub.new())
 
-	assert_true(avatar.has_equipment_visual("weapon"))
+	assert_true(avatar.has_equipment_visual("right_hand"))
 
 
 func test_avatar_locomotion_advances_walk_cycle() -> void:

@@ -509,8 +509,8 @@ func test_full_spawn_yard_system_loop() -> void:
 	var buckler_button := _button_containing(main.hud.systems_action_list, "Equip Traveler Buckler")
 	assert_not_null(buckler_button)
 	buckler_button.pressed.emit()
-	assert_eq(main.equipment.get_equipped_item("weapon"), "item_road_hatchet")
-	assert_eq(main.equipment.get_equipped_item("offhand"), "item_traveler_buckler")
+	assert_eq(main.equipment.get_equipped_item("right_hand"), "item_road_hatchet")
+	assert_eq(main.equipment.get_equipped_item("left_hand"), "item_traveler_buckler")
 	assert_true(main.hud.systems_body_label.text.contains("Weapon: Road Hatchet"))
 	assert_true(main.hud.systems_body_label.text.contains("Offhand: Traveler Buckler"))
 	main.hud.set_systems_tab("character")
@@ -727,7 +727,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	assert_true(FileAccess.file_exists(TEST_SAVE_PATH))
 
 	main.inventory.remove_item("item_old_toolbox", 1)
-	main.equipment.equipped_by_slot = {"weapon": "item_road_hatchet"}
+	main.equipment.equipped_by_slot = {"right_hand": "item_road_hatchet"}
 	main.player.set_health(7)
 	main.combat.clear_entity("enemy_road_thug")
 	main.time.load_save_data({})
@@ -738,7 +738,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	assert_true(main.save_manager.load_game())
 
 	assert_eq(main.player.health, 100)
-	assert_eq(main.equipment.get_equipped_item("weapon"), "")
+	assert_eq(main.equipment.get_equipped_item("right_hand"), "")
 	assert_true(main.inventory.has_item("item_old_toolbox"))
 	assert_eq(main.quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
 	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 10)
