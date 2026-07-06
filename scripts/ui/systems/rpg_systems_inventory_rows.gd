@@ -1,6 +1,19 @@
 class_name RpgSystemsInventoryRows
 extends RefCounted
 
+const ARMOUR_EQUIPMENT_SLOTS := [
+	"left_hand",
+	"chest",
+	"head",
+	"legs",
+	"gloves",
+	"boots",
+	"back",
+	"necklace",
+	"ring_1",
+	"ring_2"
+]
+
 
 static func category_labels() -> Array:
 	return ["All", "Weapons", "Armour", "Ingredients", "Misc", "Quest"]
@@ -159,9 +172,9 @@ static func _inventory_category(item: Dictionary) -> String:
 	var item_type := String(item.get("type", "")).to_lower()
 	var slot := String(item.get("equipment_slot", "")).to_lower()
 	var tags := RpgSystemsRowBuilder.lower_array(item.get("tags", []))
-	if item_type == "weapon" or slot == "weapon" or tags.has("weapon"):
+	if item_type == "weapon" or slot == "right_hand" or tags.has("weapon"):
 		return "weapons"
-	if ["armor", "armour", "shield"].has(item_type) or ["offhand", "body"].has(slot):
+	if ["armor", "armour", "shield"].has(item_type) or ARMOUR_EQUIPMENT_SLOTS.has(slot):
 		return "armour"
 	if tags.has("armor") or tags.has("armour") or tags.has("shield"):
 		return "armour"
