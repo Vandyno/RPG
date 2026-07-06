@@ -117,7 +117,7 @@ func get_save_data() -> Dictionary:
 			and _has_item(item_id)
 			and EquipmentSlots.accepts(slot, _item_slot(item_id))
 		):
-			equipped[EquipmentSlots.save_slot(slot)] = item_id
+			equipped[EquipmentSlots.normalize(slot)] = item_id
 	var data := {"equipped": equipped}
 	if (
 		_is_valid_mainhand_weapon(last_mainhand_weapon_id)

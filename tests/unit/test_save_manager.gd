@@ -57,7 +57,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	var parsed: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(TEST_SAVE_PATH))
 	assert_eq(int(parsed.get("version", 0)), 1)
 	assert_eq(int(parsed["player"]["health"]), 77)
-	assert_eq(parsed["equipment"]["equipped"]["weapon"], "item_road_hatchet")
+	assert_eq(parsed["equipment"]["equipped"]["right_hand"], "item_road_hatchet")
 	assert_eq(parsed["spells"]["assigned"]["ability_1"], "spell_fire_blast")
 	assert_eq(int(parsed["factions"]["reputation"]["faction_marches_of_velcor"]), 5)
 	assert_eq(int(parsed["progression"]["level"]), 2)
@@ -75,7 +75,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(providers["quests"].loaded_payload, {"quest": {"state": "active"}})
 	assert_eq(providers["inventory"].loaded_payload["items"][0]["item_id"], "coin")
 	assert_eq(int(providers["inventory"].loaded_payload["items"][0]["count"]), 3)
-	assert_eq(providers["equipment"].loaded_payload, {"equipped": {"weapon": "item_road_hatchet"}})
+	assert_eq(providers["equipment"].loaded_payload, {"equipped": {"right_hand": "item_road_hatchet"}})
 	assert_eq(providers["spells"].loaded_payload, {"assigned": {"ability_1": "spell_fire_blast"}})
 	assert_eq(
 		int(providers["factions"].loaded_payload["reputation"]["faction_marches_of_velcor"]), 5
@@ -244,7 +244,7 @@ func _provider_set() -> Dictionary:
 		"world_state": ProviderStub.new({"flags": {"flag": true}}),
 		"quests": ProviderStub.new({"quest": {"state": "active"}}),
 		"inventory": ProviderStub.new({"items": [{"item_id": "coin", "count": 3}]}),
-		"equipment": ProviderStub.new({"equipped": {"weapon": "item_road_hatchet"}}),
+		"equipment": ProviderStub.new({"equipped": {"right_hand": "item_road_hatchet"}}),
 		"spells": ProviderStub.new({"assigned": {"ability_1": "spell_fire_blast"}}),
 		"factions": ProviderStub.new({"reputation": {"faction_marches_of_velcor": 5}}),
 		"progression":
@@ -266,7 +266,7 @@ func _complete_save_data() -> Dictionary:
 		"world_state": {"flags": {"flag": true}},
 		"quests": {"quest": {"state": "active"}},
 		"inventory": {"items": [{"item_id": "coin", "count": 3}]},
-		"equipment": {"equipped": {"weapon": "item_road_hatchet"}},
+		"equipment": {"equipped": {"right_hand": "item_road_hatchet"}},
 		"spells": {"assigned": {"ability_1": "spell_fire_blast"}},
 		"factions": {"reputation": {"faction_marches_of_velcor": 5}},
 		"progression": {"level": 2, "experience": 7, "skill_points": 1},

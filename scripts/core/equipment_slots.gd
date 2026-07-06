@@ -21,12 +21,6 @@ const LEGACY_ALIASES := {
 	"body": "chest"
 }
 
-const LEGACY_SAVE_ALIASES := {
-	"right_hand": "weapon",
-	"left_hand": "offhand",
-	"chest": "body"
-}
-
 
 static func normalize(slot_id: String) -> String:
 	var slot := slot_id.to_lower()
@@ -57,11 +51,6 @@ static func first_slot_for_item_slot(item_slot: String, equipped: Dictionary) ->
 				return slot
 		return "ring_1"
 	return normalized
-
-
-static func save_slot(slot_id: String) -> String:
-	var slot := normalize(slot_id)
-	return String(LEGACY_SAVE_ALIASES.get(slot, slot))
 
 
 static func label(slot_id: String) -> String:

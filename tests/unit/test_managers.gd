@@ -211,7 +211,7 @@ func test_equipment_load_ignores_invalid_missing_or_unowned_items() -> void:
 	assert_eq(equipment.get_equipped_item("weapon"), "")
 	assert_eq(equipment.get_equipped_item("offhand"), "item_traveler_buckler")
 	assert_eq(equipment.last_mainhand_weapon_id, "")
-	assert_eq(equipment.get_save_data(), {"equipped": {"offhand": "item_traveler_buckler"}})
+	assert_eq(equipment.get_save_data(), {"equipped": {"left_hand": "item_traveler_buckler"}})
 	inventory.remove_item("item_traveler_buckler", 1)
 	assert_eq(equipment.get_equipped_item("offhand"), "")
 
