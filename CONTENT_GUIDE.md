@@ -123,7 +123,7 @@ A good location should answer:
 - How does it connect to nearby places?
 - What changes here after relevant quests?
 
-Discovered locations are shown in the World tab with their authored region and
+Discovered locations are shown in the Journal tab with their authored region and
 description, so keep descriptions concise and useful as player-facing journal
 text rather than private author notes.
 
@@ -553,7 +553,7 @@ Use this for rest, travel, rituals, waiting, crafting, or any interaction that
 should visibly move the world clock. Prefer `hours` for broad actions and
 `minutes` for short interactions.
 
-The HUD World tab also provides simple wait actions for engine testing. Keep
+The HUD Journal tab also provides simple wait actions for engine testing. Keep
 early time-gated content close enough to spawn that waiting, resting, shop hours,
 and dialogue conditions can be verified without a long walk.
 
@@ -1017,7 +1017,8 @@ for simple costs:
 For example, Harrow's Forge uses an action that requires `item_road_hatchet` and
 2 gold, removes the gold, and applies a short sharpening status.
 
-Service POIs can open a Systems tab directly. A market stall can link to a shop:
+Service POIs can open a supported Systems tab directly. A market stall can link
+to a shop:
 
 ```json
 {
@@ -1035,8 +1036,10 @@ Service POIs can open a Systems tab directly. A market stall can link to a shop:
 }
 ```
 
-Supported `system_tab` values are `inventory`, `character`, `trade`, `quests`,
-`world`, and `log`.
+Supported POI `system_tab` values are `inventory`, `character`, `trade`,
+`quests`, `journal`, and `log`. The player-facing Systems HUD also has a
+top-level `spells` tab for assigning ability slots, but POIs do not currently
+open directly to that tab.
 
 ## Containers
 
