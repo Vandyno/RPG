@@ -557,29 +557,6 @@ func _draw_head(skin: Color, proportions: Dictionary) -> void:
 	)
 
 
-func _draw_people_feature_layer(skin: Color, proportions: Dictionary, layer_id: String) -> void:
-	var people_id := String(profile.get("people_id", ""))
-	var appearance: Dictionary = profile.get("appearance", {})
-	var feature_ids := _appearance_feature_ids(people_id)
-	if people_id == "people_tanglekin":
-		if layer_id == PEOPLE_FEATURE_LAYER_BACK:
-			_draw_tanglekin_back_feature(skin, proportions, feature_ids)
-		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			_draw_tanglekin_feature(skin, proportions, feature_ids)
-		return
-	if people_id == "people_ravenfolk":
-		if layer_id == PEOPLE_FEATURE_LAYER_BACK:
-			_draw_ravenfolk_back_feature(skin, proportions, feature_ids, appearance)
-		elif layer_id == PEOPLE_FEATURE_LAYER_BODY:
-			_draw_ravenfolk_body_feature(skin, proportions, feature_ids, appearance)
-		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			_draw_ravenfolk_front_feature(skin, proportions, feature_ids, appearance)
-		return
-	if layer_id != PEOPLE_FEATURE_LAYER_FRONT:
-		return
-	_draw_people_feature(skin, proportions)
-
-
 func _draw_people_feature(skin: Color, proportions: Dictionary) -> void:
 	var people_id := String(profile.get("people_id", ""))
 	var appearance: Dictionary = profile.get("appearance", {})
@@ -2024,13 +2001,6 @@ func _equipment_layer_id(slot_id: String) -> String:
 
 func _chest_equipment_uses_wrap_style() -> bool:
 	return _equipment_layer_id("chest") == "placeholder_smith_apron"
-
-
-func _debug_people_feature_layer_entries(people_id: String, layer_id: String) -> Array[String]:
-	var entries: Array[String] = []
-	for feature_id in _people_feature_layer_ids(people_id, layer_id):
-		entries.append("people_feature_%s:%s" % [layer_id, feature_id])
-	return entries
 
 
 func _append_debug_hand_layer(
