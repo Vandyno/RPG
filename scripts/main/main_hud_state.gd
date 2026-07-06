@@ -30,16 +30,16 @@ class HudContext:
 	var statuses
 	var time
 	var world_state
-	var _get_nearby_entity: Callable
-	var _inventory_actions_data: Callable
-	var _inventory_details_text: Callable
-	var _inventory_text: Callable
-	var _nearby_targets_data: Callable
-	var _progression_actions_data: Callable
-	var _shop_id_for_entity: Callable
-	var _target_detail_text: Callable
-	var _trade_actions_data: Callable
-	var _trade_text: Callable
+	var get_nearby_entity: Callable
+	var inventory_actions_data: Callable
+	var inventory_details_text: Callable
+	var inventory_text: Callable
+	var nearby_targets_data: Callable
+	var progression_actions_data: Callable
+	var shop_id_for_entity: Callable
+	var target_detail_text: Callable
+	var trade_actions_data: Callable
+	var trade_text: Callable
 
 	func _init(main) -> void:
 		active_transfer_name = String(main.active_transfer_name)
@@ -61,46 +61,16 @@ class HudContext:
 		statuses = main.statuses
 		time = main.time
 		world_state = main.world_state
-		_get_nearby_entity = Callable(main, "_get_nearby_entity")
-		_inventory_actions_data = Callable(main, "_inventory_actions_data")
-		_inventory_details_text = Callable(main, "_inventory_details_text")
-		_inventory_text = Callable(main, "_inventory_text")
-		_nearby_targets_data = Callable(main, "_nearby_targets_data")
-		_progression_actions_data = Callable(main, "_progression_actions_data")
-		_shop_id_for_entity = Callable(main, "_shop_id_for_entity")
-		_target_detail_text = Callable(main, "_target_detail_text")
-		_trade_actions_data = Callable(main, "_trade_actions_data")
-		_trade_text = Callable(main, "_trade_text")
-
-	func inventory_actions_data() -> Array[Dictionary]:
-		return _inventory_actions_data.call()
-
-	func inventory_details_text() -> String:
-		return String(_inventory_details_text.call())
-
-	func inventory_text() -> String:
-		return String(_inventory_text.call())
-
-	func nearby_entity():
-		return _get_nearby_entity.call()
-
-	func nearby_targets_data() -> Array[Dictionary]:
-		return _nearby_targets_data.call()
-
-	func progression_actions_data() -> Array[Dictionary]:
-		return _progression_actions_data.call()
-
-	func shop_id_for_entity(entity) -> String:
-		return String(_shop_id_for_entity.call(entity))
-
-	func target_detail_text(entity) -> String:
-		return String(_target_detail_text.call(entity))
-
-	func trade_actions_data(shop_id: String) -> Array[Dictionary]:
-		return _trade_actions_data.call(shop_id)
-
-	func trade_text(shop_id: String) -> String:
-		return String(_trade_text.call(shop_id))
+		get_nearby_entity = Callable(main, "_get_nearby_entity")
+		inventory_actions_data = Callable(main, "_inventory_actions_data")
+		inventory_details_text = Callable(main, "_inventory_details_text")
+		inventory_text = Callable(main, "_inventory_text")
+		nearby_targets_data = Callable(main, "_nearby_targets_data")
+		progression_actions_data = Callable(main, "_progression_actions_data")
+		shop_id_for_entity = Callable(main, "_shop_id_for_entity")
+		target_detail_text = Callable(main, "_target_detail_text")
+		trade_actions_data = Callable(main, "_trade_actions_data")
+		trade_text = Callable(main, "_trade_text")
 
 
 static func context(main) -> HudContext:
@@ -109,10 +79,10 @@ static func context(main) -> HudContext:
 
 static func build(source) -> Dictionary:
 	var ctx := _context(source)
-	var nearby = ctx.nearby_entity()
+	var nearby = ctx.get_nearby_entity.call()
 	var auto_target = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	var displayed = auto_target if auto_target else nearby
-	var shop_id: String = ctx.shop_id_for_entity(nearby)
+	var shop_id: String = String(ctx.shop_id_for_entity.call(nearby))
 	var target_name := "Destination" if ctx.auto_move_active else _target_name(displayed)
 	var target_detail := "Moving" if ctx.auto_move_active else _target_detail(ctx, displayed)
 	return {
@@ -126,12 +96,12 @@ static func build(source) -> Dictionary:
 		"nearby": target_name,
 		"primary_action": _primary_action(ctx, nearby, auto_target),
 		"target_detail": target_detail,
-		"nearby_targets": ctx.nearby_targets_data(),
+		"nearby_targets": ctx.nearby_targets_data.call(),
 		"context_actions": MainContextActions.secondary(ctx.context_actions_context, nearby),
-		"inventory": ctx.inventory_text(),
+		"inventory": String(ctx.inventory_text.call()),
 		"inventory_items": _inventory_items_data(ctx),
-		"inventory_details": ctx.inventory_details_text(),
-		"inventory_actions": ctx.inventory_actions_data(),
+		"inventory_details": String(ctx.inventory_details_text.call()),
+		"inventory_actions": ctx.inventory_actions_data.call(),
 		"transfer_open": not ctx.active_transfer_owner_id.is_empty(),
 		"transfer_target": {
 			"owner_id": ctx.active_transfer_owner_id,
@@ -141,14 +111,14 @@ static func build(source) -> Dictionary:
 		"transfer_target_items": _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id),
 		"spells": _spells_data(ctx),
 		"spell_slots": _spell_slots_data(ctx),
-		"trade": ctx.trade_text(shop_id),
-		"trade_actions": ctx.trade_actions_data(shop_id),
+		"trade": String(ctx.trade_text.call(shop_id)),
+		"trade_actions": ctx.trade_actions_data.call(shop_id),
 		"equipment": ctx.equipment.get_summary(),
 		"equipment_slots": _equipment_slots_data(ctx),
 		"factions": ctx.factions.get_summary(),
 		"progression": ctx.progression.get_summary(),
 		"progression_details": ctx.progression.get_details(),
-		"progression_actions": ctx.progression_actions_data(),
+		"progression_actions": ctx.progression_actions_data.call(),
 		"statuses": ctx.statuses.get_summary(),
 		"status_details": ctx.statuses.get_details(),
 		"time": ctx.time.get_summary(),
@@ -184,7 +154,7 @@ static func _target_name(entity) -> String:
 
 
 static func _target_detail(ctx: HudContext, entity) -> String:
-	return ctx.target_detail_text(entity) if entity else ""
+	return String(ctx.target_detail_text.call(entity)) if entity else ""
 
 
 static func _quest_target_actions(ctx: HudContext) -> Array[Dictionary]:
