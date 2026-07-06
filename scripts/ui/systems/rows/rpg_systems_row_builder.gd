@@ -2,12 +2,16 @@ class_name RpgSystemsRowBuilder
 extends RefCounted
 
 const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
-const RpgSystemsInventoryRows = preload("res://scripts/ui/systems/rpg_systems_inventory_rows.gd")
-const RpgSystemsSpellRows = preload("res://scripts/ui/systems/rpg_systems_spell_rows.gd")
-const RpgSystemsCharacterRows = preload("res://scripts/ui/systems/rpg_systems_character_rows.gd")
-const RpgSystemsQuestRows = preload("res://scripts/ui/systems/rpg_systems_quest_rows.gd")
-const RpgSystemsJournalRows = preload("res://scripts/ui/systems/rpg_systems_journal_rows.gd")
-const RpgSystemsTradeRows = preload("res://scripts/ui/systems/rpg_systems_trade_rows.gd")
+const RpgSystemsInventoryRows = preload(
+	"res://scripts/ui/systems/rows/rpg_systems_inventory_rows.gd"
+)
+const RpgSystemsSpellRows = preload("res://scripts/ui/systems/rows/rpg_systems_spell_rows.gd")
+const RpgSystemsCharacterRows = preload(
+	"res://scripts/ui/systems/rows/rpg_systems_character_rows.gd"
+)
+const RpgSystemsQuestRows = preload("res://scripts/ui/systems/rows/rpg_systems_quest_rows.gd")
+const RpgSystemsJournalRows = preload("res://scripts/ui/systems/rows/rpg_systems_journal_rows.gd")
+const RpgSystemsTradeRows = preload("res://scripts/ui/systems/rows/rpg_systems_trade_rows.gd")
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 

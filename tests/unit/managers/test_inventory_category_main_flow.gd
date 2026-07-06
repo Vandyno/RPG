@@ -1,7 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
-const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rpg_systems_row_builder.gd")
+const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rows/rpg_systems_row_builder.gd")
 
 
 func test_seed_ingredient_pickup_feeds_inventory_ingredient_tab() -> void:

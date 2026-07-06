@@ -4,10 +4,12 @@ extends "res://scripts/ui/shell/hud_runtime_base.gd"
 signal aim_action_released(action_id: String, direction: Vector2)
 signal aim_action_held(action_id: String, direction: Vector2, delta: float)
 signal sneak_pressed
-const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rpg_systems_row_builder.gd")
+const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rows/rpg_systems_row_builder.gd")
 const RpgSystemsTextBuilder = preload("res://scripts/ui/text/rpg_systems_text_builder.gd")
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
-const RpgTransferPaneBuilder = preload("res://scripts/ui/systems/rpg_transfer_pane_builder.gd")
+const RpgTransferPaneBuilder = preload(
+	"res://scripts/ui/systems/panes/rpg_transfer_pane_builder.gd"
+)
 const RpgContentPanelBuilder = preload("res://scripts/ui/content/rpg_content_panel_builder.gd")
 const RpgContentChoiceBuilder = preload("res://scripts/ui/content/rpg_content_choice_builder.gd")
 const RpgContextActionPanelBuilder = preload(
@@ -19,7 +21,7 @@ const RpgActionClusterBuilder = preload(
 const RpgMovePadBuilder = preload("res://scripts/ui/controls/input/rpg_move_pad_builder.gd")
 const RpgStatusTextBuilder = preload("res://scripts/ui/text/rpg_status_text_builder.gd")
 const RpgSystemsCharacterPaneBuilder = preload(
-	"res://scripts/ui/systems/rpg_systems_character_pane_builder.gd"
+	"res://scripts/ui/systems/panes/rpg_systems_character_pane_builder.gd"
 )
 const RpgInventoryItemButton = preload(
 	"res://scripts/ui/controls/buttons/rpg_inventory_item_button.gd"
@@ -28,7 +30,7 @@ const RpgIconButton = preload("res://scripts/ui/controls/buttons/rpg_icon_button
 const RpgDetailLabel = preload("res://scripts/ui/controls/display/rpg_detail_label.gd")
 const RpgEquipmentSlot = preload("res://scripts/ui/controls/slots/rpg_equipment_slot.gd")
 const RpgSpellSlotPanelBuilder = preload(
-	"res://scripts/ui/systems/rpg_spell_slot_panel_builder.gd"
+	"res://scripts/ui/systems/panes/rpg_spell_slot_panel_builder.gd"
 )
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(44, 46)
