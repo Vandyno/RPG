@@ -978,7 +978,7 @@ func _stand_by_enemy(main, entity_id: String) -> void:
 
 func _attack_enemy_once(main, entity_id: String) -> void:
 	_stand_by_enemy(main, entity_id)
-	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
 
 func _attack_enemy_until_defeated(main, entity_id: String) -> void:

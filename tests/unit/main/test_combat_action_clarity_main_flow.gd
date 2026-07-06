@@ -25,7 +25,7 @@ func test_enemy_context_stays_hidden_after_directional_attack() -> void:
 
 	assert_false(main.hud.context_action_panel.visible)
 
-	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
 	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 6)
 	assert_false(main.hud.context_action_panel.visible)

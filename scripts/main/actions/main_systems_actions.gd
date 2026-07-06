@@ -74,8 +74,7 @@ static func context(main) -> SystemsContext:
 	return SystemsContext.new(main)
 
 
-static func handle(source, action_id: String) -> void:
-	var ctx := _context(source)
+static func handle(ctx: SystemsContext, action_id: String) -> void:
 	var parsed := parse_action_id(action_id)
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
@@ -91,8 +90,7 @@ static func handle(source, action_id: String) -> void:
 				ctx.event_bus.post_message("Unknown systems action.")
 
 
-static func handle_aim(source, action_id: String, direction: Vector2) -> void:
-	var ctx := _context(source)
+static func handle_aim(ctx: SystemsContext, action_id: String, direction: Vector2) -> void:
 	var attack_action := action_id == "attack" or action_id == "primary"
 	var snapped_direction := _snapped_aim_direction(direction)
 	if direction.length() > MIN_AIM_DIRECTION and ctx.player.has_method("set_facing_direction"):
@@ -124,8 +122,9 @@ static func handle_aim(source, action_id: String, direction: Vector2) -> void:
 	ctx.refresh_hud()
 
 
-static func handle_aim_held(source, action_id: String, direction: Vector2, delta: float) -> void:
-	var ctx := _context(source)
+static func handle_aim_held(
+	ctx: SystemsContext, action_id: String, direction: Vector2, delta: float
+) -> void:
 	if delta <= 0.0 or direction.length() <= MIN_AIM_DIRECTION:
 		return
 	var snapped_direction := _snapped_aim_direction(direction)
@@ -364,6 +363,3 @@ static func _handle_assign_spell_to_slot(
 	)
 	ctx.refresh_hud()
 
-
-static func _context(source) -> SystemsContext:
-	return source if source is SystemsContext else context(source)

@@ -43,8 +43,7 @@ static func context(main) -> ActionContext:
 	return ActionContext.new(main)
 
 
-static func build(source, entity) -> Array[Dictionary]:
-	var ctx := _context(source)
+static func build(ctx: ActionContext, entity) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
 	if entity and entity.get_kind() == "poi":
 		for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
@@ -74,8 +73,7 @@ static func build(source, entity) -> Array[Dictionary]:
 	return actions
 
 
-static func preferred_primary(source, entity) -> Dictionary:
-	var ctx := _context(source)
+static func preferred_primary(ctx: ActionContext, entity) -> Dictionary:
 	var actions := build(ctx, entity)
 	for action in actions:
 		var action_id := String(action.get("id", ""))
@@ -93,8 +91,7 @@ static func preferred_primary(source, entity) -> Dictionary:
 	return {}
 
 
-static func secondary(source, entity) -> Array[Dictionary]:
-	var ctx := _context(source)
+static func secondary(ctx: ActionContext, entity) -> Array[Dictionary]:
 	var actions := build(ctx, entity)
 	var primary := preferred_primary(ctx, entity)
 	var primary_id := String(primary.get("id", ""))
@@ -108,8 +105,7 @@ static func secondary(source, entity) -> Array[Dictionary]:
 	return result
 
 
-static func handle(source, action_id: String) -> void:
-	var ctx := _context(source)
+static func handle(ctx: ActionContext, action_id: String) -> void:
 	var parsed := _parse_action_id(action_id)
 	match String(parsed.get("kind", "")):
 		"poi":
@@ -341,10 +337,6 @@ static func _poi_should_offer_inspect(ctx: ActionContext, entity) -> bool:
 		_poi_has_been_discovered(ctx, entity)
 		and not PoiInteraction.available_actions(entity, ctx.condition_evaluator).is_empty()
 	)
-
-
-static func _context(source) -> ActionContext:
-	return source if source is ActionContext else context(source)
 
 
 static func _array_field(value: Variant) -> Array:

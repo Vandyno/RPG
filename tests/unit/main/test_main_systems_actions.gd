@@ -22,7 +22,9 @@ func test_parse_action_id_defaults_to_inventory_use() -> void:
 func test_handle_routes_service_owned_system_actions() -> void:
 	var main := AssignSpellMainStub.new()
 
-	MainSystemsActions.handle(main, "assign_spell:spell_fire_blast:ability_1")
+	MainSystemsActions.handle(
+		MainSystemsActions.context(main), "assign_spell:spell_fire_blast:ability_1"
+	)
 
 	assert_eq(
 		main.calls,
@@ -37,7 +39,9 @@ func test_handle_routes_service_owned_system_actions() -> void:
 func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim_held(main, "ability_1", Vector2.RIGHT, 1.0)
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.context(main), "ability_1", Vector2.RIGHT, 1.0
+	)
 
 	assert_eq(main.player.mana, 92.0)
 	assert_eq(
@@ -53,7 +57,7 @@ func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim(main, "ability_1", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "ability_1", Vector2.RIGHT)
 
 	assert_eq(main.calls, ["refresh"])
 
@@ -61,7 +65,7 @@ func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
 		main.calls,
@@ -77,8 +81,8 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_training_sword"
 
-	MainSystemsActions.handle_aim_held(main, "attack", Vector2.LEFT, 1.0)
-	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim_held(MainSystemsActions.context(main), "attack", Vector2.LEFT, 1.0)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
 		main.calls,
@@ -99,8 +103,8 @@ func test_handle_held_bow_waits_for_release() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_hunting_bow"
 
-	MainSystemsActions.handle_aim_held(main, "attack", Vector2.LEFT, 1.0)
-	MainSystemsActions.handle_aim(main, "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim_held(MainSystemsActions.context(main), "attack", Vector2.LEFT, 1.0)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
 		main.calls,
@@ -117,7 +121,7 @@ func test_handle_aim_attack_swings_without_target() -> void:
 	main.enemies.clear()
 	main.entities.entities_by_id.clear()
 
-	MainSystemsActions.handle_aim(main, "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
 	assert_eq(main.player.facing_direction, Vector2.RIGHT)
 	assert_eq(main.calls, ["message:Attacked east.", "refresh"])
@@ -131,7 +135,7 @@ func test_handle_aim_attack_uses_snapped_bucket_direction_for_hits() -> void:
 	main.enemies = [AimEntityStub.new("enemy_bucket", "Bucket Dummy", snapped * 88.0)]
 	main.entities = AimEntitiesStub.new(main.enemies)
 
-	MainSystemsActions.handle_aim(main, "attack", raw_direction)
+	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", raw_direction)
 
 	assert_eq(main.player.facing_direction, snapped)
 	assert_eq(
