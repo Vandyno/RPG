@@ -205,6 +205,11 @@ Responsibilities:
 
 Future owner area for persistent actor and humanoid character profiles.
 
+Core rule: everyone with person-like movement, interaction, inventory, or
+combat is an NPC/actor. Hostility is state. Combat is behavior. "Enemy" should
+not become a separate humanoid data model; it is only shorthand for an NPC or
+creature currently hostile to the player.
+
 The player should be treated as one humanoid actor, not as the only character
 with inventory, equipment, spells, and appearance. Humanoid NPCs should be able
 to use the same profile shape with their own inventories, equipped items,
@@ -382,10 +387,11 @@ The player controller should not own:
 
 NPC scenes should own presentation and local behavior.
 
-Humanoid NPCs and humanoid enemies should be treated as full actors, not static
-markers. Even when an early fixture stands still, its data path should allow
-movement, attacking, interaction, inventory/equipment ownership, profile-backed
-appearance, and later AI without replacing the actor shape.
+Humanoid enemies are not a separate actor category. They are NPCs whose current
+state, faction, crime response, or test setup makes them hostile. Even when an
+early fixture stands still, its data path should allow movement, attacking,
+interaction, inventory/equipment ownership, profile-backed appearance, and
+later AI without replacing the actor shape.
 
 NPCs should reference:
 
@@ -559,17 +565,19 @@ hiding the primary result.
 4. `QuestManager` checks whether active objectives care about that item.
 5. Quest log UI updates if needed.
 
-## Example: Enemy Defeated Flow
+## Example: Hostile NPC Defeated Flow
 
-1. Enemy health reaches zero.
-2. Enemy emits or reports `enemy_defeated(enemy_id, enemy_type, global_tile)`.
+1. Hostile actor health reaches zero.
+2. Actor emits or reports a defeated event with actor ID, actor category, and
+   global tile. Legacy `enemy_defeated(...)` names are implementation shorthand,
+   not permission to split humanoid enemies away from NPCs.
 3. `CombatManager` resolves combat state.
-4. If the enemy is a humanoid actor, the entity/profile layer creates a
+4. If the defeated actor is a humanoid NPC, the entity/profile layer creates a
    persistent lootable body tied to that actor's inventory and equipment owner
    IDs.
-5. If the enemy is a creature or monster, the entity layer may create a simpler
-   body/loot entity tied to a loot owner ID, or `LootDropComponent` can create
-   direct drops if configured.
+5. If the defeated actor is a creature or monster, the entity layer may create
+   a simpler body/loot entity tied to a loot owner ID, or `LootDropComponent`
+   can create direct drops if configured.
 6. `QuestManager` checks kill/clear objectives.
 7. `WorldStateManager` records persistent defeated state if needed.
 8. `SaveManager` persists the relevant entity/chunk/profile state.

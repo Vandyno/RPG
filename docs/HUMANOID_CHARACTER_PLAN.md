@@ -12,11 +12,16 @@ own inventories, equipment, spells, stats, race/people bonuses, and visual
 identity. Current placeholder NPCs should migrate onto this system when it is
 ready instead of remaining one-off world markers.
 
-Humanoid NPCs and enemies should be full characters even when a test slice only
-uses part of that behavior. They should have a path to movement, attacking,
-interaction, inventory/equipment ownership, profile-backed appearance, and
-future AI. Do not add new humanoid markers that would need to be replaced once
-brains or combat arrive.
+Universal NPC rule: everyone with person-like movement, interaction, inventory,
+or combat is an NPC/actor. Hostility is state. Combat is behavior. A humanoid
+"enemy" is an NPC currently hostile because of faction, crime response, scripted
+state, or test setup; it must not use a separate humanoid model.
+
+Humanoid NPCs should be full characters even when a test slice only uses part of
+that behavior. They should have a path to movement, attacking, interaction,
+inventory/equipment ownership, profile-backed appearance, and future AI. Do not
+add new humanoid markers that would need to be replaced once brains or combat
+arrive.
 
 Death, looting, and pickpocketing should also use this same model. A dead
 humanoid leaves a body on the ground with its remaining inventory and equipment
@@ -191,6 +196,8 @@ Use shared actor plumbing where it helps, then specialize by actor category.
 - `object`: not an actor unless it needs health, AI, ownership, or combat state
 
 Do not make every creature pretend to be humanoid just to reuse code.
+Do not make hostile humanoids pretend to be a separate enemy category just to
+start combat. They remain NPCs with hostile state and combat behavior.
 
 ## Ownership
 

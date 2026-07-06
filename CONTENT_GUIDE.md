@@ -68,6 +68,11 @@ flag_mine_door_unlocked
 enemy_forest_wolf
 ```
 
+Use `enemy_*` IDs only as legacy/test shorthand or for non-person creatures
+where it is still useful. New humanoid people should be authored as NPC actors.
+Hostility is state, and combat is behavior; a hostile bandit is still an NPC
+with inventory, equipment, faction/state, and a character profile.
+
 Avoid vague IDs like:
 
 ```text
@@ -263,6 +268,10 @@ State changes:
 ```
 
 NPCs should feel like people with motives, not quest vending machines.
+
+Hostile humanoids are still NPCs. Do not author a separate humanoid "enemy"
+shape that cannot later talk, move, attack, be pickpocketed, carry equipment,
+die into a lootable body, or change hostility through faction/story state.
 
 ---
 
