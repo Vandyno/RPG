@@ -5,14 +5,16 @@ const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const EQUIPMENT_SLOTS := EquipmentSlots.SLOTS
 const LEGACY_SUMMARY_SLOTS := ["weapon", "offhand", "body"]
 
-var event_bus
-var content
-var inventory
+var event_bus: EventBus
+var content: ContentDatabase
+var inventory: InventoryManager
 var equipped_by_slot: Dictionary = {}
 var last_mainhand_weapon_id := ""
 
 
-func setup(bus, content_database = null, inventory_manager = null) -> void:
+func setup(
+	bus: EventBus, content_database: ContentDatabase = null, inventory_manager: InventoryManager = null
+) -> void:
 	event_bus = bus
 	content = content_database
 	inventory = inventory_manager

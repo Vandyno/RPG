@@ -7,11 +7,11 @@ const DEFAULT_INTERACTION_RADIUS_PIXELS := 32.0
 const DOOR_INTERACTION_RADIUS_PIXELS := 48.0
 const NON_INTERACTIVE_KINDS := ["location", "enemy"]
 
-var event_bus
-var content
-var chunk_manager
-var condition_evaluator
-var inventory
+var event_bus: EventBus
+var content: ContentDatabase
+var chunk_manager: ChunkManager
+var condition_evaluator: ConditionEvaluator
+var inventory: InventoryManager
 var entities_by_id: Dictionary = {}
 var runtime_entities_by_id: Dictionary = {}
 var highlighted_entity_id := ""
@@ -20,7 +20,13 @@ var has_active_chunk_filter := false
 var respawn_queued := false
 
 
-func setup(bus, content_database, chunks, conditions = null, inventory_manager = null) -> void:
+func setup(
+	bus: EventBus,
+	content_database: ContentDatabase,
+	chunks: ChunkManager,
+	conditions: ConditionEvaluator = null,
+	inventory_manager: InventoryManager = null
+) -> void:
 	event_bus = bus
 	content = content_database
 	chunk_manager = chunks

@@ -36,30 +36,30 @@ const MainSystemsActions = preload("res://scripts/main/main_systems_actions.gd")
 const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
 const MainCameraFraming = preload("res://scripts/main/main_camera_framing.gd")
 const PoiInteraction = preload("res://scripts/main/poi_interaction.gd")
-var event_bus
-var condition_evaluator
-var effect_runner
-var content
-var world_state
-var inventory
-var quests
-var factions
-var progression
-var statuses
-var time
-var shops
-var readables
-var dialogues
-var chunks
-var streamer
-var entities
-var combat
-var equipment
-var spells
-var player
-var save_manager
-var hud
-var debug_character_creator
+var event_bus: EventBus
+var condition_evaluator: ConditionEvaluator
+var effect_runner: EffectRunner
+var content: ContentDatabase
+var world_state: WorldStateManager
+var inventory: InventoryManager
+var quests: QuestManager
+var factions: FactionManager
+var progression: ProgressionManager
+var statuses: StatusEffectManager
+var time: TimeManager
+var shops: ShopManager
+var readables: ReadableManager
+var dialogues: DialogueManager
+var chunks: ChunkManager
+var streamer: WorldStreamingManager
+var entities: EntityManager
+var combat: CombatManager
+var equipment: EquipmentManager
+var spells: SpellManager
+var player: PlayerController
+var save_manager: SaveManager
+var hud: RpgHud
+var debug_character_creator: DebugCharacterCreator
 var camera: Camera2D
 var active_interaction_id := ""
 var target_cycle_index := 0

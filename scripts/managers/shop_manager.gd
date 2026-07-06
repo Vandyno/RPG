@@ -5,15 +5,19 @@ const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 
 const CURRENCY_ITEM_ID := "item_gold_coin"
 
-var event_bus
-var content
-var inventory
-var equipment
-var time
+var event_bus: EventBus
+var content: ContentDatabase
+var inventory: InventoryManager
+var equipment: EquipmentManager
+var time: TimeManager
 
 
 func setup(
-	bus, content_database, inventory_manager, equipment_manager = null, time_manager = null
+	bus: EventBus,
+	content_database: ContentDatabase,
+	inventory_manager: InventoryManager,
+	equipment_manager: EquipmentManager = null,
+	time_manager: TimeManager = null
 ) -> void:
 	event_bus = bus
 	content = content_database

@@ -3,13 +3,13 @@ extends Node
 
 const PLAYER_OWNER_ID := "char_player"
 
-var event_bus
-var content
+var event_bus: EventBus
+var content: ContentDatabase
 var items: Dictionary = {}
 var owner_items: Dictionary = {}
 
 
-func setup(bus, content_database = null) -> void:
+func setup(bus: EventBus, content_database: ContentDatabase = null) -> void:
 	event_bus = bus
 	content = content_database
 	owner_items[PLAYER_OWNER_ID] = items

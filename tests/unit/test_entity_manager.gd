@@ -2,32 +2,26 @@
 extends GutTest
 
 const EntityManager = preload("res://scripts/managers/entity_manager.gd")
+const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const WorldEntity = preload("res://scripts/world/world_entity.gd")
 
 
-class ContentStub:
-	var world_objects: Array[Dictionary] = []
-	var npcs: Dictionary = {}
-	var character_profiles: Dictionary = {}
-
-	func get_npc(npc_id: String) -> Dictionary:
-		return npcs.get(npc_id, {})
-
-	func get_character_profile(profile_id: String) -> Dictionary:
-		return character_profiles.get(profile_id, {})
+func _content() -> ContentDatabase:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	return content
 
 
-class ChunkStub:
-	func is_entity_removed(_entity_id: String, _tile: Vector2i) -> bool:
-		return false
-
-	func mark_entity_removed(_entity_id: String, _tile: Vector2i) -> void:
-		pass
+func _chunks() -> ChunkManager:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+	return chunks
 
 
-class ConditionStub:
+class ConditionStub extends ConditionEvaluator:
 	var passed := false
 
 	func evaluate_all(_conditions: Array) -> bool:
@@ -35,14 +29,14 @@ class ConditionStub:
 
 
 func test_world_distance_interaction_finds_nearest_entity_inside_range() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "near", "name": "Near", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "far", "name": "Far", "kind": "readable", "global_tile": [4, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(30.0, 16.0), 42.0)
 
@@ -51,7 +45,7 @@ func test_world_distance_interaction_finds_nearest_entity_inside_range() -> void
 
 
 func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{
 			"id": "broad",
@@ -64,7 +58,7 @@ func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> vo
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var broad = manager.get_entity("broad")
 	var tapped = manager.get_entity("tapped")
@@ -77,11 +71,11 @@ func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> vo
 
 
 func test_world_tap_hit_test_includes_visible_action_hint() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [{"id": "npc", "name": "Guide", "kind": "npc", "global_tile": [2, 0]}]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	var entity = manager.get_entity("npc")
 	var label_point: Vector2 = entity.global_position + Vector2(40.0, -35.0)
 
@@ -101,14 +95,14 @@ func test_world_tap_hit_test_includes_visible_action_hint() -> void:
 
 
 func test_world_tap_hit_test_prioritizes_visible_action_hint_over_nearby_marker() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "npc", "name": "Guide", "kind": "npc", "global_tile": [2, 2]},
 		{"id": "marker", "name": "Marker", "kind": "readable", "global_tile": [2, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	var entity = manager.get_entity("npc")
 	var label_point: Vector2 = entity.global_position + Vector2(40.0, -35.0)
 
@@ -118,14 +112,14 @@ func test_world_tap_hit_test_prioritizes_visible_action_hint_over_nearby_marker(
 
 
 func test_world_tap_hit_test_prioritizes_selected_action_hint_when_labels_overlap() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "unselected", "name": "Alpha", "kind": "readable", "global_tile": [2, 2]},
 		{"id": "selected", "name": "Zulu", "kind": "npc", "global_tile": [2, 2]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	var selected = manager.get_entity("selected")
 	var label_point: Vector2 = selected.global_position + Vector2(0.0, -35.0)
 
@@ -141,14 +135,14 @@ func test_world_tap_hit_test_prioritizes_selected_action_hint_when_labels_overla
 
 
 func test_highlight_switches_between_entities() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "first", "name": "First", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "second", "name": "Second", "kind": "readable", "global_tile": [2, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	manager.set_highlighted_entity("first")
 	manager.set_highlighted_entity("second")
@@ -158,14 +152,14 @@ func test_highlight_switches_between_entities() -> void:
 
 
 func test_quest_markers_toggle_independently_from_action_hints() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "quest_target", "name": "Quest Target", "kind": "pickup", "global_tile": [1, 0]},
 		{"id": "plain", "name": "Plain", "kind": "npc", "global_tile": [2, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	manager.set_action_hints({"quest_target": {"text": "Pick Up", "selected": true}})
 	manager.set_quest_markers({"quest_target": {"text": "Quest"}})
@@ -198,14 +192,14 @@ func test_quest_markers_toggle_independently_from_action_hints() -> void:
 
 
 func test_world_distance_interaction_list_is_sorted_by_distance() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "far", "name": "Far", "kind": "readable", "global_tile": [3, 0]},
 		{"id": "near", "name": "Near", "kind": "readable", "global_tile": [1, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0), 48.0)
 	var navigation := manager.get_navigation_summary(Vector2(8.0, 8.0), 48.0)
@@ -219,7 +213,7 @@ func test_world_distance_interaction_list_is_sorted_by_distance() -> void:
 
 
 func test_interaction_lists_use_stable_name_tie_breaks() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "zeta", "name": "Zeta", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "alpha", "name": "Alpha", "kind": "pickup", "global_tile": [1, 0]},
@@ -227,7 +221,7 @@ func test_interaction_lists_use_stable_name_tie_breaks() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0), 32.0)
 	var nearest = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 32.0)
@@ -242,7 +236,7 @@ func test_interaction_lists_use_stable_name_tie_breaks() -> void:
 
 
 func test_world_distance_caps_authored_interaction_radius_to_requested_range() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{
 			"id": "extended",
@@ -255,7 +249,7 @@ func test_world_distance_caps_authored_interaction_radius_to_requested_range() -
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0))
 
@@ -269,13 +263,13 @@ func test_world_distance_caps_authored_interaction_radius_to_requested_range() -
 
 
 func test_enemy_entities_are_combat_entities_not_interactables() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "enemy", "name": "Enemy", "kind": "enemy", "global_tile": [-1, 2]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 42.0)
 	var combat_entities := manager.get_entities_world(Vector2(8.0, 8.0), 42.0, "enemy")
@@ -286,14 +280,14 @@ func test_enemy_entities_are_combat_entities_not_interactables() -> void:
 
 
 func test_spawn_all_replaces_entities_immediately_and_clears_highlight() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "first", "name": "First", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "second", "name": "Second", "kind": "pickup", "global_tile": [2, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	manager.set_highlighted_entity("first")
 
 	content.world_objects = [{"id": "third", "name": "Third", "kind": "npc", "global_tile": [3, 0]}]
@@ -307,14 +301,14 @@ func test_spawn_all_replaces_entities_immediately_and_clears_highlight() -> void
 
 
 func test_remove_entity_immediately_removes_child_and_clears_highlight() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "first", "name": "First", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "second", "name": "Second", "kind": "pickup", "global_tile": [2, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	manager.set_highlighted_entity("first")
 
 	manager.remove_entity("first")
@@ -326,7 +320,7 @@ func test_remove_entity_immediately_removes_child_and_clears_highlight() -> void
 
 
 func test_spawn_all_skips_blank_duplicate_and_malformed_entities() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "", "name": "Blank", "kind": "readable", "global_tile": [0, 0]},
 		{"id": "dup", "name": "First Duplicate", "kind": "readable", "global_tile": [1, 0]},
@@ -337,7 +331,7 @@ func test_spawn_all_skips_blank_duplicate_and_malformed_entities() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	assert_eq(manager.get_child_count(), 2)
 	assert_not_null(manager.get_entity("dup"))
@@ -361,7 +355,7 @@ func test_world_entity_setup_uses_valid_tile_position() -> void:
 
 
 func test_profile_backed_npc_gets_humanoid_avatar_and_stays_interactable() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{
 			"id": "npc_world",
@@ -386,7 +380,7 @@ func test_profile_backed_npc_gets_humanoid_avatar_and_stays_interactable() -> vo
 	}
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 
 	var entity = manager.get_entity("npc_world")
 
@@ -410,7 +404,7 @@ func test_world_entity_setup_falls_back_for_malformed_tile() -> void:
 
 
 func test_location_markers_are_discoverable_but_not_interactable() -> void:
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{
 			"id": "location_marker",
@@ -428,7 +422,7 @@ func test_location_markers_are_discoverable_but_not_interactable() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, _chunks())
 	var spawn_world := (
 		GridMath.tile_to_world(Vector2i.ZERO) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
 	)
@@ -445,14 +439,14 @@ func test_location_markers_are_discoverable_but_not_interactable() -> void:
 func test_chunk_window_filters_live_entities_after_streaming_updates() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{"id": "near", "name": "Near", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "far", "name": "Far", "kind": "npc", "global_tile": [40, 0]}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(bus, content, ChunkStub.new())
+	manager.setup(bus, content, _chunks())
 
 	assert_not_null(manager.get_entity("near"))
 	assert_not_null(manager.get_entity("far"))
@@ -471,8 +465,8 @@ func test_chunk_window_filters_live_entities_after_streaming_updates() -> void:
 func test_chunk_window_respawn_preserves_removed_entity_state() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
-	var chunks := RememberingChunkStub.new()
-	var content := ContentStub.new()
+	var chunks := _chunks()
+	var content := _content()
 	content.world_objects = [
 		{"id": "pickup", "name": "Pickup", "kind": "pickup", "global_tile": [1, 0]}
 	]
@@ -495,7 +489,7 @@ func test_conditioned_entities_spawn_after_state_change_signal() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
 	var conditions := ConditionStub.new()
-	var content := ContentStub.new()
+	var content := _content()
 	content.world_objects = [
 		{
 			"id": "conditional",
@@ -507,7 +501,7 @@ func test_conditioned_entities_spawn_after_state_change_signal() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(bus, content, ChunkStub.new(), conditions)
+	manager.setup(bus, content, _chunks(), conditions)
 
 	assert_null(manager.get_entity("conditional"))
 
@@ -517,12 +511,3 @@ func test_conditioned_entities_spawn_after_state_change_signal() -> void:
 
 	assert_not_null(manager.get_entity("conditional"))
 
-
-class RememberingChunkStub:
-	var removed: Dictionary = {}
-
-	func is_entity_removed(entity_id: String, tile: Vector2i) -> bool:
-		return removed.has("%s:%s" % [entity_id, GridMath.tile_key(tile)])
-
-	func mark_entity_removed(entity_id: String, tile: Vector2i) -> void:
-		removed["%s:%s" % [entity_id, GridMath.tile_key(tile)]] = true

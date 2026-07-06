@@ -1,18 +1,8 @@
 extends GutTest
 
 const EntityManager = preload("res://scripts/managers/entity_manager.gd")
-
-
-class ContentStub:
-	var world_objects: Array[Dictionary] = []
-
-
-class ChunkStub:
-	func is_entity_removed(_entity_id: String, _tile: Vector2i) -> bool:
-		return false
-
-	func mark_entity_removed(_entity_id: String, _tile: Vector2i) -> void:
-		pass
+const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const ContentDatabase = preload("res://scripts/data/content_database.gd")
 
 
 func test_world_tap_hit_test_uses_action_hint_offset() -> void:
@@ -42,9 +32,12 @@ func test_selected_action_hint_ignores_offset_to_keep_target_stable() -> void:
 
 
 func _manager_with_npc() -> EntityManager:
-	var content := ContentStub.new()
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
 	content.world_objects = [{"id": "npc", "name": "Guide", "kind": "npc", "global_tile": [2, 0]}]
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, chunks)
 	return manager

@@ -1,18 +1,8 @@
 extends GutTest
 
 const EntityManager = preload("res://scripts/managers/entity_manager.gd")
-
-
-class ContentStub:
-	var world_objects: Array[Dictionary] = []
-
-
-class ChunkStub:
-	func is_entity_removed(_entity_id: String, _tile: Vector2i) -> bool:
-		return false
-
-	func mark_entity_removed(_entity_id: String, _tile: Vector2i) -> void:
-		pass
+const ChunkManager = preload("res://scripts/managers/chunk_manager.gd")
+const ContentDatabase = preload("res://scripts/data/content_database.gd")
 
 
 func test_marker_tap_uses_world_entity_minimum_assist_radius() -> void:
@@ -48,9 +38,12 @@ func test_large_markers_get_extra_touch_assist_without_using_interaction_radius(
 
 
 func _manager_with_objects(world_objects: Array[Dictionary]) -> EntityManager:
-	var content := ContentStub.new()
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
 	content.world_objects = world_objects
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, ChunkStub.new())
+	manager.setup(null, content, chunks)
 	return manager
