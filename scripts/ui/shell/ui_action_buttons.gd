@@ -2,15 +2,16 @@ class_name UiActionButtons
 extends RefCounted
 
 
-static func refresh(options: Dictionary) -> bool:
-	var container: Container = options.get("container")
-	var actions: Array = options.get("actions", [])
-	var owner: Object = options.get("owner")
-	var signal_id := String(options.get("signal_id", ""))
-	var meta_id := String(options.get("meta_id", ""))
-	var min_size: Vector2 = options.get("min_size", Vector2.ZERO)
-	var font_size := int(options.get("font_size", 15))
-	var empty_text := String(options.get("empty_text", ""))
+static func refresh(
+	container: Container,
+	actions: Array,
+	owner: Object,
+	signal_id: String,
+	meta_id: String,
+	min_size: Vector2,
+	font_size: int,
+	empty_text: String = ""
+) -> bool:
 	if not container or not owner or signal_id.is_empty() or meta_id.is_empty():
 		return false
 	var button_index := 0
@@ -55,17 +56,18 @@ static func valid_action_count(actions: Array) -> int:
 	return count
 
 
-static func wrapped_panel_height(layout: Dictionary) -> float:
-	var panel_width := float(layout.get("panel_width", 0.0))
-	var action_count := int(layout.get("action_count", 0))
-	var button_size: Vector2 = layout.get("button_size", Vector2.ZERO)
-	var separation: Vector2 = layout.get("separation", Vector2.ZERO)
-	var margin := float(layout.get("margin", 0.0))
-	var base_height := float(layout.get("base_height", 0.0))
-	var top := float(layout.get("top", 0.0))
-	var reserved_bottom := float(layout.get("reserved_bottom", 0.0))
-	var outer_margin := float(layout.get("outer_margin", 0.0))
-	var viewport_height := float(layout.get("viewport_height", 0.0))
+static func wrapped_panel_height(
+	panel_width: float,
+	action_count: int,
+	button_size: Vector2,
+	separation: Vector2,
+	margin: float,
+	base_height: float,
+	top: float,
+	reserved_bottom: float,
+	outer_margin: float,
+	viewport_height: float
+) -> float:
 	if action_count <= 0:
 		return base_height
 	var inner_width := maxf(1.0, panel_width - margin * 2.0)
