@@ -1,6 +1,8 @@
 class_name ContentWorldValidator
 extends RefCounted
 
+const Schema = preload("res://scripts/data/content_schema_validator.gd")
+
 
 static func validate(content, errors: Array[String]) -> void:
 	_validate_locations(content, errors)
@@ -11,7 +13,7 @@ static func validate(content, errors: Array[String]) -> void:
 static func _validate_locations(content, errors: Array[String]) -> void:
 	for location_id in content.locations:
 		var location: Dictionary = content.locations[location_id]
-		content._validate_keyed_id(location, String(location_id), "Location", errors)
+		Schema.validate_keyed_id(location, String(location_id), "Location", errors)
 		if String(location.get("name", "")).is_empty():
 			errors.append("Location %s is missing name." % location_id)
 		if String(location.get("region", "")).is_empty():
@@ -30,18 +32,26 @@ static func _validate_world_objects(content, errors: Array[String]) -> void:
 		if seen_ids.has(object_id):
 			errors.append("Duplicate world object id %s." % object_id)
 		seen_ids[object_id] = true
-		content._validate_global_tile(entry, "World object %s" % object_id, errors)
+		Schema.validate_global_tile(entry, "World object %s" % object_id, errors)
 		if String(entry.get("name", "")).is_empty():
 			errors.append("World object %s is missing name." % object_id)
-		content._validate_optional_positive_number(
+		Schema.validate_optional_positive_number(
 			entry, "interaction_radius", "World object %s" % object_id, errors
 		)
 		_validate_world_object_kind(content, entry, object_id, errors)
-		content._validate_effect_list(entry, "effects_on_pickup", "world object %s" % object_id, errors)
-		content._validate_effect_list(entry, "effects_on_defeat", "world object %s" % object_id, errors)
-		content._validate_condition_list(entry, "conditions", "world object %s" % object_id, errors)
-		content._validate_condition_list(entry, "open_conditions", "world object %s" % object_id, errors)
-		content._validate_spell_loadout_fields(entry, "World object %s" % object_id, errors)
+		Schema.validate_effect_list(
+			content, entry, "effects_on_pickup", "world object %s" % object_id, errors
+		)
+		Schema.validate_effect_list(
+			content, entry, "effects_on_defeat", "world object %s" % object_id, errors
+		)
+		Schema.validate_condition_list(
+			content, entry, "conditions", "world object %s" % object_id, errors
+		)
+		Schema.validate_condition_list(
+			content, entry, "open_conditions", "world object %s" % object_id, errors
+		)
+		Schema.validate_spell_loadout_fields(content, entry, "World object %s" % object_id, errors)
 
 
 static func _validate_world_object_kind(
@@ -58,7 +68,9 @@ static func _validate_world_object_kind(
 		"container":
 			_validate_container_object(content, entry, object_id, errors)
 		"door":
-			content._validate_effect_list(entry, "effects_on_open", "world object %s" % object_id, errors)
+			Schema.validate_effect_list(
+				content, entry, "effects_on_open", "world object %s" % object_id, errors
+			)
 		"enemy":
 			_validate_enemy_object(content, entry, object_id, errors)
 		"rest":
@@ -94,7 +106,7 @@ static func _validate_pickup_object(
 	var item_id := String(entry.get("item_id", ""))
 	if not content.items.has(item_id):
 		errors.append("World object %s references missing item %s." % [object_id, item_id])
-	content._validate_optional_positive_number(
+	Schema.validate_optional_positive_number(
 		entry, "count", "World object %s" % object_id, errors
 	)
 
@@ -102,32 +114,34 @@ static func _validate_pickup_object(
 static func _validate_container_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
-	var effects: Array = content._array_field(entry.get("effects_on_open", []))
+	var effects: Array = Schema.array_field(entry.get("effects_on_open", []))
 	if effects.is_empty():
 		errors.append("Container %s must have effects_on_open." % object_id)
-	content._validate_effect_list(entry, "effects_on_open", "world object %s" % object_id, errors)
+	Schema.validate_effect_list(
+		content, entry, "effects_on_open", "world object %s" % object_id, errors
+	)
 
 
 static func _validate_enemy_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	_validate_actor_world_object(content, entry, object_id, errors)
-	content._validate_required_positive_number(entry, "max_health", "Enemy %s" % object_id, errors)
-	content._validate_required_positive_number(
+	Schema.validate_required_positive_number(entry, "max_health", "Enemy %s" % object_id, errors)
+	Schema.validate_required_positive_number(
 		entry, "damage_taken_per_hit", "Enemy %s" % object_id, errors
 	)
-	content._validate_required_non_negative_number(
+	Schema.validate_required_non_negative_number(
 		entry, "attack_damage", "Enemy %s" % object_id, errors
 	)
 
 
 static func _validate_rest_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	_content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
-	content._validate_required_positive_number(
+	Schema.validate_required_positive_number(
 		entry, "heal_amount", "Rest object %s" % object_id, errors
 	)
-	content._validate_optional_positive_number(
+	Schema.validate_optional_positive_number(
 		entry, "rest_hours", "Rest object %s" % object_id, errors
 	)
 
@@ -144,12 +158,13 @@ static func _validate_poi_object(
 	if not shop_id.is_empty() and not content.shops.has(shop_id):
 		errors.append("POI %s references missing shop %s." % [object_id, shop_id])
 	var system_tab := String(entry.get("system_tab", ""))
-	if not system_tab.is_empty() and not content._supported_system_tabs().has(system_tab):
+	if not system_tab.is_empty() and not Schema.supported_system_tabs().has(system_tab):
 		errors.append("POI %s has unsupported system_tab %s." % [object_id, system_tab])
 	if system_tab == "trade" and shop_id.is_empty():
 		errors.append("POI %s has trade system_tab without shop_id." % object_id)
-	content._validate_action_list(entry, "actions", "POI %s" % object_id, errors)
-	content._validate_effect_list(
+	Schema.validate_action_list(content, entry, "actions", "POI %s" % object_id, errors)
+	Schema.validate_effect_list(
+		content,
 		entry, "effects_on_discover", "world object %s" % object_id, errors
 	)
 
@@ -160,7 +175,7 @@ static func _validate_location_object(
 	var location_id := String(entry.get("location_id", ""))
 	if not content.locations.has(location_id):
 		errors.append("Location object %s references missing location %s." % [object_id, location_id])
-	content._validate_optional_positive_number(
+	Schema.validate_optional_positive_number(
 		entry, "discovery_radius", "Location object %s" % object_id, errors
 	)
 
@@ -201,7 +216,7 @@ static func _validate_world_terrain(content, errors: Array[String]) -> void:
 	if content.world_terrain.is_empty():
 		return
 	var areas_value: Variant = content.world_terrain.get("areas", [])
-	var areas: Array = content._array_field(areas_value)
+	var areas: Array = Schema.array_field(areas_value)
 	if not areas_value is Array or areas.is_empty():
 		errors.append("World terrain must define at least one area.")
 		return
@@ -227,7 +242,7 @@ static func _validate_terrain_regions(
 	content, area: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	var regions_value: Variant = area.get("regions", [])
-	var regions: Array = content._array_field(regions_value)
+	var regions: Array = Schema.array_field(regions_value)
 	if not regions_value is Array or regions.is_empty():
 		errors.append("%s must define regions." % owner)
 		return
@@ -256,41 +271,41 @@ static func _validate_terrain_regions(
 
 
 static func _validate_terrain_bounds(
-	content, value: Variant, owner: String, errors: Array[String]
+	_content, value: Variant, owner: String, errors: Array[String]
 ) -> void:
-	var bounds: Dictionary = content._dictionary_field(value)
+	var bounds: Dictionary = Schema.dictionary_field(value)
 	if bounds.is_empty():
 		errors.append("%s must define bounds." % owner)
 		return
-	content._validate_numeric_pair(bounds.get("min", []), "%s bounds min" % owner, errors)
-	content._validate_numeric_pair(bounds.get("max", []), "%s bounds max" % owner, errors)
+	Schema.validate_numeric_pair(bounds.get("min", []), "%s bounds min" % owner, errors)
+	Schema.validate_numeric_pair(bounds.get("max", []), "%s bounds max" % owner, errors)
 
 
 static func _validate_terrain_rect(
-	content, value: Variant, owner: String, errors: Array[String]
+	_content, value: Variant, owner: String, errors: Array[String]
 ) -> void:
-	var rect: Dictionary = content._dictionary_field(value)
+	var rect: Dictionary = Schema.dictionary_field(value)
 	if rect.is_empty():
 		errors.append("%s rect must be a dictionary." % owner)
 		return
-	content._validate_numeric_pair(rect.get("position", []), "%s rect position" % owner, errors)
-	content._validate_positive_pair(rect.get("size", []), "%s rect size" % owner, errors)
+	Schema.validate_numeric_pair(rect.get("position", []), "%s rect position" % owner, errors)
+	Schema.validate_positive_pair(rect.get("size", []), "%s rect size" % owner, errors)
 
 
 static func _validate_terrain_tiles(
-	content, value: Variant, owner: String, errors: Array[String]
+	_content, value: Variant, owner: String, errors: Array[String]
 ) -> void:
-	var tiles: Array = content._array_field(value)
+	var tiles: Array = Schema.array_field(value)
 	if not value is Array or tiles.is_empty():
 		errors.append("%s tiles must be a non-empty array." % owner)
 		return
 	for tile in tiles:
-		content._validate_numeric_pair(tile, "%s tile" % owner, errors)
+		Schema.validate_numeric_pair(tile, "%s tile" % owner, errors)
 
 
 static func _validate_terrain_kind(
-	content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+	_content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
 ) -> void:
 	var kind := String(entry.get(field_id, ""))
-	if not content._supported_terrain_kinds().has(kind):
+	if not Schema.supported_terrain_kinds().has(kind):
 		errors.append("%s has unsupported terrain kind %s." % [owner, kind])

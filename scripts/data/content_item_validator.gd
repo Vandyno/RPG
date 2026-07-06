@@ -2,6 +2,7 @@ class_name ContentItemValidator
 extends RefCounted
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const Schema = preload("res://scripts/data/content_schema_validator.gd")
 
 
 static func validate(content, errors: Array[String]) -> void:
@@ -15,27 +16,27 @@ static func validate(content, errors: Array[String]) -> void:
 static func _validate_items(content, errors: Array[String]) -> void:
 	for item_id in content.items:
 		var item: Dictionary = content.items[item_id]
-		content._validate_keyed_id(item, String(item_id), "Item", errors)
+		Schema.validate_keyed_id(item, String(item_id), "Item", errors)
 		if String(item.get("name", "")).is_empty():
 			errors.append("Item %s is missing name." % item_id)
-		content._validate_required_positive_number(item, "max_stack", "Item %s" % item_id, errors)
-		content._validate_optional_non_negative_number(item, "value", "Item %s" % item_id, errors)
+		Schema.validate_required_positive_number(item, "max_stack", "Item %s" % item_id, errors)
+		Schema.validate_optional_non_negative_number(item, "value", "Item %s" % item_id, errors)
 		_validate_item_equipment_fields(content, item, String(item_id), errors)
-		content._validate_effect_list(item, "effects_on_use", "item %s" % item_id, errors)
+		Schema.validate_effect_list(content, item, "effects_on_use", "item %s" % item_id, errors)
 
 
 static func _validate_item_equipment_fields(
-	content, item: Dictionary, item_id: String, errors: Array[String]
+	_content, item: Dictionary, item_id: String, errors: Array[String]
 ) -> void:
 	if not item.has("equipment_slot"):
 		return
 	var slot := String(item.get("equipment_slot", ""))
 	if not EquipmentSlots.is_supported(slot):
 		errors.append("Item %s has unsupported equipment_slot %s." % [item_id, slot])
-	content._validate_optional_non_negative_number(
+	Schema.validate_optional_non_negative_number(
 		item, "damage_bonus", "Item %s" % item_id, errors
 	)
-	content._validate_optional_positive_number(
+	Schema.validate_optional_positive_number(
 		item, "guard_counter_multiplier", "Item %s" % item_id, errors
 	)
 	if String(item.get("type", "")) == "weapon":
@@ -43,7 +44,7 @@ static func _validate_item_equipment_fields(
 		if not attack is Dictionary:
 			errors.append("Item %s weapon_attack must be a dictionary." % item_id)
 		else:
-			content._validate_required_positive_number(
+			Schema.validate_required_positive_number(
 				attack, "attack_interval_seconds", "Item %s weapon_attack" % item_id, errors
 			)
 	_validate_item_avatar_visual(item, item_id, errors)
@@ -77,12 +78,13 @@ static func _validate_item_avatar_visual(
 static func _validate_readables(content, errors: Array[String]) -> void:
 	for readable_id in content.readables:
 		var readable: Dictionary = content.readables[readable_id]
-		content._validate_keyed_id(readable, String(readable_id), "Readable", errors)
+		Schema.validate_keyed_id(readable, String(readable_id), "Readable", errors)
 		if String(readable.get("title", "")).is_empty():
 			errors.append("Readable %s is missing title." % readable_id)
 		if String(readable.get("body", "")).is_empty():
 			errors.append("Readable %s is missing body." % readable_id)
-		content._validate_effect_list(
+		Schema.validate_effect_list(
+			content,
 			readable, "effects_on_read", "readable %s" % readable_id, errors
 		)
 
@@ -90,17 +92,17 @@ static func _validate_readables(content, errors: Array[String]) -> void:
 static func _validate_shops(content, errors: Array[String]) -> void:
 	for shop_id in content.shops:
 		var shop: Dictionary = content.shops[shop_id]
-		content._validate_keyed_id(shop, String(shop_id), "Shop", errors)
+		Schema.validate_keyed_id(shop, String(shop_id), "Shop", errors)
 		if String(shop.get("name", "")).is_empty():
 			errors.append("Shop %s is missing name." % shop_id)
-		content._validate_optional_bounded_number(
+		Schema.validate_optional_bounded_number(
 			shop, "open_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
 		)
-		content._validate_optional_bounded_number(
+		Schema.validate_optional_bounded_number(
 			shop, "close_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
 		)
 		var stock_value: Variant = shop.get("stock", [])
-		var stock: Array = content._array_field(stock_value)
+		var stock: Array = Schema.array_field(stock_value)
 		if not stock_value is Array or stock.is_empty():
 			errors.append("Shop %s must have stock." % shop_id)
 			continue
@@ -111,7 +113,7 @@ static func _validate_shops(content, errors: Array[String]) -> void:
 			var item_id := String(stock_entry.get("item_id", ""))
 			if not content.items.has(item_id):
 				errors.append("Shop %s references missing item %s." % [shop_id, item_id])
-			content._validate_optional_positive_number(
+			Schema.validate_optional_positive_number(
 				stock_entry, "price", "Shop %s stock %s" % [shop_id, item_id], errors
 			)
 
@@ -120,26 +122,26 @@ static func _validate_status_effects(content, errors: Array[String]) -> void:
 	for status_id in content.status_effects:
 		var status: Dictionary = content.status_effects[status_id]
 		var owner := "Status effect %s" % status_id
-		content._validate_keyed_id(status, String(status_id), "Status effect", errors)
+		Schema.validate_keyed_id(status, String(status_id), "Status effect", errors)
 		if String(status.get("name", "")).is_empty():
 			errors.append("%s is missing name." % owner)
 		if String(status.get("description", "")).is_empty():
 			errors.append("%s is missing description." % owner)
-		content._validate_required_positive_number(status, "attack_charges", owner, errors)
-		content._validate_optional_non_negative_number(status, "damage_bonus", owner, errors)
-		content._validate_optional_positive_number(status, "guard_counter_multiplier", owner, errors)
+		Schema.validate_required_positive_number(status, "attack_charges", owner, errors)
+		Schema.validate_optional_non_negative_number(status, "damage_bonus", owner, errors)
+		Schema.validate_optional_positive_number(status, "guard_counter_multiplier", owner, errors)
 
 
 static func _validate_spells(content, errors: Array[String]) -> void:
 	for spell_id in content.spells:
 		var spell: Dictionary = content.spells[spell_id]
 		var owner := "Spell %s" % spell_id
-		content._validate_keyed_id(spell, String(spell_id), "Spell", errors)
+		Schema.validate_keyed_id(spell, String(spell_id), "Spell", errors)
 		if String(spell.get("name", "")).is_empty():
 			errors.append("%s is missing name." % owner)
 		if String(spell.get("school", "")).is_empty():
 			errors.append("%s is missing school." % owner)
-		content._validate_required_positive_number(spell, "mana_cost", owner, errors)
+		Schema.validate_required_positive_number(spell, "mana_cost", owner, errors)
 		if String(spell.get("range", "")).is_empty():
 			errors.append("%s is missing range." % owner)
 		if String(spell.get("behavior", "")).is_empty():

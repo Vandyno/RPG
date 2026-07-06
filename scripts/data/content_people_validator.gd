@@ -3,6 +3,7 @@ extends RefCounted
 
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const HumanoidProfileResolver = preload("res://scripts/characters/humanoid_profile_resolver.gd")
+const Schema = preload("res://scripts/data/content_schema_validator.gd")
 
 
 static func validate(content, errors: Array[String]) -> void:
@@ -18,7 +19,7 @@ static func _validate_people(content, errors: Array[String]) -> void:
 			errors.append("People %s must be a dictionary." % people_id)
 			continue
 		var definition: Dictionary = definition_value
-		content._validate_keyed_id(definition, String(people_id), "People", errors)
+		Schema.validate_keyed_id(definition, String(people_id), "People", errors)
 		if String(definition.get("display_name", "")).is_empty():
 			errors.append("People %s is missing display_name." % people_id)
 		for field_id in ["body_plans", "heads", "palettes", "features"]:
@@ -31,7 +32,7 @@ static func _validate_people(content, errors: Array[String]) -> void:
 		for bonus_id in bonuses:
 			if String(bonus_id).is_empty():
 				errors.append("People %s has blank bonus id." % people_id)
-			if not content._is_number(bonuses[bonus_id]):
+			if not Schema.is_number(bonuses[bonus_id]):
 				errors.append("People %s bonus %s must be numeric." % [people_id, String(bonus_id)])
 		if definition.has("default_proportions"):
 			HumanoidProfile.validate_proportions(
@@ -68,7 +69,7 @@ static func _validate_people_visual_variants(
 	content, model: Dictionary, model_id: String, people_id: String, errors: Array[String]
 ) -> void:
 	var definition: Dictionary = content.people.get(people_id, {})
-	var variants: Array = content._array_field(model.get("variants", []))
+	var variants: Array = Schema.array_field(model.get("variants", []))
 	if variants.size() < 4:
 		errors.append("People visual model %s must define at least four variants." % model_id)
 	var seen_variant_ids: Dictionary = {}
@@ -91,7 +92,7 @@ static func _validate_people_visual_variants(
 
 
 static func _validate_people_visual_variant_fields(
-	content,
+	_content,
 	definition: Dictionary,
 	variant: Dictionary,
 	owner: String,
@@ -100,13 +101,13 @@ static func _validate_people_visual_variant_fields(
 	if String(variant.get("display_name", "")).is_empty():
 		errors.append("%s is missing display_name." % owner)
 	var palette_id := String(variant.get("palette_id", ""))
-	if not content._array_field(definition.get("palettes", [])).has(palette_id):
+	if not Schema.array_field(definition.get("palettes", [])).has(palette_id):
 		errors.append("%s references unsupported palette %s." % [owner, palette_id])
 	var head_id := String(variant.get("head_id", ""))
-	if not content._array_field(definition.get("heads", [])).has(head_id):
+	if not Schema.array_field(definition.get("heads", [])).has(head_id):
 		errors.append("%s references unsupported head %s." % [owner, head_id])
-	for feature_id in content._array_field(variant.get("feature_ids", [])):
-		if not content._array_field(definition.get("features", [])).has(String(feature_id)):
+	for feature_id in Schema.array_field(variant.get("feature_ids", [])):
+		if not Schema.array_field(definition.get("features", [])).has(String(feature_id)):
 			errors.append("%s references unsupported feature %s." % [owner, String(feature_id)])
 	if String(variant.get("notes", "")).is_empty():
 		errors.append("%s is missing notes." % owner)
@@ -185,11 +186,11 @@ static func _validate_appearance_generation_variant(
 
 
 static func _validate_appearance_generation_jitter(
-	content, generation: Dictionary, owner: String, errors: Array[String]
+	_content, generation: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	if not generation.has("jitter_strength"):
 		return
-	if not content._is_number(generation.get("jitter_strength")):
+	if not Schema.is_number(generation.get("jitter_strength")):
 		errors.append("%s jitter_strength must be numeric." % owner)
 		return
 	var strength := float(generation.get("jitter_strength"))
@@ -214,14 +215,14 @@ static func _validate_appearance_generation_overrides(
 
 
 static func _validate_people_model_proportion_deltas(
-	content, value: Dictionary, owner: String, errors: Array[String]
+	_content, value: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	for field_id in value:
 		var key := String(field_id)
 		if not HumanoidProfile.DEFAULT_PROPORTIONS.has(key):
 			errors.append("%s has unsupported proportion delta %s." % [owner, key])
 			continue
-		if not content._is_number(value[field_id]):
+		if not Schema.is_number(value[field_id]):
 			errors.append("%s proportion delta %s must be numeric." % [owner, key])
 			continue
 		var amount := float(value[field_id])
@@ -243,9 +244,9 @@ static func _validate_people_model_final_proportions(
 			)
 
 
-static func _apply_proportion_deltas(content, proportions: Dictionary, deltas: Dictionary) -> void:
+static func _apply_proportion_deltas(_content, proportions: Dictionary, deltas: Dictionary) -> void:
 	for field_id in deltas:
 		var key := String(field_id)
-		if not proportions.has(key) or not content._is_number(deltas[field_id]):
+		if not proportions.has(key) or not Schema.is_number(deltas[field_id]):
 			continue
 		proportions[key] = float(proportions[key]) + float(deltas[field_id])

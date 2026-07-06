@@ -1,6 +1,8 @@
 class_name ContentQuestValidator
 extends RefCounted
 
+const Schema = preload("res://scripts/data/content_schema_validator.gd")
+
 
 static func validate(content, errors: Array[String]) -> void:
 	_validate_quests(content, errors)
@@ -12,12 +14,12 @@ static func validate(content, errors: Array[String]) -> void:
 static func _validate_quests(content, errors: Array[String]) -> void:
 	for quest_id in content.quests:
 		var quest: Dictionary = content.quests[quest_id]
-		content._validate_keyed_id(quest, String(quest_id), "Quest", errors)
+		Schema.validate_keyed_id(quest, String(quest_id), "Quest", errors)
 		if String(quest.get("title", "")).is_empty():
 			errors.append("Quest %s is missing title." % quest_id)
 		var start_stage := String(quest.get("start_stage", ""))
 		var stages_value: Variant = quest.get("stages", {})
-		var stages: Dictionary = content._dictionary_field(stages_value)
+		var stages: Dictionary = Schema.dictionary_field(stages_value)
 		if not stages_value is Dictionary or stages.is_empty():
 			errors.append("Quest %s must have at least one stage." % quest_id)
 		if start_stage.is_empty():
@@ -25,7 +27,7 @@ static func _validate_quests(content, errors: Array[String]) -> void:
 		elif not stages.has(start_stage):
 			errors.append("Quest %s references missing start_stage %s." % [quest_id, start_stage])
 		_validate_quest_stages(content, String(quest_id), stages, errors)
-		content._validate_effect_list(quest, "rewards", "quest %s" % quest_id, errors)
+		Schema.validate_effect_list(content, quest, "rewards", "quest %s" % quest_id, errors)
 
 
 static func _validate_quest_stages(
@@ -47,7 +49,7 @@ static func _validate_quest_objectives(
 	content, stage: Dictionary, stage_owner: String, errors: Array[String]
 ) -> void:
 	var objectives_value: Variant = stage.get("objectives", {})
-	var objectives: Dictionary = content._dictionary_field(objectives_value)
+	var objectives: Dictionary = Schema.dictionary_field(objectives_value)
 	if not objectives_value is Dictionary or objectives.is_empty():
 		errors.append("%s must have at least one objective." % stage_owner)
 		return
@@ -56,11 +58,11 @@ static func _validate_quest_objectives(
 		if objective_key.is_empty():
 			errors.append("%s has objective with missing id." % stage_owner)
 		var objective_value: Variant = objectives[objective_id]
-		var objective_text: String = content._objective_text(objective_value)
+		var objective_text: String = Schema.objective_text(objective_value)
 		if objective_text.is_empty():
 			errors.append("%s objective %s is missing text." % [stage_owner, objective_key])
-		var target_id: String = content._objective_target_id(objective_value)
-		if not target_id.is_empty() and not content._world_object_id_exists(target_id):
+		var target_id: String = Schema.objective_target_id(objective_value)
+		if not target_id.is_empty() and not Schema.world_object_id_exists(content, target_id):
 			errors.append(
 				"%s objective %s references missing target %s."
 				% [stage_owner, objective_key, target_id]
@@ -70,12 +72,12 @@ static func _validate_quest_objectives(
 static func _validate_factions(content, errors: Array[String]) -> void:
 	for faction_id in content.factions:
 		var faction: Dictionary = content.factions[faction_id]
-		content._validate_keyed_id(faction, String(faction_id), "Faction", errors)
+		Schema.validate_keyed_id(faction, String(faction_id), "Faction", errors)
 		if String(faction.get("name", "")).is_empty():
 			errors.append("Faction %s is missing name." % faction_id)
 		if String(faction.get("description", "")).is_empty():
 			errors.append("Faction %s is missing description." % faction_id)
-		content._validate_optional_bounded_number(
+		Schema.validate_optional_bounded_number(
 			faction, "starting_reputation", "Faction %s" % faction_id, -100.0, 100.0, errors
 		)
 
@@ -83,8 +85,8 @@ static func _validate_factions(content, errors: Array[String]) -> void:
 static func _validate_dialogues(content, errors: Array[String]) -> void:
 	for dialogue_id in content.dialogues:
 		var dialogue: Dictionary = content.dialogues[dialogue_id]
-		content._validate_keyed_id(dialogue, String(dialogue_id), "Dialogue", errors)
-		var lines: Array = content._array_field(dialogue.get("lines", []))
+		Schema.validate_keyed_id(dialogue, String(dialogue_id), "Dialogue", errors)
+		var lines: Array = Schema.array_field(dialogue.get("lines", []))
 		if lines.is_empty():
 			errors.append("Dialogue %s must have at least one line." % dialogue_id)
 		var seen_line_ids: Dictionary = {}
@@ -103,8 +105,8 @@ static func _validate_dialogues(content, errors: Array[String]) -> void:
 				errors.append("%s is missing speaker." % owner)
 			if String(line.get("text", "")).is_empty():
 				errors.append("%s is missing text." % owner)
-			content._validate_condition_list(line, "conditions", owner, errors)
-			content._validate_effect_list(line, "effects", owner, errors)
+			Schema.validate_condition_list(content, line, "conditions", owner, errors)
+			Schema.validate_effect_list(content, line, "effects", owner, errors)
 			_validate_dialogue_choices(content, line, owner, errors)
 
 
@@ -131,14 +133,14 @@ static func _validate_dialogue_choices(
 		seen_choice_ids[choice_id] = true
 		if String(choice.get("text", "")).is_empty():
 			errors.append("%s is missing text." % choice_owner)
-		content._validate_condition_list(choice, "conditions", choice_owner, errors)
-		content._validate_effect_list(choice, "effects", choice_owner, errors)
+		Schema.validate_condition_list(content, choice, "conditions", choice_owner, errors)
+		Schema.validate_effect_list(content, choice, "effects", choice_owner, errors)
 
 
 static func _validate_npcs(content, errors: Array[String]) -> void:
 	for npc_id in content.npcs:
 		var npc: Dictionary = content.npcs[npc_id]
-		content._validate_keyed_id(npc, String(npc_id), "NPC", errors)
+		Schema.validate_keyed_id(npc, String(npc_id), "NPC", errors)
 		if String(npc.get("name", "")).is_empty():
 			errors.append("NPC %s is missing name." % npc_id)
 		var quest_id := String(npc.get("quest_id", ""))
@@ -158,5 +160,5 @@ static func _validate_npcs(content, errors: Array[String]) -> void:
 			errors.append("NPC %s is missing character_profile_id." % npc_id)
 		elif not content.character_profiles.has(profile_id):
 			errors.append("NPC %s references missing character profile %s." % [npc_id, profile_id])
-		content._validate_condition_list(npc, "completion_conditions", "NPC %s" % npc_id, errors)
-		content._validate_effect_list(npc, "completion_effects", "NPC %s" % npc_id, errors)
+		Schema.validate_condition_list(content, npc, "completion_conditions", "NPC %s" % npc_id, errors)
+		Schema.validate_effect_list(content, npc, "completion_effects", "NPC %s" % npc_id, errors)
