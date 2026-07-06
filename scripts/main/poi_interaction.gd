@@ -2,30 +2,6 @@ class_name PoiInteraction
 extends RefCounted
 
 
-static func interact_with_main(entity, main) -> void:
-	interact(
-		entity,
-		main.world_state,
-		main.hud,
-		Callable(main, "apply_effect"),
-		main.event_bus,
-		main.active_content_choices,
-		main.condition_evaluator
-	)
-
-
-static func inspect_with_main(entity, main) -> void:
-	inspect(
-		entity,
-		main.world_state,
-		main.hud,
-		Callable(main, "apply_effect"),
-		main.event_bus,
-		main.active_content_choices,
-		main.condition_evaluator
-	)
-
-
 static func detail(entity) -> String:
 	var poi_type := String(entity.data.get("poi_type", "POI"))
 	var summary := String(entity.data.get("summary", ""))
@@ -42,10 +18,6 @@ static func primary_action_text(entity) -> String:
 	if not system_tab.is_empty():
 		return "Open"
 	return "Use"
-
-
-static func available_actions_for_main(entity, main) -> Array[Dictionary]:
-	return available_actions(entity, main.condition_evaluator)
 
 
 static func available_actions(entity, condition_evaluator) -> Array[Dictionary]:
