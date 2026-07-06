@@ -557,23 +557,6 @@ func _draw_head(skin: Color, proportions: Dictionary) -> void:
 	)
 
 
-func _draw_people_feature(skin: Color, proportions: Dictionary) -> void:
-	var people_id := String(profile.get("people_id", ""))
-	var appearance: Dictionary = profile.get("appearance", {})
-	var feature_ids := _appearance_feature_ids(people_id)
-	match people_id:
-		"people_tanglekin":
-			_draw_tanglekin_feature(skin, proportions, feature_ids)
-		"people_tuskfolk":
-			_draw_tuskfolk_feature(skin, proportions, feature_ids, appearance)
-		"people_mirefolk":
-			_draw_mirefolk_feature(skin, proportions, feature_ids, appearance)
-		"people_ravenfolk":
-			_draw_ravenfolk_front_feature(skin, proportions, feature_ids, appearance)
-		"people_rootborn":
-			_draw_rootborn_feature(skin, proportions, feature_ids, appearance)
-
-
 func _draw_tanglekin_back_feature(
 	skin: Color, _proportions: Dictionary, feature_ids: Array[String]
 ) -> void:
