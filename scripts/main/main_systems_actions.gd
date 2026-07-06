@@ -1,7 +1,6 @@
 class_name MainSystemsActions
 extends RefCounted
 
-const MainInputRouter = preload("res://scripts/main/main_input_router.gd")
 const MainInventoryTransfer = preload("res://scripts/main/main_inventory_transfer.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
@@ -27,18 +26,6 @@ class SystemsContext:
 	var progression
 	var spells
 	var statuses
-	var buy_item_command: Callable
-	var equip_item_command: Callable
-	var equip_item_to_slot_command: Callable
-	var load_requested_command: Callable
-	var save_requested_command: Callable
-	var sell_item_command: Callable
-	var swap_mainhand_weapon_command: Callable
-	var target_entity_command: Callable
-	var train_stat_command: Callable
-	var unequip_slot_command: Callable
-	var use_inventory_item_command: Callable
-	var wait_action_command: Callable
 	var _add_effect_child: Callable
 	var _apply_effect: Callable
 	var _refresh_hud: Callable
@@ -62,19 +49,6 @@ class SystemsContext:
 		progression = main.get("progression")
 		spells = main.get("spells")
 		statuses = main.get("statuses")
-		buy_item_command = Callable(main, "_handle_buy_item")
-		equip_item_command = Callable(main, "_handle_equip_item")
-		equip_item_to_slot_command = Callable(main, "_handle_equip_item_to_slot")
-		load_requested_command = Callable(main, "_handle_load_requested")
-		save_requested_command = Callable(main, "_handle_save_requested")
-		sell_item_command = Callable(main, "_handle_sell_item")
-		swap_mainhand_weapon_command = Callable(main, "_handle_swap_mainhand_weapon")
-		target_entity_command = func(entity_id: String) -> void:
-			MainInputRouter.target_entity(main, entity_id)
-		train_stat_command = Callable(main, "_handle_train_stat")
-		unequip_slot_command = Callable(main, "_handle_unequip_slot")
-		use_inventory_item_command = Callable(main, "_use_inventory_item")
-		wait_action_command = Callable(main, "_handle_wait_action")
 		_add_effect_child = Callable(main, "add_child")
 		_apply_effect = Callable(main, "apply_effect")
 		_refresh_hud = Callable(main, "_refresh_hud")
@@ -106,39 +80,15 @@ static func handle(source, action_id: String) -> void:
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
-		"equip":
-			ctx.equip_item_command.call(target_id)
-		"equip_slot":
-			ctx.equip_item_to_slot_command.call(target_id, String(parsed.get("slot_id", "")))
 		"assign_spell":
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
-		"swap_mainhand":
-			ctx.swap_mainhand_weapon_command.call()
-		"unequip":
-			ctx.unequip_slot_command.call(target_id)
-		"train":
-			ctx.train_stat_command.call(target_id)
-		"buy":
-			ctx.buy_item_command.call(target_id)
-		"sell":
-			ctx.sell_item_command.call(target_id)
 		"take":
 			MainInventoryTransfer.take_item(ctx.inventory_transfer_context, target_id)
 		"put":
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
-		"wait":
-			ctx.wait_action_command.call(target_id.to_int())
-		"target":
-			ctx.target_entity_command.call(target_id)
-		"save":
-			ctx.save_requested_command.call()
-		"load":
-			ctx.load_requested_command.call()
-		"ui":
-			if target_id == "back" and ctx.hud:
-				ctx.hud.hide_systems_panel()
 		_:
-			ctx.use_inventory_item_command.call(target_id)
+			if ctx.event_bus:
+				ctx.event_bus.post_message("Unknown systems action.")
 
 
 static func handle_aim(source, action_id: String, direction: Vector2) -> void:
@@ -222,22 +172,6 @@ static func parse_action_id(action_id: String) -> Dictionary:
 	if parts.size() >= 2:
 		return {"action": parts[0], "target_id": parts[1]}
 	return {"action": "use", "target_id": action_id}
-
-
-static func _handle_equip_item_to_slot(
-	ctx: SystemsContext, item_id: String, slot_id: String
-) -> void:
-	var item: Dictionary = ctx.content.get_item(item_id)
-	if (
-		item.is_empty()
-		or not ctx.inventory.has_item(item_id)
-		or not ctx.equipment.equip_item_to_slot(item_id, slot_id)
-	):
-		ctx.event_bus.post_message("Could not equip that item there.")
-		ctx.refresh_hud()
-		return
-	ctx.event_bus.post_message("Equipped %s." % String(item.get("name", item_id)))
-	ctx.refresh_hud()
 
 
 static func _perform_weapon_attack(ctx: SystemsContext, direction: Vector2) -> void:

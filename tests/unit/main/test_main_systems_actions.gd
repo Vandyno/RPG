@@ -19,40 +19,17 @@ func test_parse_action_id_defaults_to_inventory_use() -> void:
 	)
 
 
-func test_handle_routes_system_actions_to_main_methods() -> void:
-	var main := MainStub.new()
+func test_handle_routes_service_owned_system_actions() -> void:
+	var main := AssignSpellMainStub.new()
 
-	for action_id in [
-		"equip:item_hatchet",
-		"equip_slot:item_hatchet:right_hand",
-		"swap_mainhand:weapon",
-		"unequip:weapon",
-		"train:legacy",
-		"buy:item_draught",
-		"sell:item_hatchet",
-		"wait:8",
-		"save:game",
-		"load:game",
-		"ui:back",
-		"item_draught"
-	]:
-		MainSystemsActions.handle(main, action_id)
+	MainSystemsActions.handle(main, "assign_spell:spell_fire_blast:ability_1")
 
 	assert_eq(
 		main.calls,
 		[
-			"equip:item_hatchet",
-			"equip_slot:item_hatchet:right_hand",
-			"swap_mainhand",
-			"unequip:weapon",
-			"train:legacy",
-			"buy:item_draught",
-			"sell:item_hatchet",
-			"wait:8",
-			"save",
-			"load",
-			"hide_systems",
-			"use:item_draught"
+			"assign:spell_fire_blast:ability_1",
+			"message:Assigned Fire Blast to ability 1.",
+			"refresh"
 		]
 	)
 
@@ -167,47 +144,28 @@ func test_handle_aim_attack_uses_snapped_bucket_direction_for_hits() -> void:
 	)
 
 
-class MainStub:
+class AssignSpellMainStub:
 	extends RefCounted
 
 	var calls: Array[String] = []
-	var hud := HudStub.new(calls)
+	var content := AssignSpellContentStub.new()
+	var event_bus := AimBusStub.new(calls)
+	var spells := AssignSpellSlotsStub.new(calls)
 
-	func _handle_equip_item(item_id: String) -> void:
-		calls.append("equip:%s" % item_id)
-
-	func _handle_equip_item_to_slot(item_id: String, slot_id: String) -> void:
-		calls.append("equip_slot:%s:%s" % [item_id, slot_id])
-
-	func _handle_unequip_slot(slot_id: String) -> void:
-		calls.append("unequip:%s" % slot_id)
-
-	func _handle_swap_mainhand_weapon() -> void:
-		calls.append("swap_mainhand")
-
-	func _handle_train_stat(stat_id: String) -> void:
-		calls.append("train:%s" % stat_id)
-
-	func _handle_buy_item(item_id: String) -> void:
-		calls.append("buy:%s" % item_id)
-
-	func _handle_sell_item(item_id: String) -> void:
-		calls.append("sell:%s" % item_id)
-
-	func _handle_wait_action(hours: int) -> void:
-		calls.append("wait:%d" % hours)
-
-	func _handle_save_requested() -> void:
-		calls.append("save")
-
-	func _handle_load_requested() -> void:
-		calls.append("load")
-
-	func _use_inventory_item(item_id: String) -> void:
-		calls.append("use:%s" % item_id)
+	func _refresh_hud() -> void:
+		calls.append("refresh")
 
 
-class HudStub:
+class AssignSpellContentStub:
+	extends RefCounted
+
+	func get_spell(spell_id: String) -> Dictionary:
+		if spell_id == "spell_fire_blast":
+			return {"id": spell_id, "name": "Fire Blast"}
+		return {}
+
+
+class AssignSpellSlotsStub:
 	extends RefCounted
 
 	var calls: Array[String]
@@ -215,8 +173,9 @@ class HudStub:
 	func _init(call_log: Array[String]) -> void:
 		calls = call_log
 
-	func hide_systems_panel() -> void:
-		calls.append("hide_systems")
+	func assign_spell_to_slot(spell_id: String, slot_id: String) -> bool:
+		calls.append("assign:%s:%s" % [spell_id, slot_id])
+		return true
 
 
 class AimMainStub:
