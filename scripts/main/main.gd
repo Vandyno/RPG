@@ -952,7 +952,7 @@ func _nearby_targets_data() -> Array[Dictionary]:
 		)
 	return targets
 
-func _get_nearby_entity():
+func _get_nearby_entity() -> WorldEntity:
 	var nearby_entities := _get_nearby_entities()
 	var facing: Vector2 = (
 		player.get_facing_direction()
@@ -965,7 +965,7 @@ func _get_nearby_entity():
 	target_cycle_index = int(selection.get("index", 0))
 	selected_target_id = String(selection.get("id", ""))
 	manual_target_locked = bool(selection.get("manual", false))
-	return selection.get("entity")
+	return selection.get("entity") as WorldEntity
 
 
 func _get_nearby_entities() -> Array:
@@ -979,7 +979,7 @@ func _ranked_nearby_entities() -> Array:
 func _current_shop_id() -> String:
 	return _shop_id_for_entity(_get_nearby_entity())
 
-func _shop_id_for_entity(entity) -> String:
+func _shop_id_for_entity(entity: WorldEntity) -> String:
 	if not entity:
 		return ""
 	if entity.get_kind() == "poi":

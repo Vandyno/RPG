@@ -57,7 +57,7 @@ func spawn_all() -> void:
 		_spawn_entry(runtime_entities_by_id[entity_id])
 
 
-func add_runtime_entity(entry: Dictionary):
+func add_runtime_entity(entry: Dictionary) -> WorldEntity:
 	var entity_id := String(entry.get("id", ""))
 	if entity_id.is_empty() or not _has_valid_tile(entry):
 		return null
@@ -65,7 +65,7 @@ func add_runtime_entity(entry: Dictionary):
 	if entities_by_id.has(entity_id):
 		remove_entity(entity_id)
 	_spawn_entry(runtime_entities_by_id[entity_id])
-	return entities_by_id.get(entity_id)
+	return entities_by_id.get(entity_id) as WorldEntity
 
 
 func remove_entity(entity_id: String) -> void:
@@ -80,7 +80,7 @@ func remove_entity(entity_id: String) -> void:
 	entity.free()
 
 
-func get_nearest_interactable(player_tile: Vector2i, max_distance: int = 1):
+func get_nearest_interactable(player_tile: Vector2i, max_distance: int = 1) -> WorldEntity:
 	var interactables := []
 	for entity_id in entities_by_id:
 		var entity = entities_by_id[entity_id]
@@ -92,19 +92,21 @@ func get_nearest_interactable(player_tile: Vector2i, max_distance: int = 1):
 	_sort_entity_matches(interactables)
 	if interactables.is_empty():
 		return null
-	return interactables[0]["entity"]
+	return interactables[0]["entity"] as WorldEntity
 
 
 func get_nearest_interactable_world(
 	world_position: Vector2, max_distance_pixels: float = DEFAULT_INTERACTION_RADIUS_PIXELS
-):
+) -> WorldEntity:
 	var interactables := get_interactables_world(world_position, max_distance_pixels)
 	if interactables.is_empty():
 		return null
-	return interactables[0]
+	return interactables[0] as WorldEntity
 
 
-func get_interactable_at_world(world_position: Vector2, pick_radius_pixels: float = 28.0):
+func get_interactable_at_world(
+	world_position: Vector2, pick_radius_pixels: float = 28.0
+) -> WorldEntity:
 	var matches := []
 	for entity_id in entities_by_id:
 		var entity = entities_by_id[entity_id]
@@ -114,7 +116,9 @@ func get_interactable_at_world(world_position: Vector2, pick_radius_pixels: floa
 		if pick_distance < INF:
 			matches.append({"entity": entity, "distance": pick_distance})
 	_sort_entity_matches(matches)
-	return null if matches.is_empty() else matches[0]["entity"]
+	if matches.is_empty():
+		return null
+	return matches[0]["entity"] as WorldEntity
 
 
 func get_interactables_world(
@@ -214,8 +218,8 @@ func set_quest_markers(markers_by_entity_id: Dictionary) -> void:
 			entity.set_quest_marker(false)
 
 
-func get_entity(entity_id: String):
-	return entities_by_id.get(entity_id)
+func get_entity(entity_id: String) -> WorldEntity:
+	return entities_by_id.get(entity_id) as WorldEntity
 
 
 func refresh_equipment_for_owner(owner_id: String) -> void:
