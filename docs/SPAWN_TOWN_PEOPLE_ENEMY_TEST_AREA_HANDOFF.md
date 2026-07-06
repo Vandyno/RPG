@@ -58,12 +58,12 @@ Each test enemy:
 
 Coverage lives in:
 
-- `tests/unit/test_content_and_quests.gd`
+- `tests/unit/data/test_content_and_quests.gd`
   - all six fixtures load
   - generated profiles resolve with expected `people_id`
   - generated appearances include `visual_model_id`
   - owner IDs, equipment, health, reachable placement, and unique tiles are checked
-- `tests/unit/test_main_flow.gd`
+- `tests/unit/main/test_main_flow.gd`
   - all six spawn with humanoid avatars
   - killing the Tuskfolk fixture creates a lootable generated humanoid body
   - sword and coin transfer through the shared inventory UI
