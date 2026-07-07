@@ -7,7 +7,7 @@ class EnemyStub:
 	var data := {"max_health": 12, "damage_taken_per_hit": 6, "attack_damage": 4}
 
 	func get_entity_id() -> String:
-		return "enemy_test"
+		return "actor_test"
 
 	func get_display_name() -> String:
 		return "Enemy Test"
@@ -17,7 +17,7 @@ class DurableEnemyStub:
 	var data := {"max_health": 40, "damage_taken_per_hit": 6, "attack_damage": 4}
 
 	func get_entity_id() -> String:
-		return "durable_enemy_test"
+		return "durable_actor_test"
 
 	func get_display_name() -> String:
 		return "Durable Enemy"
@@ -27,7 +27,7 @@ class MalformedEnemyStub:
 	var data := {"max_health": 0, "damage_taken_per_hit": -3, "attack_damage": -4}
 
 	func get_entity_id() -> String:
-		return "malformed_enemy_test"
+		return "malformed_actor_test"
 
 	func get_display_name() -> String:
 		return "Malformed Enemy"
@@ -37,7 +37,7 @@ class TextEnemyStub:
 	var data := {"max_health": "twelve", "damage_taken_per_hit": "six", "attack_damage": "four"}
 
 	func get_entity_id() -> String:
-		return "text_enemy_test"
+		return "text_actor_test"
 
 	func get_display_name() -> String:
 		return "Text Enemy"
@@ -172,7 +172,7 @@ func test_combat_load_ignores_malformed_health_field() -> void:
 func test_combat_clamps_loaded_health_to_entity_max() -> void:
 	var combat := CombatManager.new()
 	add_child_autofree(combat)
-	combat.load_save_data({"health_by_entity_id": {"enemy_test": 999}})
+	combat.load_save_data({"health_by_entity_id": {"actor_test": 999}})
 	var enemy := EnemyStub.new()
 
 	assert_eq(combat.get_entity_health(enemy), 12)
@@ -186,7 +186,7 @@ func test_combat_clamps_loaded_health_to_entity_max() -> void:
 func test_combat_treats_malformed_live_health_as_full_health() -> void:
 	var combat := CombatManager.new()
 	add_child_autofree(combat)
-	combat.health_by_entity_id["enemy_test"] = "bad"
+	combat.health_by_entity_id["actor_test"] = "bad"
 	var enemy := EnemyStub.new()
 
 	assert_eq(combat.get_entity_health(enemy), 12)
@@ -197,7 +197,7 @@ func test_combat_treats_malformed_live_health_as_full_health() -> void:
 	assert_false(hit["defeated"])
 
 
-func test_combat_clamps_malformed_live_enemy_numbers() -> void:
+func test_combat_clamps_malformed_live_actor_numbers() -> void:
 	var combat := CombatManager.new()
 	add_child_autofree(combat)
 	combat.setup(null)
@@ -213,7 +213,7 @@ func test_combat_clamps_malformed_live_enemy_numbers() -> void:
 	assert_true(hit["defeated"])
 
 
-func test_combat_defaults_non_numeric_live_enemy_numbers() -> void:
+func test_combat_defaults_non_numeric_live_actor_numbers() -> void:
 	var combat := CombatManager.new()
 	add_child_autofree(combat)
 	combat.setup(null)

@@ -173,8 +173,8 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	assert_true(main.hud.content_body_label.text.contains("road thug west of Briarwatch"))
 	main.hud.hide_content_card()
 
-	_attack_enemy_until_defeated(main, "enemy_road_thug")
-	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
+	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 
 	_select_entity(main, "poi_briarwatch_square")
 	main._handle_interact_requested()
@@ -209,7 +209,7 @@ func _select_entity(main, entity_id: String) -> void:
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 
-func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	_equip_hatchet(main)
 	var enemy = main.entities.get_entity(entity_id)
 	assert_not_null(enemy)
@@ -219,7 +219,7 @@ func _attack_enemy_until_defeated(main, entity_id: String) -> void:
 		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 		if not main.entities.get_entity(entity_id):
 			return
-	fail_test("Enemy was not defeated: %s" % entity_id)
+	fail_test("Hostile actor was not defeated: %s" % entity_id)
 
 
 func _equip_hatchet(main) -> void:

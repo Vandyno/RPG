@@ -72,6 +72,9 @@ Do not use `kind: "enemy"` as a content type. Hostility is state, and combat is
 behavior; a hostile bandit, guard, cultist, undead, animal, or monster is still
 an actor. Humanoid people should be authored as NPC actors with inventory,
 equipment, faction/state, and a character profile.
+Do not use `enemy_*` world object IDs for actors. Use `npc_*` for humanoid NPCs,
+`creature_*` for creature actors, or `actor_*` when the actor category is still
+generic.
 
 Avoid vague IDs like:
 
@@ -655,7 +658,7 @@ direction to a live world object:
   "objectives": {
     "clear_thug": {
       "text": "Defeat the road thug threatening Briarwatch's west road.",
-      "target_id": "enemy_road_thug"
+      "target_id": "npc_road_thug"
     }
   }
 }
@@ -1214,7 +1217,7 @@ Use:
 - abandoned camps
 - notes
 - loot
-- enemy placement
+- hostile actor placement
 - locked doors
 - shrines
 - signs
@@ -1256,7 +1259,7 @@ Flags can affect:
 - dialogue
 - quest stages
 - object availability
-- enemy presence
+- hostile actor presence
 - locked doors
 - readables
 - reputation
@@ -1271,7 +1274,7 @@ Faction content should define:
 
 - beliefs
 - territory
-- enemies
+- hostile actors and threats
 - allies
 - leadership
 - local representatives

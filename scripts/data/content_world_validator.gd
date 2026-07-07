@@ -33,6 +33,11 @@ static func _validate_world_objects(content, errors: Array[String]) -> void:
 		if seen_ids.has(object_id):
 			errors.append("Duplicate world object id %s." % object_id)
 		seen_ids[object_id] = true
+		if object_id.begins_with("enemy_"):
+			errors.append(
+				"World object %s uses legacy enemy_ id; use npc_, actor_, or creature_."
+				% object_id
+			)
 		Schema.validate_global_tile(entry, "World object %s" % object_id, errors)
 		if String(entry.get("name", "")).is_empty():
 			errors.append("World object %s is missing name." % object_id)

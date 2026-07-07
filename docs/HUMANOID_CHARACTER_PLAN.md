@@ -326,7 +326,7 @@ Target behavior:
   to unload
 - living humanoids can expose a similar inventory view through pickpocketing
 - pickpocket access requires sneaking and not being seen
-- enemies and NPCs should have a 180 degree view cone in their facing direction
+- hostile actors and NPCs should have a 180 degree view cone in their facing direction
 - future pickpocket rules can add light, sound, skill, hostility,
   faction/crime response, and item difficulty
 
@@ -669,7 +669,7 @@ Updated 2026-07-06.
   body at the death position with character, inventory owner, equipment owner,
   collapsed pose, and shared transfer UI loot access. Tests cover body creation
   and taking the sword/bow through the transfer view.
-- Dedicated combat/loot test enemy: `enemy_test_raider` now exists outside
+- Dedicated combat/loot hostile actor: `npc_test_raider` now exists outside
   spawn town with its own profile, sword visual, bow inventory, and lootable
   temporary body after death. This keeps future equipment, armour, and loot
   testing separate from the Road Thug quest fixture.
@@ -684,7 +684,11 @@ Updated 2026-07-06.
   Tuskfolk, Mirefolk, Ravenfolk, and Rootborn profiles generated through
   `appearance_generation`. Each has owner IDs, simple equipment/inventory,
   reachable placement, and death-body loot coverage. Fixture details live in
-  `docs/SPAWN_TOWN_PEOPLE_ENEMY_TEST_AREA_HANDOFF.md`.
+  `docs/SPAWN_TOWN_PEOPLE_HOSTILE_ACTOR_TEST_AREA_HANDOFF.md`.
+- Hostile actor naming cleanup: complete for first slice.
+  Authored humanoid hostile actors now use `npc_*` world IDs instead of
+  `enemy_*`, the Road Patrol quest targets `npc_road_thug`, and content
+  validation rejects new world object IDs that start with `enemy_`.
 - Checkpoint 6, Pickpocket Groundwork: complete for first slice. Profile-backed
   living humanoids can expose owner-ID inventory through the shared transfer UI
   only while the player is sneaking and outside the target's 180-degree facing
@@ -747,7 +751,7 @@ Bad direction:
 - appearance stored directly on `PlayerController`
 - NPC visuals authored as unrelated one-off marker colors
 - placeholder NPCs kept forever outside the shared character system
-- enemies dropping abstract loot bags while their actual body inventory vanishes
+- hostile actors dropping abstract loot bags while their actual body inventory vanishes
 
 ## Later Mechanics
 

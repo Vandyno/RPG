@@ -10,7 +10,7 @@
         "objectives": {
           "clear_thug": {
             "text": "Defeat the road thug threatening Briarwatch's west road.",
-            "target_id": "enemy_road_thug"
+            "target_id": "npc_road_thug"
           }
         }
       }

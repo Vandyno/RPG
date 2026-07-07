@@ -21,11 +21,11 @@ func test_container_world_hint_updates_after_opening() -> void:
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 
 
-func test_enemy_defeat_does_not_leave_selected_interaction_target() -> void:
+func test_hostile_actor_defeat_does_not_leave_selected_interaction_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	_equip_hatchet(main)
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	assert_not_null(enemy)
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
@@ -33,8 +33,8 @@ func test_enemy_defeat_does_not_leave_selected_interaction_target() -> void:
 	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
-	assert_null(main.entities.get_entity("enemy_road_thug"))
-	assert_ne(main.selected_target_id, "enemy_road_thug")
+	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_ne(main.selected_target_id, "npc_road_thug")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 
 

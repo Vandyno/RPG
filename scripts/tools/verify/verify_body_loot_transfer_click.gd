@@ -172,14 +172,14 @@ func _verify() -> void:
 
 
 func _open_body_transfer(main) -> void:
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity("enemy_road_thug"):
+		if not main.entities.get_entity("npc_road_thug"):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
-	var body = main.entities.get_entity("body_enemy_road_thug")
+	var body = main.entities.get_entity("body_npc_road_thug")
 	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	main.selected_target_id = body.get_entity_id()
@@ -203,14 +203,14 @@ func _open_cache_transfer(main) -> void:
 
 
 func _open_people_body_transfer(main) -> void:
-	var enemy = main.entities.get_entity("enemy_people_test_human")
+	var enemy = main.entities.get_entity("npc_people_test_human")
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity("enemy_people_test_human"):
+		if not main.entities.get_entity("npc_people_test_human"):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
-	var body = main.entities.get_entity("body_enemy_people_test_human")
+	var body = main.entities.get_entity("body_npc_people_test_human")
 	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	main.selected_target_id = body.get_entity_id()

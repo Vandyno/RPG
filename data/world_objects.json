@@ -90,7 +90,7 @@
           },
           {
             "type": "not_flag",
-            "flag_id": "flag_spawn_enemy_defeated"
+            "flag_id": "flag_spawn_road_thug_defeated"
           }
         ],
         "response": "The posting still points west: drive off the road thug before another cart gets stopped."
@@ -106,7 +106,7 @@
           },
           {
             "type": "has_flag",
-            "flag_id": "flag_spawn_enemy_defeated"
+            "flag_id": "flag_spawn_road_thug_defeated"
           }
         ],
         "effects": [
@@ -307,7 +307,7 @@
     ]
   },
   {
-    "id": "enemy_road_thug",
+    "id": "npc_road_thug",
     "name": "Road Thug",
     "kind": "npc",
     "actor_category": "humanoid",
@@ -333,7 +333,7 @@
     "effects_on_defeat": [
       {
         "type": "set_flag",
-        "flag_id": "flag_spawn_enemy_defeated",
+        "flag_id": "flag_spawn_road_thug_defeated",
         "value": true
       },
       {
@@ -353,7 +353,7 @@
     ]
   },
   {
-    "id": "enemy_test_raider",
+    "id": "npc_test_raider",
     "name": "Test Raider",
     "kind": "npc",
     "actor_category": "humanoid",
@@ -390,8 +390,8 @@
     ]
   },
   {
-    "id": "enemy_people_test_human",
-    "name": "Human Test Enemy",
+    "id": "npc_people_test_human",
+    "name": "Human Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -415,8 +415,8 @@
     "attack_damage": 1
   },
   {
-    "id": "enemy_people_test_tanglekin",
-    "name": "Tanglekin Test Enemy",
+    "id": "npc_people_test_tanglekin",
+    "name": "Tanglekin Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -440,8 +440,8 @@
     "attack_damage": 1
   },
   {
-    "id": "enemy_people_test_tuskfolk",
-    "name": "Tuskfolk Test Enemy",
+    "id": "npc_people_test_tuskfolk",
+    "name": "Tuskfolk Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -465,8 +465,8 @@
     "attack_damage": 1
   },
   {
-    "id": "enemy_people_test_mirefolk",
-    "name": "Mirefolk Test Enemy",
+    "id": "npc_people_test_mirefolk",
+    "name": "Mirefolk Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -490,8 +490,8 @@
     "attack_damage": 1
   },
   {
-    "id": "enemy_people_test_ravenfolk",
-    "name": "Ravenfolk Test Enemy",
+    "id": "npc_people_test_ravenfolk",
+    "name": "Ravenfolk Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -515,8 +515,8 @@
     "attack_damage": 1
   },
   {
-    "id": "enemy_people_test_rootborn",
-    "name": "Rootborn Test Enemy",
+    "id": "npc_people_test_rootborn",
+    "name": "Rootborn Test Hostile Actor",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",

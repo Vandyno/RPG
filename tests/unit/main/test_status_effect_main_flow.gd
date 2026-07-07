@@ -25,13 +25,13 @@ func test_consumable_applies_visible_status_that_modifies_next_attacks() -> void
 	main.hud.hide_systems_panel()
 
 	_equip_hatchet(main)
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	assert_not_null(enemy)
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 3)
+	assert_eq(main.combat.health_by_entity_id["npc_road_thug"], 3)
 	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 1)
 	assert_true(main.hud.log_label.text.contains("hits Road Thug for 9"))
 

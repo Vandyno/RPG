@@ -46,7 +46,7 @@ Grid-aware systems include:
 - line of sight
 - triggers
 - object placement
-- NPC/enemy placement
+- actor placement
 - save/load
 - chunk streaming
 
@@ -65,7 +65,7 @@ Content includes:
 - items
 - shops
 - readables
-- enemies
+- hostile actors and threats
 - factions
 - loot tables
 - locations
@@ -103,7 +103,7 @@ Global tile coordinates are used for:
 - player location derived from world position
 - chunk lookup
 - object placement
-- NPC/enemy spawn placement
+- actor spawn placement
 - trigger placement
 - location discovery
 - save/load
@@ -1191,7 +1191,7 @@ Consequences:
   terrain checks, interaction lookup, and debugging.
 - Collision can still be tile-based initially by sampling the tile under the
   candidate world position.
-- Future NPCs and enemies should follow the same principle: continuous motion
+- Future NPCs and hostile actors should follow the same principle: continuous motion
   over a grid-aware world model.
 
 Follow-up:

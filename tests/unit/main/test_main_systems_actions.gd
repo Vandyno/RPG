@@ -47,7 +47,7 @@ func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_east:1",
+			"damage:actor_east:1",
 			"message:Fire Blast hits Road Thug for 1.",
 			"refresh"
 		]
@@ -70,7 +70,7 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_west:2",
+			"damage:actor_west:2",
 			"message:Unarmed hits River Ruffian for 2.",
 			"refresh"
 		]
@@ -87,11 +87,11 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_west:3",
+			"damage:actor_west:3",
 			"message:Training Sword hits River Ruffian for 3.",
-			"damage:enemy_west:3",
+			"damage:actor_west:3",
 			"message:Training Sword hits River Ruffian for 3.",
-			"damage:enemy_west:3",
+			"damage:actor_west:3",
 			"message:Training Sword hits River Ruffian for 3.",
 			"refresh",
 			"refresh"
@@ -109,7 +109,7 @@ func test_handle_held_bow_waits_for_release() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_west:4",
+			"damage:actor_west:4",
 			"message:Hunting Bow hits River Ruffian for 4.",
 			"refresh"
 		]
@@ -133,8 +133,8 @@ func test_handle_aim_attack_uses_continuous_direction_for_hits() -> void:
 	var raw_direction := Vector2(1.0, 0.31).normalized()
 	var snapped := FacingBuckets.snap_direction(raw_direction)
 	main.enemies = [
-		AimEntityStub.new("enemy_raw", "Raw Dummy", raw_direction * 88.0),
-		AimEntityStub.new("enemy_bucket", "Bucket Dummy", snapped * 88.0)
+		AimEntityStub.new("actor_raw", "Raw Dummy", raw_direction * 88.0),
+		AimEntityStub.new("actor_bucket", "Bucket Dummy", snapped * 88.0)
 	]
 	main.entities = AimEntitiesStub.new(main.enemies)
 
@@ -144,7 +144,7 @@ func test_handle_aim_attack_uses_continuous_direction_for_hits() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_raw:4",
+			"damage:actor_raw:4",
 			"message:Hunting Bow hits Raw Dummy for 4.",
 			"refresh"
 		]
@@ -201,8 +201,8 @@ class AimMainStub:
 	var channeled_spell_empty_reported: Dictionary = {}
 	var held_weapon_attack_elapsed: Dictionary = {}
 	var enemies := [
-		AimEntityStub.new("enemy_west", "River Ruffian", Vector2.LEFT * 28.0),
-		AimEntityStub.new("enemy_east", "Road Thug", Vector2.RIGHT * 28.0)
+		AimEntityStub.new("actor_west", "River Ruffian", Vector2.LEFT * 28.0),
+		AimEntityStub.new("actor_east", "Road Thug", Vector2.RIGHT * 28.0)
 	]
 	var entities := AimEntitiesStub.new(enemies)
 

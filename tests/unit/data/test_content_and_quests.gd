@@ -8,39 +8,39 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
 const EntityManager = preload("res://scripts/managers/world/entity_manager.gd")
 
-const PEOPLE_TEST_ENEMIES := [
+const PEOPLE_TEST_HOSTILE_ACTORS := [
 	{
-		"entity_id": "enemy_people_test_human",
+		"entity_id": "npc_people_test_human",
 		"profile_id": "char_people_test_human",
 		"people_id": "people_human",
 		"tile": Vector2i(-16, 0)
 	},
 	{
-		"entity_id": "enemy_people_test_tanglekin",
+		"entity_id": "npc_people_test_tanglekin",
 		"profile_id": "char_people_test_tanglekin",
 		"people_id": "people_tanglekin",
 		"tile": Vector2i(-18, -2)
 	},
 	{
-		"entity_id": "enemy_people_test_tuskfolk",
+		"entity_id": "npc_people_test_tuskfolk",
 		"profile_id": "char_people_test_tuskfolk",
 		"people_id": "people_tuskfolk",
 		"tile": Vector2i(-18, 2)
 	},
 	{
-		"entity_id": "enemy_people_test_mirefolk",
+		"entity_id": "npc_people_test_mirefolk",
 		"profile_id": "char_people_test_mirefolk",
 		"people_id": "people_mirefolk",
 		"tile": Vector2i(-20, 0)
 	},
 	{
-		"entity_id": "enemy_people_test_ravenfolk",
+		"entity_id": "npc_people_test_ravenfolk",
 		"profile_id": "char_people_test_ravenfolk",
 		"people_id": "people_ravenfolk",
 		"tile": Vector2i(-23, -2)
 	},
 	{
-		"entity_id": "enemy_people_test_rootborn",
+		"entity_id": "npc_people_test_rootborn",
 		"profile_id": "char_people_test_rootborn",
 		"people_id": "people_rootborn",
 		"tile": Vector2i(-22, 2)
@@ -89,7 +89,7 @@ func test_content_database_loads_seed_content() -> void:
 	assert_eq(content.validate_all(), [])
 
 
-func test_all_authored_npcs_and_enemies_are_profile_backed_characters() -> void:
+func test_all_authored_npc_actors_are_profile_backed_characters() -> void:
 	for npc_id in content.npcs:
 		var npc: Dictionary = content.npcs[npc_id]
 		var profile_id := String(npc.get("character_profile_id", ""))
@@ -101,7 +101,7 @@ func test_all_authored_npcs_and_enemies_are_profile_backed_characters() -> void:
 
 	for entry in content.world_objects:
 		var kind := String(entry.get("kind", ""))
-		if not ["npc", "enemy"].has(kind):
+		if kind != "npc":
 			continue
 		var profile_id := String(entry.get("character_profile_id", ""))
 		if kind == "npc" and profile_id.is_empty():
@@ -411,7 +411,7 @@ func test_character_profile_appearance_generation_resolves_with_authored_overrid
 		"state": "alive",
 		"appearance_generation":
 		{
-			"seed": "blacksmith_enemy_seed",
+			"seed": "blacksmith_hostile_seed",
 			"variant_id": "tuskfolk_smith",
 			"appearance_overrides": {"marking_id": "marking_chest_band"}
 		},
@@ -437,9 +437,9 @@ func test_character_profile_appearance_generation_resolves_with_authored_overrid
 	assert_almost_eq(float(Dictionary(appearance["proportions"])["head_size"]), 1.11, 0.001)
 
 
-func test_people_test_enemies_use_generated_profiles() -> void:
+func test_people_test_hostile_actors_use_generated_profiles() -> void:
 	var seen_tiles := {}
-	for data in PEOPLE_TEST_ENEMIES:
+	for data in PEOPLE_TEST_HOSTILE_ACTORS:
 		var entity_id := String(data["entity_id"])
 		var profile_id := String(data["profile_id"])
 		var people_id := String(data["people_id"])
@@ -817,8 +817,8 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 			"count": 0
 		},
 		{
-			"id": "enemy_bad_numeric",
-			"name": "Bad Enemy",
+			"id": "npc_bad_numeric",
+			"name": "Bad Hostile Actor",
 			"kind": "npc",
 			"hostility": "hostile",
 			"combat_enabled": true,
@@ -826,6 +826,13 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 			"max_health": "twelve",
 			"damage_taken_per_hit": "six",
 			"attack_damage": "four"
+		},
+		{
+			"id": "enemy_bad_id",
+			"name": "Legacy Hostile Actor ID",
+			"kind": "pickup",
+			"global_tile": [1, 2],
+			"item_id": "item_bad"
 		},
 		{
 			"id": "location_bad_numeric",
@@ -967,17 +974,18 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("item item_bad effects_on_use has malformed effect"))
 	assert_true(joined.contains("item item_bad effects_on_use heal_player amount must be numeric"))
 	assert_true(joined.contains("count must be numeric"))
-	assert_true(joined.contains("Hostile actor enemy_bad_numeric max_health must be numeric"))
+	assert_true(joined.contains("Hostile actor npc_bad_numeric max_health must be numeric"))
 	assert_true(
-		joined.contains("Hostile actor enemy_bad_numeric damage_taken_per_hit must be numeric")
+		joined.contains("Hostile actor npc_bad_numeric damage_taken_per_hit must be numeric")
 	)
-	assert_true(joined.contains("Hostile actor enemy_bad_numeric attack_damage must be numeric"))
+	assert_true(joined.contains("Hostile actor npc_bad_numeric attack_damage must be numeric"))
 	assert_true(
-		joined.contains("World object enemy_bad_numeric is missing npc_id or character_profile_id")
+		joined.contains("World object npc_bad_numeric is missing npc_id or character_profile_id")
 	)
-	assert_true(joined.contains("World object enemy_bad_numeric is missing character_profile_id"))
-	assert_true(joined.contains("World object enemy_bad_numeric is missing inventory_owner_id"))
-	assert_true(joined.contains("World object enemy_bad_numeric is missing equipment_owner_id"))
+	assert_true(joined.contains("World object npc_bad_numeric is missing character_profile_id"))
+	assert_true(joined.contains("World object npc_bad_numeric is missing inventory_owner_id"))
+	assert_true(joined.contains("World object npc_bad_numeric is missing equipment_owner_id"))
+	assert_true(joined.contains("World object enemy_bad_id uses legacy enemy_ id"))
 	assert_true(
 		joined.contains("Location object location_bad_numeric discovery_radius must be numeric")
 	)
@@ -1045,8 +1053,8 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		"object_road_cache",
 		"object_warden_cache",
 		"object_sealed_strongbox",
-		"enemy_road_thug",
-		"enemy_test_raider",
+		"npc_road_thug",
+		"npc_test_raider",
 		"object_north_gate",
 		"object_training_gate",
 		"object_roadside_campfire",
@@ -1089,14 +1097,14 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 	assert_eq(found_ids, expected_ids)
 
 
-func test_people_enemy_range_stays_outside_town_but_reachable() -> void:
+func test_people_hostile_actor_range_stays_outside_town_but_reachable() -> void:
 	var chunks := ChunkManager.new()
 	add_child_autofree(chunks)
 	chunks.load_authored_terrain(ChunkManager.AUTHORED_TERRAIN_PATH)
 	var town_bounds := Rect2i(Vector2i(-12, -10), Vector2i(27, 21))
 	var seen_tiles := {}
 
-	for data in PEOPLE_TEST_ENEMIES:
+	for data in PEOPLE_TEST_HOSTILE_ACTORS:
 		var entity_id := String(data["entity_id"])
 		var entry := _world_object(entity_id)
 		var tile_array: Array = entry.get("global_tile", [0, 0])

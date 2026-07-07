@@ -46,7 +46,7 @@ func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> vo
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_attack_enemy_until_defeated(main, "enemy_road_thug")
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
 
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 	assert_true(main.hud.log_label.text.contains("Rewards: Gold Coin x3, Road Bandits -5, XP +10."))
@@ -72,7 +72,7 @@ func _choose_content(main, text: String) -> void:
 	button.pressed.emit()
 
 
-func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	_equip_hatchet(main)
 	var enemy = main.entities.get_entity(entity_id)
 	assert_not_null(enemy)
@@ -82,7 +82,7 @@ func _attack_enemy_until_defeated(main, entity_id: String) -> void:
 		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 		if not main.entities.get_entity(entity_id):
 			return
-	fail_test("Enemy was not defeated: %s" % entity_id)
+	fail_test("Hostile actor was not defeated: %s" % entity_id)
 
 
 func _equip_hatchet(main) -> void:

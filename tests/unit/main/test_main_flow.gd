@@ -17,7 +17,7 @@ func after_each() -> void:
 func test_sneak_button_does_not_open_or_cycle_targets() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	main.player.set_world_position(enemy.global_position + Vector2(8.0, 0.0))
 	main.player.set_facing_direction(Vector2.LEFT)
 	main._update_nearby()
@@ -560,22 +560,22 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.time.advance_hours(12))
 	main.hud.refresh()
 
-	_stand_by_enemy(main, "enemy_road_thug")
+	_stand_by_hostile_actor(main, "npc_road_thug")
 	assert_false(main.hud.context_action_panel.visible)
 	var guard_button := _button_containing(main.hud.context_action_buttons, "Guard")
 	assert_null(guard_button)
 	var attack_button := _button_containing(main.hud.context_action_buttons, "Attack")
 	assert_true(attack_button == null or not attack_button.visible)
 	assert_ne(main.get_debug_state()["primary_action"], "Attack")
-	_attack_enemy_once(main, "enemy_road_thug")
+	_attack_hostile_actor_once(main, "npc_road_thug")
 	assert_eq(main.player.health, 100)
 	assert_eq(int(main.hud.health_bar.value), 100)
 	assert_eq(main.hud.health_label.text, "HP 100/100  MP 100/100")
 	assert_eq(main.hud.health_bar.tooltip_text, "Health: 100/100")
 	assert_true(main.hud.log_label.text.contains("hits Road Thug"))
-	_attack_enemy_once(main, "enemy_road_thug")
+	_attack_hostile_actor_once(main, "npc_road_thug")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
-	assert_null(main.entities.get_entity("enemy_road_thug"))
+	assert_null(main.entities.get_entity("npc_road_thug"))
 	main.hud.toggle_systems()
 	main.hud.set_systems_tab("inventory")
 	main.player.apply_damage(25)
@@ -586,7 +586,7 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_eq(main.inventory.get_count("item_roadside_draught"), 1)
 	assert_true(main.hud.log_label.text.contains("Used Roadside Draught."))
 	main.hud.toggle_systems()
-	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
+	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
 	assert_eq(main.inventory.get_count("item_gold_coin"), 20)
 	assert_eq(main.progression.level, 2)
@@ -646,7 +646,7 @@ func test_main_sanitizes_malformed_runtime_hostile_actor_numbers() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	assert_not_null(enemy)
 	enemy.data["max_health"] = "twelve"
 	enemy.data["damage_taken_per_hit"] = "six"
@@ -654,10 +654,10 @@ func test_main_sanitizes_malformed_runtime_hostile_actor_numbers() -> void:
 
 	assert_eq(main._target_detail_text(enemy), "Hostile HP 12/12, counter 4")
 
-	_attack_enemy_once(main, "enemy_road_thug")
+	_attack_hostile_actor_once(main, "npc_road_thug")
 
 	assert_eq(main.player.health, 100)
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 10)
+	assert_eq(main.combat.health_by_entity_id["npc_road_thug"], 10)
 
 
 func test_main_sanitizes_malformed_runtime_rest_amount() -> void:
@@ -706,7 +706,7 @@ func test_player_defeat_recovers_at_spawn() -> void:
 	assert_eq(defeat_sources, ["Road Thug"])
 	assert_eq(main.player.health, main.player.max_health)
 	assert_eq(main.player.global_tile, Vector2i.ZERO)
-	assert_not_null(main.entities.get_entity("enemy_road_thug"))
+	assert_not_null(main.entities.get_entity("npc_road_thug"))
 
 
 func test_main_save_load_restores_spawn_yard_system_state() -> void:
@@ -716,7 +716,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 
 	_select_entity(main, "pickup_old_toolbox")
 	main._handle_interact_requested()
-	_attack_enemy_once(main, "enemy_road_thug")
+	_attack_hostile_actor_once(main, "npc_road_thug")
 	_select_entity(main, "object_road_cache")
 	main._handle_interact_requested()
 	main._handle_inventory_item_selected("take:item_gold_coin")
@@ -729,11 +729,11 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	main.inventory.remove_item("item_old_toolbox", 1)
 	main.equipment.equipped_by_slot = {"right_hand": "item_road_hatchet"}
 	main.player.set_health(7)
-	main.combat.clear_entity("enemy_road_thug")
+	main.combat.clear_entity("npc_road_thug")
 	main.time.load_save_data({})
-	main.chunks.mark_entity_removed("enemy_road_thug", Vector2i(-4, 2))
+	main.chunks.mark_entity_removed("npc_road_thug", Vector2i(-4, 2))
 	main.entities.spawn_all()
-	assert_null(main.entities.get_entity("enemy_road_thug"))
+	assert_null(main.entities.get_entity("npc_road_thug"))
 
 	assert_true(main.save_manager.load_game())
 
@@ -741,28 +741,28 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	assert_eq(main.equipment.get_equipped_item("right_hand"), "")
 	assert_true(main.inventory.has_item("item_old_toolbox"))
 	assert_eq(main.quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
-	assert_eq(main.combat.health_by_entity_id["enemy_road_thug"], 10)
+	assert_eq(main.combat.health_by_entity_id["npc_road_thug"], 10)
 	assert_true(main.chunks.is_object_opened("object_road_cache", Vector2i(-7, 2)))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 	assert_eq(main.progression.level, 1)
 	assert_eq(main.progression.experience, 2)
 	assert_eq(main.time.get_summary(), "Day 1, 14:00 (Afternoon)")
-	assert_not_null(main.entities.get_entity("enemy_road_thug"))
+	assert_not_null(main.entities.get_entity("npc_road_thug"))
 
 
-func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
+func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.save_manager.save_path = TEST_SAVE_PATH
 
-	_attack_enemy_until_defeated(main, "enemy_road_thug")
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
 
-	assert_null(main.entities.get_entity("enemy_road_thug"))
-	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
+	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 3)
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
 	assert_eq(main.progression.experience, 10)
-	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
+	assert_false(main.combat.health_by_entity_id.has("npc_road_thug"))
 
 	assert_true(main.save_manager.save_game())
 
@@ -772,16 +772,16 @@ func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
 	main.world_state.flags.clear()
 	main.chunks.modified_chunks.clear()
 	main.entities.spawn_all()
-	assert_not_null(main.entities.get_entity("enemy_road_thug"))
+	assert_not_null(main.entities.get_entity("npc_road_thug"))
 
 	assert_true(main.save_manager.load_game())
 
-	assert_null(main.entities.get_entity("enemy_road_thug"))
-	assert_true(main.world_state.has_flag("flag_spawn_enemy_defeated"))
+	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 3)
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
 	assert_eq(main.progression.experience, 10)
-	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
+	assert_false(main.combat.health_by_entity_id.has("npc_road_thug"))
 
 
 func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
@@ -789,7 +789,7 @@ func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 	add_child_autofree(main)
 	main.inventory.add_item("item_hunting_bow", 1)
 	main.inventory.add_item("item_training_sword", 1)
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	assert_not_null(enemy)
 	assert_eq(enemy.get_kind(), "npc")
 	assert_true(enemy.is_combat_target())
@@ -800,9 +800,9 @@ func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 	assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
 	var death_tile: Vector2i = enemy.global_tile
 
-	_attack_enemy_until_defeated(main, "enemy_road_thug")
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
 
-	var body = main.entities.get_entity("body_enemy_road_thug")
+	var body = main.entities.get_entity("body_npc_road_thug")
 	assert_not_null(body)
 	assert_eq(body.get_kind(), "body")
 	assert_eq(body.global_tile, death_tile)
@@ -815,7 +815,7 @@ func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_hunting_bow"), 1)
 	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), 1)
 
-	_select_entity(main, "body_enemy_road_thug")
+	_select_entity(main, "body_npc_road_thug")
 	main._handle_interact_requested()
 
 	assert_eq(main.active_transfer_owner_id, "char_road_thug")
@@ -832,10 +832,10 @@ func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 	assert_false(main.get_hud_state()["transfer_open"])
 
 
-func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() -> void:
+func test_dedicated_test_hostile_actor_outside_town_has_sword_bow_and_lootable_body() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var enemy = main.entities.get_entity("enemy_test_raider")
+	var enemy = main.entities.get_entity("npc_test_raider")
 	assert_not_null(enemy)
 	assert_eq(enemy.get_kind(), "npc")
 	assert_true(enemy.is_combat_target())
@@ -849,9 +849,9 @@ func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() ->
 	assert_not_null(enemy.humanoid_avatar)
 	assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
 
-	_attack_enemy_until_defeated(main, "enemy_test_raider")
+	_attack_hostile_actor_until_defeated(main, "npc_test_raider")
 
-	var body = main.entities.get_entity("body_enemy_test_raider")
+	var body = main.entities.get_entity("body_npc_test_raider")
 	assert_not_null(body)
 	assert_eq(body.get_kind(), "body")
 	assert_eq(body.data["character_id"], "char_test_raider")
@@ -860,7 +860,7 @@ func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() ->
 	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_hunting_bow"), 1)
 	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_training_sword"), 1)
 
-	_select_entity(main, "body_enemy_test_raider")
+	_select_entity(main, "body_npc_test_raider")
 	main._handle_interact_requested()
 	main._handle_inventory_item_selected("take:item_hunting_bow")
 	main._handle_inventory_item_selected("take:item_training_sword")
@@ -870,16 +870,16 @@ func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() ->
 	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_training_sword"), 0)
 
 
-func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() -> void:
+func test_people_test_hostile_actors_spawn_with_generated_profiles_and_lootable_body() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	var expected := {
-		"enemy_people_test_human": "people_human",
-		"enemy_people_test_tanglekin": "people_tanglekin",
-		"enemy_people_test_tuskfolk": "people_tuskfolk",
-		"enemy_people_test_mirefolk": "people_mirefolk",
-		"enemy_people_test_ravenfolk": "people_ravenfolk",
-		"enemy_people_test_rootborn": "people_rootborn"
+		"npc_people_test_human": "people_human",
+		"npc_people_test_tanglekin": "people_tanglekin",
+		"npc_people_test_tuskfolk": "people_tuskfolk",
+		"npc_people_test_mirefolk": "people_mirefolk",
+		"npc_people_test_ravenfolk": "people_ravenfolk",
+		"npc_people_test_rootborn": "people_rootborn"
 	}
 	for entity_id in expected:
 		var enemy = main.entities.get_entity(String(entity_id))
@@ -893,9 +893,9 @@ func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() 
 		assert_false(String(appearance.get("visual_model_id", "")).is_empty())
 		assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
 
-	_attack_enemy_until_defeated(main, "enemy_people_test_tuskfolk")
+	_attack_hostile_actor_until_defeated(main, "npc_people_test_tuskfolk")
 
-	var body = main.entities.get_entity("body_enemy_people_test_tuskfolk")
+	var body = main.entities.get_entity("body_npc_people_test_tuskfolk")
 	assert_not_null(body)
 	assert_eq(body.get_kind(), "body")
 	assert_eq(body.data["character_id"], "char_people_test_tuskfolk")
@@ -909,7 +909,7 @@ func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() 
 		main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_training_sword"), 1
 	)
 
-	_select_entity(main, "body_enemy_people_test_tuskfolk")
+	_select_entity(main, "body_npc_people_test_tuskfolk")
 	main._handle_interact_requested()
 	main._handle_inventory_item_selected("take:item_gold_coin")
 	main._handle_inventory_item_selected("take:item_training_sword")
@@ -924,8 +924,8 @@ func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() 
 func test_transfer_take_and_put_buttons_move_items() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	_attack_enemy_until_defeated(main, "enemy_people_test_human")
-	_select_entity(main, "body_enemy_people_test_human")
+	_attack_hostile_actor_until_defeated(main, "npc_people_test_human")
+	_select_entity(main, "body_npc_people_test_human")
 	main._handle_interact_requested()
 
 	var target_pane: Node = main.hud.systems_item_list.find_child(
@@ -974,7 +974,7 @@ func _press_transfer_button(button: Button) -> void:
 	button._gui_input(press)
 
 
-func _stand_by_enemy(main, entity_id: String) -> void:
+func _stand_by_hostile_actor(main, entity_id: String) -> void:
 	var enemy = main.entities.get_entity(entity_id)
 	assert_not_null(enemy)
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
@@ -982,16 +982,16 @@ func _stand_by_enemy(main, entity_id: String) -> void:
 	main._update_nearby()
 
 
-func _attack_enemy_once(main, entity_id: String) -> void:
-	_stand_by_enemy(main, entity_id)
+func _attack_hostile_actor_once(main, entity_id: String) -> void:
+	_stand_by_hostile_actor(main, entity_id)
 	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
 
 
-func _attack_enemy_until_defeated(main, entity_id: String) -> void:
+func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	for _i in range(8):
 		if not main.entities.get_entity(entity_id):
 			return
-		_attack_enemy_once(main, entity_id)
+		_attack_hostile_actor_once(main, entity_id)
 	assert_null(main.entities.get_entity(entity_id))
 
 

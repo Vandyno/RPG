@@ -12,12 +12,12 @@ This is not canon encounter design.
 
 | People | Actor ID | Profile ID | Tile |
 | --- | --- | --- | --- |
-| Human | `enemy_people_test_human` | `char_people_test_human` | `[-16, 0]` |
-| Tanglekin | `enemy_people_test_tanglekin` | `char_people_test_tanglekin` | `[-18, -2]` |
-| Tuskfolk | `enemy_people_test_tuskfolk` | `char_people_test_tuskfolk` | `[-18, 2]` |
-| Mirefolk | `enemy_people_test_mirefolk` | `char_people_test_mirefolk` | `[-20, 0]` |
-| Ravenfolk | `enemy_people_test_ravenfolk` | `char_people_test_ravenfolk` | `[-23, -2]` |
-| Rootborn | `enemy_people_test_rootborn` | `char_people_test_rootborn` | `[-22, 2]` |
+| Human | `npc_people_test_human` | `char_people_test_human` | `[-16, 0]` |
+| Tanglekin | `npc_people_test_tanglekin` | `char_people_test_tanglekin` | `[-18, -2]` |
+| Tuskfolk | `npc_people_test_tuskfolk` | `char_people_test_tuskfolk` | `[-18, 2]` |
+| Mirefolk | `npc_people_test_mirefolk` | `char_people_test_mirefolk` | `[-20, 0]` |
+| Ravenfolk | `npc_people_test_ravenfolk` | `char_people_test_ravenfolk` | `[-23, -2]` |
+| Rootborn | `npc_people_test_rootborn` | `char_people_test_rootborn` | `[-22, 2]` |
 
 The range is outside Briarwatch's authored town bounds. This keeps future hostile
 AI from immediately rampaging through town while the fixtures still remain
@@ -25,8 +25,8 @@ reachable from spawn through the west gate.
 
 The range deliberately avoids overloading:
 
-- `enemy_road_thug` at `[-6, 1]`, which is a Road Patrol quest fixture
-- `enemy_test_raider` at `[-10, 1]`, which is the dedicated combat/loot fixture
+- `npc_road_thug` at `[-6, 1]`, which is a Road Patrol quest fixture
+- `npc_test_raider` at `[-10, 1]`, which is the dedicated combat/loot fixture
 
 ## Appearance Generation
 
@@ -87,5 +87,6 @@ Last verified with:
 ## Future Extension
 
 If this range grows, keep new fixtures generator-backed and keep them away from
-quest-critical targets and town NPC routines. A player-facing screenshot can still be added under
-`reports/people_enemy_test_area/` when visual review becomes useful.
+quest-critical targets and town NPC routines. A player-facing screenshot can
+still be added under `reports/people_hostile_actor_test_area/` when visual
+review becomes useful.

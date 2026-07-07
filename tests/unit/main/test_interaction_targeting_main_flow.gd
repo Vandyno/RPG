@@ -25,7 +25,7 @@ func test_default_interact_ignores_hostile_actor_as_interaction_target() -> void
 	assert_null(main._get_nearby_entity())
 	assert_eq(main.get_debug_state()["primary_action"], "Explore")
 
-	var enemy = main.entities.get_entity("enemy_road_thug")
+	var enemy = main.entities.get_entity("npc_road_thug")
 	assert_eq(enemy.get_kind(), "npc")
 	assert_true(enemy.is_combat_target())
 	main.player.set_world_position(enemy.global_position + Vector2(8.0, 0.0))
@@ -35,7 +35,7 @@ func test_default_interact_ignores_hostile_actor_as_interaction_target() -> void
 	assert_true(target == null or not target.is_combat_target())
 	assert_ne(main.get_debug_state()["primary_action"], "Attack")
 	assert_false(main.manual_target_locked)
-	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
+	assert_false(main.combat.health_by_entity_id.has("npc_road_thug"))
 
 	var harrow = main.entities.get_entity("npc_harrow_venn_world")
 	main.player.set_world_position(harrow.global_position + Vector2(-8.0, 0.0))
