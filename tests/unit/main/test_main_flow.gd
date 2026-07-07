@@ -6,12 +6,43 @@ const MainSystemsActions = preload("res://scripts/main/actions/main_systems_acti
 const TEST_SAVE_PATH := "user://test_main_flow.json"
 
 
+class BrokenValidationContentDatabase extends ContentDatabase:
+	func load_all() -> Array[String]:
+		var errors := super.load_all()
+		quests["quest_boot_validation_bad"] = {
+			"id": "quest_boot_validation_bad", "start_stage": "missing", "stages": {}
+		}
+		return errors
+
+
+class BrokenValidationMain extends Main:
+	var reported_bootstrap_errors: Array[String] = []
+	var reported_bootstrap_summary := ""
+
+	func _create_content_database() -> ContentDatabase:
+		return BrokenValidationContentDatabase.new()
+
+	func _report_content_bootstrap_errors(errors: Array[String], summary: String) -> void:
+		reported_bootstrap_errors = errors.duplicate()
+		reported_bootstrap_summary = summary
+
+
 func before_each() -> void:
 	_remove_test_save()
 
 
 func after_each() -> void:
 	_remove_test_save()
+
+
+func test_bootstrap_aborts_when_content_validation_fails() -> void:
+	var main := BrokenValidationMain.new()
+	add_child_autofree(main)
+
+	assert_eq(main.reported_bootstrap_summary, "Content failed validation. Check content file errors.")
+	assert_true("\n".join(main.reported_bootstrap_errors).contains("quest_boot_validation_bad"))
+	assert_null(main.world_state)
+	assert_false(main.is_processing())
 
 
 func test_sneak_button_does_not_open_or_cycle_targets() -> void:

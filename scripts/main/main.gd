@@ -105,14 +105,21 @@ func _bootstrap() -> bool:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
 	add_child(event_bus)
-	content = ContentDatabaseScript.new()
+	content = _create_content_database()
 	content.name = "ContentDatabase"
 	add_child(content)
 	var content_load_errors: Array[String] = content.load_all()
 	if not content_load_errors.is_empty():
-		for error in content_load_errors:
-			push_error(error)
-		event_bus.post_message("Content failed to load. Check content file errors.")
+		_report_content_bootstrap_errors(
+			content_load_errors, "Content failed to load. Check content file errors."
+		)
+		set_process(false)
+		return false
+	var content_validation_errors: Array[String] = content.validate_all()
+	if not content_validation_errors.is_empty():
+		_report_content_bootstrap_errors(
+			content_validation_errors, "Content failed validation. Check content file errors."
+		)
 		set_process(false)
 		return false
 	world_state = WorldStateManagerScript.new()
@@ -281,6 +288,17 @@ func _bootstrap() -> bool:
 	streamer.update_center(player.global_tile)
 	_sync_camera_to_player()
 	return true
+
+
+func _create_content_database() -> ContentDatabase:
+	return ContentDatabaseScript.new()
+
+
+func _report_content_bootstrap_errors(errors: Array[String], summary: String) -> void:
+	for error in errors:
+		push_error(error)
+		event_bus.post_message(error)
+	event_bus.post_message(summary)
 
 
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
