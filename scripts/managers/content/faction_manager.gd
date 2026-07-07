@@ -82,8 +82,7 @@ func _known_faction_ids() -> Array[String]:
 		for faction_id in reputation_by_faction_id:
 			ids.append(String(faction_id))
 	else:
-		for faction_id in content.factions:
-			ids.append(String(faction_id))
+		ids = content.faction_ids()
 	ids.sort()
 	return ids
 

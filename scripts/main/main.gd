@@ -357,7 +357,7 @@ func _update_location_discoveries() -> void:
 
 func _max_location_discovery_radius() -> float:
 	var radius := EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
-	for entry in content.world_objects:
+	for entry in content.world_object_entries():
 		if String(entry.get("kind", "")) == "location":
 			radius = maxf(
 				radius,

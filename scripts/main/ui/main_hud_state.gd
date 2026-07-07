@@ -320,7 +320,7 @@ static func _equipment_slots_data(ctx: HudContext) -> Dictionary:
 
 static func _spells_data(ctx: HudContext) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
-	var spell_ids: Array = ctx.content.spells.keys()
+	var spell_ids: Array = ctx.content.spell_ids()
 	spell_ids.sort_custom(
 		func(a, b) -> bool:
 			var spell_a: Dictionary = ctx.content.get_spell(String(a))
@@ -385,4 +385,3 @@ static func _spell_slot_label(slot_id: String) -> String:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
-

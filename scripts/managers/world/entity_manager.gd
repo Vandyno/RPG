@@ -53,7 +53,7 @@ func spawn_all() -> void:
 	entities_by_id.clear()
 	highlighted_entity_id = ""
 	var seen_ids: Dictionary = {}
-	for entry in content.world_objects:
+	for entry in content.world_object_entries():
 		var entity_id := String(entry.get("id", ""))
 		if entity_id.is_empty() or seen_ids.has(entity_id) or not _has_valid_tile(entry):
 			continue

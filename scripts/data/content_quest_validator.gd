@@ -12,8 +12,8 @@ static func validate(content, errors: Array[String]) -> void:
 
 
 static func _validate_quests(content, errors: Array[String]) -> void:
-	for quest_id in content.quests:
-		var quest: Dictionary = content.quests[quest_id]
+	for quest_id in content.quest_ids():
+		var quest: Dictionary = content.get_quest(quest_id)
 		Schema.validate_keyed_id(quest, String(quest_id), "Quest", errors)
 		if String(quest.get("title", "")).is_empty():
 			errors.append("Quest %s is missing title." % quest_id)
@@ -70,8 +70,8 @@ static func _validate_quest_objectives(
 
 
 static func _validate_factions(content, errors: Array[String]) -> void:
-	for faction_id in content.factions:
-		var faction: Dictionary = content.factions[faction_id]
+	for faction_id in content.faction_ids():
+		var faction: Dictionary = content.get_faction(faction_id)
 		Schema.validate_keyed_id(faction, String(faction_id), "Faction", errors)
 		if String(faction.get("name", "")).is_empty():
 			errors.append("Faction %s is missing name." % faction_id)
@@ -83,8 +83,8 @@ static func _validate_factions(content, errors: Array[String]) -> void:
 
 
 static func _validate_dialogues(content, errors: Array[String]) -> void:
-	for dialogue_id in content.dialogues:
-		var dialogue: Dictionary = content.dialogues[dialogue_id]
+	for dialogue_id in content.dialogue_ids():
+		var dialogue: Dictionary = content.get_dialogue(dialogue_id)
 		Schema.validate_keyed_id(dialogue, String(dialogue_id), "Dialogue", errors)
 		var lines: Array = Schema.array_field(dialogue.get("lines", []))
 		if lines.is_empty():
@@ -138,27 +138,27 @@ static func _validate_dialogue_choices(
 
 
 static func _validate_npcs(content, errors: Array[String]) -> void:
-	for npc_id in content.npcs:
-		var npc: Dictionary = content.npcs[npc_id]
+	for npc_id in content.npc_ids():
+		var npc: Dictionary = content.get_npc(npc_id)
 		Schema.validate_keyed_id(npc, String(npc_id), "NPC", errors)
 		if String(npc.get("name", "")).is_empty():
 			errors.append("NPC %s is missing name." % npc_id)
 		var quest_id := String(npc.get("quest_id", ""))
-		if not quest_id.is_empty() and not content.quests.has(quest_id):
+		if not quest_id.is_empty() and not content.has_quest(quest_id):
 			errors.append("NPC %s references missing quest %s." % [npc_id, quest_id])
 		var faction_id := String(npc.get("faction", ""))
-		if not faction_id.is_empty() and not content.factions.has(faction_id):
+		if not faction_id.is_empty() and not content.has_faction(faction_id):
 			errors.append("NPC %s references missing faction %s." % [npc_id, faction_id])
 		var dialogue_id := String(npc.get("dialogue_id", ""))
-		if not content.dialogues.has(dialogue_id):
+		if not content.has_dialogue(dialogue_id):
 			errors.append("NPC %s references missing dialogue %s." % [npc_id, dialogue_id])
 		var shop_id := String(npc.get("shop_id", ""))
-		if not shop_id.is_empty() and not content.shops.has(shop_id):
+		if not shop_id.is_empty() and not content.has_shop(shop_id):
 			errors.append("NPC %s references missing shop %s." % [npc_id, shop_id])
 		var profile_id := String(npc.get("character_profile_id", ""))
 		if profile_id.is_empty():
 			errors.append("NPC %s is missing character_profile_id." % npc_id)
-		elif not content.character_profiles.has(profile_id):
+		elif not content.has_character_profile(profile_id):
 			errors.append("NPC %s references missing character profile %s." % [npc_id, profile_id])
 		Schema.validate_condition_list(content, npc, "completion_conditions", "NPC %s" % npc_id, errors)
 		Schema.validate_effect_list(content, npc, "completion_effects", "NPC %s" % npc_id, errors)

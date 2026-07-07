@@ -80,16 +80,16 @@ static func validate_effect(
 				errors.append("%s has set_flag with missing flag_id." % owner)
 		"discover_location":
 			var location_id := String(effect.get("location_id", ""))
-			if not content.locations.has(location_id):
+			if not content.has_location(location_id):
 				errors.append("%s references missing location %s." % [owner, location_id])
 		"start_quest", "complete_quest", "fail_quest":
 			var quest_id := String(effect.get("quest_id", ""))
-			if not content.quests.has(quest_id):
+			if not content.has_quest(quest_id):
 				errors.append("%s references missing quest %s." % [owner, quest_id])
 		"set_quest_stage":
 			var quest_id := String(effect.get("quest_id", ""))
 			var stage_id := String(effect.get("stage", ""))
-			var quest: Dictionary = content.quests.get(quest_id, {})
+			var quest: Dictionary = content.get_quest(quest_id)
 			var stages: Dictionary = quest.get("stages", {})
 			if quest.is_empty():
 				errors.append("%s references missing quest %s." % [owner, quest_id])
@@ -99,7 +99,7 @@ static func validate_effect(
 				)
 		"add_item", "remove_item":
 			var item_id := String(effect.get("item_id", ""))
-			if not content.items.has(item_id):
+			if not content.has_item(item_id):
 				errors.append("%s references missing item %s." % [owner, item_id])
 			validate_optional_positive_number(
 				effect, "count", "%s %s" % [owner, effect_type], errors
@@ -108,7 +108,7 @@ static func validate_effect(
 			validate_required_positive_number(effect, "amount", "%s heal_player" % owner, errors)
 		"change_reputation":
 			var faction_id := String(effect.get("faction_id", ""))
-			if not content.factions.has(faction_id):
+			if not content.has_faction(faction_id):
 				errors.append("%s references missing faction %s." % [owner, faction_id])
 			validate_required_number(effect, "amount", "%s change_reputation" % owner, errors)
 		"add_experience":
@@ -122,7 +122,7 @@ static func validate_effect(
 			validate_optional_positive_number(effect, "hours", "%s advance_time" % owner, errors)
 		"apply_status":
 			var status_id := String(effect.get("status_id", ""))
-			if not content.status_effects.has(status_id):
+			if not content.has_status_effect(status_id):
 				errors.append("%s references missing status %s." % [owner, status_id])
 			validate_optional_positive_number(effect, "charges", "%s apply_status" % owner, errors)
 		_:
@@ -133,7 +133,7 @@ static func validate_spell_loadout_fields(
 	content, entry: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	for spell_id in array_field(entry.get("spell_ids", [])):
-		if not content.spells.has(String(spell_id)):
+		if not content.has_spell(String(spell_id)):
 			errors.append("%s references missing spell %s." % [owner, String(spell_id)])
 	var slots_value: Variant = entry.get("loadout_slots", {})
 	if not entry.has("loadout_slots"):
@@ -147,7 +147,7 @@ static func validate_spell_loadout_fields(
 		var spell_id := String(slots[slot_id])
 		if not SPELL_LOADOUT_SLOTS.has(slot):
 			errors.append("%s has unsupported loadout slot %s." % [owner, slot])
-		if not content.spells.has(spell_id):
+		if not content.has_spell(spell_id):
 			errors.append("%s loadout slot %s references missing spell %s." % [owner, slot, spell_id])
 
 
@@ -161,20 +161,20 @@ static func validate_condition(
 				errors.append("%s has %s with missing flag_id." % [owner, condition_type])
 		"has_item":
 			var item_id := String(condition.get("item_id", ""))
-			if not content.items.has(item_id):
+			if not content.has_item(item_id):
 				errors.append("%s references missing item %s." % [owner, item_id])
 			validate_optional_positive_number(condition, "count", "%s has_item" % owner, errors)
 		"quest_state":
 			var quest_id := String(condition.get("quest_id", ""))
 			var state := String(condition.get("state", ""))
-			if not content.quests.has(quest_id):
+			if not content.has_quest(quest_id):
 				errors.append("%s references missing quest %s." % [owner, quest_id])
 			if not ["inactive", "active", "completed", "failed"].has(state):
 				errors.append("%s has quest_state with invalid state %s." % [owner, state])
 		"quest_stage":
 			var quest_id := String(condition.get("quest_id", ""))
 			var stage := String(condition.get("stage", ""))
-			var quest: Dictionary = content.quests.get(quest_id, {})
+			var quest: Dictionary = content.get_quest(quest_id)
 			var stages: Dictionary = quest.get("stages", {})
 			if quest.is_empty():
 				errors.append("%s references missing quest %s." % [owner, quest_id])
@@ -182,15 +182,15 @@ static func validate_condition(
 				errors.append("%s references missing quest stage %s:%s." % [owner, quest_id, stage])
 		"read_readable":
 			var readable_id := String(condition.get("readable_id", ""))
-			if not content.readables.has(readable_id):
+			if not content.has_readable(readable_id):
 				errors.append("%s references missing readable %s." % [owner, readable_id])
 		"location_discovered":
 			var location_id := String(condition.get("location_id", ""))
-			if not content.locations.has(location_id):
+			if not content.has_location(location_id):
 				errors.append("%s references missing location %s." % [owner, location_id])
 		"faction_reputation_at_least":
 			var faction_id := String(condition.get("faction_id", ""))
-			if not content.factions.has(faction_id):
+			if not content.has_faction(faction_id):
 				errors.append("%s references missing faction %s." % [owner, faction_id])
 			validate_required_number(condition, "reputation", owner, errors)
 		"player_level_at_least":
@@ -356,7 +356,7 @@ static func objective_target_id(value: Variant) -> String:
 static func world_object_id_exists(content, object_id: String) -> bool:
 	if object_id.is_empty():
 		return false
-	for entry in content.world_objects:
+	for entry in content.world_object_entries():
 		if String(entry.get("id", "")) == object_id:
 			return true
 	return false

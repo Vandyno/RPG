@@ -14,8 +14,8 @@ static func validate(content, errors: Array[String]) -> void:
 
 
 static func _validate_items(content, errors: Array[String]) -> void:
-	for item_id in content.items:
-		var item: Dictionary = content.items[item_id]
+	for item_id in content.item_ids():
+		var item: Dictionary = content.get_item(item_id)
 		Schema.validate_keyed_id(item, String(item_id), "Item", errors)
 		if String(item.get("name", "")).is_empty():
 			errors.append("Item %s is missing name." % item_id)
@@ -76,8 +76,8 @@ static func _validate_item_avatar_visual(
 
 
 static func _validate_readables(content, errors: Array[String]) -> void:
-	for readable_id in content.readables:
-		var readable: Dictionary = content.readables[readable_id]
+	for readable_id in content.readable_ids():
+		var readable: Dictionary = content.get_readable(readable_id)
 		Schema.validate_keyed_id(readable, String(readable_id), "Readable", errors)
 		if String(readable.get("title", "")).is_empty():
 			errors.append("Readable %s is missing title." % readable_id)
@@ -90,8 +90,8 @@ static func _validate_readables(content, errors: Array[String]) -> void:
 
 
 static func _validate_shops(content, errors: Array[String]) -> void:
-	for shop_id in content.shops:
-		var shop: Dictionary = content.shops[shop_id]
+	for shop_id in content.shop_ids():
+		var shop: Dictionary = content.get_shop(shop_id)
 		Schema.validate_keyed_id(shop, String(shop_id), "Shop", errors)
 		if String(shop.get("name", "")).is_empty():
 			errors.append("Shop %s is missing name." % shop_id)
@@ -111,7 +111,7 @@ static func _validate_shops(content, errors: Array[String]) -> void:
 				errors.append("Shop %s has malformed stock entry." % shop_id)
 				continue
 			var item_id := String(stock_entry.get("item_id", ""))
-			if not content.items.has(item_id):
+			if not content.has_item(item_id):
 				errors.append("Shop %s references missing item %s." % [shop_id, item_id])
 			Schema.validate_optional_positive_number(
 				stock_entry, "price", "Shop %s stock %s" % [shop_id, item_id], errors
@@ -119,8 +119,8 @@ static func _validate_shops(content, errors: Array[String]) -> void:
 
 
 static func _validate_status_effects(content, errors: Array[String]) -> void:
-	for status_id in content.status_effects:
-		var status: Dictionary = content.status_effects[status_id]
+	for status_id in content.status_effect_ids():
+		var status: Dictionary = content.get_status_effect(status_id)
 		var owner := "Status effect %s" % status_id
 		Schema.validate_keyed_id(status, String(status_id), "Status effect", errors)
 		if String(status.get("name", "")).is_empty():
@@ -133,8 +133,8 @@ static func _validate_status_effects(content, errors: Array[String]) -> void:
 
 
 static func _validate_spells(content, errors: Array[String]) -> void:
-	for spell_id in content.spells:
-		var spell: Dictionary = content.spells[spell_id]
+	for spell_id in content.spell_ids():
+		var spell: Dictionary = content.get_spell(spell_id)
 		var owner := "Spell %s" % spell_id
 		Schema.validate_keyed_id(spell, String(spell_id), "Spell", errors)
 		if String(spell.get("name", "")).is_empty():

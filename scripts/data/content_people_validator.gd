@@ -13,8 +13,8 @@ static func validate(content, errors: Array[String]) -> void:
 
 
 static func _validate_people(content, errors: Array[String]) -> void:
-	for people_id in content.people:
-		var definition_value: Variant = content.people[people_id]
+	for people_id in content.people_ids():
+		var definition_value: Variant = content.get_people(people_id)
 		if not definition_value is Dictionary:
 			errors.append("People %s must be a dictionary." % people_id)
 			continue
@@ -43,8 +43,8 @@ static func _validate_people(content, errors: Array[String]) -> void:
 
 
 static func _validate_people_visual_models(content, errors: Array[String]) -> void:
-	for model_id in content.people_visual_models:
-		var model_value: Variant = content.people_visual_models[model_id]
+	for model_id in content.people_visual_model_ids():
+		var model_value: Variant = content.get_people_visual_model(model_id)
 		if not model_value is Dictionary:
 			errors.append("People visual model %s must be a dictionary." % model_id)
 			continue
@@ -54,21 +54,21 @@ static func _validate_people_visual_models(content, errors: Array[String]) -> vo
 			errors.append(
 				"People visual model %s has mismatched people_id %s." % [model_id, people_id]
 			)
-		if not content.people.has(people_id):
+		if not content.has_people(people_id):
 			errors.append(
 				"People visual model %s references missing people %s." % [model_id, people_id]
 			)
 			continue
 		_validate_people_visual_variants(content, model, String(model_id), people_id, errors)
-	for people_id in content.people:
-		if not content.people_visual_models.has(people_id):
+	for people_id in content.people_ids():
+		if not content.has_people_visual_model(people_id):
 			errors.append("People %s is missing visual model variants." % people_id)
 
 
 static func _validate_people_visual_variants(
 	content, model: Dictionary, model_id: String, people_id: String, errors: Array[String]
 ) -> void:
-	var definition: Dictionary = content.people.get(people_id, {})
+	var definition: Dictionary = content.get_people(people_id)
 	var variants: Array = Schema.array_field(model.get("variants", []))
 	if variants.size() < 4:
 		errors.append("People visual model %s must define at least four variants." % model_id)
@@ -125,14 +125,14 @@ static func _validate_people_visual_variant_proportions(
 
 
 static func _validate_character_profiles(content, errors: Array[String]) -> void:
-	for profile_id in content.character_profiles:
-		var profile_value: Variant = content.character_profiles[profile_id]
+	for profile_id in content.character_profile_ids():
+		var profile_value: Variant = content.get_character_profile_data(profile_id)
 		if not profile_value is Dictionary:
 			errors.append("Character profile %s must be a dictionary." % profile_id)
 			continue
 		var profile: Dictionary = profile_value
 		var people_id := String(profile.get("people_id", ""))
-		if not content.people.has(people_id):
+		if not content.has_people(people_id):
 			errors.append("Character profile %s references missing people %s." % [profile_id, people_id])
 		var character_id := String(profile.get("character_id", ""))
 		if character_id.is_empty():

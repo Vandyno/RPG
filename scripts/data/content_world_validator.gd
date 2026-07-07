@@ -12,8 +12,8 @@ static func validate(content, errors: Array[String]) -> void:
 
 
 static func _validate_locations(content, errors: Array[String]) -> void:
-	for location_id in content.locations:
-		var location: Dictionary = content.locations[location_id]
+	for location_id in content.location_ids():
+		var location: Dictionary = content.get_location(location_id)
 		Schema.validate_keyed_id(location, String(location_id), "Location", errors)
 		if String(location.get("name", "")).is_empty():
 			errors.append("Location %s is missing name." % location_id)
@@ -25,7 +25,7 @@ static func _validate_locations(content, errors: Array[String]) -> void:
 
 static func _validate_world_objects(content, errors: Array[String]) -> void:
 	var seen_ids: Dictionary = {}
-	for entry in content.world_objects:
+	for entry in content.world_object_entries():
 		var object_id := String(entry.get("id", ""))
 		if object_id.is_empty():
 			errors.append("World object is missing id.")
@@ -96,7 +96,7 @@ static func _validate_readable_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var readable_id := String(entry.get("readable_id", ""))
-	if not content.readables.has(readable_id):
+	if not content.has_readable(readable_id):
 		errors.append("World object %s references missing readable %s." % [object_id, readable_id])
 
 
@@ -107,7 +107,7 @@ static func _validate_npc_object(
 	var profile_id := String(entry.get("character_profile_id", ""))
 	if npc_id.is_empty() and profile_id.is_empty():
 		errors.append("World object %s is missing npc_id or character_profile_id." % object_id)
-	elif not npc_id.is_empty() and not content.npcs.has(npc_id):
+	elif not npc_id.is_empty() and not content.has_npc(npc_id):
 		errors.append("World object %s references missing NPC %s." % [object_id, npc_id])
 	_validate_actor_world_object(content, entry, object_id, errors)
 	if ActorRules.has_combat_behavior_data(entry):
@@ -118,7 +118,7 @@ static func _validate_pickup_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var item_id := String(entry.get("item_id", ""))
-	if not content.items.has(item_id):
+	if not content.has_item(item_id):
 		errors.append("World object %s references missing item %s." % [object_id, item_id])
 	Schema.validate_optional_positive_number(
 		entry, "count", "World object %s" % object_id, errors
@@ -167,10 +167,10 @@ static func _validate_poi_object(
 	if String(entry.get("description", "")).is_empty():
 		errors.append("POI %s is missing description." % object_id)
 	var location_id := String(entry.get("location_id", ""))
-	if not location_id.is_empty() and not content.locations.has(location_id):
+	if not location_id.is_empty() and not content.has_location(location_id):
 		errors.append("POI %s references missing location %s." % [object_id, location_id])
 	var shop_id := String(entry.get("shop_id", ""))
-	if not shop_id.is_empty() and not content.shops.has(shop_id):
+	if not shop_id.is_empty() and not content.has_shop(shop_id):
 		errors.append("POI %s references missing shop %s." % [object_id, shop_id])
 	var system_tab := String(entry.get("system_tab", ""))
 	if not system_tab.is_empty() and not Schema.supported_system_tabs().has(system_tab):
@@ -188,7 +188,7 @@ static func _validate_location_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var location_id := String(entry.get("location_id", ""))
-	if not content.locations.has(location_id):
+	if not content.has_location(location_id):
 		errors.append("Location object %s references missing location %s." % [object_id, location_id])
 	Schema.validate_optional_positive_number(
 		entry, "discovery_radius", "Location object %s" % object_id, errors
@@ -201,7 +201,7 @@ static func _validate_actor_world_object(
 	var kind := String(entry.get("kind", ""))
 	var profile_id := String(entry.get("character_profile_id", ""))
 	if kind == "npc":
-		var npc: Dictionary = content.npcs.get(String(entry.get("npc_id", "")), {})
+		var npc: Dictionary = content.get_npc(String(entry.get("npc_id", "")))
 		var npc_profile_id := String(npc.get("character_profile_id", ""))
 		if profile_id.is_empty():
 			profile_id = npc_profile_id
@@ -212,7 +212,7 @@ static func _validate_actor_world_object(
 			)
 	if profile_id.is_empty():
 		errors.append("World object %s is missing character_profile_id." % object_id)
-	elif not content.character_profiles.has(profile_id):
+	elif not content.has_character_profile(profile_id):
 		errors.append(
 			"World object %s references missing character profile %s." % [object_id, profile_id]
 		)
@@ -228,9 +228,10 @@ static func _validate_actor_world_object(
 
 
 static func _validate_world_terrain(content, errors: Array[String]) -> void:
-	if content.world_terrain.is_empty():
+	var terrain: Dictionary = content.get_world_terrain()
+	if terrain.is_empty():
 		return
-	var areas_value: Variant = content.world_terrain.get("areas", [])
+	var areas_value: Variant = terrain.get("areas", [])
 	var areas: Array = Schema.array_field(areas_value)
 	if not areas_value is Array or areas.is_empty():
 		errors.append("World terrain must define at least one area.")

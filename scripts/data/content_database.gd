@@ -48,19 +48,51 @@ func load_all() -> Array[String]:
 
 
 func get_item(item_id: String) -> Dictionary:
-	return items.get(item_id, {})
+	return _dictionary_copy(items.get(item_id, {}))
+
+
+func has_item(item_id: String) -> bool:
+	return items.has(item_id)
+
+
+func item_ids() -> Array[String]:
+	return _dictionary_keys(items)
 
 
 func get_readable(readable_id: String) -> Dictionary:
-	return readables.get(readable_id, {})
+	return _dictionary_copy(readables.get(readable_id, {}))
+
+
+func has_readable(readable_id: String) -> bool:
+	return readables.has(readable_id)
+
+
+func readable_ids() -> Array[String]:
+	return _dictionary_keys(readables)
 
 
 func get_quest(quest_id: String) -> Dictionary:
-	return quests.get(quest_id, {})
+	return _dictionary_copy(quests.get(quest_id, {}))
+
+
+func has_quest(quest_id: String) -> bool:
+	return quests.has(quest_id)
+
+
+func quest_ids() -> Array[String]:
+	return _dictionary_keys(quests)
 
 
 func get_npc(npc_id: String) -> Dictionary:
-	return npcs.get(npc_id, {})
+	return _dictionary_copy(npcs.get(npc_id, {}))
+
+
+func has_npc(npc_id: String) -> bool:
+	return npcs.has(npc_id)
+
+
+func npc_ids() -> Array[String]:
+	return _dictionary_keys(npcs)
 
 
 func get_character_profile(profile_id: String) -> Dictionary:
@@ -68,13 +100,27 @@ func get_character_profile(profile_id: String) -> Dictionary:
 
 
 func get_character_profile_data(profile_id: String) -> Dictionary:
-	return ContentSchemaValidator.dictionary_field(
-		character_profiles.get(profile_id, {})
-	).duplicate(true)
+	return _dictionary_copy(character_profiles.get(profile_id, {}))
+
+
+func has_character_profile(profile_id: String) -> bool:
+	return character_profiles.has(profile_id)
+
+
+func character_profile_ids() -> Array[String]:
+	return _dictionary_keys(character_profiles)
 
 
 func get_people(people_id: String) -> Dictionary:
-	return people.get(people_id, {})
+	return _dictionary_copy(people.get(people_id, {}))
+
+
+func has_people(people_id: String) -> bool:
+	return people.has(people_id)
+
+
+func people_ids() -> Array[String]:
+	return _dictionary_keys(people)
 
 
 func get_people_bonuses(people_id: String) -> Dictionary:
@@ -82,7 +128,15 @@ func get_people_bonuses(people_id: String) -> Dictionary:
 
 
 func get_people_visual_model(people_id: String) -> Dictionary:
-	return people_visual_models.get(people_id, {})
+	return _dictionary_copy(people_visual_models.get(people_id, {}))
+
+
+func has_people_visual_model(people_id: String) -> bool:
+	return people_visual_models.has(people_id)
+
+
+func people_visual_model_ids() -> Array[String]:
+	return _dictionary_keys(people_visual_models)
 
 
 func get_people_visual_variant(people_id: String, variant_id: String) -> Dictionary:
@@ -116,27 +170,83 @@ func get_people_default_proportions(people_id: String) -> Dictionary:
 
 
 func get_dialogue(dialogue_id: String) -> Dictionary:
-	return dialogues.get(dialogue_id, {})
+	return _dictionary_copy(dialogues.get(dialogue_id, {}))
+
+
+func has_dialogue(dialogue_id: String) -> bool:
+	return dialogues.has(dialogue_id)
+
+
+func dialogue_ids() -> Array[String]:
+	return _dictionary_keys(dialogues)
 
 
 func get_location(location_id: String) -> Dictionary:
-	return locations.get(location_id, {})
+	return _dictionary_copy(locations.get(location_id, {}))
+
+
+func has_location(location_id: String) -> bool:
+	return locations.has(location_id)
+
+
+func location_ids() -> Array[String]:
+	return _dictionary_keys(locations)
 
 
 func get_faction(faction_id: String) -> Dictionary:
-	return factions.get(faction_id, {})
+	return _dictionary_copy(factions.get(faction_id, {}))
+
+
+func has_faction(faction_id: String) -> bool:
+	return factions.has(faction_id)
+
+
+func faction_ids() -> Array[String]:
+	return _dictionary_keys(factions)
 
 
 func get_shop(shop_id: String) -> Dictionary:
-	return shops.get(shop_id, {})
+	return _dictionary_copy(shops.get(shop_id, {}))
+
+
+func has_shop(shop_id: String) -> bool:
+	return shops.has(shop_id)
+
+
+func shop_ids() -> Array[String]:
+	return _dictionary_keys(shops)
 
 
 func get_status_effect(status_id: String) -> Dictionary:
-	return status_effects.get(status_id, {})
+	return _dictionary_copy(status_effects.get(status_id, {}))
+
+
+func has_status_effect(status_id: String) -> bool:
+	return status_effects.has(status_id)
+
+
+func status_effect_ids() -> Array[String]:
+	return _dictionary_keys(status_effects)
 
 
 func get_spell(spell_id: String) -> Dictionary:
-	return spells.get(spell_id, {})
+	return _dictionary_copy(spells.get(spell_id, {}))
+
+
+func has_spell(spell_id: String) -> bool:
+	return spells.has(spell_id)
+
+
+func spell_ids() -> Array[String]:
+	return _dictionary_keys(spells)
+
+
+func world_object_entries() -> Array[Dictionary]:
+	return world_objects.duplicate(true)
+
+
+func get_world_terrain() -> Dictionary:
+	return world_terrain.duplicate(true)
 
 
 func validate_all() -> Array[String]:
@@ -182,3 +292,14 @@ func _load_json(path: String) -> Variant:
 func _record_load_error(message: String) -> void:
 	load_errors.append(message)
 	push_warning(message)
+
+
+func _dictionary_copy(value: Variant) -> Dictionary:
+	return ContentSchemaValidator.dictionary_field(value).duplicate(true)
+
+
+func _dictionary_keys(source: Dictionary) -> Array[String]:
+	var result: Array[String] = []
+	for key in source:
+		result.append(String(key))
+	return result
