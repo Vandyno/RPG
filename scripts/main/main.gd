@@ -785,11 +785,10 @@ func _handle_systems_action_selected(action_id: String) -> void:
 
 
 func _handle_wait_action(hours: int) -> void:
-	if not time or not time.advance_hours(hours):
-		event_bus.post_message("Could not wait right now.")
-	else:
-		event_bus.post_message("Waited %dh. %s." % [hours, time.get_summary()])
-	_refresh_hud()
+	var result := time.wait_hours(hours) if time else {
+		"ok": false, "message": "Could not wait right now.", "refresh": "hud"
+	}
+	_post_system_action_result(result)
 
 
 func _use_inventory_item(item_id: String) -> void:
@@ -858,47 +857,40 @@ func _handle_unequip_slot(slot_id: String) -> void:
 
 
 func _handle_train_stat(stat_id: String) -> void:
-	var stat_label: String = progression.get_stat_label(stat_id)
-	if not progression.spend_point(stat_id):
-		event_bus.post_message("Could not train %s." % stat_label)
-		_refresh_hud()
-		return
-	event_bus.post_message("Trained %s." % stat_label)
-	_refresh_hud()
+	var result := (
+		progression.train_stat(stat_id)
+		if progression
+		else {"ok": false, "message": "Could not train %s." % stat_id, "refresh": "hud"}
+	)
+	_post_system_action_result(result)
 
 
 func _handle_buy_item(item_id: String) -> void:
-	var shop_id: String = _current_shop_id()
-	var item: Dictionary = content.get_item(item_id)
-	var price: int = shops.buy_price(shop_id, item_id)
-	if shop_id.is_empty() or item.is_empty() or not shops.buy_item(shop_id, item_id):
-		event_bus.post_message("Could not buy that.")
-		_refresh_hud()
-		return
-	var item_name: String = String(item.get("name", item_id))
-	var gold_count: int = inventory.get_count("item_gold_coin")
-	event_bus.post_message(
-		"Bought %s. Spent %dg. Gold: %d."
-		% [item_name, price, gold_count]
+	var result := (
+		shops.buy_result(_current_shop_id(), item_id)
+		if shops
+		else {"ok": false, "message": "Could not buy that.", "refresh": "hud"}
 	)
-	_update_nearby()
+	_post_system_action_result(result)
 
 
 func _handle_sell_item(item_id: String) -> void:
-	var shop_id: String = _current_shop_id()
-	var item: Dictionary = content.get_item(item_id)
-	var price: int = shops.sell_price(shop_id, item_id)
-	if item.is_empty() or not shops.sell_item(shop_id, item_id):
-		event_bus.post_message("Could not sell that.")
-		_refresh_hud()
-		return
-	var item_name: String = String(item.get("name", item_id))
-	var gold_count: int = inventory.get_count("item_gold_coin")
-	event_bus.post_message(
-		"Sold %s. Gained %dg. Gold: %d."
-		% [item_name, price, gold_count]
+	var result := (
+		shops.sell_result(_current_shop_id(), item_id)
+		if shops
+		else {"ok": false, "message": "Could not sell that.", "refresh": "hud"}
 	)
-	_update_nearby()
+	_post_system_action_result(result)
+
+
+func _post_system_action_result(result: Dictionary) -> void:
+	var message := String(result.get("message", ""))
+	if not message.is_empty():
+		event_bus.post_message(message)
+	if String(result.get("refresh", "hud")) == "nearby":
+		_update_nearby()
+	else:
+		_refresh_hud()
 
 
 func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:

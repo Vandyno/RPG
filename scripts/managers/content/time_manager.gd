@@ -34,6 +34,12 @@ func advance_hours(hours: int) -> bool:
 	return advance_minutes(hours * MINUTES_PER_HOUR)
 
 
+func wait_hours(hours: int) -> Dictionary:
+	if not advance_hours(hours):
+		return {"ok": false, "message": "Could not wait right now."}
+	return {"ok": true, "message": "Waited %dh. %s." % [hours, get_summary()]}
+
+
 func get_hour() -> int:
 	return minute_of_day / MINUTES_PER_HOUR
 

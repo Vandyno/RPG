@@ -57,6 +57,38 @@ func sell_item(shop_id: String, item_id: String) -> bool:
 	return false
 
 
+func buy_result(shop_id: String, item_id: String) -> Dictionary:
+	var item := _item(item_id)
+	var price := buy_price(shop_id, item_id)
+	if shop_id.is_empty() or item.is_empty() or not buy_item(shop_id, item_id):
+		return {"ok": false, "message": "Could not buy that.", "refresh": "hud"}
+	return {
+		"ok": true,
+		"message": "Bought %s. Spent %dg. Gold: %d." % [
+			String(item.get("name", item_id)),
+			price,
+			inventory.get_count(CURRENCY_ITEM_ID)
+		],
+		"refresh": "nearby"
+	}
+
+
+func sell_result(shop_id: String, item_id: String) -> Dictionary:
+	var item := _item(item_id)
+	var price := sell_price(shop_id, item_id)
+	if item.is_empty() or not sell_item(shop_id, item_id):
+		return {"ok": false, "message": "Could not sell that.", "refresh": "hud"}
+	return {
+		"ok": true,
+		"message": "Sold %s. Gained %dg. Gold: %d." % [
+			String(item.get("name", item_id)),
+			price,
+			inventory.get_count(CURRENCY_ITEM_ID)
+		],
+		"refresh": "nearby"
+	}
+
+
 func buy_price(shop_id: String, item_id: String) -> int:
 	for stock_entry in _shop_stock(shop_id):
 		if String(stock_entry.get("item_id", "")) == item_id:

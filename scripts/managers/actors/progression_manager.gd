@@ -58,6 +58,13 @@ func get_trainable_stat_ids() -> Array[String]:
 	return []
 
 
+func train_stat(stat_id: String) -> Dictionary:
+	var stat_label := get_stat_label(stat_id)
+	if not spend_point(stat_id):
+		return {"ok": false, "message": "Could not train %s." % stat_label}
+	return {"ok": true, "message": "Trained %s." % stat_label}
+
+
 func is_level_at_least(required_level: int) -> bool:
 	return required_level > 0 and level >= required_level
 
