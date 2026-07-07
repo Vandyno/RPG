@@ -6,6 +6,7 @@ const PlayerController = preload("res://scripts/player/player_controller.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
+const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_item_drawer.gd")
 
 
 class ContentStub:
@@ -574,7 +575,7 @@ func test_two_hand_weapon_anchors_to_item_grip_sockets() -> void:
 	avatar.set_facing_direction(Vector2.RIGHT)
 	var anchors := avatar.get_body_part_anchors()
 	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
-	var model := avatar._polearm_item_model(proportions)
+	var model := HumanoidHeldItemDrawer.polearm_item_model(avatar, proportions)
 
 	assert_almost_eq(
 		anchors["left_hand"], ItemVisual2D.grip_position(model, "front"), Vector2.ONE * 0.001
@@ -593,7 +594,7 @@ func test_left_handed_two_hand_weapon_mirrors_grip_roles() -> void:
 	avatar.set_facing_direction(Vector2.RIGHT)
 	var anchors := avatar.get_body_part_anchors()
 	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
-	var model := avatar._polearm_item_model(proportions)
+	var model := HumanoidHeldItemDrawer.polearm_item_model(avatar, proportions)
 
 	assert_eq(anchors["weapon_hand"], anchors["left_hand"])
 	assert_eq(anchors["off_hand"], anchors["right_hand"])
@@ -611,7 +612,7 @@ func test_polearm_uses_side_lane_instead_of_torso_center() -> void:
 	avatar.setup({}, {"right_hand": "item_test_polearm"}, ContentStub.new())
 	avatar.set_facing_direction(Vector2.RIGHT)
 	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
-	var model := avatar._polearm_item_model(proportions)
+	var model := HumanoidHeldItemDrawer.polearm_item_model(avatar, proportions)
 	var origin: Vector2 = model.get("origin")
 	var torso_center := avatar._body_point(0.0, 1.2)
 
@@ -619,7 +620,7 @@ func test_polearm_uses_side_lane_instead_of_torso_center() -> void:
 	assert_gt((origin - torso_center).dot(avatar._body_side_axis()), 1.0)
 
 	avatar.set_facing_direction(Vector2.LEFT)
-	model = avatar._polearm_item_model(proportions)
+	model = HumanoidHeldItemDrawer.polearm_item_model(avatar, proportions)
 	origin = model.get("origin")
 	torso_center = avatar._body_point(0.0, 1.2)
 
@@ -627,7 +628,7 @@ func test_polearm_uses_side_lane_instead_of_torso_center() -> void:
 	assert_gt((origin - torso_center).dot(avatar._body_side_axis()), 1.0)
 
 	avatar.set_facing_direction(Vector2.DOWN)
-	model = avatar._polearm_item_model(proportions)
+	model = HumanoidHeldItemDrawer.polearm_item_model(avatar, proportions)
 	origin = model.get("origin")
 	torso_center = avatar._body_point(0.0, 1.2)
 
@@ -643,7 +644,7 @@ func test_polearm_uses_side_lane_instead_of_torso_center() -> void:
 	var left_proportions: Dictionary = left_handed.profile.get("appearance", {}).get(
 		"proportions", {}
 	)
-	var left_model := left_handed._polearm_item_model(left_proportions)
+	var left_model := HumanoidHeldItemDrawer.polearm_item_model(left_handed, left_proportions)
 	var left_origin: Vector2 = left_model.get("origin")
 	var left_torso := left_handed._body_point(0.0, 1.2)
 
@@ -659,7 +660,7 @@ func test_bow_grip_hands_replace_base_hands() -> void:
 	var order := avatar.get_debug_draw_layer_order()
 	var anchors := avatar.get_body_part_anchors()
 	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
-	var model := avatar._bow_item_model(proportions)
+	var model := HumanoidHeldItemDrawer.bow_item_model(avatar, proportions)
 
 	assert_false(order.has("hand:left_hand"))
 	assert_false(order.has("hand:right_hand"))
@@ -683,7 +684,7 @@ func test_left_handed_bow_mirrors_bow_and_draw_hands() -> void:
 	var order := avatar.get_debug_draw_layer_order()
 	var anchors := avatar.get_body_part_anchors()
 	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
-	var model := avatar._bow_item_model(proportions)
+	var model := HumanoidHeldItemDrawer.bow_item_model(avatar, proportions)
 
 	assert_false(order.has("hand:left_hand"))
 	assert_false(order.has("hand:right_hand"))
@@ -712,9 +713,13 @@ func test_held_item_grips_match_hand_anchors_in_all_sixteen_directions() -> void
 				var proportions: Dictionary = avatar.profile.get("appearance", {}).get(
 					"proportions", {}
 				)
-				var model := avatar._held_item_model("right_hand", proportions)
+				var model := HumanoidHeldItemDrawer.held_item_model(
+					avatar, "right_hand", proportions
+				)
 				for grip_id in ItemVisual2D.grip_ids(String(model.get("visual_id", ""))):
-					var side := avatar._grip_side_for_slot(grip_id, "right_hand")
+					var side := HumanoidHeldItemDrawer.grip_side_for_slot(
+						avatar, grip_id, "right_hand"
+					)
 					if is_zero_approx(side):
 						continue
 					var hand_id := avatar._hand_slot_id(side)

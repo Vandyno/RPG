@@ -1750,8 +1750,8 @@ func _draw_equipment_layers(proportions: Dictionary) -> void:
 	_draw_chest_equipment_layer(proportions)
 	_draw_back_equipment_layer(proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	_draw_head_equipment_layer(proportions)
-	_draw_hand_equipment("left_hand", proportions)
-	_draw_hand_equipment("right_hand", proportions)
+	HumanoidHeldItemDrawer.draw_hand_equipment(self, "left_hand", proportions)
+	HumanoidHeldItemDrawer.draw_hand_equipment(self, "right_hand", proportions)
 
 
 func _draw_body_equipment_layers(proportions: Dictionary) -> void:
@@ -2024,18 +2024,6 @@ func _draw_head_equipment_layer(proportions: Dictionary) -> void:
 	)
 
 
-func _draw_glove_equipment(side: float, proportions: Dictionary) -> void:
-	HumanoidHeldItemDrawer.draw_glove_equipment(self, side, proportions)
-
-
-func _draw_hand_equipment(slot_id: String, proportions: Dictionary) -> void:
-	HumanoidHeldItemDrawer.draw_hand_equipment(self, slot_id, proportions)
-
-
-func _held_item_model(slot_id: String, proportions: Dictionary) -> Dictionary:
-	return HumanoidHeldItemDrawer.held_item_model(self, slot_id, proportions)
-
-
 func _draw_face(proportions: Dictionary) -> void:
 	if _back_turn_amount() > 0.55:
 		return
@@ -2067,77 +2055,9 @@ func _current_skin_color() -> Color:
 	return palette["skin"]
 
 
-func _draw_weapon_grip_hand(center: Vector2, side: float, proportions: Dictionary) -> void:
-	HumanoidHeldItemDrawer.draw_weapon_grip_hand(self, center, side, proportions)
-
-
-func _draw_held_item_arm_and_hand(side: float, skin: Color, proportions: Dictionary) -> void:
-	HumanoidHeldItemDrawer.draw_held_item_arm_and_hand(self, side, skin, proportions)
-
-
-func _held_item_grip_position_for_side(side: float, proportions: Dictionary) -> Variant:
-	return HumanoidHeldItemDrawer.held_item_grip_position_for_side(self, side, proportions)
-
-
 func _equipment_layer_id(slot_id: String) -> String:
 	var visual: Dictionary = equipped_visuals.get(EquipmentSlots.normalize(slot_id), {})
 	return String(visual.get("visual_layer_id", ""))
-
-
-func _slot_item_grip_sides(slot_id: String) -> Array[float]:
-	return HumanoidHeldItemDrawer.slot_item_grip_sides(self, slot_id)
-
-
-func _grip_side_for_slot(grip_id: String, slot_id: String) -> float:
-	return HumanoidHeldItemDrawer.grip_side_for_slot(self, grip_id, slot_id)
-
-
-func _hand_is_replaced_by_held_item(side: float) -> bool:
-	return HumanoidHeldItemDrawer.hand_is_replaced_by_held_item(self, side)
-
-
-func _held_item_slot_for_side(side: float) -> String:
-	return HumanoidHeldItemDrawer.held_item_slot_for_side(self, side)
-
-
-func _held_item_grip_id_for_side(slot_id: String, side: float) -> String:
-	return HumanoidHeldItemDrawer.held_item_grip_id_for_side(self, slot_id, side)
-
-
-func _should_draw_held_item_from_side(side: float) -> bool:
-	return HumanoidHeldItemDrawer.should_draw_held_item_from_side(self, side)
-
-
-func _held_item_draw_slot_for_side(side: float) -> String:
-	return HumanoidHeldItemDrawer.held_item_draw_slot_for_side(self, side)
-
-
-func _held_item_draw_side(slot_id: String) -> float:
-	return HumanoidHeldItemDrawer.held_item_draw_side(self, slot_id)
-
-
-func _item_side_for_slot(slot_id: String) -> float:
-	return HumanoidHeldItemDrawer.item_side_for_slot(self, slot_id)
-
-
-func _slot_side(slot_id: String) -> float:
-	return HumanoidHeldItemDrawer.slot_side(slot_id)
-
-
-func _visual_uses_dominant_weapon_side(visual_id: String) -> bool:
-	return HumanoidHeldItemDrawer.visual_uses_dominant_weapon_side(visual_id)
-
-
-func _visual_is_primary_weapon(visual_id: String) -> bool:
-	return HumanoidHeldItemDrawer.visual_is_primary_weapon(visual_id)
-
-
-func _primary_weapon_slot_id() -> String:
-	return HumanoidHeldItemDrawer.primary_weapon_slot_id(self)
-
-
-func _primary_weapon_visual_id() -> String:
-	return HumanoidHeldItemDrawer.primary_weapon_visual_id(self)
 
 
 func _chest_equipment_uses_wrap_style() -> bool:
@@ -2149,8 +2069,10 @@ func _append_debug_hand_layer(
 ) -> void:
 	for side in _hand_sides_for_layer(layer_id, proportions):
 		var slot_id := _hand_slot_id(float(side))
-		if _hand_is_replaced_by_held_item(float(side)):
-			var draw_slot_id := _held_item_draw_slot_for_side(float(side))
+		if HumanoidHeldItemDrawer.hand_is_replaced_by_held_item(self, float(side)):
+			var draw_slot_id := HumanoidHeldItemDrawer.held_item_draw_slot_for_side(
+				self, float(side)
+			)
 			if not draw_slot_id.is_empty():
 				order.append("equipment:%s" % draw_slot_id)
 			order.append("item_grip:%s" % slot_id)
@@ -2352,66 +2274,6 @@ func _base_hand_position(side: float, proportions: Dictionary) -> Vector2:
 
 func _attack_hand_offset(side: float, proportions: Dictionary, base_position: Vector2) -> Vector2:
 	return HumanoidHeldItemDrawer.attack_hand_offset(self, side, proportions, base_position)
-
-
-func _attack_pose_active() -> bool:
-	return HumanoidHeldItemDrawer.attack_pose_active(self)
-
-
-func _attack_pose_shape() -> String:
-	return HumanoidHeldItemDrawer.attack_pose_shape(self)
-
-
-func _attack_pose_progress() -> float:
-	return HumanoidHeldItemDrawer.attack_pose_progress(self)
-
-
-func _attack_pose_direction() -> Vector2:
-	return HumanoidHeldItemDrawer.attack_pose_direction(self)
-
-
-func _weapon_direction() -> Vector2:
-	return HumanoidHeldItemDrawer.weapon_direction(self)
-
-
-func _bow_draw_amount() -> float:
-	return HumanoidHeldItemDrawer.bow_draw_amount(self)
-
-
-func _is_polearm_attack_pose() -> bool:
-	return HumanoidHeldItemDrawer.is_polearm_attack_pose(self)
-
-
-func _is_polearm_item_held() -> bool:
-	return HumanoidHeldItemDrawer.is_polearm_item_held(self)
-
-
-func _is_bow_item_held() -> bool:
-	return HumanoidHeldItemDrawer.is_bow_item_held(self)
-
-
-func _polearm_item_model(proportions: Dictionary) -> Dictionary:
-	return HumanoidHeldItemDrawer.polearm_item_model(self, proportions)
-
-
-func _polearm_hold_side_axis(direction: Vector2) -> Vector2:
-	return HumanoidHeldItemDrawer.polearm_hold_side_axis(self, direction)
-
-
-func _bow_hold_side_axis(direction: Vector2) -> Vector2:
-	return HumanoidHeldItemDrawer.bow_hold_side_axis(self, direction)
-
-
-func _bow_item_model(proportions: Dictionary) -> Dictionary:
-	return HumanoidHeldItemDrawer.bow_item_model(self, proportions)
-
-
-func _smoothstep(value: float) -> float:
-	return HumanoidHeldItemDrawer.smooth_step(value)
-
-
-func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float) -> Vector2:
-	return HumanoidHeldItemDrawer.quadratic_bezier(start, control, end, t)
 
 
 func _sneak_crouch_offset() -> float:
