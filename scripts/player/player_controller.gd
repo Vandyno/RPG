@@ -5,9 +5,10 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
 
-const COLLISION_RADIUS := 10.0
-const MAX_COLLISION_STEP := 8.0
+const COLLISION_RADIUS := WorldEntityMovement.COLLISION_RADIUS
+const MAX_COLLISION_STEP := WorldEntityMovement.MAX_COLLISION_STEP
 const BLOCKED_MESSAGE_INTERVAL := 0.35
 const DEFAULT_MAX_HEALTH := 100
 const DEFAULT_MAX_MANA := 100.0
@@ -66,22 +67,7 @@ func try_move(direction: Vector2, delta: float = 1.0) -> void:
 
 
 func _try_move_step(motion: Vector2) -> bool:
-	var next_position := position + motion
-	if _can_stand_at(next_position):
-		set_world_position(next_position)
-		return true
-
-	var horizontal_position := position + Vector2(motion.x, 0.0)
-	if not is_zero_approx(motion.x) and _can_stand_at(horizontal_position):
-		set_world_position(horizontal_position)
-		return true
-
-	var vertical_position := position + Vector2(0.0, motion.y)
-	if not is_zero_approx(motion.y) and _can_stand_at(vertical_position):
-		set_world_position(vertical_position)
-		return true
-
-	return false
+	return WorldEntityMovement._try_move_step(self, motion, chunk_manager)
 
 
 func set_global_tile(tile: Vector2i) -> void:
@@ -235,24 +221,7 @@ func _read_direction() -> Vector2:
 
 
 func _can_stand_at(world_position: Vector2) -> bool:
-	if not chunk_manager:
-		return true
-	var samples := [
-		Vector2.ZERO,
-		Vector2(COLLISION_RADIUS, 0.0),
-		Vector2(-COLLISION_RADIUS, 0.0),
-		Vector2(0.0, COLLISION_RADIUS),
-		Vector2(0.0, -COLLISION_RADIUS),
-		Vector2(COLLISION_RADIUS, COLLISION_RADIUS),
-		Vector2(COLLISION_RADIUS, -COLLISION_RADIUS),
-		Vector2(-COLLISION_RADIUS, COLLISION_RADIUS),
-		Vector2(-COLLISION_RADIUS, -COLLISION_RADIUS)
-	]
-	for sample_offset in samples:
-		var sampled_tile := GridMath.world_to_tile(world_position + sample_offset)
-		if not chunk_manager.is_walkable(sampled_tile):
-			return false
-	return true
+	return WorldEntityMovement.can_stand_at(world_position, chunk_manager)
 
 
 func _post_blocked_message() -> void:
