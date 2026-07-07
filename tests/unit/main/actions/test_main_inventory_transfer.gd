@@ -10,6 +10,7 @@ func test_open_seeds_loot_sets_transfer_and_updates_ui() -> void:
 	)
 	var main := FakeMain.new(entity)
 	add_child_autofree(main)
+	add_child_autofree(entity)
 
 	MainInventoryTransfer.open(MainInventoryTransfer.context(main), entity)
 
@@ -29,6 +30,7 @@ func test_take_item_moves_one_item_to_player_and_refreshes_owner_equipment() -> 
 	var entity := FakeEntity.new("object_chest", "Chest", "object")
 	var main := FakeMain.new(entity)
 	add_child_autofree(main)
+	add_child_autofree(entity)
 	main.content.items = {"item_gold_coin": {"name": "Gold Coin"}}
 	main.inventory.add_item_to_owner("loot:object_chest", "item_gold_coin", 2)
 	main.active_transfer_owner_id = "loot:object_chest"
@@ -50,6 +52,7 @@ func test_take_item_clears_transfer_when_source_disappears() -> void:
 	var entity := FakeEntity.new("object_chest", "Chest", "object")
 	var main := FakeMain.new(entity)
 	add_child_autofree(main)
+	add_child_autofree(entity)
 	main.entities.entity = null
 	main.content.items = {"item_gold_coin": {"name": "Gold Coin"}}
 	main.inventory.add_item_to_owner("loot:object_chest", "item_gold_coin", 1)
@@ -116,13 +119,11 @@ class FakeMain:
 
 
 class FakeEntity:
-	extends RefCounted
+	extends WorldEntity
 
 	var id: String
 	var display_name: String
 	var kind: String
-	var data: Dictionary
-	var global_tile := Vector2i(1, 1)
 
 	func _init(
 		entity_id: String, entity_name: String, entity_kind: String, extra_data: Dictionary = {}
@@ -130,6 +131,7 @@ class FakeEntity:
 		id = entity_id
 		display_name = entity_name
 		kind = entity_kind
+		global_tile = Vector2i(1, 1)
 		data = extra_data.duplicate(true)
 		data["id"] = entity_id
 		data["kind"] = entity_kind

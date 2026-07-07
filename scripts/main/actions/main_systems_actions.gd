@@ -382,7 +382,9 @@ static func _defeat_actor(ctx: AimCombatContext, entity, result: Dictionary) -> 
 		ctx.event_bus.post_message("Rewards: %s." % reward_text)
 
 
-static func _create_body_for_defeated_humanoid(ctx: AimCombatContext, entity) -> void:
+static func _create_body_for_defeated_humanoid(
+	ctx: AimCombatContext, entity: WorldEntity
+) -> void:
 	if not entity or not (entity.data is Dictionary):
 		return
 	var profile: Dictionary = ActorRules.profile(entity.data)

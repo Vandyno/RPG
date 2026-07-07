@@ -616,7 +616,7 @@ func _interact() -> void:
 			event_bus.post_message("You inspect %s." % entity.get_display_name())
 
 
-func _interact_readable(entity) -> void:
+func _interact_readable(entity: WorldEntity) -> void:
 	var readable_id := String(entity.data.get("readable_id", ""))
 	var readable: Dictionary = readables.read_readable(readable_id)
 	if readable.is_empty():
@@ -630,7 +630,7 @@ func _interact_readable(entity) -> void:
 	event_bus.post_message("Read %s." % title)
 
 
-func _interact_pickup(entity) -> void:
+func _interact_pickup(entity: WorldEntity) -> void:
 	var item_id := String(entity.data.get("item_id", ""))
 	var count := _positive_int_field(entity.data, "count", 1)
 	var pickup_effects := _array_field(entity.data.get("effects_on_pickup", []))
@@ -646,7 +646,7 @@ func _interact_pickup(entity) -> void:
 	_update_nearby()
 
 
-func _interact_container(entity) -> void:
+func _interact_container(entity: WorldEntity) -> void:
 	var entity_id: String = entity.get_entity_id()
 	var locked_text := ObjectInteractionRules.access_locked_text(entity.data, condition_evaluator)
 	if not locked_text.is_empty():
@@ -670,7 +670,7 @@ func _interact_container(entity) -> void:
 	_update_nearby()
 
 
-func _interact_npc(entity) -> void:
+func _interact_npc(entity: WorldEntity) -> void:
 	var npc_id := String(entity.data.get("npc_id", ""))
 	var npc: Dictionary = content.get_npc(npc_id)
 	var result: Dictionary = dialogues.resolve_dialogue(
@@ -713,7 +713,7 @@ func _handle_player_defeated(source_name: String) -> void:
 	event_bus.post_message("You fall to %s, then recover at the bridge campfire." % source_name)
 
 
-func _interact_rest(entity) -> void:
+func _interact_rest(entity: WorldEntity) -> void:
 	var before: int = player.health
 	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
 	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)

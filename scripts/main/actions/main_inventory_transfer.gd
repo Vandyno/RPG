@@ -90,7 +90,7 @@ static func context(main) -> TransferContext:
 	return TransferContext.new(main)
 
 
-static func open(ctx: TransferContext, entity) -> void:
+static func open(ctx: TransferContext, entity: WorldEntity) -> void:
 	var entity_id: String = entity.get_entity_id()
 	var owner_id := _loot_owner_id(entity)
 	var was_open: bool = ctx.chunks.is_object_opened(entity_id, entity.global_tile)
@@ -110,7 +110,7 @@ static func open(ctx: TransferContext, entity) -> void:
 	ctx.update_nearby()
 
 
-static func open_pickpocket(ctx: TransferContext, entity) -> void:
+static func open_pickpocket(ctx: TransferContext, entity: WorldEntity) -> void:
 	var owner_id := _humanoid_owner_id(entity)
 	if owner_id.is_empty():
 		_post_message(ctx, "No pockets to pick.")
@@ -211,20 +211,20 @@ static func _seed_loot_owner_from_open_effects(
 	return opened
 
 
-static func _loot_owner_id(entity) -> String:
+static func _loot_owner_id(entity: WorldEntity) -> String:
 	var owner_id := ActorRules.inventory_owner_id(entity.data)
 	if not owner_id.is_empty():
 		return owner_id
 	return "loot:%s" % entity.get_entity_id()
 
 
-static func _humanoid_owner_id(entity) -> String:
+static func _humanoid_owner_id(entity: WorldEntity) -> String:
 	if not ActorRules.is_living_humanoid_data(entity.data):
 		return ""
 	return ActorRules.inventory_owner_id(entity.data)
 
 
-static func _transfer_source_from_entity(entity, access_mode: String) -> Dictionary:
+static func _transfer_source_from_entity(entity: WorldEntity, access_mode: String) -> Dictionary:
 	return {
 		"entity_id": entity.get_entity_id(),
 		"kind": entity.get_kind(),
@@ -238,7 +238,7 @@ static func _active_transfer_access_result(ctx: TransferContext, owner_id: Strin
 	var entity_id := String(source.get("entity_id", ""))
 	if entity_id.is_empty():
 		return _blocked_transfer("Transfer source is gone.")
-	var entity = _transfer_source_entity(ctx, entity_id)
+	var entity: WorldEntity = _transfer_source_entity(ctx, entity_id)
 	if not entity:
 		return _blocked_transfer("Transfer source is gone.")
 	if String(source.get("kind", "")) != entity.get_kind():
@@ -274,13 +274,13 @@ static func _blocked_transfer(reason: String) -> Dictionary:
 	return {"allowed": false, "reason": reason}
 
 
-static func _transfer_source_entity(ctx: TransferContext, entity_id: String):
+static func _transfer_source_entity(ctx: TransferContext, entity_id: String) -> WorldEntity:
 	if ctx.entities and ctx.entities.has_method("get_entity"):
 		return ctx.entities.get_entity(entity_id)
 	return null
 
 
-static func _transfer_source_is_nearby(ctx: TransferContext, entity) -> bool:
+static func _transfer_source_is_nearby(ctx: TransferContext, entity: WorldEntity) -> bool:
 	if not ctx.player or not ctx.entities or not ctx.entities.has_method("get_interactables_world"):
 		return false
 	for candidate in ctx.entities.get_interactables_world(ctx.player.global_position):
