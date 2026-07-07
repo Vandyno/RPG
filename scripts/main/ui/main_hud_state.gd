@@ -8,6 +8,7 @@ const MainContextActions = preload("res://scripts/main/actions/main_context_acti
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 
 class HudContext:
@@ -374,9 +375,7 @@ static func _assigned_spell_slot(ctx: HudContext, spell_id: String) -> String:
 
 
 static func _spell_slot_label(slot_id: String) -> String:
-	return {"ability_1": "Ability I", "ability_2": "Ability II", "ability_3": "Ability III"}.get(
-		slot_id, ""
-	)
+	return SpellSlots.label(slot_id)
 
 
 static func _array_field(value: Variant) -> Array:

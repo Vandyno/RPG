@@ -3,6 +3,7 @@ extends RefCounted
 
 const RpgAimJoystick = preload("res://scripts/ui/controls/input/rpg_aim_joystick.gd")
 const RpgIconButton = preload("res://scripts/ui/controls/buttons/rpg_icon_button.gd")
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 
 class BuildContext:
@@ -59,7 +60,7 @@ static func build(context: BuildContext) -> Dictionary:
 	cluster.add_child(ability_stack)
 
 	var ability_buttons := {}
-	for slot_id in ["ability_1", "ability_2", "ability_3"]:
+	for slot_id in SpellSlots.SLOTS:
 		var ability := _aim_joystick(
 			_slot_index_text(slot_id), slot_id, "Assigned spell", Vector2(56, 56), false
 		)
@@ -212,7 +213,7 @@ static func _utility_button(
 
 
 static func _slot_index_text(slot_id: String) -> String:
-	return {"ability_1": "I", "ability_2": "II", "ability_3": "III"}.get(slot_id, "")
+	return SpellSlots.short_label(slot_id)
 
 
 static func _short_spell_label(spell_name: String) -> String:

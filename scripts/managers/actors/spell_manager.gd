@@ -1,7 +1,8 @@
 class_name SpellManager
 extends Node
 
-const SLOTS := ["ability_1", "ability_2", "ability_3"]
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
+const SLOTS := SpellSlots.SLOTS
 const PLAYER_OWNER_ID := "char_player"
 
 var event_bus: EventBus
@@ -114,7 +115,7 @@ func _spell(spell_id: String) -> Dictionary:
 
 
 func _normalize_slot(slot_id: String) -> String:
-	return slot_id if SLOTS.has(slot_id) else ""
+	return slot_id if SpellSlots.is_supported(slot_id) else ""
 
 
 func _assigned_for_owner(owner_id: String) -> Dictionary:

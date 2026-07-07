@@ -7,13 +7,14 @@ const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd"
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 const BASIC_BRAIN_ID := "hostile_basic"
 const DEFAULT_AGGRO_RADIUS := 160.0
 const DEFAULT_LEASH_RADIUS := 240.0
 const DEFAULT_MOVE_SPEED := 80.0
 const DEFAULT_SPELL_INTERVAL := 1.0
-const DEFAULT_SPELL_SLOT := "ability_1"
+const DEFAULT_SPELL_SLOT := SpellSlots.DEFAULT_SLOT
 const DEFAULT_REPATH_SECONDS := 0.35
 const SPELL_EFFECT_PULSE_SECONDS := 0.08
 const PATH_DESTINATION_REPATH_DISTANCE := 24.0

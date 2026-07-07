@@ -2,7 +2,7 @@ class_name RpgSpellSlotPanelBuilder
 extends RefCounted
 
 const RpgSpellSlot = preload("res://scripts/ui/controls/slots/rpg_spell_slot.gd")
-const SLOT_IDS := ["ability_1", "ability_2", "ability_3"]
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 
 class BuildContext:
@@ -33,7 +33,7 @@ static func build(context: BuildContext) -> Dictionary:
 	title.add_theme_color_override("font_color", Color(0.95, 0.82, 0.56))
 	stack.add_child(title)
 	var buttons := {}
-	for slot_id in SLOT_IDS:
+	for slot_id in SpellSlots.SLOTS:
 		var slot := RpgSpellSlot.new()
 		slot.setup_slot(slot_id)
 		slot.custom_minimum_size = Vector2(0, 50)

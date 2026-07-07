@@ -1,7 +1,7 @@
 class_name ContentSchemaValidator
 extends RefCounted
 
-const SPELL_LOADOUT_SLOTS := ["ability_1", "ability_2", "ability_3"]
+const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 
 static func validate_effect_list(
@@ -145,7 +145,7 @@ static func validate_spell_loadout_fields(
 	for slot_id in slots:
 		var slot := String(slot_id)
 		var spell_id := String(slots[slot_id])
-		if not SPELL_LOADOUT_SLOTS.has(slot):
+		if not SpellSlots.is_supported(slot):
 			errors.append("%s has unsupported loadout slot %s." % [owner, slot])
 		if not content.has_spell(spell_id):
 			errors.append("%s loadout slot %s references missing spell %s." % [owner, slot, spell_id])
