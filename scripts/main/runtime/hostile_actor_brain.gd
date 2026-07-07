@@ -7,7 +7,7 @@ const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd"
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const SpellSlots = preload("res://scripts/core/spell_slots.gd")
-const WorldPathfinder = preload("res://scripts/core/world_pathfinder.gd")
+const WorldPathfinder = preload("res://scripts/world/world_pathfinder.gd")
 
 const BASIC_BRAIN_ID := "hostile_basic"
 const DEFAULT_AGGRO_RADIUS := 160.0

@@ -1,7 +1,7 @@
 class_name MainPathfinder
 extends RefCounted
 
-const WorldPathfinder = preload("res://scripts/core/world_pathfinder.gd")
+const WorldPathfinder = preload("res://scripts/world/world_pathfinder.gd")
 
 
 static func path_to(main, from_world: Vector2, to_world: Vector2) -> Array[Vector2]:
