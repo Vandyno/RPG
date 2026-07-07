@@ -17,50 +17,73 @@ const MIN_PROJECTILE_CHARGE_DAMAGE_RATIO := 0.15
 
 class SystemsActionContext:
 	var content
+	var equipment
 	var event_bus
 	var hud
 	var inventory_transfer_context
+	var inventory
+	var progression
+	var shops
 	var spells
-	var _buy_item: Callable
-	var _equip_item: Callable
-	var _equip_item_to_slot: Callable
+	var time
+	var current_shop_id := ""
+	var _apply_effect: Callable
 	var _load_requested: Callable
 	var _refresh_hud: Callable
 	var _save_requested: Callable
-	var _sell_item: Callable
-	var _swap_mainhand_weapon: Callable
-	var _train_stat: Callable
-	var _unequip_slot: Callable
-	var _use_inventory_item: Callable
-	var _wait_action: Callable
 	var _target_entity: Callable
+	var _update_nearby: Callable
 
 	func _init(main) -> void:
 		content = main.get("content")
+		equipment = main.get("equipment")
 		event_bus = main.get("event_bus")
 		hud = main.get("hud")
+		inventory = main.get("inventory")
 		inventory_transfer_context = (
 			MainInventoryTransfer.context(main) if main.get("chunks") else null
 		)
+		progression = main.get("progression")
+		shops = main.get("shops")
 		spells = main.get("spells")
-		_buy_item = Callable(main, "_handle_buy_item")
-		_equip_item = Callable(main, "_handle_equip_item")
-		_equip_item_to_slot = Callable(main, "_handle_equip_item_to_slot")
+		time = main.get("time")
+		if main.has_method("_current_shop_id"):
+			current_shop_id = String(main.call("_current_shop_id"))
+		_apply_effect = Callable(main, "apply_effect")
 		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
 		_save_requested = Callable(main, "_handle_save_requested")
-		_sell_item = Callable(main, "_handle_sell_item")
-		_swap_mainhand_weapon = Callable(main, "_handle_swap_mainhand_weapon")
-		_train_stat = Callable(main, "_handle_train_stat")
-		_unequip_slot = Callable(main, "_handle_unequip_slot")
-		_use_inventory_item = Callable(main, "_use_inventory_item")
-		_wait_action = Callable(main, "_handle_wait_action")
 		_target_entity = func(target_id: String) -> void:
 			MainInputRouter.target_entity(MainInputRouter.context(main), target_id)
+		_update_nearby = Callable(main, "_update_nearby")
 
 	func hide_systems_panel() -> void:
 		if hud:
 			hud.hide_systems_panel()
+
+	func apply_effect(effect: Dictionary) -> bool:
+		return _apply_effect.is_valid() and bool(_apply_effect.call(effect))
+
+	func post_message(message: String) -> void:
+		if event_bus and not message.is_empty():
+			event_bus.post_message(message)
+
+	func refresh_hud() -> void:
+		if _refresh_hud.is_valid():
+			_refresh_hud.call()
+
+	func update_nearby() -> void:
+		if _update_nearby.is_valid():
+			_update_nearby.call()
+		else:
+			refresh_hud()
+
+	func post_result(result: Dictionary) -> void:
+		post_message(String(result.get("message", "")))
+		if String(result.get("refresh", "hud")) == "nearby":
+			update_nearby()
+		else:
+			refresh_hud()
 
 
 class AimCombatContext:
@@ -140,21 +163,21 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
 		"equip":
-			ctx._equip_item.call(target_id)
+			_handle_equip_item(ctx, target_id)
 		"equip_slot":
-			ctx._equip_item_to_slot.call(target_id, String(parsed.get("slot_id", "")))
+			_handle_equip_item_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
 		"swap_mainhand":
-			ctx._swap_mainhand_weapon.call()
+			_handle_swap_mainhand_weapon(ctx)
 		"unequip":
-			ctx._unequip_slot.call(target_id)
+			_handle_unequip_slot(ctx, target_id)
 		"train":
-			ctx._train_stat.call(target_id)
+			_handle_train_stat(ctx, target_id)
 		"buy":
-			ctx._buy_item.call(target_id)
+			_handle_buy_item(ctx, target_id)
 		"sell":
-			ctx._sell_item.call(target_id)
+			_handle_sell_item(ctx, target_id)
 		"wait":
-			ctx._wait_action.call(target_id.to_int())
+			_handle_wait_action(ctx, target_id.to_int())
 		"target":
 			ctx._target_entity.call(target_id)
 		"save":
@@ -171,7 +194,7 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 		"put":
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		_:
-			ctx._use_inventory_item.call(target_id)
+			_use_inventory_item(ctx, target_id)
 
 
 static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vector2) -> void:
@@ -264,6 +287,117 @@ static func handle_aim_held(
 
 static func parse_action_id(action_id: String) -> Dictionary:
 	return SystemsActionIds.parse(action_id)
+
+
+static func _handle_wait_action(ctx: SystemsActionContext, hours: int) -> void:
+	var result: Dictionary = (
+		ctx.time.wait_hours(hours)
+		if ctx.time
+		else {"ok": false, "message": "Could not wait right now.", "refresh": "hud"}
+	)
+	ctx.post_result(result)
+
+
+static func _use_inventory_item(ctx: SystemsActionContext, item_id: String) -> void:
+	var item: Dictionary = ctx.content.get_item(item_id) if ctx.content else {}
+	if item.is_empty() or not ctx.inventory or not ctx.inventory.has_item(item_id):
+		ctx.post_message("That item is no longer available.")
+		ctx.refresh_hud()
+		return
+	var applied := false
+	for effect in _array_field(item.get("effects_on_use", [])):
+		if effect is Dictionary and ctx.apply_effect(effect):
+			applied = true
+	if not applied:
+		ctx.post_message("%s has no effect right now." % String(item.get("name", item_id)))
+		ctx.refresh_hud()
+		return
+	if bool(item.get("consume_on_use", false)):
+		ctx.inventory.remove_item(item_id, 1)
+	ctx.post_message("Used %s." % String(item.get("name", item_id)))
+	ctx.refresh_hud()
+
+
+static func _handle_equip_item(ctx: SystemsActionContext, item_id: String) -> void:
+	var item: Dictionary = ctx.content.get_item(item_id) if ctx.content else {}
+	if (
+		item.is_empty()
+		or not ctx.inventory
+		or not ctx.inventory.has_item(item_id)
+		or not ctx.equipment
+		or not ctx.equipment.equip_item(item_id)
+	):
+		ctx.post_message("Could not equip that item.")
+		ctx.refresh_hud()
+		return
+	ctx.post_message("Equipped %s." % String(item.get("name", item_id)))
+	ctx.refresh_hud()
+
+
+static func _handle_equip_item_to_slot(
+	ctx: SystemsActionContext, item_id: String, slot_id: String
+) -> void:
+	var item: Dictionary = ctx.content.get_item(item_id) if ctx.content else {}
+	if item.is_empty() or not ctx.inventory or not ctx.inventory.has_item(item_id):
+		ctx.post_message("Could not equip that item there.")
+		ctx.refresh_hud()
+		return
+	if not ctx.equipment or not ctx.equipment.equip_item_to_slot(item_id, slot_id):
+		ctx.post_message("Could not equip that item there.")
+		ctx.refresh_hud()
+		return
+	ctx.post_message("Equipped %s." % String(item.get("name", item_id)))
+	ctx.refresh_hud()
+
+
+static func _handle_swap_mainhand_weapon(ctx: SystemsActionContext) -> void:
+	if not ctx.equipment or not ctx.equipment.equip_last_mainhand_weapon():
+		ctx.post_message("No previous main hand weapon.")
+	else:
+		var item_id: String = ctx.equipment.get_equipped_item("right_hand")
+		var item: Dictionary = ctx.content.get_item(item_id) if ctx.content else {}
+		ctx.post_message("Equipped %s." % String(item.get("name", item_id)))
+	ctx.refresh_hud()
+
+
+static func _handle_unequip_slot(ctx: SystemsActionContext, slot_id: String) -> void:
+	var item_id := ""
+	if ctx.equipment:
+		item_id = String(ctx.equipment.get_equipped_item(slot_id))
+	var item: Dictionary = ctx.content.get_item(item_id) if ctx.content else {}
+	if item_id.is_empty() or not ctx.equipment or not ctx.equipment.unequip_slot(slot_id):
+		ctx.post_message("Nothing equipped there.")
+		ctx.refresh_hud()
+		return
+	ctx.post_message("Unequipped %s." % String(item.get("name", item_id)))
+	ctx.refresh_hud()
+
+
+static func _handle_train_stat(ctx: SystemsActionContext, stat_id: String) -> void:
+	var result: Dictionary = (
+		ctx.progression.train_stat(stat_id)
+		if ctx.progression
+		else {"ok": false, "message": "Could not train %s." % stat_id, "refresh": "hud"}
+	)
+	ctx.post_result(result)
+
+
+static func _handle_buy_item(ctx: SystemsActionContext, item_id: String) -> void:
+	var result: Dictionary = (
+		ctx.shops.buy_result(ctx.current_shop_id, item_id)
+		if ctx.shops
+		else {"ok": false, "message": "Could not buy that.", "refresh": "hud"}
+	)
+	ctx.post_result(result)
+
+
+static func _handle_sell_item(ctx: SystemsActionContext, item_id: String) -> void:
+	var result: Dictionary = (
+		ctx.shops.sell_result(ctx.current_shop_id, item_id)
+		if ctx.shops
+		else {"ok": false, "message": "Could not sell that.", "refresh": "hud"}
+	)
+	ctx.post_result(result)
 
 
 static func _perform_weapon_attack(
@@ -536,9 +670,9 @@ static func _handle_assign_spell_to_slot(
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
 	if spell.is_empty() or not ctx.spells.assign_spell_to_slot(spell_id, slot_id):
 		ctx.event_bus.post_message("Could not assign that spell.")
-		ctx._refresh_hud.call()
+		ctx.refresh_hud()
 		return
 	ctx.event_bus.post_message(
 		"Assigned %s to %s." % [String(spell.get("name", spell_id)), slot_id.replace("_", " ")]
 	)
-	ctx._refresh_hud.call()
+	ctx.refresh_hud()
