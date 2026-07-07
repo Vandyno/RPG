@@ -708,17 +708,19 @@ func _interact_rest(entity) -> void:
 	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
 	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
 	player.heal(heal_amount)
+	var time_summary := "now"
 	if time:
 		time.advance_hours(rest_hours)
+		time_summary = time.get_summary()
 	if player.health == before:
 		event_bus.post_message(
-			"%s is warm. You rest until %s." % [entity.get_display_name(), time.get_summary()]
+			"%s is warm. You rest until %s." % [entity.get_display_name(), time_summary]
 		)
 		return
 	event_bus.post_message(
 		(
 			"Rested at %s until %s. Health %d/%d."
-			% [entity.get_display_name(), time.get_summary(), player.health, player.max_health]
+			% [entity.get_display_name(), time_summary, player.health, player.max_health]
 		)
 	)
 
