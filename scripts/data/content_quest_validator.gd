@@ -4,14 +4,14 @@ extends RefCounted
 const Schema = preload("res://scripts/data/content_schema_validator.gd")
 
 
-static func validate(content, errors: Array[String]) -> void:
+static func validate(content: ContentDatabase, errors: Array[String]) -> void:
 	_validate_quests(content, errors)
 	_validate_factions(content, errors)
 	_validate_dialogues(content, errors)
 	_validate_npcs(content, errors)
 
 
-static func _validate_quests(content, errors: Array[String]) -> void:
+static func _validate_quests(content: ContentDatabase, errors: Array[String]) -> void:
 	for quest_id in content.quest_ids():
 		var quest: Dictionary = content.get_quest(quest_id)
 		Schema.validate_keyed_id(quest, String(quest_id), "Quest", errors)
@@ -31,7 +31,7 @@ static func _validate_quests(content, errors: Array[String]) -> void:
 
 
 static func _validate_quest_stages(
-	content, quest_id: String, stages: Dictionary, errors: Array[String]
+	content: ContentDatabase, quest_id: String, stages: Dictionary, errors: Array[String]
 ) -> void:
 	for stage_id in stages:
 		var stage_key := String(stage_id)
@@ -46,7 +46,7 @@ static func _validate_quest_stages(
 
 
 static func _validate_quest_objectives(
-	content, stage: Dictionary, stage_owner: String, errors: Array[String]
+	content: ContentDatabase, stage: Dictionary, stage_owner: String, errors: Array[String]
 ) -> void:
 	var objectives_value: Variant = stage.get("objectives", {})
 	var objectives: Dictionary = Schema.dictionary_field(objectives_value)
@@ -69,7 +69,7 @@ static func _validate_quest_objectives(
 			)
 
 
-static func _validate_factions(content, errors: Array[String]) -> void:
+static func _validate_factions(content: ContentDatabase, errors: Array[String]) -> void:
 	for faction_id in content.faction_ids():
 		var faction: Dictionary = content.get_faction(faction_id)
 		Schema.validate_keyed_id(faction, String(faction_id), "Faction", errors)
@@ -82,7 +82,7 @@ static func _validate_factions(content, errors: Array[String]) -> void:
 		)
 
 
-static func _validate_dialogues(content, errors: Array[String]) -> void:
+static func _validate_dialogues(content: ContentDatabase, errors: Array[String]) -> void:
 	for dialogue_id in content.dialogue_ids():
 		var dialogue: Dictionary = content.get_dialogue(dialogue_id)
 		Schema.validate_keyed_id(dialogue, String(dialogue_id), "Dialogue", errors)
@@ -111,7 +111,7 @@ static func _validate_dialogues(content, errors: Array[String]) -> void:
 
 
 static func _validate_dialogue_choices(
-	content, line: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase, line: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	if not line.has("choices"):
 		return
@@ -137,7 +137,7 @@ static func _validate_dialogue_choices(
 		Schema.validate_effect_list(content, choice, "effects", choice_owner, errors)
 
 
-static func _validate_npcs(content, errors: Array[String]) -> void:
+static func _validate_npcs(content: ContentDatabase, errors: Array[String]) -> void:
 	for npc_id in content.npc_ids():
 		var npc: Dictionary = content.get_npc(npc_id)
 		Schema.validate_keyed_id(npc, String(npc_id), "NPC", errors)

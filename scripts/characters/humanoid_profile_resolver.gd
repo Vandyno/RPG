@@ -8,7 +8,7 @@ const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const MAX_JITTER_STRENGTH := HumanoidAppearanceGenerator.MAX_JITTER_STRENGTH
 
 
-static func resolved_character_profile(content, profile_id: String) -> Dictionary:
+static func resolved_character_profile(content: ContentDatabase, profile_id: String) -> Dictionary:
 	var source: Dictionary = _dictionary_field(content.get_authored_character_profile(profile_id))
 	var resolved_source := profile_source_with_generated_appearance(content, source)
 	var profile := HumanoidProfile.from_data(resolved_source)
@@ -17,12 +17,14 @@ static func resolved_character_profile(content, profile_id: String) -> Dictionar
 	return profile
 
 
-static func people_bonuses(content, people_id: String) -> Dictionary:
+static func people_bonuses(content: ContentDatabase, people_id: String) -> Dictionary:
 	var definition: Dictionary = content.get_people(people_id)
 	return HumanoidProfile.number_dictionary(definition.get("bonuses", {}))
 
 
-static func people_visual_variant(content, people_id: String, variant_id: String) -> Dictionary:
+static func people_visual_variant(
+	content: ContentDatabase, people_id: String, variant_id: String
+) -> Dictionary:
 	var model: Dictionary = content.get_people_visual_model(people_id)
 	for variant in _array_field(model.get("variants", [])):
 		if variant is Dictionary and String(variant.get("id", "")) == variant_id:
@@ -31,7 +33,7 @@ static func people_visual_variant(content, people_id: String, variant_id: String
 
 
 static func people_visual_variant_profile(
-	content, people_id: String, variant_id: String, character_id: String = ""
+	content: ContentDatabase, people_id: String, variant_id: String, character_id: String = ""
 ) -> Dictionary:
 	var profile_id := character_id
 	if profile_id.is_empty():
@@ -46,7 +48,7 @@ static func people_visual_variant_profile(
 
 
 static func generated_people_appearance(
-	content, people_id: String, seed_key: String = "", options: Dictionary = {}
+	content: ContentDatabase, people_id: String, seed_key: String = "", options: Dictionary = {}
 ) -> Dictionary:
 	return HumanoidAppearanceGenerator.generate_appearance(
 		people_id,
@@ -58,7 +60,11 @@ static func generated_people_appearance(
 
 
 static func generated_people_profile(
-	content, people_id: String, character_id: String, seed_key: String = "", options: Dictionary = {}
+	content: ContentDatabase,
+	people_id: String,
+	character_id: String,
+	seed_key: String = "",
+	options: Dictionary = {}
 ) -> Dictionary:
 	var profile_id := character_id
 	if profile_id.is_empty():
@@ -77,13 +83,13 @@ static func generated_people_profile(
 	)
 
 
-static func people_default_proportions(content, people_id: String) -> Dictionary:
+static func people_default_proportions(content: ContentDatabase, people_id: String) -> Dictionary:
 	var definition: Dictionary = content.get_people(people_id)
 	return HumanoidProfile.proportions_from_data(definition.get("default_proportions", {}))
 
 
 static func profile_source_with_generated_appearance(
-	content, source_profile: Dictionary
+	content: ContentDatabase, source_profile: Dictionary
 ) -> Dictionary:
 	var generation := _dictionary_field(source_profile.get("appearance_generation", {}))
 	if generation.is_empty():
@@ -122,7 +128,7 @@ static func safe_appearance_generation_options(generation: Dictionary) -> Dictio
 
 
 static func _apply_people_visual_defaults(
-	content, profile: Dictionary, source_profile: Dictionary
+	content: ContentDatabase, profile: Dictionary, source_profile: Dictionary
 ) -> void:
 	var people_id := String(profile.get("people_id", ""))
 	var defaults := people_default_proportions(content, people_id)

@@ -5,7 +5,7 @@ const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
 
 static func validate_effect_list(
-	content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
 ) -> void:
 	if not entry.has(field_id):
 		return
@@ -22,7 +22,7 @@ static func validate_effect_list(
 
 
 static func validate_condition_list(
-	content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
 ) -> void:
 	if not entry.has(field_id):
 		return
@@ -39,7 +39,7 @@ static func validate_condition_list(
 
 
 static func validate_action_list(
-	content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
 ) -> void:
 	if not entry.has(field_id):
 		return
@@ -71,7 +71,7 @@ static func validate_action_list(
 
 
 static func validate_effect(
-	content, effect: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase, effect: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	var effect_type := String(effect.get("type", ""))
 	match effect_type:
@@ -130,7 +130,7 @@ static func validate_effect(
 
 
 static func validate_spell_loadout_fields(
-	content, entry: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	for spell_id in array_field(entry.get("spell_ids", [])):
 		if not content.has_spell(String(spell_id)):
@@ -152,7 +152,7 @@ static func validate_spell_loadout_fields(
 
 
 static func validate_condition(
-	content, condition: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase, condition: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	var condition_type := String(condition.get("type", ""))
 	match condition_type:
@@ -353,7 +353,7 @@ static func objective_target_id(value: Variant) -> String:
 	return ""
 
 
-static func world_object_id_exists(content, object_id: String) -> bool:
+static func world_object_id_exists(content: ContentDatabase, object_id: String) -> bool:
 	if object_id.is_empty():
 		return false
 	for entry in content.world_object_entries():

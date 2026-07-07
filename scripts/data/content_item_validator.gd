@@ -5,7 +5,7 @@ const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const Schema = preload("res://scripts/data/content_schema_validator.gd")
 
 
-static func validate(content, errors: Array[String]) -> void:
+static func validate(content: ContentDatabase, errors: Array[String]) -> void:
 	_validate_items(content, errors)
 	_validate_readables(content, errors)
 	_validate_shops(content, errors)
@@ -13,7 +13,7 @@ static func validate(content, errors: Array[String]) -> void:
 	_validate_spells(content, errors)
 
 
-static func _validate_items(content, errors: Array[String]) -> void:
+static func _validate_items(content: ContentDatabase, errors: Array[String]) -> void:
 	for item_id in content.item_ids():
 		var item: Dictionary = content.get_item(item_id)
 		Schema.validate_keyed_id(item, String(item_id), "Item", errors)
@@ -26,7 +26,7 @@ static func _validate_items(content, errors: Array[String]) -> void:
 
 
 static func _validate_item_equipment_fields(
-	_content, item: Dictionary, item_id: String, errors: Array[String]
+	_content: ContentDatabase, item: Dictionary, item_id: String, errors: Array[String]
 ) -> void:
 	if not item.has("equipment_slot"):
 		return
@@ -75,7 +75,7 @@ static func _validate_item_avatar_visual(
 		)
 
 
-static func _validate_readables(content, errors: Array[String]) -> void:
+static func _validate_readables(content: ContentDatabase, errors: Array[String]) -> void:
 	for readable_id in content.readable_ids():
 		var readable: Dictionary = content.get_readable(readable_id)
 		Schema.validate_keyed_id(readable, String(readable_id), "Readable", errors)
@@ -89,7 +89,7 @@ static func _validate_readables(content, errors: Array[String]) -> void:
 		)
 
 
-static func _validate_shops(content, errors: Array[String]) -> void:
+static func _validate_shops(content: ContentDatabase, errors: Array[String]) -> void:
 	for shop_id in content.shop_ids():
 		var shop: Dictionary = content.get_shop(shop_id)
 		Schema.validate_keyed_id(shop, String(shop_id), "Shop", errors)
@@ -118,7 +118,7 @@ static func _validate_shops(content, errors: Array[String]) -> void:
 			)
 
 
-static func _validate_status_effects(content, errors: Array[String]) -> void:
+static func _validate_status_effects(content: ContentDatabase, errors: Array[String]) -> void:
 	for status_id in content.status_effect_ids():
 		var status: Dictionary = content.get_status_effect(status_id)
 		var owner := "Status effect %s" % status_id
@@ -132,7 +132,7 @@ static func _validate_status_effects(content, errors: Array[String]) -> void:
 		Schema.validate_optional_positive_number(status, "guard_counter_multiplier", owner, errors)
 
 
-static func _validate_spells(content, errors: Array[String]) -> void:
+static func _validate_spells(content: ContentDatabase, errors: Array[String]) -> void:
 	for spell_id in content.spell_ids():
 		var spell: Dictionary = content.get_spell(spell_id)
 		var owner := "Spell %s" % spell_id

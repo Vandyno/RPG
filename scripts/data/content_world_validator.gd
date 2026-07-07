@@ -5,13 +5,13 @@ const Schema = preload("res://scripts/data/content_schema_validator.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
-static func validate(content, errors: Array[String]) -> void:
+static func validate(content: ContentDatabase, errors: Array[String]) -> void:
 	_validate_locations(content, errors)
 	_validate_world_objects(content, errors)
 	_validate_world_terrain(content, errors)
 
 
-static func _validate_locations(content, errors: Array[String]) -> void:
+static func _validate_locations(content: ContentDatabase, errors: Array[String]) -> void:
 	for location_id in content.location_ids():
 		var location: Dictionary = content.get_location(location_id)
 		Schema.validate_keyed_id(location, String(location_id), "Location", errors)
@@ -23,7 +23,7 @@ static func _validate_locations(content, errors: Array[String]) -> void:
 			errors.append("Location %s is missing description." % location_id)
 
 
-static func _validate_world_objects(content, errors: Array[String]) -> void:
+static func _validate_world_objects(content: ContentDatabase, errors: Array[String]) -> void:
 	var seen_ids: Dictionary = {}
 	for entry in content.world_object_entries():
 		var object_id := String(entry.get("id", ""))
@@ -61,7 +61,7 @@ static func _validate_world_objects(content, errors: Array[String]) -> void:
 
 
 static func _validate_world_object_kind(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var kind := String(entry.get("kind", ""))
 	match kind:
@@ -93,7 +93,7 @@ static func _validate_world_object_kind(
 
 
 static func _validate_readable_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var readable_id := String(entry.get("readable_id", ""))
 	if not content.has_readable(readable_id):
@@ -101,7 +101,7 @@ static func _validate_readable_object(
 
 
 static func _validate_npc_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var npc_id := String(entry.get("npc_id", ""))
 	var profile_id := String(entry.get("character_profile_id", ""))
@@ -115,7 +115,7 @@ static func _validate_npc_object(
 
 
 static func _validate_pickup_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var item_id := String(entry.get("item_id", ""))
 	if not content.has_item(item_id):
@@ -126,7 +126,7 @@ static func _validate_pickup_object(
 
 
 static func _validate_container_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var effects: Array = Schema.array_field(entry.get("effects_on_open", []))
 	if effects.is_empty():
@@ -151,7 +151,7 @@ static func _validate_combat_actor_object(
 
 
 static func _validate_rest_object(
-	_content, entry: Dictionary, object_id: String, errors: Array[String]
+	_content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	Schema.validate_required_positive_number(
 		entry, "heal_amount", "Rest object %s" % object_id, errors
@@ -162,7 +162,7 @@ static func _validate_rest_object(
 
 
 static func _validate_poi_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	if String(entry.get("description", "")).is_empty():
 		errors.append("POI %s is missing description." % object_id)
@@ -185,7 +185,7 @@ static func _validate_poi_object(
 
 
 static func _validate_location_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var location_id := String(entry.get("location_id", ""))
 	if not content.has_location(location_id):
@@ -196,7 +196,7 @@ static func _validate_location_object(
 
 
 static func _validate_actor_world_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+	content: ContentDatabase, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var kind := String(entry.get("kind", ""))
 	var profile_id := String(entry.get("character_profile_id", ""))
@@ -227,7 +227,7 @@ static func _validate_actor_world_object(
 			)
 
 
-static func _validate_world_terrain(content, errors: Array[String]) -> void:
+static func _validate_world_terrain(content: ContentDatabase, errors: Array[String]) -> void:
 	var terrain: Dictionary = content.get_world_terrain()
 	if terrain.is_empty():
 		return
@@ -255,7 +255,7 @@ static func _validate_world_terrain(content, errors: Array[String]) -> void:
 
 
 static func _validate_terrain_regions(
-	content, area: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase, area: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	var regions_value: Variant = area.get("regions", [])
 	var regions: Array = Schema.array_field(regions_value)
@@ -287,7 +287,7 @@ static func _validate_terrain_regions(
 
 
 static func _validate_terrain_bounds(
-	_content, value: Variant, owner: String, errors: Array[String]
+	_content: ContentDatabase, value: Variant, owner: String, errors: Array[String]
 ) -> void:
 	var bounds: Dictionary = Schema.dictionary_field(value)
 	if bounds.is_empty():
@@ -298,7 +298,7 @@ static func _validate_terrain_bounds(
 
 
 static func _validate_terrain_rect(
-	_content, value: Variant, owner: String, errors: Array[String]
+	_content: ContentDatabase, value: Variant, owner: String, errors: Array[String]
 ) -> void:
 	var rect: Dictionary = Schema.dictionary_field(value)
 	if rect.is_empty():
@@ -309,7 +309,7 @@ static func _validate_terrain_rect(
 
 
 static func _validate_terrain_tiles(
-	_content, value: Variant, owner: String, errors: Array[String]
+	_content: ContentDatabase, value: Variant, owner: String, errors: Array[String]
 ) -> void:
 	var tiles: Array = Schema.array_field(value)
 	if not value is Array or tiles.is_empty():
@@ -320,7 +320,11 @@ static func _validate_terrain_tiles(
 
 
 static func _validate_terrain_kind(
-	_content, entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+	_content: ContentDatabase,
+	entry: Dictionary,
+	field_id: String,
+	owner: String,
+	errors: Array[String]
 ) -> void:
 	var kind := String(entry.get(field_id, ""))
 	if not Schema.supported_terrain_kinds().has(kind):

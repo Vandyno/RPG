@@ -6,13 +6,13 @@ const HumanoidProfileResolver = preload("res://scripts/characters/humanoid_profi
 const Schema = preload("res://scripts/data/content_schema_validator.gd")
 
 
-static func validate(content, errors: Array[String]) -> void:
+static func validate(content: ContentDatabase, errors: Array[String]) -> void:
 	_validate_people(content, errors)
 	_validate_people_visual_models(content, errors)
 	_validate_character_profiles(content, errors)
 
 
-static func _validate_people(content, errors: Array[String]) -> void:
+static func _validate_people(content: ContentDatabase, errors: Array[String]) -> void:
 	for people_id in content.people_ids():
 		var definition_value: Variant = content.get_people(people_id)
 		if not definition_value is Dictionary:
@@ -42,7 +42,7 @@ static func _validate_people(content, errors: Array[String]) -> void:
 			)
 
 
-static func _validate_people_visual_models(content, errors: Array[String]) -> void:
+static func _validate_people_visual_models(content: ContentDatabase, errors: Array[String]) -> void:
 	for model_id in content.people_visual_model_ids():
 		var model_value: Variant = content.get_people_visual_model(model_id)
 		if not model_value is Dictionary:
@@ -66,7 +66,11 @@ static func _validate_people_visual_models(content, errors: Array[String]) -> vo
 
 
 static func _validate_people_visual_variants(
-	content, model: Dictionary, model_id: String, people_id: String, errors: Array[String]
+	content: ContentDatabase,
+	model: Dictionary,
+	model_id: String,
+	people_id: String,
+	errors: Array[String]
 ) -> void:
 	var definition: Dictionary = content.get_people(people_id)
 	var variants: Array = Schema.array_field(model.get("variants", []))
@@ -92,7 +96,7 @@ static func _validate_people_visual_variants(
 
 
 static func _validate_people_visual_variant_fields(
-	_content,
+	_content: ContentDatabase,
 	definition: Dictionary,
 	variant: Dictionary,
 	owner: String,
@@ -114,7 +118,11 @@ static func _validate_people_visual_variant_fields(
 
 
 static func _validate_people_visual_variant_proportions(
-	content, people_id: String, variant: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase,
+	people_id: String,
+	variant: Dictionary,
+	owner: String,
+	errors: Array[String]
 ) -> void:
 	var deltas_value: Variant = variant.get("proportion_deltas", {})
 	if not deltas_value is Dictionary:
@@ -124,7 +132,7 @@ static func _validate_people_visual_variant_proportions(
 	_validate_people_model_final_proportions(content, people_id, deltas_value, owner, errors)
 
 
-static func _validate_character_profiles(content, errors: Array[String]) -> void:
+static func _validate_character_profiles(content: ContentDatabase, errors: Array[String]) -> void:
 	for profile_id in content.character_profile_ids():
 		var profile_value: Variant = content.get_authored_character_profile(profile_id)
 		if not profile_value is Dictionary:
@@ -152,7 +160,7 @@ static func _validate_character_profiles(content, errors: Array[String]) -> void
 
 
 static func _validate_appearance_generation(
-	content, profile: Dictionary, profile_id: String, errors: Array[String]
+	content: ContentDatabase, profile: Dictionary, profile_id: String, errors: Array[String]
 ) -> void:
 	if not profile.has("appearance_generation"):
 		return
@@ -175,7 +183,11 @@ static func _validate_appearance_generation(
 
 
 static func _validate_appearance_generation_variant(
-	content, generation: Dictionary, people_id: String, owner: String, errors: Array[String]
+	content: ContentDatabase,
+	generation: Dictionary,
+	people_id: String,
+	owner: String,
+	errors: Array[String]
 ) -> void:
 	if not generation.get("variant_id") is String:
 		errors.append("%s variant_id must be a string." % owner)
@@ -187,7 +199,7 @@ static func _validate_appearance_generation_variant(
 
 
 static func _validate_appearance_generation_jitter(
-	_content, generation: Dictionary, owner: String, errors: Array[String]
+	_content: ContentDatabase, generation: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	if not generation.has("jitter_strength"):
 		return
@@ -229,7 +241,7 @@ static func _validate_appearance_generation_overrides(
 
 
 static func _validate_people_model_proportion_deltas(
-	_content, value: Dictionary, owner: String, errors: Array[String]
+	_content: ContentDatabase, value: Dictionary, owner: String, errors: Array[String]
 ) -> void:
 	for field_id in value:
 		var key := String(field_id)
@@ -245,7 +257,11 @@ static func _validate_people_model_proportion_deltas(
 
 
 static func _validate_people_model_final_proportions(
-	content, people_id: String, deltas: Dictionary, owner: String, errors: Array[String]
+	content: ContentDatabase,
+	people_id: String,
+	deltas: Dictionary,
+	owner: String,
+	errors: Array[String]
 ) -> void:
 	var proportions: Dictionary = content.get_people_default_proportions(people_id)
 	_apply_proportion_deltas(content, proportions, deltas)
@@ -258,7 +274,9 @@ static func _validate_people_model_final_proportions(
 			)
 
 
-static func _apply_proportion_deltas(_content, proportions: Dictionary, deltas: Dictionary) -> void:
+static func _apply_proportion_deltas(
+	_content: ContentDatabase, proportions: Dictionary, deltas: Dictionary
+) -> void:
 	for field_id in deltas:
 		var key := String(field_id)
 		if not proportions.has(key) or not Schema.is_number(deltas[field_id]):
