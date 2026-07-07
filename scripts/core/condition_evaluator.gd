@@ -10,22 +10,33 @@ var progression
 var time
 
 
-func setup(
-	world_state_manager,
-	quest_manager,
-	inventory_manager,
-	readable_manager,
-	faction_manager = null,
-	progression_manager = null,
-	time_manager = null
-) -> void:
-	world_state = world_state_manager
-	quests = quest_manager
-	inventory = inventory_manager
-	readables = readable_manager
-	factions = faction_manager
-	progression = progression_manager
-	time = time_manager
+class Services:
+	var world_state
+	var quests
+	var inventory
+	var readables
+	var factions
+	var progression
+	var time
+
+	func _init(values: Dictionary = {}) -> void:
+		world_state = values.get("world_state")
+		quests = values.get("quests")
+		inventory = values.get("inventory")
+		readables = values.get("readables")
+		factions = values.get("factions")
+		progression = values.get("progression")
+		time = values.get("time")
+
+
+func setup(services: Services) -> void:
+	world_state = services.world_state
+	quests = services.quests
+	inventory = services.inventory
+	readables = services.readables
+	factions = services.factions
+	progression = services.progression
+	time = services.time
 
 
 func evaluate(condition: Dictionary) -> bool:

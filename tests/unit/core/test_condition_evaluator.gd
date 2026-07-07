@@ -176,7 +176,19 @@ func _make_systems() -> Dictionary:
 	add_child_autofree(time)
 	time.setup(bus)
 	var evaluator := ConditionEvaluator.new()
-	evaluator.setup(world_state, quests, inventory, readables, factions, progression, time)
+	evaluator.setup(
+		ConditionEvaluator.Services.new(
+			{
+				"world_state": world_state,
+				"quests": quests,
+				"inventory": inventory,
+				"readables": readables,
+				"factions": factions,
+				"progression": progression,
+				"time": time
+			}
+		)
+	)
 	return {
 		"evaluator": evaluator,
 		"world_state": world_state,

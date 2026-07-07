@@ -200,8 +200,13 @@ static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vect
 	else:
 		var spell_name := String(spell.get("name", spell_id))
 		var spell_attack := DirectionalAttack.spell_attack(spell)
+		var spell_query := {
+			"origin": ctx.player.global_position,
+			"direction": aim_direction,
+			"attack": spell_attack
+		}
 		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), ctx.player.global_position, aim_direction, spell_attack
+			_combat_candidates(ctx), spell_query
 		)
 		var damage := maxi(1, int(spell_attack.get("damage", spell.get("mana_cost", 1))))
 		if targets.is_empty():
@@ -245,8 +250,11 @@ static func handle_aim_held(
 	var bank: float = float(ctx.channeled_spell_damage_bank.get(action_id, 0.0)) + dps * delta
 	while bank >= 1.0:
 		bank -= 1.0
+		var channel_query := {
+			"origin": ctx.player.global_position, "direction": aim_direction, "attack": attack
+		}
 		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), ctx.player.global_position, aim_direction, attack
+			_combat_candidates(ctx), channel_query
 		)
 		_damage_targets(ctx, targets, 1, spell_name)
 	ctx.channeled_spell_damage_bank[action_id] = bank

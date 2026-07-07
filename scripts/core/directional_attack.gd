@@ -50,40 +50,30 @@ static func equipped_weapon(content, equipment) -> Dictionary:
 	return {}
 
 
-static func targets_in_shape(
-	candidate_entities: Array, origin: Vector2, direction: Vector2, attack: Dictionary
-) -> Array:
+static func targets_in_shape(candidate_entities: Array, query: Dictionary) -> Array:
 	var result := []
 	for entity in candidate_entities:
 		if not ActorRules.is_combat_target_entity(entity):
 			continue
-		if contains_point(origin, direction, entity.global_position, attack):
+		if contains_point(entity.global_position, query):
 			result.append(entity)
 	return result
 
 
-static func targets_in_weapon_sweep(
-	candidate_entities: Array,
-	origin: Vector2,
-	direction: Vector2,
-	attack: Dictionary,
-	progress_from: float = 0.0,
-	progress_to: float = 1.0
-) -> Array:
+static func targets_in_weapon_sweep(candidate_entities: Array, query: Dictionary) -> Array:
 	var result := []
 	for entity in candidate_entities:
 		if not ActorRules.is_combat_target_entity(entity):
 			continue
-		if weapon_sweep_contains_point(
-			origin, direction, entity.global_position, attack, progress_from, progress_to
-		):
+		if weapon_sweep_contains_point(entity.global_position, query):
 			result.append(entity)
 	return result
 
 
-static func contains_point(
-	origin: Vector2, direction: Vector2, point: Vector2, attack: Dictionary
-) -> bool:
+static func contains_point(point: Vector2, query: Dictionary) -> bool:
+	var origin := _query_origin(query)
+	var direction := _query_direction(query)
+	var attack := _query_attack(query)
 	var facing := direction.normalized()
 	if facing.length() <= 0.01:
 		return false
@@ -108,21 +98,13 @@ static func contains_point(
 	return false
 
 
-static func weapon_sweep_contains_point(
-	origin: Vector2,
-	direction: Vector2,
-	point: Vector2,
-	attack: Dictionary,
-	progress_from: float = 0.0,
-	progress_to: float = 1.0
-) -> bool:
+static func weapon_sweep_contains_point(point: Vector2, query: Dictionary) -> bool:
+	var attack := _query_attack(query)
 	match String(attack.get("shape", "swing")):
 		"swing":
-			return _swing_sweep_contains_point(
-				origin, direction, point, attack, progress_from, progress_to
-			)
+			return _swing_sweep_contains_point(point, query)
 		_:
-			return contains_point(origin, direction, point, attack)
+			return contains_point(point, query)
 
 
 static func spell_attack(spell: Dictionary) -> Dictionary:
@@ -143,14 +125,10 @@ static func is_melee_attack(attack: Dictionary) -> bool:
 	return not ["projectile"].has(String(attack.get("shape", "swing")))
 
 
-static func _swing_sweep_contains_point(
-	origin: Vector2,
-	direction: Vector2,
-	point: Vector2,
-	attack: Dictionary,
-	progress_from: float,
-	progress_to: float
-) -> bool:
+static func _swing_sweep_contains_point(point: Vector2, query: Dictionary) -> bool:
+	var origin := _query_origin(query)
+	var direction := _query_direction(query)
+	var attack := _query_attack(query)
 	var facing := direction.normalized()
 	if facing.length() <= 0.01:
 		return false
@@ -167,6 +145,8 @@ static func _swing_sweep_contains_point(
 	if distance <= 4.0:
 		return true
 	var arc := deg_to_rad(maxf(1.0, float(attack.get("arc_degrees", 100.0))))
+	var progress_from := _query_progress(query, "progress_from", 0.0)
+	var progress_to := _query_progress(query, "progress_to", 1.0)
 	var start_progress := clampf(minf(progress_from, progress_to), 0.0, 1.0)
 	var end_progress := clampf(maxf(progress_from, progress_to), 0.0, 1.0)
 	var angle_from := lerpf(-arc * 0.5, arc * 0.5, start_progress)
@@ -188,3 +168,24 @@ static func _merged_attack(base: Dictionary, override: Dictionary) -> Dictionary
 
 static func _dictionary_field(value: Variant) -> Dictionary:
 	return value if value is Dictionary else {}
+
+
+static func _query_origin(query: Dictionary) -> Vector2:
+	var value: Variant = query.get("origin", Vector2.ZERO)
+	return value if value is Vector2 else Vector2.ZERO
+
+
+static func _query_direction(query: Dictionary) -> Vector2:
+	var value: Variant = query.get("direction", Vector2.ZERO)
+	return value if value is Vector2 else Vector2.ZERO
+
+
+static func _query_attack(query: Dictionary) -> Dictionary:
+	return _dictionary_field(query.get("attack", {}))
+
+
+static func _query_progress(query: Dictionary, field_id: String, fallback: float) -> float:
+	var value: Variant = query.get(field_id, fallback)
+	if not (value is int or value is float):
+		return fallback
+	return float(value)

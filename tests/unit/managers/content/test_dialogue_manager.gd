@@ -149,7 +149,18 @@ func _make_systems() -> Dictionary:
 		}
 	)
 	var conditions := ConditionEvaluator.new()
-	conditions.setup(world_state, quests, inventory, readables, factions, progression)
+	conditions.setup(
+		ConditionEvaluator.Services.new(
+			{
+				"world_state": world_state,
+				"quests": quests,
+				"inventory": inventory,
+				"readables": readables,
+				"factions": factions,
+				"progression": progression
+			}
+		)
+	)
 	var dialogues := DialogueManager.new()
 	add_child_autofree(dialogues)
 	dialogues.setup(content, conditions, effects)

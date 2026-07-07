@@ -227,7 +227,17 @@ func _bootstrap() -> bool:
 
 	condition_evaluator = ConditionEvaluatorScript.new()
 	condition_evaluator.setup(
-		world_state, quests, inventory, readables, factions, progression, time
+		ConditionEvaluatorScript.Services.new(
+			{
+				"world_state": world_state,
+				"quests": quests,
+				"inventory": inventory,
+				"readables": readables,
+				"factions": factions,
+				"progression": progression,
+				"time": time
+			}
+		)
 	)
 
 	dialogues = DialogueManagerScript.new()

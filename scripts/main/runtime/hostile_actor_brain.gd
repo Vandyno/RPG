@@ -70,9 +70,10 @@ static func _update_actor(main, actor, delta: float) -> void:
 
 	var attack_info := _selected_attack_info(main.content, actor.data)
 	var attack: Dictionary = attack_info.get("attack", {})
-	if DirectionalAttack.contains_point(
-		actor.global_position, aim_direction, main.player.global_position, attack
-	):
+	var attack_query := {
+		"origin": actor.global_position, "direction": aim_direction, "attack": attack
+	}
+	if DirectionalAttack.contains_point(main.player.global_position, attack_query):
 		_set_behavior_state(actor, "attacking")
 		_set_locomotion(actor, false, delta)
 		_try_attack_player(main, actor, attack_info, aim_direction, delta)

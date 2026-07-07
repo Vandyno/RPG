@@ -101,15 +101,20 @@ func _apply_sweep(progress_from: float, progress_to: float) -> void:
 	var candidates_value: Variant = targets_provider.call()
 	if not candidates_value is Array:
 		return
+	var sweep_query := {
+		"origin": global_position,
+		"direction": direction,
+		"attack": attack,
+		"progress_from": progress_from,
+		"progress_to": progress_to
+	}
 	for target in candidates_value:
 		if not _is_valid_target(target):
 			continue
 		var key := _target_key(target)
 		if hit_target_keys.has(key):
 			continue
-		if not DirectionalAttack.weapon_sweep_contains_point(
-			global_position, direction, target.global_position, attack, progress_from, progress_to
-		):
+		if not DirectionalAttack.weapon_sweep_contains_point(target.global_position, sweep_query):
 			continue
 		hit_target_keys[key] = true
 		hit_any = true
