@@ -1,6 +1,8 @@
 class_name RpgInventoryItemButton
 extends Button
 
+const RpgIconDrawer = preload("res://scripts/ui/controls/display/rpg_icon_drawer.gd")
+
 const DRAG_THRESHOLD := 6.0
 
 var drag_start := Vector2.ZERO
@@ -150,19 +152,19 @@ func _draw_badge_icon(rect: Rect2, icon: String, color: Color) -> void:
 		"G":
 			_draw_ingredient_icon(center, radius, color)
 		"Q":
-			_draw_quest_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "quest", center, radius, color)
 		"S":
-			_draw_spell_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "spell", center, radius, color)
 		"M":
-			_draw_map_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "map", center, radius, color)
 		"J":
-			_draw_journal_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "journal", center, radius, color)
 		"T":
-			_draw_trade_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "trade", center, radius, color)
 		"H":
 			_draw_vitals_icon(center, radius, color)
 		_:
-			_draw_item_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "item", center, radius, color)
 
 
 func _draw_weapon_icon(center: Vector2, radius: float, color: Color) -> void:
@@ -205,88 +207,6 @@ func _draw_ingredient_icon(center: Vector2, radius: float, color: Color) -> void
 	)
 
 
-func _draw_quest_icon(center: Vector2, radius: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		center + Vector2(0, -radius),
-		center + Vector2(radius, 0),
-		center + Vector2(0, radius),
-		center + Vector2(-radius, 0),
-		center + Vector2(0, -radius)
-	])
-	draw_polyline(points, color, 2.2)
-	draw_circle(center, radius * 0.22, color)
-
-
-func _draw_spell_icon(center: Vector2, radius: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		center + Vector2(-radius * 0.20, -radius),
-		center + Vector2(radius * 0.38, -radius * 0.12),
-		center + Vector2(-radius * 0.05, -radius * 0.05),
-		center + Vector2(radius * 0.20, radius),
-		center + Vector2(-radius * 0.45, radius * 0.08),
-		center + Vector2(0, 0)
-	])
-	draw_polyline(points, color, 2.2)
-
-
-func _draw_map_icon(center: Vector2, radius: float, color: Color) -> void:
-	var left := center + Vector2(-radius, -radius * 0.72)
-	var right := center + Vector2(radius, radius * 0.72)
-	draw_rect(Rect2(left, right - left), color, false, 1.8)
-	draw_line(
-		center + Vector2(-radius * 0.34, -radius * 0.72),
-		center + Vector2(-radius * 0.20, radius * 0.72),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(radius * 0.34, -radius * 0.72),
-		center + Vector2(radius * 0.20, radius * 0.72),
-		color,
-		1.2
-	)
-
-
-func _draw_journal_icon(center: Vector2, radius: float, color: Color) -> void:
-	var rect := Rect2(
-		center + Vector2(-radius * 0.78, -radius), Vector2(radius * 1.56, radius * 2.0)
-	)
-	draw_rect(rect, color, false, 1.8)
-	draw_line(
-		rect.position + Vector2(radius * 0.30, 0),
-		rect.position + Vector2(radius * 0.30, rect.size.y),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(-radius * 0.36, -radius * 0.42),
-		center + Vector2(radius * 0.48, -radius * 0.42),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(-radius * 0.36, radius * 0.05),
-		center + Vector2(radius * 0.48, radius * 0.05),
-		color,
-		1.2
-	)
-
-
-func _draw_trade_icon(center: Vector2, radius: float, color: Color) -> void:
-	draw_circle(center + Vector2(-radius * 0.28, 0), radius * 0.48, color)
-	draw_circle(center + Vector2(radius * 0.34, 0), radius * 0.48, color)
-	draw_circle(
-		center + Vector2(-radius * 0.28, 0),
-		radius * 0.28,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
-	draw_circle(
-		center + Vector2(radius * 0.34, 0),
-		radius * 0.28,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
-
-
 func _draw_vitals_icon(center: Vector2, radius: float, color: Color) -> void:
 	draw_line(center + Vector2(-radius, 0), center + Vector2(-radius * 0.35, 0), color, 2.0)
 	draw_line(
@@ -308,23 +228,6 @@ func _draw_vitals_icon(center: Vector2, radius: float, color: Color) -> void:
 		2.0
 	)
 	draw_line(center + Vector2(radius * 0.42, 0), center + Vector2(radius, 0), color, 2.0)
-
-
-func _draw_item_icon(center: Vector2, radius: float, color: Color) -> void:
-	var rect := Rect2(
-		center + Vector2(-radius * 0.68, -radius * 0.58),
-		Vector2(radius * 1.36, radius * 1.16)
-	)
-	draw_rect(rect, color, false, 1.8)
-	draw_line(
-		rect.position, rect.position + Vector2(radius * 0.32, -radius * 0.36), color, 1.4
-	)
-	draw_line(
-		rect.position + Vector2(rect.size.x, 0),
-		rect.position + Vector2(radius * 1.04, -radius * 0.36),
-		color,
-		1.4
-	)
 
 
 func _card_icon(row: Dictionary) -> String:

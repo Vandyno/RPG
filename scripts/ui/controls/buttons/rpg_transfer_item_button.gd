@@ -1,6 +1,8 @@
 class_name RpgTransferItemButton
 extends Button
 
+const RpgIconDrawer = preload("res://scripts/ui/controls/display/rpg_icon_drawer.gd")
+
 var item_name := ""
 var item_count := 0
 var action_label := ""
@@ -38,7 +40,7 @@ func _draw() -> void:
 	var icon_rect := Rect2(Vector2(10, 10), Vector2(40, size.y - 20))
 	draw_rect(icon_rect, Color(0.015, 0.014, 0.012, 0.72), true)
 	draw_rect(icon_rect, border, false, 1.0)
-	_draw_item_icon(icon_rect, border)
+	RpgIconDrawer.draw_icon(self, "item", icon_rect.get_center(), icon_rect.size.x * 0.28, border)
 	var text_x := icon_rect.end.x + 12.0
 	var title_width := maxf(0.0, size.x - text_x - 102.0)
 	draw_string(
@@ -67,9 +69,3 @@ func _draw() -> void:
 		HORIZONTAL_ALIGNMENT_RIGHT, 72.0, 10, Color(0.70, 0.64, 0.52, 0.92)
 	)
 
-
-func _draw_item_icon(rect: Rect2, color: Color) -> void:
-	var center := rect.get_center()
-	draw_line(center + Vector2(-6, 5), center + Vector2(7, -7), color, 2.0)
-	draw_circle(center + Vector2(-5, 6), 3.0, color)
-	draw_circle(center + Vector2(7, -7), 2.0, color.lightened(0.12))

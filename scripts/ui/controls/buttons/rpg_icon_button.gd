@@ -1,6 +1,8 @@
 class_name RpgIconButton
 extends Button
 
+const RpgIconDrawer = preload("res://scripts/ui/controls/display/rpg_icon_drawer.gd")
+
 var icon_kind := "item"
 var icon_layout := "left"
 var compact := false
@@ -76,11 +78,11 @@ func _draw_icon_badge(rect: Rect2, color: Color) -> void:
 	var radius := minf(rect.size.x, rect.size.y) * 0.42
 	match icon_kind:
 		"quests":
-			_draw_quest(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "quest", center, radius, color)
 		"journal":
-			_draw_book(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "journal", center, radius, color)
 		"map":
-			_draw_map(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "map", center, radius, color)
 		"menu":
 			_draw_menu(center, radius, color)
 		"target":
@@ -92,25 +94,13 @@ func _draw_icon_badge(rect: Rect2, color: Color) -> void:
 		"weapon_swap":
 			_draw_weapon_swap(center, radius, color)
 		"spells":
-			_draw_spell(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "spell", center, radius, color)
 		"character":
 			_draw_helm(center, radius, color)
 		"trade":
-			_draw_trade(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "trade", center, radius, color)
 		_:
-			_draw_item(center, radius, color)
-
-
-func _draw_quest(center: Vector2, radius: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		center + Vector2(0, -radius),
-		center + Vector2(radius, 0),
-		center + Vector2(0, radius),
-		center + Vector2(-radius, 0),
-		center + Vector2(0, -radius)
-	])
-	draw_polyline(points, color, 2.0)
-	draw_circle(center, radius * 0.22, color)
+			RpgIconDrawer.draw_icon(self, "item", center, radius, color)
 
 
 func _draw_sneak(center: Vector2, radius: float, color: Color) -> void:
@@ -152,50 +142,6 @@ func _draw_weapon_swap(center: Vector2, radius: float, color: Color) -> void:
 	)
 
 
-func _draw_book(center: Vector2, radius: float, color: Color) -> void:
-	var rect := Rect2(
-		center + Vector2(-radius * 0.85, -radius), Vector2(radius * 1.7, radius * 2.0)
-	)
-	draw_rect(rect, color, false, 1.7)
-	draw_line(
-		rect.position + Vector2(radius * 0.45, 0),
-		rect.position + Vector2(radius * 0.45, rect.size.y),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(-radius * 0.28, -radius * 0.35),
-		center + Vector2(radius * 0.52, -radius * 0.35),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(-radius * 0.28, radius * 0.15),
-		center + Vector2(radius * 0.52, radius * 0.15),
-		color,
-		1.2
-	)
-
-
-func _draw_map(center: Vector2, radius: float, color: Color) -> void:
-	var rect := Rect2(
-		center + Vector2(-radius, -radius * 0.72), Vector2(radius * 2.0, radius * 1.44)
-	)
-	draw_rect(rect, color, false, 1.7)
-	draw_line(
-		center + Vector2(-radius * 0.34, -radius * 0.72),
-		center + Vector2(-radius * 0.20, radius * 0.72),
-		color,
-		1.2
-	)
-	draw_line(
-		center + Vector2(radius * 0.34, -radius * 0.72),
-		center + Vector2(radius * 0.20, radius * 0.72),
-		color,
-		1.2
-	)
-
-
 func _draw_menu(center: Vector2, radius: float, color: Color) -> void:
 	for y in [-0.55, 0.0, 0.55]:
 		draw_line(center + Vector2(-radius, radius * y), center + Vector2(radius, radius * y), color, 2.0)
@@ -223,18 +169,6 @@ func _draw_bag(center: Vector2, radius: float, color: Color) -> void:
 	)
 
 
-func _draw_spell(center: Vector2, radius: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		center + Vector2(-radius * 0.20, -radius),
-		center + Vector2(radius * 0.38, -radius * 0.10),
-		center + Vector2(-radius * 0.06, -radius * 0.05),
-		center + Vector2(radius * 0.18, radius),
-		center + Vector2(-radius * 0.48, radius * 0.06),
-		center
-	])
-	draw_polyline(points, color, 2.0)
-
-
 func _draw_helm(center: Vector2, radius: float, color: Color) -> void:
 	draw_arc(center, radius, PI, TAU, 28, color, 2.0)
 	draw_line(center + Vector2(-radius, 0), center + Vector2(radius, 0), color, 1.6)
@@ -251,25 +185,3 @@ func _draw_helm(center: Vector2, radius: float, color: Color) -> void:
 		1.4
 	)
 
-
-func _draw_trade(center: Vector2, radius: float, color: Color) -> void:
-	draw_circle(center + Vector2(-radius * 0.28, 0), radius * 0.46, color)
-	draw_circle(center + Vector2(radius * 0.34, 0), radius * 0.46, color)
-	draw_circle(
-		center + Vector2(-radius * 0.28, 0),
-		radius * 0.25,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
-	draw_circle(
-		center + Vector2(radius * 0.34, 0),
-		radius * 0.25,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
-
-
-func _draw_item(center: Vector2, radius: float, color: Color) -> void:
-	var rect := Rect2(
-		center + Vector2(-radius * 0.68, -radius * 0.58),
-		Vector2(radius * 1.36, radius * 1.16)
-	)
-	draw_rect(rect, color, false, 1.8)

@@ -1,6 +1,8 @@
 class_name RpgContentChoiceButton
 extends Button
 
+const RpgIconDrawer = preload("res://scripts/ui/controls/display/rpg_icon_drawer.gd")
+
 var choice_icon := "action"
 var choice_title := ""
 var choice_subtitle := ""
@@ -96,27 +98,15 @@ func _draw_icon(rect: Rect2, color: Color) -> void:
 	var radius := minf(rect.size.x, rect.size.y) * 0.28
 	match choice_icon:
 		"quest":
-			_draw_quest_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "quest", center, radius, color)
 		"service":
 			_draw_service_icon(center, radius, color)
 		"trade":
-			_draw_trade_icon(center, radius, color)
+			RpgIconDrawer.draw_icon(self, "trade", center, radius, color)
 		"dialogue":
 			_draw_dialogue_icon(center, radius, color)
 		_:
 			_draw_action_icon(center, radius, color)
-
-
-func _draw_quest_icon(center: Vector2, radius: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		center + Vector2(0, -radius),
-		center + Vector2(radius, 0),
-		center + Vector2(0, radius),
-		center + Vector2(-radius, 0),
-		center + Vector2(0, -radius)
-	])
-	draw_polyline(points, color, 2.0)
-	draw_circle(center, radius * 0.22, color)
 
 
 func _draw_service_icon(center: Vector2, radius: float, color: Color) -> void:
@@ -128,21 +118,6 @@ func _draw_service_icon(center: Vector2, radius: float, color: Color) -> void:
 		1.8
 	)
 	draw_rect(Rect2(center + Vector2(-radius * 0.65, radius * 0.36), Vector2(radius * 1.3, 3)), color)
-
-
-func _draw_trade_icon(center: Vector2, radius: float, color: Color) -> void:
-	draw_circle(center + Vector2(-radius * 0.25, 0), radius * 0.45, color)
-	draw_circle(center + Vector2(radius * 0.35, 0), radius * 0.45, color)
-	draw_circle(
-		center + Vector2(-radius * 0.25, 0),
-		radius * 0.24,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
-	draw_circle(
-		center + Vector2(radius * 0.35, 0),
-		radius * 0.24,
-		Color(0.03, 0.027, 0.021, 0.70)
-	)
 
 
 func _draw_dialogue_icon(center: Vector2, radius: float, color: Color) -> void:
