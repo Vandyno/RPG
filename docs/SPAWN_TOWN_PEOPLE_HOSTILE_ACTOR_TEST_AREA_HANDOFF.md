@@ -84,13 +84,13 @@ Coverage lives in:
   - generated profiles resolve with expected `people_id`
   - generated appearances include `visual_model_id`
   - owner IDs, equipment, health, reachable placement, and unique tiles are checked
-- `tests/unit/main/test_main_flow.gd`
+- `tests/unit/main/flows/test_main_flow.gd`
   - all six spawn with humanoid avatars
   - all six opt into the hostile basic brain
   - only the Ravenfolk people-test actor opts into Fire Blast spell use
   - killing the Tuskfolk fixture creates a lootable generated humanoid body
   - sword and coin transfer through the shared inventory UI
-- `tests/unit/main/test_hostile_actor_brain_main_flow.gd`
+- `tests/unit/main/flows/test_hostile_actor_brain_main_flow.gd`
   - hostile brain movement chases toward the player
   - weapon attacks use equipped item attack data through the shared action path
   - Ravenfolk spell channeling damages the player with Fire Blast

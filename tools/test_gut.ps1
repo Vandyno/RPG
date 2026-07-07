@@ -10,25 +10,31 @@ try {
     exit $LASTEXITCODE
   }
   $godot = Join-Path $root ".tools\godot\Godot_v4.6-stable_win64_console.exe"
-  $testDirs = @(
-    "characters",
-    "core",
-    "data",
-    "main",
-    "managers",
-    "player",
-    "project",
-    "ui",
-    "world"
+  $testSuites = @(
+    @{ Name = "characters"; Path = "characters" },
+    @{ Name = "core"; Path = "core" },
+    @{ Name = "data"; Path = "data" },
+    @{ Name = "main_actions"; Path = "main/actions" },
+    @{ Name = "main_flows"; Path = "main/flows" },
+    @{ Name = "main_input"; Path = "main/input" },
+    @{ Name = "main_runtime"; Path = "main/runtime" },
+    @{ Name = "managers_actors"; Path = "managers/actors" },
+    @{ Name = "managers_content"; Path = "managers/content" },
+    @{ Name = "managers_persistence"; Path = "managers/persistence" },
+    @{ Name = "managers_world"; Path = "managers/world" },
+    @{ Name = "player"; Path = "player" },
+    @{ Name = "project"; Path = "project" },
+    @{ Name = "ui"; Path = "ui" },
+    @{ Name = "world"; Path = "world" }
   )
-  foreach ($dir in $testDirs) {
+  foreach ($suite in $testSuites) {
     $args = @(
       "--headless",
       "--path", ".",
       "-s", "res://addons/gut/gut_cmdln.gd",
-      "-gdir", "res://tests/unit/$dir",
+      "-gdir", "res://tests/unit/$($suite.Path)",
       "-gexit",
-      "-gjunit_xml_file", "res://reports/gut_results_$dir.xml"
+      "-gjunit_xml_file", "res://reports/gut_results_$($suite.Name).xml"
     )
     & $godot @args
     if ($LASTEXITCODE -ne 0) {
