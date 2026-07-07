@@ -8,7 +8,7 @@ const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rows/rpg_systems_
 const RpgSystemsRowPresentation = preload(
 	"res://scripts/ui/systems/rows/rpg_systems_row_presentation.gd"
 )
-const RpgSystemsTextBuilder = preload("res://scripts/ui/text/rpg_systems_text_builder.gd")
+const RpgSystemsTextBuilder = preload("res://scripts/ui/systems/text/rpg_systems_text_builder.gd")
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgTransferPaneBuilder = preload(
 	"res://scripts/ui/systems/panes/rpg_transfer_pane_builder.gd"
