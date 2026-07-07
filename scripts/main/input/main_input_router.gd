@@ -139,191 +139,191 @@ static func context(main) -> InputContext:
 	return InputContext.new(main)
 
 
-static func handle_event(main, event: InputEvent) -> void:
-	main = _input_context(main)
+static func handle_event(source, event: InputEvent) -> void:
+	var ctx: InputContext = _input_context(source)
 	if event is InputEventKey and event.echo:
 		return
-	if _handle_pointer_event(main, event):
+	if _handle_pointer_event(ctx, event):
 		return
 	if event.is_action_pressed("interact"):
-		main._handle_interact_requested()
+		ctx._handle_interact_requested()
 	elif event.is_action_pressed("save_game"):
-		main._handle_save_requested()
+		ctx._handle_save_requested()
 	elif event.is_action_pressed("load_game"):
-		main._handle_load_requested()
+		ctx._handle_load_requested()
 	elif event.is_action_pressed("toggle_debug"):
-		main.hud.toggle_debug()
+		ctx.hud.toggle_debug()
 	elif event.is_action_pressed("toggle_character_creator"):
-		main.toggle_debug_character_creator()
+		ctx.toggle_debug_character_creator()
 	elif event.is_action_pressed("toggle_systems"):
-		main.hud.toggle_systems()
+		ctx.hud.toggle_systems()
 	elif event.is_action_pressed("cycle_target"):
-		main._handle_cycle_target_requested()
+		ctx._handle_cycle_target_requested()
 
 
 static func target_world(
-	main, world_position: Vector2, interact_if_reachable := true, pick_radius := WORLD_PICK_RADIUS
+	source, world_position: Vector2, interact_if_reachable := true, pick_radius := WORLD_PICK_RADIUS
 ) -> bool:
-	main = _input_context(main)
-	var entity = main.entities.get_interactable_at_world(world_position, pick_radius)
+	var ctx: InputContext = _input_context(source)
+	var entity = ctx.entities.get_interactable_at_world(world_position, pick_radius)
 	if not entity:
 		return false
 	if ActorRules.is_combat_target_entity(entity):
 		return false
-	main._close_open_overlay_panel(false)
-	var delta: Vector2 = entity.global_position - main.player.global_position
-	main.player.set_facing_direction(delta)
-	main.selected_target_id = entity.get_entity_id()
-	main.manual_target_locked = true
-	main.target_cycle_index = main._index_of_target_id(
-		main._get_nearby_entities(), main.selected_target_id
+	ctx._close_open_overlay_panel(false)
+	var delta: Vector2 = entity.global_position - ctx.player.global_position
+	ctx.player.set_facing_direction(delta)
+	ctx.selected_target_id = entity.get_entity_id()
+	ctx.manual_target_locked = true
+	ctx.target_cycle_index = ctx._index_of_target_id(
+		ctx._get_nearby_entities(), ctx.selected_target_id
 	)
-	if main.target_cycle_index < 0:
-		_begin_auto_interaction(main, entity, delta.length())
-		main._refresh_hud()
+	if ctx.target_cycle_index < 0:
+		_begin_auto_interaction(ctx, entity, delta.length())
+		ctx._refresh_hud()
 		return true
 	if interact_if_reachable:
-		main._handle_interact_requested()
+		ctx._handle_interact_requested()
 	else:
-		main.event_bus.post_message("Targeting %s." % entity.get_display_name())
-		main._refresh_hud()
+		ctx.event_bus.post_message("Targeting %s." % entity.get_display_name())
+		ctx._refresh_hud()
 	return true
 
 
-static func target_entity(main, entity_id: String) -> bool:
-	main = _input_context(main)
-	var entity = main.entities.get_entity(entity_id)
+static func target_entity(source, entity_id: String) -> bool:
+	var ctx: InputContext = _input_context(source)
+	var entity = ctx.entities.get_entity(entity_id)
 	if not entity:
-		main.event_bus.post_message("Target is no longer available.")
-		main._refresh_hud()
+		ctx.event_bus.post_message("Target is no longer available.")
+		ctx._refresh_hud()
 		return false
-	main._close_open_overlay_panel(false)
-	var delta: Vector2 = entity.global_position - main.player.global_position
-	main.player.set_facing_direction(delta)
-	main.selected_target_id = entity.get_entity_id()
-	main.manual_target_locked = true
-	main.target_cycle_index = main._index_of_target_id(main._get_nearby_entities(), entity_id)
-	if main.target_cycle_index < 0:
-		_begin_auto_interaction(main, entity, delta.length())
+	ctx._close_open_overlay_panel(false)
+	var delta: Vector2 = entity.global_position - ctx.player.global_position
+	ctx.player.set_facing_direction(delta)
+	ctx.selected_target_id = entity.get_entity_id()
+	ctx.manual_target_locked = true
+	ctx.target_cycle_index = ctx._index_of_target_id(ctx._get_nearby_entities(), entity_id)
+	if ctx.target_cycle_index < 0:
+		_begin_auto_interaction(ctx, entity, delta.length())
 	else:
-		main.event_bus.post_message("Targeting %s." % entity.get_display_name())
-	main._refresh_hud()
+		ctx.event_bus.post_message("Targeting %s." % entity.get_display_name())
+	ctx._refresh_hud()
 	return true
 
 
-static func move_to_world(main, world_position: Vector2) -> bool:
-	main = _input_context(main)
-	if main.player.global_position.distance_to(world_position) <= AUTO_MOVE_ARRIVAL_DISTANCE:
+static func move_to_world(source, world_position: Vector2) -> bool:
+	var ctx: InputContext = _input_context(source)
+	if ctx.player.global_position.distance_to(world_position) <= AUTO_MOVE_ARRIVAL_DISTANCE:
 		return false
-	if not main.player._can_stand_at(world_position):
-		main.event_bus.post_message("Can't get there.")
+	if not ctx.player._can_stand_at(world_position):
+		ctx.event_bus.post_message("Can't get there.")
 		return true
-	main.player.set_facing_direction(world_position - main.player.global_position)
-	_begin_auto_move(main, world_position)
-	main._close_open_overlay_panel(false)
-	main.selected_target_id = ""
-	main.manual_target_locked = false
-	main.target_cycle_index = 0
-	main.event_bus.post_message("Moving.")
-	main._refresh_hud()
+	ctx.player.set_facing_direction(world_position - ctx.player.global_position)
+	_begin_auto_move(ctx, world_position)
+	ctx._close_open_overlay_panel(false)
+	ctx.selected_target_id = ""
+	ctx.manual_target_locked = false
+	ctx.target_cycle_index = 0
+	ctx.event_bus.post_message("Moving.")
+	ctx._refresh_hud()
 	return true
 
 
-static func handle_interact_requested(main) -> void:
-	main = _input_context(main)
-	if not String(main.auto_interact_target_id).is_empty():
-		cancel_auto_interaction(main)
+static func handle_interact_requested(source) -> void:
+	var ctx: InputContext = _input_context(source)
+	if not String(ctx.auto_interact_target_id).is_empty():
+		cancel_auto_interaction(ctx)
 		return
-	if main.auto_move_active:
-		cancel_auto_move(main)
+	if ctx.auto_move_active:
+		cancel_auto_move(ctx)
 		return
-	if main.hud and main.hud.is_target_picker_visible():
-		main.hud.hide_target_picker()
-	elif main._close_open_overlay_panel():
+	if ctx.hud and ctx.hud.is_target_picker_visible():
+		ctx.hud.hide_target_picker()
+	elif ctx._close_open_overlay_panel():
 		return
 	var preferred: Dictionary = MainContextActions.preferred_primary(
-		MainContextActions.action_list_context(main), main._get_nearby_entity()
+		MainContextActions.action_list_context(ctx), ctx._get_nearby_entity()
 	)
 	if not preferred.is_empty():
-		main._handle_context_action_selected(String(preferred.get("id", "")))
+		ctx._handle_context_action_selected(String(preferred.get("id", "")))
 		return
-	main._interact()
+	ctx._interact()
 
 
-static func update_auto_interaction(main, delta_seconds: float) -> void:
-	main = _input_context(main)
-	var manual_move := _manual_move_vector(main)
+static func update_auto_interaction(source, delta_seconds: float) -> void:
+	var ctx: InputContext = _input_context(source)
+	var manual_move := _manual_move_vector(ctx)
 	if manual_move.length() > 0.05:
 		var cancelled_route: bool = (
-			not String(main.auto_interact_target_id).is_empty() or main.auto_move_active
+			not String(ctx.auto_interact_target_id).is_empty() or ctx.auto_move_active
 		)
-		var unlocked_target := _clear_manual_target_lock(main)
-		main.player.set_facing_direction(manual_move)
-		_clear_auto_interaction(main)
-		_clear_auto_move(main)
+		var unlocked_target := _clear_manual_target_lock(ctx)
+		ctx.player.set_facing_direction(manual_move)
+		_clear_auto_interaction(ctx)
+		_clear_auto_move(ctx)
 		if cancelled_route or unlocked_target:
-			main._refresh_hud()
+			ctx._refresh_hud()
 		return
-	if String(main.auto_interact_target_id).is_empty():
-		update_auto_move(main, delta_seconds)
+	if String(ctx.auto_interact_target_id).is_empty():
+		update_auto_move(ctx, delta_seconds)
 		return
-	var entity = main.entities.get_entity(main.auto_interact_target_id)
+	var entity = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	if not entity:
-		_clear_auto_interaction(main)
+		_clear_auto_interaction(ctx)
 		return
-	var delta: Vector2 = entity.global_position - main.player.global_position
-	main.player.set_facing_direction(delta)
-	main.selected_target_id = entity.get_entity_id()
-	main.manual_target_locked = true
-	main.target_cycle_index = main._index_of_target_id(
-		main._get_nearby_entities(), main.selected_target_id
+	var delta: Vector2 = entity.global_position - ctx.player.global_position
+	ctx.player.set_facing_direction(delta)
+	ctx.selected_target_id = entity.get_entity_id()
+	ctx.manual_target_locked = true
+	ctx.target_cycle_index = ctx._index_of_target_id(
+		ctx._get_nearby_entities(), ctx.selected_target_id
 	)
-	if main.target_cycle_index >= 0:
-		_clear_auto_interaction(main)
-		main._handle_interact_requested()
+	if ctx.target_cycle_index >= 0:
+		_clear_auto_interaction(ctx)
+		ctx._handle_interact_requested()
 		return
-	_follow_auto_path_or_direction(main, entity.global_position, delta, delta_seconds)
-	entity = main.entities.get_entity(main.auto_interact_target_id)
+	_follow_auto_path_or_direction(ctx, entity.global_position, delta, delta_seconds)
+	entity = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	if not entity or not is_instance_valid(entity):
-		_clear_auto_interaction(main)
+		_clear_auto_interaction(ctx)
 		return
-	_track_auto_interaction_progress(main, entity, delta_seconds)
+	_track_auto_interaction_progress(ctx, entity, delta_seconds)
 
 
-static func update_auto_move(main, delta_seconds: float) -> void:
-	main = _input_context(main)
-	if not main.auto_move_active:
+static func update_auto_move(source, delta_seconds: float) -> void:
+	var ctx: InputContext = _input_context(source)
+	if not ctx.auto_move_active:
 		return
-	var move_target := _current_auto_move_target(main)
-	var delta: Vector2 = move_target - main.player.global_position
+	var move_target := _current_auto_move_target(ctx)
+	var delta: Vector2 = move_target - ctx.player.global_position
 	if delta.length() <= AUTO_MOVE_ARRIVAL_DISTANCE:
-		if main.auto_move_path_index < main.auto_move_path.size() - 1:
-			main.auto_move_path_index += 1
+		if ctx.auto_move_path_index < ctx.auto_move_path.size() - 1:
+			ctx.auto_move_path_index += 1
 		else:
-			_clear_auto_move(main)
-			main._refresh_hud()
+			_clear_auto_move(ctx)
+			ctx._refresh_hud()
 		return
-	main.player.try_move(delta, delta_seconds)
-	_track_auto_move_progress(main, delta.length(), delta_seconds)
+	ctx.player.try_move(delta, delta_seconds)
+	_track_auto_move_progress(ctx, delta.length(), delta_seconds)
 
 
-static func cancel_auto_interaction(main) -> void:
-	main = _input_context(main)
-	if String(main.auto_interact_target_id).is_empty():
+static func cancel_auto_interaction(source) -> void:
+	var ctx: InputContext = _input_context(source)
+	if String(ctx.auto_interact_target_id).is_empty():
 		return
-	_clear_auto_interaction(main)
-	main.manual_target_locked = false
-	main.event_bus.post_message("Stopped.")
-	main._refresh_hud()
+	_clear_auto_interaction(ctx)
+	ctx.manual_target_locked = false
+	ctx.event_bus.post_message("Stopped.")
+	ctx._refresh_hud()
 
 
-static func cancel_auto_move(main) -> void:
-	main = _input_context(main)
-	if not main.auto_move_active:
+static func cancel_auto_move(source) -> void:
+	var ctx: InputContext = _input_context(source)
+	if not ctx.auto_move_active:
 		return
-	_clear_auto_move(main)
-	main.event_bus.post_message("Stopped.")
-	main._refresh_hud()
+	_clear_auto_move(ctx)
+	ctx.event_bus.post_message("Stopped.")
+	ctx._refresh_hud()
 
 
 static func _handle_pointer_event(main, event: InputEvent) -> bool:
@@ -339,7 +339,7 @@ static func _handle_pointer_event(main, event: InputEvent) -> bool:
 	return false
 
 
-static func _input_context(source):
+static func _input_context(source) -> InputContext:
 	return source if source is InputContext else InputContext.new(source)
 
 
@@ -491,3 +491,4 @@ static func _track_auto_move_progress(
 		main.event_bus.post_message("Can't get there.")
 		main._refresh_hud()
 	main.auto_move_previous_distance = minf(main.auto_move_previous_distance, distance_before_move)
+
