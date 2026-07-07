@@ -13,12 +13,12 @@ class ActionListContext:
 	var player
 	var world_state
 
-	func _init(main) -> void:
-		condition_evaluator = main.condition_evaluator
-		content = main.content
-		dialogues = main.dialogues
-		player = main.player
-		world_state = main.world_state
+	func _init(values: Dictionary) -> void:
+		condition_evaluator = values.get("condition_evaluator")
+		content = values.get("content")
+		dialogues = values.get("dialogues")
+		player = values.get("player")
+		world_state = values.get("world_state")
 
 
 class ActionHandleContext:
@@ -37,7 +37,7 @@ class ActionHandleContext:
 
 	func _init(main) -> void:
 		active_content_choices = main.active_content_choices
-		actions = ActionListContext.new(main)
+		actions = MainContextActions.action_list_context(main)
 		dialogues = main.dialogues
 		event_bus = main.event_bus
 		hud = main.hud
@@ -55,11 +55,21 @@ static func context(main) -> ActionHandleContext:
 
 
 static func action_list_context(main) -> ActionListContext:
-	return ActionListContext.new(main)
+	return ActionListContext.new(_action_list_values(main))
 
 
 static func handle_context(main) -> ActionHandleContext:
 	return ActionHandleContext.new(main)
+
+
+static func _action_list_values(main) -> Dictionary:
+	return {
+		"condition_evaluator": main.condition_evaluator,
+		"content": main.content,
+		"dialogues": main.dialogues,
+		"player": main.player,
+		"world_state": main.world_state
+	}
 
 
 static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:

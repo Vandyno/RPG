@@ -30,6 +30,7 @@ const DebugCharacterCreatorScript = preload("res://scripts/ui/debug/debug_charac
 const InteractionTargetSelector = preload("res://scripts/main/input/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
+const MainHudQueries = preload("res://scripts/main/ui/main_hud_queries.gd")
 const MainDebugState = preload("res://scripts/main/runtime/main_debug_state.gd")
 const MainSaveProviders = preload("res://scripts/main/runtime/main_save_providers.gd")
 const MainWorldGuidance = preload("res://scripts/main/ui/main_world_guidance.gd")
@@ -62,6 +63,7 @@ var spells: SpellManager
 var player: PlayerController
 var save_manager: SaveManager
 var hud: RpgHud
+var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
 var camera: Camera2D
 var active_interaction_id := ""
@@ -102,9 +104,55 @@ func _process(delta: float) -> void:
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
 func get_hud_state() -> Dictionary:
-	return MainHudState.build(MainHudState.context(self))
+	return MainHudState.build(_hud_context())
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
+
+
+func _hud_context() -> MainHudState.HudContext:
+	var nearby := _get_nearby_entity()
+	var nearby_targets := _ranked_nearby_entities()
+	return MainHudState.HudContext.new(
+		{
+			"active_transfer_name": active_transfer_name,
+			"active_transfer_owner_id": active_transfer_owner_id,
+			"auto_interact_target_id": auto_interact_target_id,
+			"auto_move_active": auto_move_active,
+			"chunks": chunks,
+			"condition_evaluator": condition_evaluator,
+			"content": content,
+			"context_actions_context": _action_list_context(),
+			"entities": entities,
+			"equipment": equipment,
+			"factions": factions,
+			"hud_queries": hud_queries,
+			"inventory": inventory,
+			"nearby": nearby,
+			"nearby_targets": hud_queries.nearby_targets_data(
+				nearby_targets, selected_target_id, player.global_position
+			),
+			"player": player,
+			"progression": progression,
+			"quests": quests,
+			"shop_id": hud_queries.shop_id_for_entity(nearby),
+			"spells": spells,
+			"statuses": statuses,
+			"time": time,
+			"world_state": world_state
+		}
+	)
+
+
+func _action_list_context() -> MainContextActions.ActionListContext:
+	return MainContextActions.ActionListContext.new(
+		{
+			"condition_evaluator": condition_evaluator,
+			"content": content,
+			"dialogues": dialogues,
+			"player": player,
+			"world_state": world_state
+		}
+	)
 func _bootstrap() -> bool:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
@@ -231,6 +279,24 @@ func _bootstrap() -> bool:
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
 			player.set_equipped_items(equipped_by_slot, content)
+	)
+
+	hud_queries = MainHudQueries.new()
+	hud_queries.setup(
+		{
+			"chunks": chunks,
+			"combat": combat,
+			"condition_evaluator": condition_evaluator,
+			"content": content,
+			"equipment": equipment,
+			"entities": entities,
+			"factions": factions,
+			"inventory": inventory,
+			"player": player,
+			"progression": progression,
+			"quests": quests,
+			"shops": shops
+		}
 	)
 
 	camera = Camera2D.new()
@@ -860,200 +926,64 @@ func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
 
 
 func _inventory_text() -> String:
-	if inventory.items.is_empty():
-		return "empty"
-	var parts: Array[String] = []
-	for item_id in _sorted_inventory_ids():
-		var item: Dictionary = content.get_item(item_id)
-		var count: int = inventory.get_count(item_id)
-		if count > 0:
-			parts.append("%s x%d" % [String(item.get("name", item_id)), count])
-	return "empty" if parts.is_empty() else ", ".join(parts)
+	return hud_queries.inventory_text()
 
 
 func _inventory_details_text() -> String:
-	if inventory.items.is_empty():
-		return ""
-	var lines: Array[String] = []
-	for item_id in _sorted_inventory_ids():
-		var item: Dictionary = content.get_item(item_id)
-		var count: int = inventory.get_count(item_id)
-		if count <= 0:
-			continue
-		var name := String(item.get("name", item_id))
-		var description := String(item.get("description", ""))
-		lines.append(
-			(
-				"%s x%d" % [name, count]
-				if description.is_empty()
-				else "%s x%d: %s" % [name, count, description]
-			)
-		)
-	return "\n".join(lines)
+	return hud_queries.inventory_details_text()
 
 
 func _inventory_actions_data() -> Array[Dictionary]:
-	var actions: Array[Dictionary] = []
-	for item_id in _sorted_inventory_ids():
-		var item: Dictionary = content.get_item(item_id)
-		var has_use := not _array_field(item.get("effects_on_use", [])).is_empty()
-		var slot := String(item.get("equipment_slot", ""))
-		var count: int = inventory.get_count(item_id)
-		if item.is_empty() or count <= 0 or (not has_use and slot.is_empty()):
-			continue
-		var item_name := String(item.get("name", item_id))
-		if has_use:
-			actions.append({
-				"id": "use:%s" % item_id,
-				"item_id": item_id,
-				"text": "Use %s" % item_name,
-				"count": count
-			})
-		if not slot.is_empty():
-			var equipped_item_id: String = equipment.get_equipped_item(slot)
-			var action_id := (
-				"unequip:%s" % slot if equipped_item_id == item_id else "equip:%s" % item_id
-			)
-			var action_text := (
-				"Unequip %s" % item_name if equipped_item_id == item_id else "Equip %s" % item_name
-			)
-			actions.append({"id": action_id, "item_id": item_id, "text": action_text})
-	return actions
+	return hud_queries.inventory_actions_data()
 
 
 func _sorted_inventory_ids() -> Array:
-	var item_ids: Array = inventory.items.keys()
-	item_ids.sort()
-	return item_ids
+	return hud_queries._sorted_inventory_ids()
 
 
 func _progression_actions_data() -> Array[Dictionary]:
-	var actions: Array[Dictionary] = []
-	if progression.skill_points <= 0:
-		return actions
-	for stat_id in progression.get_trainable_stat_ids():
-		actions.append(
-			{
-				"id": "train:%s" % stat_id,
-				"text": "Train %s" % progression.get_stat_label(stat_id),
-				"count": progression.skill_points
-			}
-		)
-	return actions
+	return hud_queries.progression_actions_data()
 
 
 func _trade_text(shop_id: String) -> String:
-	return "No trader selected." if shop_id.is_empty() else shops.get_shop_summary(shop_id)
+	return hud_queries.trade_text(shop_id)
 
 
 func _trade_actions_data(shop_id: String) -> Array[Dictionary]:
-	var actions: Array[Dictionary] = []
-	if not shop_id.is_empty():
-		actions.append_array(shops.get_buy_actions(shop_id))
-		actions.append_array(shops.get_sell_actions(shop_id))
-	return actions
+	return hud_queries.trade_actions_data(shop_id)
 
 
 func _target_detail_text(entity) -> String:
-	if entity.has_method("is_combat_target") and entity.is_combat_target():
-		return _hostile_actor_detail_text(entity)
-	var detail := "Object"
-	match entity.get_kind():
-		"readable":
-			detail = _readable_detail_text(entity)
-		"pickup":
-			detail = _pickup_detail_text(entity)
-		"container":
-			detail = ObjectInteractionRules.container_detail(entity, chunks, condition_evaluator)
-		"door":
-			detail = ObjectInteractionRules.access_detail(
-				entity, chunks, condition_evaluator, "Door"
-			)
-		"poi":
-			detail = PoiInteraction.detail(entity)
-		"npc":
-			detail = _npc_detail_text(entity)
-		"body":
-			detail = "Body: loot"
-		"rest":
-			detail = _rest_detail_text(entity)
-	return detail
+	return hud_queries.target_detail_text(entity)
 
 
 func _readable_detail_text(entity) -> String:
-	var readable: Dictionary = content.get_readable(String(entity.data.get("readable_id", "")))
-	return "Readable: %s" % String(readable.get("title", entity.get_display_name()))
+	return hud_queries._readable_detail_text(entity)
 
 
 func _pickup_detail_text(entity) -> String:
-	var item_id := String(entity.data.get("item_id", ""))
-	var item: Dictionary = content.get_item(item_id)
-	var count := _positive_int_field(entity.data, "count", 1)
-	return "Pickup: %s x%d" % [String(item.get("name", item_id)), count]
+	return hud_queries._pickup_detail_text(entity)
 
 
 func _npc_detail_text(entity) -> String:
-	var npc: Dictionary = content.get_npc(String(entity.data.get("npc_id", "")))
-	var quest_id := String(npc.get("quest_id", ""))
-	var faction_id := String(npc.get("faction", ""))
-	var parts: Array[String] = [String(npc.get("role", "NPC"))]
-	if not quest_id.is_empty():
-		parts.append("quest %s" % quests.get_quest_state(quest_id))
-	if not faction_id.is_empty():
-		var faction: Dictionary = content.get_faction(faction_id)
-		parts.append(
-			"%s %+d" % [String(faction.get("name", faction_id)), factions.get_reputation(faction_id)]
-		)
-	if not String(npc.get("shop_id", "")).is_empty():
-		parts.append("trader")
-	return ", ".join(parts)
+	return hud_queries._npc_detail_text(entity)
 
 
 func _hostile_actor_detail_text(entity) -> String:
-	var health: int = combat.get_entity_health(entity)
-	var max_health := _positive_int_field(
-		entity.data, "max_health", CombatManagerScript.DEFAULT_MAX_HEALTH
-	)
-	var attack_damage := _non_negative_int_field(
-		entity.data, "attack_damage", CombatManagerScript.DEFAULT_ENEMY_DAMAGE
-	)
-	return (
-		"Hostile HP %d/%d, counter %d"
-		% [health, max_health, attack_damage]
-	)
+	return hud_queries._hostile_actor_detail_text(entity)
 
 
 func _rest_detail_text(entity) -> String:
-	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
-	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
-	return "Rest: heals %d, advances %dh" % [heal_amount, rest_hours]
+	return hud_queries._rest_detail_text(entity)
 
 
 func _nearby_entities_text() -> String:
-	var nearby_entities := _ranked_nearby_entities()
-	if nearby_entities.is_empty():
-		return "none"
-	var names: Array[String] = []
-	for entity in nearby_entities:
-		var name: String = entity.get_display_name()
-		names.append("*%s*" % name if entity.get_entity_id() == selected_target_id else name)
-	return ", ".join(names)
+	return hud_queries.nearby_entities_text(_ranked_nearby_entities(), selected_target_id)
 
 func _nearby_targets_data() -> Array[Dictionary]:
-	var nearby_entities := _ranked_nearby_entities()
-	var targets: Array[Dictionary] = []
-	for entity in nearby_entities:
-		targets.append(
-			{
-				"id": entity.get_entity_id(),
-				"kind": entity.get_kind(),
-				"name": entity.get_display_name(),
-				"detail": _target_detail_text(entity),
-				"navigation": entities.get_navigation_hint(player.global_position, entity),
-				"selected": entity.get_entity_id() == selected_target_id
-			}
-		)
-	return targets
+	return hud_queries.nearby_targets_data(
+		_ranked_nearby_entities(), selected_target_id, player.global_position
+	)
 
 func _get_nearby_entity() -> WorldEntity:
 	var nearby_entities := _get_nearby_entities()
@@ -1083,14 +1013,7 @@ func _current_shop_id() -> String:
 	return _shop_id_for_entity(_get_nearby_entity())
 
 func _shop_id_for_entity(entity: WorldEntity) -> String:
-	if not entity:
-		return ""
-	if entity.get_kind() == "poi":
-		return String(entity.data.get("shop_id", ""))
-	if entity.get_kind() != "npc":
-		return ""
-	var npc: Dictionary = content.get_npc(String(entity.data.get("npc_id", "")))
-	return String(npc.get("shop_id", ""))
+	return hud_queries.shop_id_for_entity(entity)
 
 
 func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:
