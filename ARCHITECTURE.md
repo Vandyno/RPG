@@ -180,7 +180,7 @@ Owns chunk data access and modified chunk state.
 Responsibilities:
 
 - load chunk definitions
-- load authored terrain regions from `data/world_terrain.json`
+- consume already-loaded authored terrain from `ContentDatabase`
 - cache active chunk data
 - expose tile data
 - expose object/entity placements
@@ -536,9 +536,10 @@ Live world entities referenced by active quest objectives draw compact quest
 markers. The marker follows quest stage changes and clears when the objective
 is no longer active, keeping short quest loops understandable from the world
 view before the player opens the Quest tab.
-The Map tab should also render discovered-location details from authored
-location content, not only location names, so exploration state remains useful
-without opening a debug-only panel.
+Discovered-location details belong in Journal, quest, dialogue, note, sign, NPC,
+or future visual-map UI. Do not restore the old text/list Map tab. A Map tab
+should only return when it is an actual authored-world map, not a duplicate
+location list.
 
 UI should be built with landscape mobile as a first-class target. Future UI
 systems should account for touch input, safe areas, scalable text, large touch
