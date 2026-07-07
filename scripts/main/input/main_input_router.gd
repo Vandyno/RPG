@@ -1,3 +1,4 @@
+# gdlint:disable=class-definitions-order
 class_name MainInputRouter
 extends RefCounted
 
@@ -10,7 +11,135 @@ const WORLD_PICK_RADIUS := 36.0
 const WORLD_TOUCH_PICK_RADIUS := 48.0
 
 
+class InputContext:
+	var entities
+	var event_bus
+	var hud
+	var condition_evaluator
+	var content
+	var dialogues
+	var player
+	var world_state
+	var _main
+
+	var auto_interact_target_id: String:
+		get:
+			return String(_main.auto_interact_target_id)
+		set(value):
+			_main.auto_interact_target_id = value
+	var auto_interact_previous_distance: float:
+		get:
+			return float(_main.auto_interact_previous_distance)
+		set(value):
+			_main.auto_interact_previous_distance = value
+	var auto_interact_stuck_seconds: float:
+		get:
+			return float(_main.auto_interact_stuck_seconds)
+		set(value):
+			_main.auto_interact_stuck_seconds = value
+	var auto_move_active: bool:
+		get:
+			return bool(_main.auto_move_active)
+		set(value):
+			_main.auto_move_active = value
+	var auto_move_destination: Vector2:
+		get:
+			return _main.auto_move_destination
+		set(value):
+			_main.auto_move_destination = value
+	var auto_move_previous_distance: float:
+		get:
+			return float(_main.auto_move_previous_distance)
+		set(value):
+			_main.auto_move_previous_distance = value
+	var auto_move_stuck_seconds: float:
+		get:
+			return float(_main.auto_move_stuck_seconds)
+		set(value):
+			_main.auto_move_stuck_seconds = value
+	var auto_move_path: Array:
+		get:
+			return _main.auto_move_path
+		set(value):
+			_main.auto_move_path = value
+	var auto_move_path_index: int:
+		get:
+			return int(_main.auto_move_path_index)
+		set(value):
+			_main.auto_move_path_index = value
+	var manual_target_locked: bool:
+		get:
+			return bool(_main.manual_target_locked)
+		set(value):
+			_main.manual_target_locked = value
+	var selected_target_id: String:
+		get:
+			return String(_main.selected_target_id)
+		set(value):
+			_main.selected_target_id = value
+	var target_cycle_index: int:
+		get:
+			return int(_main.target_cycle_index)
+		set(value):
+			_main.target_cycle_index = value
+
+	func _init(main) -> void:
+		_main = main
+		entities = main.entities
+		event_bus = main.event_bus
+		hud = main.hud
+		condition_evaluator = main.get("condition_evaluator")
+		content = main.get("content")
+		dialogues = main.get("dialogues")
+		player = main.player
+		world_state = main.get("world_state")
+
+	func get_viewport():
+		return _main.get_viewport()
+
+	func toggle_debug_character_creator() -> void:
+		_main.toggle_debug_character_creator()
+
+	func _close_open_overlay_panel(consume_action: bool = true) -> bool:
+		return bool(_main._close_open_overlay_panel(consume_action))
+
+	func _get_nearby_entity():
+		return _main._get_nearby_entity()
+
+	func _get_nearby_entities() -> Array:
+		return _main._get_nearby_entities()
+
+	func _handle_context_action_selected(action_id: String) -> void:
+		_main._handle_context_action_selected(action_id)
+
+	func _handle_cycle_target_requested() -> void:
+		_main._handle_cycle_target_requested()
+
+	func _handle_interact_requested() -> void:
+		_main._handle_interact_requested()
+
+	func _handle_load_requested() -> void:
+		_main._handle_load_requested()
+
+	func _handle_save_requested() -> void:
+		_main._handle_save_requested()
+
+	func _index_of_target_id(targets: Array, entity_id: String) -> int:
+		return int(_main._index_of_target_id(targets, entity_id))
+
+	func _interact() -> void:
+		_main._interact()
+
+	func _refresh_hud() -> void:
+		_main._refresh_hud()
+
+
+static func context(main) -> InputContext:
+	return InputContext.new(main)
+
+
 static func handle_event(main, event: InputEvent) -> void:
+	main = _input_context(main)
 	if event is InputEventKey and event.echo:
 		return
 	if _handle_pointer_event(main, event):
@@ -34,6 +163,7 @@ static func handle_event(main, event: InputEvent) -> void:
 static func target_world(
 	main, world_position: Vector2, interact_if_reachable := true, pick_radius := WORLD_PICK_RADIUS
 ) -> bool:
+	main = _input_context(main)
 	var entity = main.entities.get_interactable_at_world(world_position, pick_radius)
 	if not entity:
 		return false
@@ -60,6 +190,7 @@ static func target_world(
 
 
 static func target_entity(main, entity_id: String) -> bool:
+	main = _input_context(main)
 	var entity = main.entities.get_entity(entity_id)
 	if not entity:
 		main.event_bus.post_message("Target is no longer available.")
@@ -80,6 +211,7 @@ static func target_entity(main, entity_id: String) -> bool:
 
 
 static func move_to_world(main, world_position: Vector2) -> bool:
+	main = _input_context(main)
 	if main.player.global_position.distance_to(world_position) <= AUTO_MOVE_ARRIVAL_DISTANCE:
 		return false
 	if not main.player._can_stand_at(world_position):
@@ -97,6 +229,7 @@ static func move_to_world(main, world_position: Vector2) -> bool:
 
 
 static func handle_interact_requested(main) -> void:
+	main = _input_context(main)
 	if not String(main.auto_interact_target_id).is_empty():
 		cancel_auto_interaction(main)
 		return
@@ -117,6 +250,7 @@ static func handle_interact_requested(main) -> void:
 
 
 static func update_auto_interaction(main, delta_seconds: float) -> void:
+	main = _input_context(main)
 	var manual_move := _manual_move_vector(main)
 	if manual_move.length() > 0.05:
 		var cancelled_route: bool = (
@@ -156,6 +290,7 @@ static func update_auto_interaction(main, delta_seconds: float) -> void:
 
 
 static func update_auto_move(main, delta_seconds: float) -> void:
+	main = _input_context(main)
 	if not main.auto_move_active:
 		return
 	var move_target := _current_auto_move_target(main)
@@ -172,6 +307,7 @@ static func update_auto_move(main, delta_seconds: float) -> void:
 
 
 static func cancel_auto_interaction(main) -> void:
+	main = _input_context(main)
 	if String(main.auto_interact_target_id).is_empty():
 		return
 	_clear_auto_interaction(main)
@@ -181,6 +317,7 @@ static func cancel_auto_interaction(main) -> void:
 
 
 static func cancel_auto_move(main) -> void:
+	main = _input_context(main)
 	if not main.auto_move_active:
 		return
 	_clear_auto_move(main)
@@ -199,6 +336,10 @@ static func _handle_pointer_event(main, event: InputEvent) -> bool:
 			or move_to_world(main, touch_world)
 		)
 	return false
+
+
+static func _input_context(source):
+	return source if source is InputContext else InputContext.new(source)
 
 
 static func _screen_to_world(main, screen_position: Vector2) -> Vector2:

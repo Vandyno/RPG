@@ -92,10 +92,10 @@ func _ready() -> void:
 	if _bootstrap():
 		event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
 func _unhandled_input(event: InputEvent) -> void:
-	MainInputRouter.handle_event(self, event)
+	MainInputRouter.handle_event(MainInputRouter.context(self), event)
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
-	MainInputRouter.update_auto_interaction(self, delta)
+	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
 	HostileActorBrain.update(self, delta)
 	_update_location_discoveries()
 	_update_nearby()
@@ -373,7 +373,7 @@ func _max_location_discovery_radius() -> float:
 
 
 func _handle_interact_requested() -> void:
-	MainInputRouter.handle_interact_requested(self)
+	MainInputRouter.handle_interact_requested(MainInputRouter.context(self))
 
 
 func _handle_sneak_pressed() -> void:
@@ -720,7 +720,7 @@ func _handle_systems_action_selected(action_id: String) -> void:
 		"wait":
 			_handle_wait_action(target_id.to_int())
 		"target":
-			MainInputRouter.target_entity(self, target_id)
+			MainInputRouter.target_entity(MainInputRouter.context(self), target_id)
 		"save":
 			_handle_save_requested()
 		"load":
