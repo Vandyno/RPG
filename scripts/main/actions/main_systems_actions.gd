@@ -8,6 +8,7 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
 const MIN_AIM_DIRECTION := 0.1
 const DEFAULT_BOW_CHARGE_SECONDS := 2.0
@@ -262,12 +263,7 @@ static func handle_aim_held(
 
 
 static func parse_action_id(action_id: String) -> Dictionary:
-	var parts := action_id.split(":", false)
-	if parts.size() >= 3 and ["equip_slot", "assign_spell"].has(parts[0]):
-		return {"action": parts[0], "target_id": parts[1], "slot_id": parts[2]}
-	if parts.size() >= 2:
-		return {"action": parts[0], "target_id": parts[1]}
-	return {"action": "use", "target_id": action_id}
+	return SystemsActionIds.parse(action_id)
 
 
 static func _perform_weapon_attack(

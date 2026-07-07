@@ -3,6 +3,7 @@ extends RefCounted
 
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
 
 static func category_labels() -> Array:
@@ -87,7 +88,7 @@ static func _sell_actions(actions: Array) -> Array[Dictionary]:
 	for action in actions:
 		if not action is Dictionary:
 			continue
-		if String(action.get("text", "")).begins_with("Sell "):
+		if SystemsActionIds.is_action(String(action.get("id", "")), SystemsActionIds.ACTION_SELL):
 			result.append(action)
 	return result
 

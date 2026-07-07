@@ -2,6 +2,7 @@ class_name ShopManager
 extends Node
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
+const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
 const CURRENCY_ITEM_ID := "item_gold_coin"
 
@@ -154,7 +155,7 @@ func get_buy_actions(shop_id: String) -> Array[Dictionary]:
 			continue
 		actions.append(
 			{
-				"id": "buy:%s" % item_id,
+				"id": SystemsActionIds.buy_item(item_id),
 				"text": "Buy %s (%dg)" % [String(item.get("name", item_id)), price]
 			}
 		)
@@ -178,7 +179,7 @@ func get_stock_rows(shop_id: String) -> Array[Dictionary]:
 				"item_id": item_id,
 				"name": String(item.get("name", item_id)),
 				"price": price,
-				"action_id": "buy:%s" % item_id if shop_open else "",
+				"action_id": SystemsActionIds.buy_item(item_id) if shop_open else "",
 				"available": shop_open,
 				"merchant_name": String(shop.get("name", shop_id))
 			}
@@ -203,7 +204,7 @@ func get_sell_actions(shop_id: String) -> Array[Dictionary]:
 			continue
 		actions.append(
 			{
-				"id": "sell:%s" % item_id,
+				"id": SystemsActionIds.sell_item(item_id),
 				"text": "Sell %s (+%dg)" % [String(item.get("name", item_id)), price]
 			}
 		)

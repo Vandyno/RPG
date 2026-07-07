@@ -35,6 +35,7 @@ const RpgEquipmentSlot = preload("res://scripts/ui/controls/slots/rpg_equipment_
 const RpgSpellSlotPanelBuilder = preload(
 	"res://scripts/ui/systems/panes/rpg_spell_slot_panel_builder.gd"
 )
+const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(44, 46)
 const LOCATION_BANNER_WIDTH := 344.0
@@ -434,7 +435,7 @@ func _build_touch_controls() -> void:
 	ability_slot_buttons = action_nodes["ability_buttons"]
 	var utility_buttons := action_nodes["utility_buttons"] as Dictionary
 	(utility_buttons["weapon_swap"] as Button).pressed.connect(
-		func() -> void: inventory_item_selected.emit("swap_mainhand:weapon")
+		func() -> void: inventory_item_selected.emit(SystemsActionIds.swap_mainhand_weapon())
 	)
 	(utility_buttons["menu"] as Button).pressed.connect(toggle_systems)
 	target_action_button = utility_buttons["sneak"] as Button
@@ -917,11 +918,11 @@ func _select_systems_category(category_id: String) -> void:
 func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	if item_id.is_empty() or slot_id.is_empty():
 		return
-	inventory_item_selected.emit("equip_slot:%s:%s" % [item_id, slot_id])
+	inventory_item_selected.emit(SystemsActionIds.equip_slot(item_id, slot_id))
 func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
 	if spell_id.is_empty() or slot_id.is_empty():
 		return
-	inventory_item_selected.emit("assign_spell:%s:%s" % [spell_id, slot_id])
+	inventory_item_selected.emit(SystemsActionIds.assign_spell(spell_id, slot_id))
 
 func _on_spell_slot_pressed(slot_id: String) -> void:
 	if (

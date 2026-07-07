@@ -5,6 +5,7 @@ const ObjectInteractionRules = preload("res://scripts/core/object_interaction_ru
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
+const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
 var chunks
 var combat
@@ -109,7 +110,7 @@ func inventory_actions_data() -> Array[Dictionary]:
 		var item_name := String(item.get("name", item_id))
 		if has_use:
 			actions.append({
-				"id": "use:%s" % item_id,
+				"id": SystemsActionIds.use_item(item_id),
 				"item_id": item_id,
 				"text": "Use %s" % item_name,
 				"count": count
@@ -117,7 +118,9 @@ func inventory_actions_data() -> Array[Dictionary]:
 		if not slot.is_empty():
 			var equipped_item_id: String = equipment.get_equipped_item(slot)
 			var action_id := (
-				"unequip:%s" % slot if equipped_item_id == item_id else "equip:%s" % item_id
+				SystemsActionIds.unequip_slot(slot)
+				if equipped_item_id == item_id
+				else SystemsActionIds.equip_item(item_id)
 			)
 			var action_text := (
 				"Unequip %s" % item_name if equipped_item_id == item_id else "Equip %s" % item_name
@@ -133,7 +136,7 @@ func progression_actions_data() -> Array[Dictionary]:
 	for stat_id in progression.get_trainable_stat_ids():
 		actions.append(
 			{
-				"id": "train:%s" % stat_id,
+				"id": SystemsActionIds.train_stat(stat_id),
 				"text": "Train %s" % progression.get_stat_label(stat_id),
 				"count": progression.skill_points
 			}
