@@ -371,7 +371,7 @@ static func _damage_targets(
 
 
 static func _damage_target(ctx: AimCombatContext, entity, damage: int, source_name: String) -> void:
-	if not _is_combat_target(entity):
+	if not ActorRules.is_combat_target_entity(entity):
 		return
 	var result: Dictionary = ctx.combat.damage_entity(entity, damage, false)
 	if bool(result.get("defeated", false)):
@@ -445,16 +445,6 @@ static func _create_body_for_defeated_humanoid(ctx: AimCombatContext, entity) ->
 		"collapsed_pose_id": "pose_fallen_side"
 	}
 	ctx.entities.add_runtime_entity(body_entry)
-
-
-static func _is_combat_target(entity) -> bool:
-	if not entity:
-		return false
-	if entity.has_method("is_combat_target"):
-		return bool(entity.is_combat_target())
-	if entity.get("data") is Dictionary:
-		return ActorRules.is_combat_target_data(entity.data)
-	return false
 
 
 static func _seed_body_inventory(ctx: AimCombatContext, owner_id: String, data: Dictionary) -> void:

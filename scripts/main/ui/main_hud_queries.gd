@@ -2,6 +2,7 @@ class_name MainHudQueries
 extends RefCounted
 
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 
@@ -152,7 +153,7 @@ func nearby_targets_data(
 
 
 func target_detail_text(entity) -> String:
-	if entity.has_method("is_combat_target") and entity.is_combat_target():
+	if ActorRules.is_combat_target_entity(entity):
 		return _hostile_actor_detail_text(entity)
 	var detail := "Object"
 	match entity.get_kind():

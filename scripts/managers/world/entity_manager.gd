@@ -476,18 +476,12 @@ func _matches_kind_filter(entity, kind_filter: String) -> bool:
 	if kind_filter.is_empty():
 		return true
 	if ["enemy", "hostile", "combat"].has(kind_filter):
-		return _is_combat_entity(entity)
+		return ActorRules.is_combat_target_entity(entity)
 	return entity.get_kind() == kind_filter
 
 
 func _is_combat_entity(entity) -> bool:
-	if not entity:
-		return false
-	if entity.has_method("is_combat_target"):
-		return bool(entity.is_combat_target())
-	if entity.get("data") is Dictionary:
-		return ActorRules.is_combat_target_data(entity.data)
-	return false
+	return ActorRules.is_combat_target_entity(entity)
 
 
 func _sort_entity_matches(matches: Array) -> void:

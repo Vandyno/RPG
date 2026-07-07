@@ -91,6 +91,20 @@ static func is_combat_target_data(data: Dictionary) -> bool:
 	)
 
 
+static func is_combat_target_entity(entity: Variant) -> bool:
+	if entity == null:
+		return false
+	if entity is Dictionary:
+		var entity_data: Variant = entity.get("data", entity)
+		return entity_data is Dictionary and is_combat_target_data(entity_data)
+	if not (entity is Object):
+		return false
+	if entity.has_method("is_combat_target"):
+		return bool(entity.is_combat_target())
+	var data: Variant = entity.get("data")
+	return data is Dictionary and is_combat_target_data(data)
+
+
 static func can_pickpocket_data(data: Dictionary) -> bool:
 	return is_living_humanoid_data(data) and not inventory_owner_id(data).is_empty()
 

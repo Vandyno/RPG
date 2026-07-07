@@ -55,7 +55,7 @@ static func targets_in_shape(
 ) -> Array:
 	var result := []
 	for entity in candidate_entities:
-		if not _is_combat_target(entity):
+		if not ActorRules.is_combat_target_entity(entity):
 			continue
 		if contains_point(origin, direction, entity.global_position, attack):
 			result.append(entity)
@@ -72,7 +72,7 @@ static func targets_in_weapon_sweep(
 ) -> Array:
 	var result := []
 	for entity in candidate_entities:
-		if not _is_combat_target(entity):
+		if not ActorRules.is_combat_target_entity(entity):
 			continue
 		if weapon_sweep_contains_point(
 			origin, direction, entity.global_position, attack, progress_from, progress_to
@@ -177,16 +177,6 @@ static func _swing_sweep_contains_point(
 		relative_angle >= angle_from - angle_tolerance
 		and relative_angle <= angle_to + angle_tolerance
 	)
-
-
-static func _is_combat_target(entity) -> bool:
-	if not entity:
-		return false
-	if entity.has_method("is_combat_target"):
-		return bool(entity.is_combat_target())
-	if entity.get("data") is Dictionary:
-		return ActorRules.is_combat_target_data(entity.data)
-	return false
 
 
 static func _merged_attack(base: Dictionary, override: Dictionary) -> Dictionary:

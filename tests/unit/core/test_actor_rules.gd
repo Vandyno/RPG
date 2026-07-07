@@ -3,6 +3,23 @@ extends GutTest
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
+class MethodCombatEntity:
+	var target := false
+
+	func _init(is_target: bool) -> void:
+		target = is_target
+
+	func is_combat_target() -> bool:
+		return target
+
+
+class DataCombatEntity:
+	var data := {}
+
+	func _init(entity_data: Dictionary) -> void:
+		data = entity_data
+
+
 func test_actor_rules_resolves_player_and_npc_profile_contracts() -> void:
 	var player_profile := {
 		"character_id": "char_player",
@@ -51,6 +68,22 @@ func test_actor_rules_hostility_state_drives_combat_targeting() -> void:
 	assert_false(ActorRules.is_combat_target_data(neutral_actor))
 	assert_false(ActorRules.is_combat_target_data(body_actor))
 	assert_false(ActorRules.is_combat_target_data(legacy_enemy_kind))
+
+
+func test_actor_rules_reads_combat_target_from_entities() -> void:
+	var hostile_actor := {
+		"kind": "npc",
+		"actor_category": "humanoid",
+		"hostility": "hostile",
+		"combat_enabled": true,
+		"character_profile_id": "char_bandit"
+	}
+
+	assert_true(ActorRules.is_combat_target_entity(MethodCombatEntity.new(true)))
+	assert_false(ActorRules.is_combat_target_entity(MethodCombatEntity.new(false)))
+	assert_true(ActorRules.is_combat_target_entity(DataCombatEntity.new(hostile_actor)))
+	assert_true(ActorRules.is_combat_target_entity({"data": hostile_actor}))
+	assert_false(ActorRules.is_combat_target_entity(null))
 
 
 func test_actor_rules_pickpocket_uses_living_humanoid_inventory_owner() -> void:
