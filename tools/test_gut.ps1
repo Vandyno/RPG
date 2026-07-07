@@ -24,6 +24,8 @@ try {
     @{ Name = "managers_world"; Path = "managers/world" },
     @{ Name = "player"; Path = "player" },
     @{ Name = "project"; Path = "project" },
+    @{ Name = "tools_capture"; Path = "tools/capture" },
+    @{ Name = "tools_verify"; Path = "tools/verify" },
     @{ Name = "ui"; Path = "ui" },
     @{ Name = "world"; Path = "world" }
   )
