@@ -99,7 +99,7 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(providers["readables"].loaded_payload, {"read": ["notice"]})
 	assert_eq(int(providers["combat"].loaded_payload["health_by_entity_id"]["enemy"]), 6)
 	assert_eq(providers["chunks"].loaded_payload, {"surface:0:0": {"removed_entities": []}})
-	assert_eq(providers["entities"].spawn_count, 1)
+	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_load_missing_save_file_reports_failure() -> void:

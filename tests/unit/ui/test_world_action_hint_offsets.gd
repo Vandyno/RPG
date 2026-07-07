@@ -40,4 +40,5 @@ func _manager_with_npc() -> EntityManager:
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
 	manager.setup(null, content, chunks)
+	manager.spawn_all()
 	return manager

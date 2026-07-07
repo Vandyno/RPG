@@ -44,7 +44,6 @@ func setup(
 		event_bus.progression_changed.connect(_queue_respawn)
 		event_bus.time_changed.connect(_queue_respawn)
 		event_bus.load_completed.connect(_on_load_completed)
-	spawn_all()
 
 
 func spawn_all() -> void:
@@ -300,7 +299,7 @@ func _respawn_after_state_change() -> void:
 
 func _on_load_completed(_path: String = "") -> void:
 	entity_runtime_state_by_id.clear()
-	_queue_respawn()
+	spawn_all()
 
 
 func _has_valid_tile(entry: Dictionary) -> bool:

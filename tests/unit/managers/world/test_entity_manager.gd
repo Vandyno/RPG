@@ -21,6 +21,16 @@ func _chunks() -> ChunkManager:
 	return chunks
 
 
+func _setup_unfiltered(
+	manager: EntityManager,
+	content: ContentDatabase,
+	chunks: ChunkManager,
+	conditions: ConditionEvaluator = null
+) -> void:
+	manager.setup(null, content, chunks, conditions)
+	manager.spawn_all()
+
+
 class ConditionStub extends ConditionEvaluator:
 	var passed := false
 
@@ -36,7 +46,7 @@ func test_world_distance_interaction_finds_nearest_entity_inside_range() -> void
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(30.0, 16.0), 42.0)
 
@@ -58,7 +68,7 @@ func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> vo
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var broad = manager.get_entity("broad")
 	var tapped = manager.get_entity("tapped")
@@ -75,7 +85,7 @@ func test_world_tap_hit_test_includes_visible_action_hint() -> void:
 	content.world_objects = [{"id": "npc", "name": "Guide", "kind": "npc", "global_tile": [2, 0]}]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	var entity = manager.get_entity("npc")
 	var label_point: Vector2 = entity.global_position + Vector2(40.0, -35.0)
 
@@ -102,7 +112,7 @@ func test_world_tap_hit_test_prioritizes_visible_action_hint_over_nearby_marker(
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	var entity = manager.get_entity("npc")
 	var label_point: Vector2 = entity.global_position + Vector2(40.0, -35.0)
 
@@ -119,7 +129,7 @@ func test_world_tap_hit_test_prioritizes_selected_action_hint_when_labels_overla
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	var selected = manager.get_entity("selected")
 	var label_point: Vector2 = selected.global_position + Vector2(0.0, -35.0)
 
@@ -142,7 +152,7 @@ func test_highlight_switches_between_entities() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	manager.set_highlighted_entity("first")
 	manager.set_highlighted_entity("second")
@@ -159,7 +169,7 @@ func test_quest_markers_toggle_independently_from_action_hints() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	manager.set_action_hints({"quest_target": {"text": "Pick Up", "selected": true}})
 	manager.set_quest_markers({"quest_target": {"text": "Quest"}})
@@ -199,7 +209,7 @@ func test_world_distance_interaction_list_is_sorted_by_distance() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0), 48.0)
 	var navigation := manager.get_navigation_summary(Vector2(8.0, 8.0), 48.0)
@@ -221,7 +231,7 @@ func test_interaction_lists_use_stable_name_tie_breaks() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0), 32.0)
 	var nearest = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 32.0)
@@ -249,7 +259,7 @@ func test_world_distance_caps_authored_interaction_radius_to_requested_range() -
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var interactables := manager.get_interactables_world(Vector2(8.0, 8.0))
 
@@ -276,7 +286,7 @@ func test_hostile_npc_actors_are_combat_entities_not_interactables() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 42.0)
 	var combat_entities := manager.get_entities_world(Vector2(8.0, 8.0), 42.0, "hostile")
@@ -295,7 +305,7 @@ func test_spawn_all_replaces_entities_immediately_and_clears_highlight() -> void
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	manager.set_highlighted_entity("first")
 
 	content.world_objects = [{"id": "third", "name": "Third", "kind": "npc", "global_tile": [3, 0]}]
@@ -316,7 +326,7 @@ func test_remove_entity_immediately_removes_child_and_clears_highlight() -> void
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	manager.set_highlighted_entity("first")
 
 	manager.remove_entity("first")
@@ -339,7 +349,7 @@ func test_spawn_all_skips_blank_duplicate_and_malformed_entities() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	assert_eq(manager.get_child_count(), 2)
 	assert_not_null(manager.get_entity("dup"))
@@ -388,7 +398,7 @@ func test_profile_backed_npc_gets_humanoid_avatar_and_stays_interactable() -> vo
 	}
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 
 	var entity = manager.get_entity("npc_world")
 
@@ -430,7 +440,7 @@ func test_location_markers_are_discoverable_but_not_interactable() -> void:
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	_setup_unfiltered(manager, content, _chunks())
 	var spawn_world := (
 		GridMath.tile_to_world(Vector2i.ZERO) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
 	)
@@ -456,8 +466,7 @@ func test_chunk_window_filters_live_entities_after_streaming_updates() -> void:
 	add_child_autofree(manager)
 	manager.setup(bus, content, _chunks())
 
-	assert_not_null(manager.get_entity("near"))
-	assert_not_null(manager.get_entity("far"))
+	assert_eq(manager.get_child_count(), 0)
 
 	bus.chunks_changed.emit([GridMath.chunk_key(Vector2i.ZERO)])
 
@@ -510,6 +519,7 @@ func test_conditioned_entities_spawn_after_state_change_signal() -> void:
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
 	manager.setup(bus, content, _chunks(), conditions)
+	bus.chunks_changed.emit([GridMath.chunk_key(Vector2i.ZERO)])
 
 	assert_null(manager.get_entity("conditional"))
 

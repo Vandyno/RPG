@@ -46,4 +46,5 @@ func _manager_with_objects(world_objects: Array[Dictionary]) -> EntityManager:
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
 	manager.setup(null, content, chunks)
+	manager.spawn_all()
 	return manager

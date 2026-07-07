@@ -137,8 +137,6 @@ func load_game() -> LoadResult:
 	providers["combat"].load_save_data(parsed["combat"])
 	providers["chunks"].load_save_data(parsed["chunks"])
 	providers["player"].load_save_data(parsed["player"])
-	if providers.has("entities"):
-		providers["entities"].spawn_all()
 	var result := LoadResult.new(true, "ok", "Loaded %s" % save_path, save_path)
 	if event_bus:
 		event_bus.load_completed.emit(save_path)
