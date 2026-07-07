@@ -9,6 +9,7 @@ const HumanoidPeopleFeatureDrawer = preload(
 	"res://scripts/characters/humanoid_people_feature_drawer.gd"
 )
 const HumanoidEquipmentDrawer = preload("res://scripts/characters/humanoid_equipment_drawer.gd")
+const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_item_drawer.gd")
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 
 const PALETTES := {
@@ -531,16 +532,7 @@ func _draw_hand_layer(skin: Color, proportions: Dictionary, layer_id: String) ->
 
 
 func _draw_hand_with_equipment(side: float, skin: Color, proportions: Dictionary) -> void:
-	if _hand_is_replaced_by_held_item(side):
-		var draw_slot_id := _held_item_draw_slot_for_side(side)
-		if not draw_slot_id.is_empty():
-			_draw_hand_equipment(draw_slot_id, proportions)
-		_draw_held_item_arm_and_hand(side, skin, proportions)
-		return
-	var hand_size := _proportion(proportions, "hand_size")
-	_draw_mitten(_hand_position(side, proportions), 3.2 * hand_size, side, skin)
-	_draw_glove_equipment(side, proportions)
-	_draw_hand_equipment(_hand_slot_id(side), proportions)
+	HumanoidHeldItemDrawer.draw_hand_with_equipment(self, side, skin, proportions)
 
 
 func _draw_head(skin: Color, proportions: Dictionary) -> void:
@@ -2032,47 +2024,15 @@ func _draw_head_equipment_layer(proportions: Dictionary) -> void:
 
 
 func _draw_glove_equipment(side: float, proportions: Dictionary) -> void:
-	if not equipped_visuals.has("gloves"):
-		return
-	var hand_size := _proportion(proportions, "hand_size")
-	_draw_mitten(
-		_hand_position(side, proportions), 3.0 * hand_size, side, _equipment_color("gloves")
-	)
+	HumanoidHeldItemDrawer.draw_glove_equipment(self, side, proportions)
 
 
 func _draw_hand_equipment(slot_id: String, proportions: Dictionary) -> void:
-	var normalized_slot := EquipmentSlots.normalize(slot_id)
-	if not equipped_visuals.has(normalized_slot):
-		return
-	var item_model := _held_item_model(normalized_slot, proportions)
-	if item_model.is_empty():
-		return
-	ItemVisual2D.draw_visual(self, item_model)
+	HumanoidHeldItemDrawer.draw_hand_equipment(self, slot_id, proportions)
 
 
 func _held_item_model(slot_id: String, proportions: Dictionary) -> Dictionary:
-	var normalized_slot := EquipmentSlots.normalize(slot_id)
-	var visual_id := _equipment_layer_id(normalized_slot)
-	if not ItemVisual2D.is_item_visual(visual_id):
-		return {}
-	match visual_id:
-		"placeholder_polearm":
-			return _polearm_item_model(proportions)
-		"placeholder_bow":
-			return _bow_item_model(proportions)
-		_:
-			var item_side := _item_side_for_slot(normalized_slot)
-			var direction := (
-				_weapon_direction()
-				if _visual_uses_dominant_weapon_side(visual_id)
-				else _facing_forward()
-			)
-			return ItemVisual2D.model(
-				visual_id,
-				_hand_position(item_side, proportions),
-				direction,
-				{"color": _equipment_color(normalized_slot)}
-			)
+	return HumanoidHeldItemDrawer.held_item_model(self, slot_id, proportions)
 
 
 func _draw_face(proportions: Dictionary) -> void:
@@ -2107,39 +2067,15 @@ func _current_skin_color() -> Color:
 
 
 func _draw_weapon_grip_hand(center: Vector2, side: float, proportions: Dictionary) -> void:
-	var hand_size := _proportion(proportions, "hand_size")
-	var color := (
-		_equipment_color("gloves") if equipped_visuals.has("gloves") else _current_skin_color()
-	)
-	_draw_mitten(center, 2.55 * hand_size, side, color)
+	HumanoidHeldItemDrawer.draw_weapon_grip_hand(self, center, side, proportions)
 
 
 func _draw_held_item_arm_and_hand(side: float, skin: Color, proportions: Dictionary) -> void:
-	var grip_value: Variant = _held_item_grip_position_for_side(side, proportions)
-	if grip_value == null:
-		return
-	var grip: Vector2 = grip_value
-	var hand_size := _proportion(proportions, "hand_size")
-	var shoulder := _shoulder_anchor(side, proportions)
-	var base_hand := _base_hand_position(side, proportions)
-	var elbow_bias := _body_side_axis() * side * 2.1 * lerpf(1.0, 0.55, _side_turn_amount())
-	var elbow := base_hand.lerp(grip, 0.48) + elbow_bias
-	var arm_color := skin.darkened(0.08)
-	draw_line(shoulder, elbow, OUTLINE, 3.0 * hand_size)
-	draw_line(elbow, grip, OUTLINE, 2.8 * hand_size)
-	draw_line(shoulder, elbow, arm_color, 1.85 * hand_size)
-	draw_line(elbow, grip, arm_color.lightened(0.04), 1.7 * hand_size)
-	_draw_weapon_grip_hand(grip, side, proportions)
+	HumanoidHeldItemDrawer.draw_held_item_arm_and_hand(self, side, skin, proportions)
 
 
 func _held_item_grip_position_for_side(side: float, proportions: Dictionary) -> Variant:
-	var slot_id := _held_item_slot_for_side(side)
-	if slot_id.is_empty():
-		return null
-	var grip_id := _held_item_grip_id_for_side(slot_id, side)
-	if grip_id.is_empty():
-		return null
-	return ItemVisual2D.grip_position(_held_item_model(slot_id, proportions), grip_id)
+	return HumanoidHeldItemDrawer.held_item_grip_position_for_side(self, side, proportions)
 
 
 func _equipment_layer_id(slot_id: String) -> String:
@@ -2148,105 +2084,59 @@ func _equipment_layer_id(slot_id: String) -> String:
 
 
 func _slot_item_grip_sides(slot_id: String) -> Array[float]:
-	var visual_id := _equipment_layer_id(slot_id)
-	var result: Array[float] = []
-	for grip_id in ItemVisual2D.grip_ids(visual_id):
-		var side := _grip_side_for_slot(grip_id, slot_id)
-		if not is_zero_approx(side) and not result.has(side):
-			result.append(side)
-	return result
+	return HumanoidHeldItemDrawer.slot_item_grip_sides(self, slot_id)
 
 
 func _grip_side_for_slot(grip_id: String, slot_id: String) -> float:
-	match grip_id:
-		"front", "bow":
-			return -_dominant_hand_side()
-		"rear", "draw":
-			return _dominant_hand_side()
-		"primary":
-			return _item_side_for_slot(slot_id)
-	return 0.0
+	return HumanoidHeldItemDrawer.grip_side_for_slot(self, grip_id, slot_id)
 
 
 func _hand_is_replaced_by_held_item(side: float) -> bool:
-	return not _held_item_slot_for_side(side).is_empty()
+	return HumanoidHeldItemDrawer.hand_is_replaced_by_held_item(self, side)
 
 
 func _held_item_slot_for_side(side: float) -> String:
-	for slot_id in ["left_hand", "right_hand"]:
-		if _slot_item_grip_sides(slot_id).has(side):
-			return slot_id
-	return ""
+	return HumanoidHeldItemDrawer.held_item_slot_for_side(self, side)
 
 
 func _held_item_grip_id_for_side(slot_id: String, side: float) -> String:
-	var visual_id := _equipment_layer_id(slot_id)
-	for grip_id in ItemVisual2D.grip_ids(visual_id):
-		if is_equal_approx(_grip_side_for_slot(grip_id, slot_id), side):
-			return grip_id
-	return ""
+	return HumanoidHeldItemDrawer.held_item_grip_id_for_side(self, slot_id, side)
 
 
 func _should_draw_held_item_from_side(side: float) -> bool:
-	return not _held_item_draw_slot_for_side(side).is_empty()
+	return HumanoidHeldItemDrawer.should_draw_held_item_from_side(self, side)
 
 
 func _held_item_draw_slot_for_side(side: float) -> String:
-	for slot_id in ["left_hand", "right_hand"]:
-		if not equipped_visuals.has(slot_id):
-			continue
-		if not _slot_item_grip_sides(slot_id).has(side):
-			continue
-		if is_equal_approx(_held_item_draw_side(slot_id), side):
-			return slot_id
-	return ""
+	return HumanoidHeldItemDrawer.held_item_draw_slot_for_side(self, side)
 
 
 func _held_item_draw_side(slot_id: String) -> float:
-	var visual_id := _equipment_layer_id(slot_id)
-	if visual_id == "placeholder_bow":
-		return -_dominant_hand_side()
-	if _visual_uses_dominant_weapon_side(visual_id):
-		return _dominant_hand_side()
-	return _slot_side(slot_id)
+	return HumanoidHeldItemDrawer.held_item_draw_side(self, slot_id)
 
 
 func _item_side_for_slot(slot_id: String) -> float:
-	var visual_id := _equipment_layer_id(slot_id)
-	if visual_id == "placeholder_bow":
-		return -_dominant_hand_side()
-	if _visual_uses_dominant_weapon_side(visual_id):
-		return _dominant_hand_side()
-	return _slot_side(slot_id)
+	return HumanoidHeldItemDrawer.item_side_for_slot(self, slot_id)
 
 
 func _slot_side(slot_id: String) -> float:
-	return -1.0 if EquipmentSlots.normalize(slot_id) == "left_hand" else 1.0
+	return HumanoidHeldItemDrawer.slot_side(slot_id)
 
 
 func _visual_uses_dominant_weapon_side(visual_id: String) -> bool:
-	return visual_id in ["placeholder_hatchet", "placeholder_sword", "placeholder_polearm"]
+	return HumanoidHeldItemDrawer.visual_uses_dominant_weapon_side(visual_id)
 
 
 func _visual_is_primary_weapon(visual_id: String) -> bool:
-	return (
-		visual_id
-		in ["placeholder_hatchet", "placeholder_sword", "placeholder_polearm", "placeholder_bow"]
-	)
+	return HumanoidHeldItemDrawer.visual_is_primary_weapon(visual_id)
 
 
 func _primary_weapon_slot_id() -> String:
-	for slot_id in ["right_hand", "left_hand"]:
-		if _visual_is_primary_weapon(_equipment_layer_id(slot_id)):
-			return slot_id
-	return ""
+	return HumanoidHeldItemDrawer.primary_weapon_slot_id(self)
 
 
 func _primary_weapon_visual_id() -> String:
-	var slot_id := _primary_weapon_slot_id()
-	if slot_id.is_empty():
-		return ""
-	return _equipment_layer_id(slot_id)
+	return HumanoidHeldItemDrawer.primary_weapon_visual_id(self)
 
 
 func _chest_equipment_uses_wrap_style() -> bool:
@@ -2460,206 +2350,67 @@ func _base_hand_position(side: float, proportions: Dictionary) -> Vector2:
 
 
 func _attack_hand_offset(side: float, proportions: Dictionary, base_position: Vector2) -> Vector2:
-	if _is_polearm_item_held():
-		var grip_id := "rear" if is_equal_approx(side, _dominant_hand_side()) else "front"
-		return ItemVisual2D.grip_position(_polearm_item_model(proportions), grip_id) - base_position
-	if _is_bow_item_held():
-		var grip_id := "draw" if is_equal_approx(side, _dominant_hand_side()) else "bow"
-		return ItemVisual2D.grip_position(_bow_item_model(proportions), grip_id) - base_position
-	if not _attack_pose_active():
-		return Vector2.ZERO
-	var progress := _attack_pose_progress()
-	var pulse := sin(progress * PI)
-	var direction := _attack_pose_direction()
-	var side_axis := direction.orthogonal()
-	var shape := _attack_pose_shape()
-	var offset := Vector2.ZERO
-	match shape:
-		"punch":
-			if is_equal_approx(side, _dominant_hand_side()):
-				var eased := _smoothstep(progress)
-				var start := -direction * 2.5 + side_axis * 4.8
-				var peak := direction * 15.5 + side_axis * 2.4
-				var finish := direction * 8.5 - side_axis * 5.4
-				offset = _quadratic_bezier(start, peak, finish, eased)
-				offset += direction * 1.6 * pulse
-		"thrust":
-			if _is_polearm_attack_pose():
-				var grip_id := "rear" if is_equal_approx(side, _dominant_hand_side()) else "front"
-				offset = (
-					ItemVisual2D.grip_position(_polearm_item_model(proportions), grip_id)
-					- base_position
-				)
-			else:
-				var reach := 8.0 if is_equal_approx(side, _dominant_hand_side()) else 3.5
-				offset = direction * reach * pulse
-		"projectile":
-			var draw_amount := _bow_draw_amount()
-			offset = (
-				-direction * (4.0 + 8.5 * draw_amount) - side_axis * 0.8
-				if is_equal_approx(side, _dominant_hand_side())
-				else direction * 4.0
-			)
-		_:
-			if is_equal_approx(side, _dominant_hand_side()):
-				var attack: Dictionary = attack_pose.get("attack", {})
-				var arc := deg_to_rad(float(attack.get("arc_degrees", 110.0)))
-				var angle := direction.angle() + lerpf(-arc * 0.28, arc * 0.28, progress)
-				offset = Vector2.RIGHT.rotated(angle) * (3.0 + 4.5 * pulse)
-	return offset
+	return HumanoidHeldItemDrawer.attack_hand_offset(self, side, proportions, base_position)
 
 
 func _attack_pose_active() -> bool:
-	return bool(attack_pose.get("active", false))
+	return HumanoidHeldItemDrawer.attack_pose_active(self)
 
 
 func _attack_pose_shape() -> String:
-	return String(attack_pose.get("shape", ""))
+	return HumanoidHeldItemDrawer.attack_pose_shape(self)
 
 
 func _attack_pose_progress() -> float:
-	return clampf(float(attack_pose.get("progress", 0.0)), 0.0, 1.0)
+	return HumanoidHeldItemDrawer.attack_pose_progress(self)
 
 
 func _attack_pose_direction() -> Vector2:
-	var value: Variant = attack_pose.get("direction", _facing_forward())
-	if value is Vector2 and value.length() > 0.01:
-		return value.normalized()
-	return _facing_forward()
+	return HumanoidHeldItemDrawer.attack_pose_direction(self)
 
 
 func _weapon_direction() -> Vector2:
-	if not _attack_pose_active():
-		return _facing_forward()
-	var direction := _attack_pose_direction()
-	if _attack_pose_shape() != "swing":
-		return direction
-	var attack: Dictionary = attack_pose.get("attack", {})
-	var arc := deg_to_rad(float(attack.get("arc_degrees", 110.0)))
-	var angle := direction.angle() + lerpf(-arc * 0.5, arc * 0.5, _attack_pose_progress())
-	return Vector2.RIGHT.rotated(angle).normalized()
+	return HumanoidHeldItemDrawer.weapon_direction(self)
 
 
 func _bow_draw_amount() -> float:
-	if not _attack_pose_active() or _attack_pose_shape() != "projectile":
-		return 0.0
-	var progress := _attack_pose_progress()
-	var attack: Dictionary = attack_pose.get("attack", {})
-	if bool(attack.get("released", false)):
-		var charge_ratio := clampf(float(attack.get("charge_ratio", 1.0)), 0.0, 1.0)
-		return charge_ratio * (1.0 - clampf(progress / 0.30, 0.0, 1.0))
-	return progress
+	return HumanoidHeldItemDrawer.bow_draw_amount(self)
 
 
 func _is_polearm_attack_pose() -> bool:
-	if _attack_pose_shape() != "thrust":
-		return false
-	var attack: Dictionary = attack_pose.get("attack", {})
-	var weapon_visual_id := String(attack.get("weapon_visual_id", _primary_weapon_visual_id()))
-	return weapon_visual_id == "placeholder_polearm"
+	return HumanoidHeldItemDrawer.is_polearm_attack_pose(self)
 
 
 func _is_polearm_item_held() -> bool:
-	return _primary_weapon_visual_id() == "placeholder_polearm"
+	return HumanoidHeldItemDrawer.is_polearm_item_held(self)
 
 
 func _is_bow_item_held() -> bool:
-	return _primary_weapon_visual_id() == "placeholder_bow"
+	return HumanoidHeldItemDrawer.is_bow_item_held(self)
 
 
 func _polearm_item_model(proportions: Dictionary) -> Dictionary:
-	var direction := _weapon_direction()
-	var progress := _attack_pose_progress()
-	if not _attack_pose_active() or _attack_pose_shape() != "thrust":
-		progress = 0.0
-	var thrust := sin(progress * PI) * 8.0
-	var shoulder_scale := _proportion(proportions, "shoulder_width")
-	var side_axis := _polearm_hold_side_axis(direction)
-	var grip_side_offset := 2.1 * shoulder_scale
-	var lane_offset := side_axis * (8.2 * shoulder_scale)
-	var rear_target := (
-		_base_hand_position(_dominant_hand_side(), proportions) + lane_offset + direction * thrust
-	)
-	var front_target := (
-		_base_hand_position(-_dominant_hand_side(), proportions)
-		+ lane_offset
-		+ direction * (thrust * 0.65)
-	)
-	var origin_from_rear := rear_target + direction * 6.0 - side_axis * grip_side_offset
-	var origin_from_front := front_target - direction * 10.0 + side_axis * grip_side_offset
-	var origin := origin_from_rear.lerp(origin_from_front, 0.42)
-	var slot_id := _primary_weapon_slot_id()
-	return ItemVisual2D.model(
-		"placeholder_polearm",
-		origin,
-		direction,
-		{
-			"color": _equipment_color(slot_id),
-			"grip_side_offset": grip_side_offset,
-			"side_axis": side_axis
-		}
-	)
+	return HumanoidHeldItemDrawer.polearm_item_model(self, proportions)
 
 
 func _polearm_hold_side_axis(direction: Vector2) -> Vector2:
-	var safe_direction := direction.normalized()
-	if safe_direction.length() <= 0.01:
-		safe_direction = _facing_forward()
-	var side_axis := safe_direction.orthogonal()
-	var wanted_side_axis := _body_side_axis() * _dominant_hand_side()
-	if side_axis.dot(wanted_side_axis) < 0.0:
-		side_axis = -side_axis
-	return side_axis.normalized()
+	return HumanoidHeldItemDrawer.polearm_hold_side_axis(self, direction)
 
 
 func _bow_hold_side_axis(direction: Vector2) -> Vector2:
-	var safe_direction := direction.normalized()
-	if safe_direction.length() <= 0.01:
-		safe_direction = _facing_forward()
-	var side_axis := safe_direction.orthogonal()
-	var wanted_draw_axis := _body_side_axis() * _dominant_hand_side()
-	if (-side_axis).dot(wanted_draw_axis) < 0.0:
-		side_axis = -side_axis
-	return side_axis.normalized()
+	return HumanoidHeldItemDrawer.bow_hold_side_axis(self, direction)
 
 
 func _bow_item_model(proportions: Dictionary) -> Dictionary:
-	var direction := _attack_pose_direction()
-	var side_axis := _bow_hold_side_axis(direction)
-	var origin := _base_hand_position(-_dominant_hand_side(), proportions) + direction * 0.5
-	var attack: Dictionary = attack_pose.get("attack", {})
-	var released := bool(attack.get("released", false))
-	var arrow_visible := (
-		_attack_pose_active()
-		and _attack_pose_shape() == "projectile"
-		and (not released or _attack_pose_progress() < 0.26)
-	)
-	return ItemVisual2D.model(
-		"placeholder_bow",
-		origin,
-		direction,
-		{
-			"color": _equipment_color(_primary_weapon_slot_id()),
-			"draw_amount": _bow_draw_amount(),
-			"arrow_visible": arrow_visible,
-			"side_axis": side_axis
-		}
-	)
+	return HumanoidHeldItemDrawer.bow_item_model(self, proportions)
 
 
 func _smoothstep(value: float) -> float:
-	var safe_value := clampf(value, 0.0, 1.0)
-	return safe_value * safe_value * (3.0 - 2.0 * safe_value)
+	return HumanoidHeldItemDrawer.smooth_step(value)
 
 
 func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float) -> Vector2:
-	var safe_t := clampf(t, 0.0, 1.0)
-	var one_minus_t := 1.0 - safe_t
-	return (
-		start * one_minus_t * one_minus_t
-		+ control * 2.0 * one_minus_t * safe_t
-		+ end * safe_t * safe_t
-	)
+	return HumanoidHeldItemDrawer.quadratic_bezier(start, control, end, t)
 
 
 func _sneak_crouch_offset() -> float:
