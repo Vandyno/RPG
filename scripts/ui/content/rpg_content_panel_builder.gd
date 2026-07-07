@@ -57,53 +57,67 @@ class LayoutRequest:
 static func build(context: BuildContext) -> Dictionary:
 	if not context or not context.root:
 		return {}
-	var root := context.root
-	var new_panel := context.new_panel
-	var add_margin := context.add_margin
-	var new_label := context.new_label
-	var new_button := context.new_button
-	var close_callback := context.close_callback
-	var portrait_style := context.portrait_style
-	var hud_margin := context.hud_margin
-	var panel: PanelContainer = new_panel.call("ContentPanel")
+	var panel := _build_panel_frame(context)
+	var outer := _build_dialogue_row(panel, context.add_margin)
+	var nodes := {"panel": panel}
+	_merge_nodes(nodes, _build_identity_section(outer, context))
+	_merge_nodes(nodes, _build_text_section(outer, context))
+	_merge_nodes(nodes, _build_choice_section(outer, context))
+	_merge_nodes(nodes, _build_preview_section(outer, context))
+	return nodes
+
+
+static func _merge_nodes(target: Dictionary, source: Dictionary) -> void:
+	for key in source:
+		target[key] = source[key]
+
+
+static func _build_panel_frame(context: BuildContext) -> PanelContainer:
+	var panel: PanelContainer = context.new_panel.call("ContentPanel")
 	panel.name = "ContentPanel"
 	panel.anchor_left = 0.0
 	panel.anchor_right = 1.0
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = hud_margin
+	panel.offset_left = context.hud_margin
 	panel.offset_top = -266
-	panel.offset_right = -hud_margin
+	panel.offset_right = -context.hud_margin
 	panel.offset_bottom = -12
 	panel.visible = false
 	panel.z_index = 70
-	root.add_child(panel)
+	context.root.add_child(panel)
+	return panel
 
+
+static func _build_dialogue_row(panel: PanelContainer, add_margin: Callable) -> HBoxContainer:
 	var outer := HBoxContainer.new()
 	outer.name = "ContentDialogueRow"
 	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_theme_constant_override("separation", 8)
 	add_margin.call(panel, outer, 10)
+	return outer
 
-	var identity_panel: PanelContainer = new_panel.call("ContentIdentityPanel")
+
+static func _build_identity_section(outer: HBoxContainer, context: BuildContext) -> Dictionary:
+	var identity_panel: PanelContainer = context.new_panel.call("ContentIdentityPanel")
 	identity_panel.custom_minimum_size = Vector2(188, 0)
 	identity_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	outer.add_child(identity_panel)
 
 	var identity_stack := VBoxContainer.new()
 	identity_stack.add_theme_constant_override("separation", 6)
-	add_margin.call(identity_panel, identity_stack, 10)
+	context.add_margin.call(identity_panel, identity_stack, 10)
 
 	var portrait_panel := Panel.new()
 	portrait_panel.name = "ContentPortrait"
 	portrait_panel.custom_minimum_size = Vector2(70, 70)
 	portrait_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	portrait_panel.visible = true
-	portrait_style.call(portrait_panel)
+	context.portrait_style.call(portrait_panel)
 	identity_stack.add_child(portrait_panel)
 
-	var portrait_label: Label = new_label.call(20)
+	var portrait_label: Label = context.new_label.call(20)
 	portrait_label.name = "ContentPortraitInitials"
 	portrait_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	portrait_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -112,17 +126,26 @@ static func build(context: BuildContext) -> Dictionary:
 	portrait_panel.add_child(portrait_label)
 	_add_portrait_art(portrait_panel)
 
-	var title_label: Label = new_label.call(22)
+	var title_label: Label = context.new_label.call(22)
 	title_label.name = "ContentTitle"
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity_stack.add_child(title_label)
 
-	var kind_label: Label = new_label.call(14)
+	var kind_label: Label = context.new_label.call(14)
 	kind_label.name = "ContentKind"
 	kind_label.add_theme_color_override("font_color", Color(0.86, 0.70, 0.42))
 	identity_stack.add_child(kind_label)
+	return {
+		"identity_panel": identity_panel,
+		"portrait_panel": portrait_panel,
+		"portrait_label": portrait_label,
+		"title_label": title_label,
+		"kind_label": kind_label
+	}
 
-	var text_panel: PanelContainer = new_panel.call("ContentTextPanel")
+
+static func _build_text_section(outer: HBoxContainer, context: BuildContext) -> Dictionary:
+	var text_panel: PanelContainer = context.new_panel.call("ContentTextPanel")
 	text_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	outer.add_child(text_panel)
 
@@ -130,9 +153,9 @@ static func build(context: BuildContext) -> Dictionary:
 	scroll.name = "ContentScroll"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_margin.call(text_panel, scroll, 10)
+	context.add_margin.call(text_panel, scroll, 10)
 
-	var body_label: Label = new_label.call(17)
+	var body_label: Label = context.new_label.call(17)
 	body_label.name = "ContentBody"
 	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body_label.clip_text = true
@@ -140,7 +163,10 @@ static func build(context: BuildContext) -> Dictionary:
 	body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(body_label)
+	return {"text_panel": text_panel, "scroll": scroll, "body_label": body_label}
 
+
+static func _build_choice_section(outer: HBoxContainer, context: BuildContext) -> Dictionary:
 	var right_stack := VBoxContainer.new()
 	right_stack.name = "ContentRightStack"
 	right_stack.custom_minimum_size = Vector2(286, 0)
@@ -148,7 +174,7 @@ static func build(context: BuildContext) -> Dictionary:
 	right_stack.add_theme_constant_override("separation", 8)
 	outer.add_child(right_stack)
 
-	var choice_panel: PanelContainer = new_panel.call("ContentChoicePanel")
+	var choice_panel: PanelContainer = context.new_panel.call("ContentChoicePanel")
 	choice_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_stack.add_child(choice_panel)
 
@@ -157,7 +183,7 @@ static func build(context: BuildContext) -> Dictionary:
 	choice_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choice_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	choice_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	add_margin.call(choice_panel, choice_scroll, 8)
+	context.add_margin.call(choice_panel, choice_scroll, 8)
 
 	var choice_list := VBoxContainer.new()
 	choice_list.name = "ContentChoices"
@@ -165,13 +191,21 @@ static func build(context: BuildContext) -> Dictionary:
 	choice_list.add_theme_constant_override("separation", 6)
 	choice_scroll.add_child(choice_list)
 
-	var close: Button = new_button.call("Leave", Vector2(0, 46))
+	var close: Button = context.new_button.call("Leave", Vector2(0, 46))
 	close.name = "ContentCloseButton"
 	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	close.pressed.connect(close_callback)
+	close.pressed.connect(context.close_callback)
 	right_stack.add_child(close)
+	return {
+		"right_stack": right_stack,
+		"choice_panel": choice_panel,
+		"choice_list": choice_list,
+		"close_button": close
+	}
 
-	var preview_panel: PanelContainer = new_panel.call("ContentPreviewPanel")
+
+static func _build_preview_section(outer: HBoxContainer, context: BuildContext) -> Dictionary:
+	var preview_panel: PanelContainer = context.new_panel.call("ContentPreviewPanel")
 	preview_panel.custom_minimum_size = Vector2(220, 0)
 	preview_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	preview_panel.visible = false
@@ -180,66 +214,52 @@ static func build(context: BuildContext) -> Dictionary:
 	var preview_stack := VBoxContainer.new()
 	preview_stack.name = "ContentPreviewStack"
 	preview_stack.add_theme_constant_override("separation", 7)
-	add_margin.call(preview_panel, preview_stack, 8)
+	context.add_margin.call(preview_panel, preview_stack, 8)
 
-	var preview_title_label: Label = new_label.call(15)
+	var preview_title_label: Label = context.new_label.call(15)
 	preview_title_label.name = "ContentPreviewTitle"
 	preview_title_label.add_theme_color_override("font_color", Color(0.78, 1.0, 0.56))
 	preview_stack.add_child(preview_title_label)
 
-	var preview_label: Label = new_label.call(13)
+	var preview_label: Label = context.new_label.call(13)
 	preview_label.name = "ContentPreview"
 	preview_label.text = "Choose a response or close."
 	preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	preview_label.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	preview_stack.add_child(preview_label)
 
-	var preview_reward_label: Label = new_label.call(13)
+	var preview_reward_label: Label = context.new_label.call(13)
 	preview_reward_label.name = "ContentPreviewRewards"
 	preview_reward_label.add_theme_color_override("font_color", Color(0.96, 0.84, 0.54))
 	preview_stack.add_child(preview_reward_label)
-
 	return {
-		"panel": panel,
-		"identity_panel": identity_panel,
-		"portrait_panel": portrait_panel,
-		"text_panel": text_panel,
-		"right_stack": right_stack,
-		"choice_panel": choice_panel,
 		"preview_panel": preview_panel,
 		"preview_title_label": preview_title_label,
 		"preview_label": preview_label,
-		"preview_reward_label": preview_reward_label,
-		"close_button": close,
-		"portrait_label": portrait_label,
-		"kind_label": kind_label,
-		"title_label": title_label,
-		"scroll": scroll,
-		"body_label": body_label,
-		"choice_list": choice_list
+		"preview_reward_label": preview_reward_label
 	}
 
 
 static func apply_layout(request: LayoutRequest) -> void:
-	if not request:
+	if not request or not request.content_panel:
 		return
+	_apply_panel_frame_layout(request)
+	_place_preview_panel(
+		request.content_panel, request.right_stack, request.preview_panel, request.compact
+	)
+	_apply_text_panel_layout(request)
+	_apply_identity_layout(request)
+	_apply_choice_column_layout(request)
+	_apply_preview_layout(request)
+	_apply_text_sizing(request)
+	_apply_choice_button_sizing(request)
+
+
+static func _apply_panel_frame_layout(request: LayoutRequest) -> void:
 	var content_panel := request.content_panel
-	var identity_panel := request.identity_panel
-	var portrait_panel := request.portrait_panel
-	var right_stack := request.right_stack
-	var choice_panel := request.choice_panel
-	var preview_panel := request.preview_panel
-	var title_label := request.title_label
-	var kind_label := request.kind_label
-	var body_label := request.body_label
-	var preview_title_label := request.preview_title_label
-	var preview_reward_label := request.preview_reward_label
-	var choice_list := request.choice_list
 	var viewport_size := request.viewport_size
 	var compact := request.compact
 	var hud_margin := request.hud_margin
-	if not content_panel:
-		return
 	content_panel.anchor_left = 0.0
 	content_panel.anchor_right = 1.0
 	content_panel.anchor_top = 1.0
@@ -253,70 +273,112 @@ static func apply_layout(request: LayoutRequest) -> void:
 	)
 	if content_panel.offset_top < -viewport_size.y + hud_margin:
 		content_panel.offset_top = -viewport_size.y + hud_margin
-	_place_preview_panel(content_panel, right_stack, preview_panel, compact)
-	var text_panel := content_panel.find_child("ContentTextPanel", true, false) as PanelContainer
-	if text_panel:
-		text_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		text_panel.size_flags_stretch_ratio = 1.0
-	if identity_panel:
-		identity_panel.visible = true
-		identity_panel.custom_minimum_size = Vector2(108, 0) if compact else Vector2(188, 0)
-	if portrait_panel:
-		portrait_panel.visible = true
-		portrait_panel.custom_minimum_size = Vector2(34, 34) if compact else Vector2(70, 70)
+
+
+static func _apply_text_panel_layout(request: LayoutRequest) -> void:
+	var text_panel := (
+		request.content_panel.find_child("ContentTextPanel", true, false) as PanelContainer
+	)
+	if not text_panel:
+		return
+	text_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_panel.size_flags_stretch_ratio = 1.0
+
+
+static func _apply_identity_layout(request: LayoutRequest) -> void:
+	if request.identity_panel:
+		request.identity_panel.visible = true
+		request.identity_panel.custom_minimum_size = (
+			Vector2(108, 0) if request.compact else Vector2(188, 0)
+		)
+	if request.portrait_panel:
+		request.portrait_panel.visible = true
+		request.portrait_panel.custom_minimum_size = (
+			Vector2(34, 34) if request.compact else Vector2(70, 70)
+		)
+
+
+static func _apply_choice_column_layout(request: LayoutRequest) -> void:
+	var choice_panel := request.choice_panel
+	var right_stack := request.right_stack
+	var has_choices := choice_panel and choice_panel.visible
 	if right_stack:
-		var has_choices := choice_panel and choice_panel.visible
 		right_stack.visible = has_choices
 		right_stack.custom_minimum_size = (
-			Vector2(190, 0) if compact else Vector2(286, 0)
-		) if has_choices else Vector2.ZERO
-		right_stack.size_flags_horizontal = (
-			Control.SIZE_EXPAND_FILL if compact and has_choices else Control.SIZE_SHRINK_END
+			(Vector2(190, 0) if request.compact else Vector2(286, 0))
+			if has_choices
+			else Vector2.ZERO
 		)
-		right_stack.size_flags_stretch_ratio = (0.72 if compact else 1.0) if has_choices else 0.0
+		right_stack.size_flags_horizontal = (
+			Control.SIZE_EXPAND_FILL if request.compact and has_choices else Control.SIZE_SHRINK_END
+		)
+		right_stack.size_flags_stretch_ratio = (
+			(0.72 if request.compact else 1.0) if has_choices else 0.0
+		)
 	if choice_panel:
-		choice_panel.custom_minimum_size = Vector2(190, 0) if compact else Vector2(0, 0)
+		choice_panel.custom_minimum_size = Vector2(190, 0) if request.compact else Vector2(0, 0)
 	var choice_scroll := (
 		choice_panel.find_child("ContentChoiceScroll", true, false) as ScrollContainer
 		if choice_panel else null
 	)
 	if choice_scroll:
 		choice_scroll.vertical_scroll_mode = (
-			ScrollContainer.SCROLL_MODE_AUTO if compact else ScrollContainer.SCROLL_MODE_SHOW_NEVER
+			ScrollContainer.SCROLL_MODE_AUTO
+			if request.compact
+			else ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		)
-	if preview_panel:
-		if choice_panel and not choice_panel.visible:
-			preview_panel.visible = false
-		preview_panel.custom_minimum_size = Vector2(190, 30) if compact else Vector2(220, 0)
-		preview_panel.size_flags_vertical = (
-			Control.SIZE_SHRINK_BEGIN if compact else Control.SIZE_EXPAND_FILL
+
+
+static func _apply_preview_layout(request: LayoutRequest) -> void:
+	var preview_panel := request.preview_panel
+	if not preview_panel:
+		return
+	if request.choice_panel and not request.choice_panel.visible:
+		preview_panel.visible = false
+	preview_panel.custom_minimum_size = Vector2(190, 30) if request.compact else Vector2(220, 0)
+	preview_panel.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN if request.compact else Control.SIZE_EXPAND_FILL
+	)
+
+
+static func _apply_text_sizing(request: LayoutRequest) -> void:
+	if request.title_label:
+		request.title_label.add_theme_font_size_override("font_size", 12 if request.compact else 22)
+	if request.kind_label:
+		request.kind_label.add_theme_font_size_override("font_size", 10 if request.compact else 14)
+	if request.body_label:
+		request.body_label.custom_minimum_size = Vector2.ZERO
+		request.body_label.add_theme_font_size_override("font_size", 16 if request.compact else 17)
+	if request.preview_title_label:
+		request.preview_title_label.add_theme_font_size_override(
+			"font_size", 10 if request.compact else 15
 		)
-	if title_label:
-		title_label.add_theme_font_size_override("font_size", 12 if compact else 22)
-	if kind_label:
-		kind_label.add_theme_font_size_override("font_size", 10 if compact else 14)
-	if body_label:
-		body_label.custom_minimum_size = Vector2.ZERO
-		body_label.add_theme_font_size_override("font_size", 16 if compact else 17)
-	if preview_title_label:
-		preview_title_label.add_theme_font_size_override("font_size", 10 if compact else 15)
-	var preview_label := preview_panel.find_child("ContentPreview", true, false) as Label
+	var preview_label := (
+		request.preview_panel.find_child("ContentPreview", true, false) as Label
+		if request.preview_panel else null
+	)
 	if preview_label:
 		preview_label.visible = true
-		preview_label.add_theme_font_size_override("font_size", 10 if compact else 13)
-		if compact:
+		preview_label.add_theme_font_size_override("font_size", 10 if request.compact else 13)
+		if request.compact:
 			preview_label.custom_minimum_size = Vector2(0, 18)
-	if preview_reward_label:
-		preview_reward_label.visible = not compact
-		preview_reward_label.add_theme_font_size_override("font_size", 10 if compact else 13)
-		if compact:
-			preview_reward_label.custom_minimum_size = Vector2.ZERO
-	if choice_list:
-		choice_list.add_theme_constant_override("separation", 4 if compact else 6)
-		for child in choice_list.get_children():
-			if child is Button:
-				child.custom_minimum_size = Vector2(0, 48) if compact else Vector2(0, 46)
-				child.add_theme_font_size_override("font_size", 12 if compact else 14)
+	if request.preview_reward_label:
+		request.preview_reward_label.visible = not request.compact
+		request.preview_reward_label.add_theme_font_size_override(
+			"font_size", 10 if request.compact else 13
+		)
+		if request.compact:
+			request.preview_reward_label.custom_minimum_size = Vector2.ZERO
+
+
+static func _apply_choice_button_sizing(request: LayoutRequest) -> void:
+	if not request.choice_list:
+		return
+	request.choice_list.add_theme_constant_override("separation", 4 if request.compact else 6)
+	for child in request.choice_list.get_children():
+		if child is Button:
+			child.custom_minimum_size = Vector2(0, 48) if request.compact else Vector2(0, 46)
+			child.add_theme_font_size_override("font_size", 12 if request.compact else 14)
 
 
 static func _place_preview_panel(
