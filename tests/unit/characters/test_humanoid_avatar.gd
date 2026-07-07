@@ -7,6 +7,9 @@ const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_item_drawer.gd")
+const HumanoidPeopleFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_people_feature_drawer.gd"
+)
 
 
 class ContentStub:
@@ -490,7 +493,9 @@ func test_avatar_keeps_mirefolk_eyes_in_face_feature_layer() -> void:
 			"appearance": {"feature_ids": ["feature_mirefolk_reed_marks"]}
 		}
 	)
-	var feature_ids := avatar._appearance_feature_ids("people_mirefolk")
+	var feature_ids := HumanoidPeopleFeatureDrawer.appearance_feature_ids(
+		avatar.profile, "people_mirefolk"
+	)
 	var order := avatar.get_debug_draw_layer_order()
 
 	assert_true(feature_ids.has("feature_mirefolk_high_eyes"))
@@ -781,24 +786,30 @@ func test_avatar_reads_variant_feature_ids_with_legacy_fallbacks() -> void:
 		}
 	)
 
-	assert_eq(avatar._appearance_feature_ids("people_tanglekin"), ["feature_tanglekin_brow_tuft"])
+	assert_eq(
+		HumanoidPeopleFeatureDrawer.appearance_feature_ids(avatar.profile, "people_tanglekin"),
+		["feature_tanglekin_brow_tuft"]
+	)
 
 	avatar.setup({"character_id": "char_tuskfolk_preview", "people_id": "people_tuskfolk"})
 
-	assert_eq(avatar._appearance_feature_ids("people_tuskfolk"), ["feature_tusks_broad"])
+	assert_eq(
+		HumanoidPeopleFeatureDrawer.appearance_feature_ids(avatar.profile, "people_tuskfolk"),
+		["feature_tusks_broad"]
+	)
 
 
 func test_avatar_uses_people_specific_head_overlays() -> void:
 	var avatar := HumanoidAvatar2D.new()
 	add_child_autofree(avatar)
 
-	assert_true(avatar._should_draw_hair("people_human"))
-	assert_false(avatar._should_draw_hair("people_ravenfolk"))
-	assert_false(avatar._should_draw_hair("people_mirefolk"))
-	assert_false(avatar._should_draw_generic_face("people_tanglekin"))
-	assert_false(avatar._should_draw_generic_face("people_ravenfolk"))
-	assert_false(avatar._should_draw_generic_face("people_mirefolk"))
-	assert_true(avatar._should_draw_generic_face("people_tuskfolk"))
+	assert_true(HumanoidPeopleFeatureDrawer.should_draw_hair("people_human"))
+	assert_false(HumanoidPeopleFeatureDrawer.should_draw_hair("people_ravenfolk"))
+	assert_false(HumanoidPeopleFeatureDrawer.should_draw_hair("people_mirefolk"))
+	assert_false(HumanoidPeopleFeatureDrawer.should_draw_generic_face("people_tanglekin"))
+	assert_false(HumanoidPeopleFeatureDrawer.should_draw_generic_face("people_ravenfolk"))
+	assert_false(HumanoidPeopleFeatureDrawer.should_draw_generic_face("people_mirefolk"))
+	assert_true(HumanoidPeopleFeatureDrawer.should_draw_generic_face("people_tuskfolk"))
 
 
 func test_avatar_does_not_draw_clothing_from_appearance() -> void:

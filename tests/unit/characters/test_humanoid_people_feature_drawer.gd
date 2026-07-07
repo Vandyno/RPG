@@ -17,11 +17,36 @@ func test_people_feature_drawer_routes_tanglekin_and_ravenfolk_layers() -> void:
 	assert_eq(
 		avatar.calls,
 		[
-			"tanglekin_back:people_tanglekin",
-			"tanglekin_front:people_tanglekin",
-			"ravenfolk_back:people_ravenfolk",
-			"ravenfolk_body:people_ravenfolk",
-			"ravenfolk_front:people_ravenfolk",
+			(
+				"tanglekin_back:"
+				+ "feature_tanglekin_tail,"
+				+ "feature_tanglekin_grasping_hands,"
+				+ "feature_tanglekin_muzzle"
+			),
+			(
+				"tanglekin_front:"
+				+ "feature_tanglekin_tail,"
+				+ "feature_tanglekin_grasping_hands,"
+				+ "feature_tanglekin_muzzle"
+			),
+			(
+				"ravenfolk_back:"
+				+ "feature_ravenfolk_body_feathers,"
+				+ "feature_ravenfolk_head_crest,"
+				+ "feature_ravenfolk_beak"
+			),
+			(
+				"ravenfolk_body:"
+				+ "feature_ravenfolk_body_feathers,"
+				+ "feature_ravenfolk_head_crest,"
+				+ "feature_ravenfolk_beak"
+			),
+			(
+				"ravenfolk_front:"
+				+ "feature_ravenfolk_body_feathers,"
+				+ "feature_ravenfolk_head_crest,"
+				+ "feature_ravenfolk_beak"
+			),
 		]
 	)
 	assert_eq(avatar.last_skin, skin)
@@ -40,19 +65,31 @@ func test_people_feature_drawer_routes_front_only_people_features() -> void:
 	assert_eq(
 		avatar.calls,
 		[
-			"tuskfolk:people_tuskfolk",
-			"mirefolk:people_mirefolk",
-			"rootborn:people_rootborn",
+			"tuskfolk:feature_tusks_broad",
+			"mirefolk:feature_mirefolk_high_eyes",
+			(
+				"rootborn:"
+				+ "feature_rootborn_leaf_crown,"
+				+ "feature_rootborn_bark_marks,"
+				+ "feature_rootborn_branch_crown"
+			),
 		]
 	)
 
 
 func test_debug_layer_entries_use_avatar_feature_layers() -> void:
 	var avatar := PeopleFeatureAvatarStub.new()
+	avatar.profile = {
+		"appearance":
+		{"feature_ids": ["feature_ravenfolk_beak", "feature_ravenfolk_head_crest"]}
+	}
 
 	assert_eq(
 		HumanoidPeopleFeatureDrawer.debug_layer_entries(avatar, "people_ravenfolk", "front"),
-		["people_feature_front:beak", "people_feature_front:crest"]
+		[
+			"people_feature_front:feature_ravenfolk_beak",
+			"people_feature_front:feature_ravenfolk_head_crest"
+		]
 	)
 
 
@@ -63,12 +100,6 @@ class PeopleFeatureAvatarStub:
 	var calls: Array[String] = []
 	var last_skin := Color.TRANSPARENT
 	var last_proportions := {}
-
-	func _appearance_feature_ids(people_id: String) -> Array[String]:
-		return [people_id]
-
-	func _people_feature_layer_ids(_people_id: String, _layer_id: String) -> Array[String]:
-		return ["beak", "crest"]
 
 	func _draw_tanglekin_back_feature(
 		skin: Color, proportions: Dictionary, feature_ids: Array[String]

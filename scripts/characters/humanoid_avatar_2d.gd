@@ -283,13 +283,13 @@ func get_debug_draw_layer_order() -> Array[String]:
 	order.append_array(
 		HumanoidPeopleFeatureDrawer.debug_layer_entries(self, people_id, PEOPLE_FEATURE_LAYER_FRONT)
 	)
-	if _should_draw_hair(people_id):
+	if HumanoidPeopleFeatureDrawer.should_draw_hair(people_id):
 		order.append("hair")
 	if equipped_visuals.has("head"):
 		order.append("equipment:head")
 	if _should_draw_marking(String(appearance.get("marking_id", ""))):
 		order.append("marking")
-	if _should_draw_generic_face(people_id):
+	if HumanoidPeopleFeatureDrawer.should_draw_generic_face(people_id):
 		order.append("face:generic")
 	return order
 
@@ -363,11 +363,11 @@ func _draw() -> void:
 	_draw_hand_layer(skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	_draw_head(skin, proportions)
 	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
-	if _should_draw_hair(people_id):
+	if HumanoidPeopleFeatureDrawer.should_draw_hair(people_id):
 		_draw_hair(hair_id, hair, proportions)
 	HumanoidEquipmentDrawer.draw_head_layer(self, proportions)
 	_draw_marking(String(appearance.get("marking_id", "")), skin, proportions)
-	if _should_draw_generic_face(people_id):
+	if HumanoidPeopleFeatureDrawer.should_draw_generic_face(people_id):
 		_draw_face(proportions)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -2082,82 +2082,6 @@ func _append_debug_hand_layer(
 			order.append("equipment:gloves:%s" % slot_id)
 		if equipped_visuals.has(slot_id):
 			order.append("equipment:%s" % slot_id)
-
-
-func _people_feature_layer_ids(people_id: String, layer_id: String) -> Array[String]:
-	var source_ids := _appearance_feature_ids(people_id)
-	var result: Array[String] = []
-	for feature_id in source_ids:
-		if people_id == "people_tanglekin":
-			if layer_id == PEOPLE_FEATURE_LAYER_BACK and feature_id == "feature_tanglekin_tail":
-				result.append(feature_id)
-			elif layer_id == PEOPLE_FEATURE_LAYER_FRONT and feature_id != "feature_tanglekin_tail":
-				result.append(feature_id)
-		elif people_id == "people_ravenfolk":
-			if (
-				layer_id == PEOPLE_FEATURE_LAYER_BACK
-				and feature_id == "feature_ravenfolk_tail_feathers"
-			):
-				result.append(feature_id)
-			elif (
-				layer_id == PEOPLE_FEATURE_LAYER_BODY
-				and feature_id == "feature_ravenfolk_body_feathers"
-			):
-				result.append(feature_id)
-			elif (
-				layer_id == PEOPLE_FEATURE_LAYER_FRONT
-				and (
-					feature_id
-					in [
-						"feature_ravenfolk_head_crest",
-						"feature_ravenfolk_beak",
-						"feature_ravenfolk_quill_marks"
-					]
-				)
-			):
-				result.append(feature_id)
-		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			result.append(feature_id)
-	return result
-
-
-func _appearance_feature_ids(people_id: String) -> Array[String]:
-	var appearance: Dictionary = profile.get("appearance", {})
-	var feature_ids := HumanoidProfile.string_array(appearance.get("feature_ids", []))
-	if people_id == "people_mirefolk" and not feature_ids.has("feature_mirefolk_high_eyes"):
-		feature_ids.append("feature_mirefolk_high_eyes")
-	if not feature_ids.is_empty():
-		return feature_ids
-	var defaults := {
-		"people_tanglekin":
-		["feature_tanglekin_tail", "feature_tanglekin_grasping_hands", "feature_tanglekin_muzzle"],
-		"people_tuskfolk": ["feature_tusks_broad"],
-		"people_mirefolk": ["feature_mirefolk_high_eyes"],
-		"people_ravenfolk":
-		[
-			"feature_ravenfolk_body_feathers",
-			"feature_ravenfolk_head_crest",
-			"feature_ravenfolk_beak"
-		],
-		"people_rootborn":
-		[
-			"feature_rootborn_leaf_crown",
-			"feature_rootborn_bark_marks",
-			"feature_rootborn_branch_crown"
-		]
-	}
-	var fallback: Array[String] = []
-	for feature_id in defaults.get(people_id, []):
-		fallback.append(str(feature_id))
-	return fallback
-
-
-func _should_draw_hair(people_id: String) -> bool:
-	return people_id == "people_human"
-
-
-func _should_draw_generic_face(people_id: String) -> bool:
-	return not ["people_tanglekin", "people_mirefolk", "people_ravenfolk"].has(people_id)
 
 
 func _draw_oval(rect: Rect2, color: Color) -> void:
