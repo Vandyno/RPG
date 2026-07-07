@@ -69,6 +69,7 @@ var systems_category_row: HFlowContainer
 var systems_item_list: VBoxContainer
 var systems_selected_row_id := ""
 var systems_active_category := "all"
+var systems_transfer_render_key := ""
 var content_identity_panel: PanelContainer
 var content_portrait_panel: Panel
 var content_portrait_label: Label
@@ -736,6 +737,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	if systems_active_tab == "inventory" and bool(transfer.get("open", false)):
 		_refresh_transfer_rows(state, transfer)
 		return
+	systems_transfer_render_key = ""
 	RpgSystemsRowPresentation.clear_non_button_children(systems_item_list)
 	var rows := RpgSystemsRowBuilder.rows(
 		state, systems_active_tab, message_log, systems_active_category
@@ -749,6 +751,14 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 
 func _refresh_transfer_rows(state: Dictionary, transfer: Dictionary) -> void:
 	_refresh_category_row(systems_active_tab)
+	var render_key := JSON.stringify({
+		"category": systems_active_category,
+		"compact": _is_compact_systems_layout(),
+		"transfer": transfer
+	})
+	if render_key == systems_transfer_render_key and systems_item_list.get_child_count() > 0:
+		_refresh_transfer_detail_text(transfer)
+		return
 	var request := RpgTransferPaneBuilder.RefreshRequest.new()
 	request.container = systems_item_list
 	request.state = state
@@ -757,7 +767,12 @@ func _refresh_transfer_rows(state: Dictionary, transfer: Dictionary) -> void:
 		inventory_item_selected.emit(action_id)
 	request.compact = _is_compact_systems_layout()
 	RpgTransferPaneBuilder.refresh(request)
+	systems_transfer_render_key = render_key
 	systems_selected_row_id = ""
+	_refresh_transfer_detail_text(transfer)
+
+
+func _refresh_transfer_detail_text(transfer: Dictionary) -> void:
 	var target: Dictionary = transfer.get("target", {})
 	if systems_detail_label:
 		systems_detail_label.text = "Move items between your inventory and %s." % String(

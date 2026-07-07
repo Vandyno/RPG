@@ -13,14 +13,12 @@ func _verify() -> void:
 	root.size = Vector2i(1152, 648)
 	var main := Main.new()
 	root.add_child(main)
-	await process_frame
-	await process_frame
+	await _settle(main)
 	main.inventory.add_item("item_hunting_bow", 1)
 	main.inventory.add_item("item_training_sword", 1)
 
 	_open_body_transfer(main)
-	await process_frame
-	await process_frame
+	await _settle(main)
 
 	var body_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
@@ -58,15 +56,14 @@ func _verify() -> void:
 		return
 
 	main.hud.hide_systems_panel()
-	await process_frame
+	await _settle(main)
 	if not main.active_transfer_owner_id.is_empty():
 		printerr("Closing transfer did not clear active transfer owner.")
 		quit(1)
 		return
 
 	_open_cache_transfer(main)
-	await process_frame
-	await process_frame
+	await _settle(main)
 	var cache_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
@@ -106,10 +103,9 @@ func _verify() -> void:
 		return
 
 	main.hud.hide_systems_panel()
-	await process_frame
+	await _settle(main)
 	_open_people_body_transfer(main)
-	await process_frame
-	await process_frame
+	await _settle(main)
 	var people_body_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
@@ -231,7 +227,62 @@ func _button_named(parent: Node, button_name: String) -> Button:
 	return null
 
 
-func _push_button_click(button: Button) -> void:
-	button.button_down.emit()
-	button.pressed.emit()
+func _settle(main) -> void:
+	if main.hud:
+		main.hud._apply_layout_for_size(Vector2(root.size))
+		main.hud.refresh()
 	await process_frame
+	await process_frame
+
+
+func _push_button_click(button: Button) -> void:
+	var button_name := String(button.name)
+	await _reveal_button(button)
+	button = _button_named(root, button_name)
+	if not button:
+		return
+	var viewport: Viewport = button.get_viewport()
+	var position := button.get_global_rect().get_center()
+	await _push_motion(viewport, position)
+	button = _button_named(root, button_name)
+	if button:
+		viewport = button.get_viewport()
+		position = button.get_global_rect().get_center()
+
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.pressed = true
+	press.position = position
+	press.global_position = position
+	viewport.push_input(press, true)
+	await process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.button_mask = 0
+	release.pressed = false
+	release.position = position
+	release.global_position = position
+	viewport.push_input(release, true)
+	await process_frame
+
+
+func _push_motion(viewport: Viewport, position: Vector2) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = position
+	motion.global_position = position
+	motion.button_mask = 0
+	viewport.push_input(motion)
+	await process_frame
+
+
+func _reveal_button(button: Button) -> void:
+	var parent := button.get_parent()
+	while parent:
+		if parent is ScrollContainer:
+			parent.ensure_control_visible(button)
+			await process_frame
+			await process_frame
+			return
+		parent = parent.get_parent()
