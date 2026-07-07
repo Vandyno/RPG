@@ -734,36 +734,50 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	var inventory_tab := SystemsTabState.inventory(state)
 	var transfer: Dictionary = inventory_tab.get("transfer", {})
 	if systems_active_tab == "inventory" and bool(transfer.get("open", false)):
-		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-		var target: Dictionary = transfer.get("target", {})
-		_refresh_category_row(systems_active_tab)
-		var request := RpgTransferPaneBuilder.RefreshRequest.new()
-		request.container = systems_item_list
-		request.state = state
-		request.category = systems_active_category
-		request.action_selected = func(action_id: String) -> void:
-			inventory_item_selected.emit(action_id)
-		request.compact = compact
-		RpgTransferPaneBuilder.refresh(request)
-		systems_selected_row_id = ""
-		systems_detail_label.text = "Move items between your inventory and %s." % String(
-			target.get("name", "container")
-		)
+		_refresh_transfer_rows(state, transfer)
 		return
 	RpgSystemsRowPresentation.clear_non_button_children(systems_item_list)
 	var rows := RpgSystemsRowBuilder.rows(
 		state, systems_active_tab, message_log, systems_active_category
 	)
-	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	_refresh_category_row(systems_active_tab)
+	_sync_selected_systems_row(rows)
+	_apply_systems_row_buttons(rows, _is_compact_systems_layout())
+	_hide_unused_systems_rows(rows.size())
+	_refresh_systems_detail_text(state, rows)
+
+
+func _refresh_transfer_rows(state: Dictionary, transfer: Dictionary) -> void:
+	_refresh_category_row(systems_active_tab)
+	var request := RpgTransferPaneBuilder.RefreshRequest.new()
+	request.container = systems_item_list
+	request.state = state
+	request.category = systems_active_category
+	request.action_selected = func(action_id: String) -> void:
+		inventory_item_selected.emit(action_id)
+	request.compact = _is_compact_systems_layout()
+	RpgTransferPaneBuilder.refresh(request)
+	systems_selected_row_id = ""
+	var target: Dictionary = transfer.get("target", {})
+	if systems_detail_label:
+		systems_detail_label.text = "Move items between your inventory and %s." % String(
+			target.get("name", "container")
+		)
+
+
+func _sync_selected_systems_row(rows: Array) -> void:
 	if not RpgSystemsRowPresentation.has_id(rows, systems_selected_row_id):
 		systems_selected_row_id = String(rows[0].get("id", "")) if not rows.is_empty() else ""
+
+
+func _apply_systems_row_buttons(rows: Array, compact: bool) -> void:
 	for index in range(rows.size()):
-		var row := rows[index]
+		var row: Dictionary = rows[index]
 		var button := _systems_row_button(index)
 		button.name = "SystemsRow_%s" % String(row.get("id", "")).to_pascal_case()
 		button.text = RpgSystemsRowPresentation.button_text(row)
-		button.clip_text = false; button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.clip_text = false
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.y = 82 if compact else 68
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -780,8 +794,16 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		button.set_meta("spell_id", String(row.get("spell_id", "")))
 		button.set_meta("equipment_slot", String(row.get("equipment_slot", "")))
 		button.visible = true
-	for index in range(rows.size(), systems_item_list.get_child_count()):
+
+
+func _hide_unused_systems_rows(visible_count: int) -> void:
+	for index in range(visible_count, systems_item_list.get_child_count()):
 		systems_item_list.get_child(index).visible = false
+
+
+func _refresh_systems_detail_text(state: Dictionary, rows: Array) -> void:
+	if not systems_detail_label:
+		return
 	if rows.is_empty():
 		var empty := _new_label(15)
 		empty.name = "SystemsEmptyRow"
@@ -792,6 +814,12 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 	else:
 		var selected_row := RpgSystemsRowPresentation.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
+
+
+func _is_compact_systems_layout() -> bool:
+	return applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+
+
 func _systems_row_button(index: int) -> Button:
 	if index < systems_item_list.get_child_count():
 		var existing := systems_item_list.get_child(index)
