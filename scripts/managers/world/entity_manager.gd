@@ -65,6 +65,8 @@ func spawn_all() -> void:
 		_spawn_entry(runtime_entities_by_id[entity_id])
 
 
+## Returns the spawned WorldEntity, or null when the entry has no valid id/tile
+## or is outside spawn rules.
 func add_runtime_entity(entry: Dictionary) -> WorldEntity:
 	var entity_id := String(entry.get("id", ""))
 	if entity_id.is_empty() or not _has_valid_tile(entry):
@@ -89,6 +91,7 @@ func remove_entity(entity_id: String) -> void:
 	entity.free()
 
 
+## Returns the nearest interactable WorldEntity, or null when none is in tile range.
 func get_nearest_interactable(player_tile: Vector2i, max_distance: int = 1) -> WorldEntity:
 	var interactables := []
 	for entity_id in entities_by_id:
@@ -104,6 +107,7 @@ func get_nearest_interactable(player_tile: Vector2i, max_distance: int = 1) -> W
 	return interactables[0]["entity"] as WorldEntity
 
 
+## Returns the nearest interactable WorldEntity, or null when none is in pixel range.
 func get_nearest_interactable_world(
 	world_position: Vector2, max_distance_pixels: float = DEFAULT_INTERACTION_RADIUS_PIXELS
 ) -> WorldEntity:
@@ -113,6 +117,7 @@ func get_nearest_interactable_world(
 	return interactables[0] as WorldEntity
 
 
+## Returns the picked interactable WorldEntity, or null when no hit is within the pick radius.
 func get_interactable_at_world(
 	world_position: Vector2, pick_radius_pixels: float = 28.0
 ) -> WorldEntity:
@@ -227,6 +232,7 @@ func set_quest_markers(markers_by_entity_id: Dictionary) -> void:
 			entity.set_quest_marker(false)
 
 
+## Returns the live WorldEntity for entity_id, or null when it is not currently spawned.
 func get_entity(entity_id: String) -> WorldEntity:
 	return entities_by_id.get(entity_id) as WorldEntity
 
