@@ -2,6 +2,7 @@ class_name HumanoidRoleAccent2D
 extends RefCounted
 
 const StableHash = preload("res://scripts/core/stable_hash.gd")
+const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 
 const OUTLINE := Color(0.045, 0.035, 0.025, 0.95)
 const COLORS := {
@@ -141,9 +142,9 @@ static func draw(
 	if accent_id.is_empty():
 		return
 	var color := _accent_color(accent_id, appearance)
-	var torso_width := 15.0 * _proportion(proportions, "torso_width")
-	var shoulder_width := 18.0 * _proportion(proportions, "shoulder_width")
-	var waist_width := 14.0 * _proportion(proportions, "waist_width")
+	var torso_width := 15.0 * HumanoidProfile.proportion_value(proportions, "torso_width")
+	var shoulder_width := 18.0 * HumanoidProfile.proportion_value(proportions, "shoulder_width")
+	var waist_width := 14.0 * HumanoidProfile.proportion_value(proportions, "waist_width")
 	match accent_id:
 		"accent_worker_apron":
 			_draw_worker_apron(canvas, torso_x, torso_width, color)
@@ -290,9 +291,3 @@ static func _accent_color(accent_id: String, appearance: Dictionary = {}) -> Col
 		blend = 0.30
 	return base.lerp(tint, blend)
 
-
-static func _proportion(proportions: Dictionary, field_id: String) -> float:
-	var value: Variant = proportions.get(field_id, 1.0)
-	if not (value is int or value is float):
-		return 1.0
-	return clampf(float(value), 0.65, 1.45)

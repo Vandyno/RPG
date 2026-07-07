@@ -96,3 +96,18 @@ func test_profile_preserves_left_handedness() -> void:
 	var profile := HumanoidProfile.from_data({"character_id": "char_left", "handedness": "left"})
 
 	assert_eq(profile["handedness"], "left")
+
+
+func test_proportion_value_defaults_and_clamps_render_inputs() -> void:
+	var proportions := {
+		"shoulder_width": 1.2,
+		"head_size": "large",
+		"hand_size": 3.0,
+		"foot_size": 0.2
+	}
+
+	assert_eq(HumanoidProfile.proportion_value(proportions, "shoulder_width"), 1.2)
+	assert_eq(HumanoidProfile.proportion_value(proportions, "head_size"), 1.0)
+	assert_eq(HumanoidProfile.proportion_value(proportions, "missing"), 1.0)
+	assert_eq(HumanoidProfile.proportion_value(proportions, "hand_size"), 1.45)
+	assert_eq(HumanoidProfile.proportion_value(proportions, "foot_size"), 0.65)

@@ -2628,10 +2628,7 @@ func _tuskfolk_side_tusk_points(head_size: float, tusk_length: float) -> PackedV
 
 
 func _proportion(proportions: Dictionary, field_id: String) -> float:
-	var value: Variant = proportions.get(field_id, 1.0)
-	if not (value is int or value is float):
-		return 1.0
-	return clampf(float(value), HumanoidProfile.MIN_PROPORTION, HumanoidProfile.MAX_PROPORTION)
+	return HumanoidProfile.proportion_value(proportions, field_id)
 
 
 func _hair_color(hair_id: String) -> Color:

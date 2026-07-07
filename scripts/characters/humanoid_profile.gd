@@ -90,6 +90,10 @@ static func proportions_from_data(value: Variant) -> Dictionary:
 	return proportions
 
 
+static func proportion_value(proportions: Dictionary, field_id: String) -> float:
+	return _bounded_float(proportions.get(field_id, 1.0), 1.0, MIN_PROPORTION, MAX_PROPORTION)
+
+
 static func validate(profile: Dictionary, owner: String) -> Array[String]:
 	var errors: Array[String] = []
 	var character_id := String(profile.get("character_id", ""))
