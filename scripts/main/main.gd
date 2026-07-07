@@ -153,6 +153,16 @@ func _action_list_context() -> MainContextActions.ActionListContext:
 			"world_state": world_state
 		}
 	)
+
+
+func _preferred_primary_context_action() -> Dictionary:
+	return MainContextActions.preferred_primary(_action_list_context(), _get_nearby_entity())
+
+
+func _handle_target_entity_intent(entity_id: String) -> void:
+	MainInputRouter.target_entity(MainInputRouter.context(self), entity_id)
+
+
 func _bootstrap() -> bool:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"

@@ -2,7 +2,6 @@ class_name MainSystemsActions
 extends RefCounted
 
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
-const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
@@ -53,8 +52,7 @@ class SystemsActionContext:
 		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
 		_save_requested = Callable(main, "_handle_save_requested")
-		_target_entity = func(target_id: String) -> void:
-			MainInputRouter.target_entity(MainInputRouter.context(main), target_id)
+		_target_entity = Callable(main, "_handle_target_entity_intent")
 		_update_nearby = Callable(main, "_update_nearby")
 
 	func hide_systems_panel() -> void:
@@ -179,7 +177,7 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 		"wait":
 			_handle_wait_action(ctx, target_id.to_int())
 		"target":
-			ctx._target_entity.call(target_id)
+			_handle_target_entity(ctx, target_id)
 		"save":
 			ctx._save_requested.call()
 		"load":
@@ -398,6 +396,14 @@ static func _handle_sell_item(ctx: SystemsActionContext, item_id: String) -> voi
 		else {"ok": false, "message": "Could not sell that.", "refresh": "hud"}
 	)
 	ctx.post_result(result)
+
+
+static func _handle_target_entity(ctx: SystemsActionContext, entity_id: String) -> void:
+	if ctx._target_entity.is_valid():
+		ctx._target_entity.call(entity_id)
+		return
+	ctx.post_message("Target is no longer available.")
+	ctx.refresh_hud()
 
 
 static func _perform_weapon_attack(

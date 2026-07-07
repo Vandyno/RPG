@@ -2,7 +2,6 @@
 class_name MainInputRouter
 extends RefCounted
 
-const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
 const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
@@ -34,6 +33,7 @@ class InputContext:
 	var handle_save_requested: Callable
 	var index_of_target_id: Callable
 	var interact: Callable
+	var preferred_primary_action: Callable
 	var refresh_hud: Callable
 
 	func _init(main) -> void:
@@ -58,6 +58,7 @@ class InputContext:
 		handle_save_requested = Callable(main, "_handle_save_requested")
 		index_of_target_id = Callable(main, "_index_of_target_id")
 		interact = Callable(main, "_interact")
+		preferred_primary_action = Callable(main, "_preferred_primary_context_action")
 		refresh_hud = Callable(main, "_refresh_hud")
 
 
@@ -169,9 +170,7 @@ static func handle_interact_requested(source) -> void:
 		ctx.hud.hide_target_picker()
 	elif ctx.close_open_overlay_panel.call():
 		return
-	var preferred: Dictionary = MainContextActions.preferred_primary(
-		MainContextActions.action_list_context(ctx), ctx.get_nearby_entity.call()
-	)
+	var preferred := _preferred_primary_action(ctx)
 	if not preferred.is_empty():
 		ctx.handle_context_action_selected.call(String(preferred.get("id", "")))
 		return
@@ -273,6 +272,13 @@ static func _input_context(source) -> InputContext:
 
 static func _screen_to_world(ctx: InputContext, screen_position: Vector2) -> Vector2:
 	return ctx.get_viewport.call().get_canvas_transform().affine_inverse() * screen_position
+
+
+static func _preferred_primary_action(ctx: InputContext) -> Dictionary:
+	if not ctx.preferred_primary_action.is_valid():
+		return {}
+	var action: Variant = ctx.preferred_primary_action.call()
+	return action if action is Dictionary else {}
 
 
 static func _begin_auto_interaction(ctx: InputContext, entity, _distance: float) -> void:
