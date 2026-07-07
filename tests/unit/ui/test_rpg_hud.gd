@@ -9,6 +9,7 @@ const RpgInventoryItemButton = preload(
 )
 const RpgAimJoystick = preload("res://scripts/ui/controls/input/rpg_aim_joystick.gd")
 const RpgSpellSlot = preload("res://scripts/ui/controls/slots/rpg_spell_slot.gd")
+const HudClickHelper = preload("res://tests/unit/ui/hud_click_helper.gd")
 
 var _hud_state_override := {}
 
@@ -81,16 +82,16 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
-	_press_nav(hud, "Quests")
+	await _press_nav(hud, "Quests")
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "quests")
 
-	_press_nav(hud, "Journal")
+	await _press_nav(hud, "Journal")
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.get_systems_tab(), "journal")
 
 	hud.hide_systems_panel()
-	_press_nav(hud, "Menu")
+	await _press_nav(hud, "Menu")
 	assert_true(hud.is_systems_panel_visible())
 
 func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
@@ -137,7 +138,7 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	emitted.clear()
 	var slot_2 := hud.systems_spell_slot_buttons["ability_2"] as RpgSpellSlot
 	assert_not_null(slot_2)
-	slot_2.pressed.emit()
+	await HudClickHelper.click(slot_2, get_tree())
 	assert_eq(emitted, ["assign_spell:spell_fire_blast:ability_2"])
 
 	hud.refresh()
@@ -165,7 +166,7 @@ func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	assert_true(hud.move_pad.visible)
 
 	assert_eq(hud.target_action_button.text, "Sneak")
-	hud.target_action_button.pressed.emit()
+	await HudClickHelper.click(hud.target_action_button, get_tree())
 	assert_eq(sneak_events, ["sneak"])
 	assert_false(hud.is_target_picker_visible())
 	assert_true(hud.action_buttons.visible)
@@ -256,10 +257,10 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_null(utility_stack.find_child("TargetButton", true, false))
 	assert_eq(hud.target_action_button, sneak)
 
-	weapon_swap.pressed.emit()
+	await HudClickHelper.click(weapon_swap, get_tree())
 	assert_eq(utility_events, ["swap_mainhand:weapon"])
 	assert_false(hud.is_systems_panel_visible())
-	menu.pressed.emit()
+	await HudClickHelper.click(menu, get_tree())
 	assert_true(hud.is_systems_panel_visible())
 
 	hud.hide_systems_panel()
@@ -270,7 +271,7 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_eq(aim_events[0]["direction"], Vector2.RIGHT)
 	assert_eq(interact_events, [])
 
-	sneak.pressed.emit()
+	await HudClickHelper.click(sneak, get_tree())
 	assert_eq(sneak_events, ["sneak"])
 	assert_eq(cycle_events, [])
 	assert_false(hud.is_target_picker_visible())
@@ -334,7 +335,7 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_true(accept.text.contains("Dialogue"))
 	assert_gte(accept.custom_minimum_size.x, 104.0)
 	assert_gte(accept.custom_minimum_size.y, 44.0)
-	accept.pressed.emit()
+	await HudClickHelper.click(accept, get_tree())
 	assert_eq(context_actions, ["dialogue:accept"])
 
 	hud._refresh_context_actions({"combat_actions": [{"id": "guard", "text": "Guard"}]})
@@ -399,7 +400,7 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_true(accept_button.text.contains("Starts quest"))
 	assert_true((accept_button as Button).text.contains("\n"))
 
-	ask_button.pressed.emit()
+	await HudClickHelper.click(ask_button, get_tree())
 	assert_eq(selected_choices, ["ask_tools"])
 
 	var close_events: Array[String] = []
@@ -410,7 +411,7 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_false(close_button.visible)
 	var leave_button := _button_containing(hud.content_choice_list, "Leave")
 	assert_not_null(leave_button)
-	leave_button.pressed.emit()
+	await HudClickHelper.click(leave_button, get_tree())
 	assert_false(hud.is_content_card_visible())
 	assert_true(hud.move_pad.visible)
 	assert_true(hud.action_buttons.visible)
@@ -494,19 +495,19 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(equipment_row.text.contains("Weapon: Road Hatchet"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Use Roadside Draught"))
 
-	_press_category(hud, "Weapons")
+	await _press_category(hud, "Weapons")
 	var weapon_hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
 	assert_not_null(weapon_hatchet_row)
 	assert_eq(weapon_hatchet_row.get_meta("item_id"), "item_road_hatchet")
 	assert_eq(weapon_hatchet_row.get_meta("equipment_slot"), "right_hand")
 	assert_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
-	_press_category(hud, "Armour")
+	await _press_category(hud, "Armour")
 	assert_not_null(_button_containing(hud.systems_item_list, "Traveler Buckler"))
-	_press_category(hud, "Ingredients")
+	await _press_category(hud, "Ingredients")
 	assert_not_null(_button_containing(hud.systems_item_list, "River Mint"))
-	_press_category(hud, "Misc")
+	await _press_category(hud, "Misc")
 	assert_not_null(_button_containing(hud.systems_item_list, "Roadside Draught"))
-	_press_category(hud, "Quest")
+	await _press_category(hud, "Quest")
 	assert_not_null(_button_containing(hud.systems_item_list, "Old Toolbox"))
 	assert_null(_button_containing(hud.systems_item_list, "Road Hatchet"))
 
@@ -533,11 +534,11 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
 	var time_summary := hud.systems_item_list.find_child("SystemsRow_JournalTime", false, false)
 	assert_true(time_summary == null or not time_summary.visible)
-	_press_category(hud, "Factions")
+	await _press_category(hud, "Factions")
 	assert_not_null(_button_containing(hud.systems_item_list, "Reputation"))
-	_press_category(hud, "Time")
+	await _press_category(hud, "Time")
 	assert_not_null(_button_containing(hud.systems_item_list, "Wait 1h"))
-	_press_category(hud, "System")
+	await _press_category(hud, "System")
 	assert_not_null(_button_containing(hud.systems_action_list, "Save Game"))
 	assert_not_null(_button_containing(hud.systems_action_list, "Load Game"))
 
@@ -554,7 +555,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_null(_button_containing(hud.systems_item_list, "Nothing to Sell"))
 	assert_true(hud.systems_detail_label.text.contains("Buy offer"))
 	assert_true(hud.systems_detail_label.text.contains("Tap this row to buy."))
-	_press_category(hud, "Sell")
+	await _press_category(hud, "Sell")
 	assert_not_null(_button_containing(hud.systems_item_list, "Nothing to Sell"))
 	assert_false(hud.systems_detail_equipment_panel.visible)
 
@@ -567,7 +568,7 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_detail_label.text.contains("Current Health"))
 	assert_false(training_row.text.contains("Training    Progression"))
 	assert_true(training_row.text.contains("Progression - "))
-	_press_category(hud, "Gear")
+	await _press_category(hud, "Gear")
 	assert_null(_button_containing(hud.systems_item_list, "Training"))
 	assert_not_null(_button_containing(hud.systems_item_list, "Equipment"))
 	assert_true(hud.systems_detail_label.text.contains("Drag gear onto body slots"))
@@ -613,7 +614,7 @@ func test_inventory_rows_do_not_invent_missing_item_actions() -> void:
 	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
 	assert_not_null(hatchet_row)
 	assert_eq(String(hatchet_row.get_meta("action_id", "")), "")
-	hatchet_row.pressed.emit()
+	await HudClickHelper.click(hatchet_row, get_tree())
 	assert_true(emitted.is_empty())
 
 
@@ -644,12 +645,10 @@ func test_transfer_rows_emit_after_completed_click() -> void:
 	) as Button
 	assert_not_null(take_gold)
 
-	take_gold.button_down.emit()
-	await get_tree().process_frame
+	await HudClickHelper.mouse_down(take_gold, get_tree())
 	assert_true(emitted.is_empty())
 
-	take_gold.pressed.emit()
-	await get_tree().process_frame
+	await HudClickHelper.mouse_up(take_gold, get_tree())
 	assert_eq(emitted, ["take:item_gold_coin"])
 
 
@@ -1009,13 +1008,13 @@ func _button_texts(parent: Node) -> Array:
 func _press_nav(hud: RpgHud, text: String) -> void:
 	var button := _button_containing(hud.top_nav_buttons, text)
 	assert_not_null(button)
-	button.pressed.emit()
+	await HudClickHelper.click(button, get_tree())
 
 
 func _press_category(hud: RpgHud, text: String) -> void:
 	var button := _button_containing(hud.systems_category_row, text)
 	assert_not_null(button)
-	button.pressed.emit()
+	await HudClickHelper.click(button, get_tree())
 
 
 func _button_containing(parent: Node, text: String) -> Button:
