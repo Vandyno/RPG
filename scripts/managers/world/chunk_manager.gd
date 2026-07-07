@@ -10,21 +10,26 @@ var authored_areas: Array[Dictionary] = []
 var modified_chunks: Dictionary = {}
 
 
-func load_authored_terrain(path: String) -> void:
+func load_world_terrain(terrain: Dictionary) -> void:
 	authored_areas.clear()
-	if not FileAccess.file_exists(path):
-		push_warning("Missing authored terrain file: %s" % path)
-		return
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not parsed is Dictionary:
-		push_warning("Expected dictionary JSON at %s" % path)
-		return
-	for area_value in _array_field(parsed.get("areas", [])):
+	for area_value in _array_field(terrain.get("areas", [])):
 		if not area_value is Dictionary:
 			continue
 		var area := _sanitized_area(area_value)
 		if not area.is_empty():
 			authored_areas.append(area)
+
+
+func load_authored_terrain(path: String) -> Array[String]:
+	if not FileAccess.file_exists(path):
+		authored_areas.clear()
+		return ["Missing authored terrain file: %s" % path]
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not parsed is Dictionary:
+		authored_areas.clear()
+		return ["Expected dictionary JSON at %s" % path]
+	load_world_terrain(parsed)
+	return []
 
 
 func get_chunk_data(chunk_coord: Vector2i, layer: String = "surface") -> Dictionary:
