@@ -1,7 +1,6 @@
 extends GutTest
 
 const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
-const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
 
 
 class EntityStub:
@@ -23,20 +22,6 @@ class EntityStub:
 
 	func get_display_name() -> String:
 		return display_name
-
-
-class ChunkStub:
-	var opened := false
-
-	func is_object_opened(_entity_id: String, _global_tile: Vector2i) -> bool:
-		return opened
-
-
-class ConditionEvaluatorStub:
-	var allowed := false
-
-	func evaluate_all(_conditions: Array) -> bool:
-		return allowed
 
 
 class PlayerStub:
@@ -83,34 +68,10 @@ func test_context_filters_nearby_target_entries_to_dictionaries() -> void:
 	assert_eq(ctx.nearby_targets, [{"id": "a"}, {"id": "b"}])
 
 
-func test_primary_action_handles_stop_locked_container_and_fallbacks() -> void:
-	var action_context := MainContextActions.ActionListContext.new(
-		{
-			"condition_evaluator": ConditionEvaluatorStub.new(),
-			"content": null,
-			"dialogues": null,
-			"player": PlayerStub.new(),
-			"world_state": null
-		}
-	)
-	var ctx := MainHudState.context(
-		{
-			"auto_move_active": true,
-			"chunks": ChunkStub.new(),
-			"condition_evaluator": ConditionEvaluatorStub.new(),
-			"context_actions_context": action_context
-		}
-	)
+func test_context_uses_main_owned_primary_action_text() -> void:
+	var ctx := MainHudState.context({"primary_action": "Trade"})
 
-	assert_eq(MainHudState._primary_action(ctx, null, null), "Stop")
-
-	ctx.auto_move_active = false
-	var container := EntityStub.new("container", {"open_conditions": [{"flag": "key"}]})
-	assert_eq(MainHudState._primary_action(ctx, container, null), "Locked")
-
-	assert_eq(MainHudState._primary_action(ctx, EntityStub.new("readable"), null), "Read")
-	assert_eq(MainHudState._primary_action(ctx, null, null), "Explore")
-	assert_eq(MainHudState._primary_action(ctx, null, EntityStub.new("npc")), "Stop")
+	assert_eq(ctx.primary_action, "Trade")
 
 
 func test_system_tabs_preserve_transfer_character_and_journal_payloads() -> void:

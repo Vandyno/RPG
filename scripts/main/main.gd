@@ -26,6 +26,7 @@ const EquipmentManagerScript = preload("res://scripts/managers/actors/equipment_
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const SaveManagerScript = preload("res://scripts/managers/persistence/save_manager.gd")
 const RpgHudScript = preload("res://scripts/ui/rpg/rpg_hud.gd")
+const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const DebugCharacterCreatorScript = preload("res://scripts/ui/debug/debug_character_creator.gd")
 const InteractionTargetSelector = preload("res://scripts/main/input/interaction_target_selector.gd")
 const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
@@ -111,6 +112,7 @@ func get_debug_state() -> Dictionary:
 
 func _hud_context() -> MainHudState.HudContext:
 	var nearby := _get_nearby_entity()
+	var auto_target = entities.get_entity(auto_interact_target_id)
 	var nearby_targets := _ranked_nearby_entities()
 	return MainHudState.HudContext.new(
 		{
@@ -132,6 +134,7 @@ func _hud_context() -> MainHudState.HudContext:
 				nearby_targets, selected_target_id, player.global_position
 			),
 			"player": player,
+			"primary_action": _primary_action_text(nearby, auto_target),
 			"progression": progression,
 			"quests": quests,
 			"shop_id": hud_queries.shop_id_for_entity(nearby),
@@ -155,8 +158,8 @@ func _action_list_context() -> MainContextActions.ActionListContext:
 	)
 
 
-func _preferred_primary_context_action() -> Dictionary:
-	return MainContextActions.preferred_primary(_action_list_context(), _get_nearby_entity())
+func _preferred_primary_context_action_for(entity) -> Dictionary:
+	return MainContextActions.preferred_primary(_action_list_context(), entity)
 
 
 func _handle_target_entity_intent(entity_id: String) -> void:
@@ -463,7 +466,22 @@ func _max_location_discovery_radius() -> float:
 
 
 func _handle_interact_requested() -> void:
-	MainInputRouter.handle_interact_requested(MainInputRouter.context(self))
+	if not String(auto_interact_target_id).is_empty():
+		MainInputRouter.cancel_auto_interaction(MainInputRouter.context(self))
+		return
+	if auto_move_active:
+		MainInputRouter.cancel_auto_move(MainInputRouter.context(self))
+		return
+	if hud and hud.is_target_picker_visible():
+		hud.hide_target_picker()
+	elif _close_open_overlay_panel():
+		return
+	var nearby = _get_nearby_entity()
+	var preferred := _preferred_primary_context_action_for(nearby)
+	if not preferred.is_empty():
+		_handle_context_action_selected(String(preferred.get("id", "")))
+		return
+	_interact()
 
 
 func _handle_sneak_pressed() -> void:
@@ -791,7 +809,14 @@ func _handle_inventory_item_selected(item_id: String) -> void:
 
 
 func _handle_systems_action_selected(action_id: String) -> void:
-	MainSystemsActions.handle(MainSystemsActions.systems_context(self), action_id)
+	var result := MainSystemsActions.handle(MainSystemsActions.systems_context(self), action_id)
+	_handle_systems_action_result(result)
+
+
+func _handle_systems_action_result(result: Dictionary) -> void:
+	match String(result.get("intent", "")):
+		"target_entity":
+			_handle_target_entity_intent(String(result.get("entity_id", "")))
 
 
 func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
@@ -831,6 +856,21 @@ func _current_shop_id() -> String:
 
 func _shop_id_for_entity(entity: WorldEntity) -> String:
 	return hud_queries.shop_id_for_entity(entity)
+
+
+func _primary_action_text(nearby, auto_target) -> String:
+	if auto_move_active or auto_target:
+		return "Stop"
+	var preferred := _preferred_primary_context_action_for(nearby)
+	if not preferred.is_empty():
+		return String(preferred.get("text", "Interact"))
+	if nearby and ["container", "door"].has(nearby.get_kind()):
+		return ObjectInteractionRules.access_action_text(
+			nearby, chunks, condition_evaluator
+		)
+	if nearby and nearby.get_kind() == "poi":
+		return PoiInteraction.primary_action_text(nearby)
+	return PrimaryActionTextBuilder.for_kind(nearby.get_kind()) if nearby else "Explore"
 
 
 func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:

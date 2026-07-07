@@ -30,7 +30,6 @@ class SystemsActionContext:
 	var _load_requested: Callable
 	var _refresh_hud: Callable
 	var _save_requested: Callable
-	var _target_entity: Callable
 	var _update_nearby: Callable
 
 	func _init(main) -> void:
@@ -52,7 +51,6 @@ class SystemsActionContext:
 		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
 		_save_requested = Callable(main, "_handle_save_requested")
-		_target_entity = Callable(main, "_handle_target_entity_intent")
 		_update_nearby = Callable(main, "_update_nearby")
 
 	func hide_systems_panel() -> void:
@@ -155,7 +153,7 @@ static func aim_context(main) -> AimCombatContext:
 	return AimCombatContext.new(main)
 
 
-static func handle(ctx: SystemsActionContext, action_id: String) -> void:
+static func handle(ctx: SystemsActionContext, action_id: String) -> Dictionary:
 	var parsed := parse_action_id(action_id)
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
@@ -177,7 +175,7 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 		"wait":
 			_handle_wait_action(ctx, target_id.to_int())
 		"target":
-			_handle_target_entity(ctx, target_id)
+			return {"intent": "target_entity", "entity_id": target_id}
 		"save":
 			ctx._save_requested.call()
 		"load":
@@ -193,6 +191,7 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		_:
 			_use_inventory_item(ctx, target_id)
+	return {}
 
 
 static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vector2) -> void:
@@ -396,14 +395,6 @@ static func _handle_sell_item(ctx: SystemsActionContext, item_id: String) -> voi
 		else {"ok": false, "message": "Could not sell that.", "refresh": "hud"}
 	)
 	ctx.post_result(result)
-
-
-static func _handle_target_entity(ctx: SystemsActionContext, entity_id: String) -> void:
-	if ctx._target_entity.is_valid():
-		ctx._target_entity.call(entity_id)
-		return
-	ctx.post_message("Target is no longer available.")
-	ctx.refresh_hud()
 
 
 static func _perform_weapon_attack(

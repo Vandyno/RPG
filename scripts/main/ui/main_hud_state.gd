@@ -3,10 +3,7 @@ extends RefCounted
 
 const LocationTextBuilder = preload("res://scripts/ui/text/location_text_builder.gd")
 const QuestTargetTextBuilder = preload("res://scripts/ui/text/quest_target_text_builder.gd")
-const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
-const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
-const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const SpellSlots = preload("res://scripts/core/spell_slots.gd")
 
@@ -28,6 +25,7 @@ class HudContext:
 	var nearby
 	var nearby_targets: Array
 	var player
+	var primary_action: String
 	var progression
 	var quests
 	var shop_id: String
@@ -53,6 +51,7 @@ class HudContext:
 		nearby = values.get("nearby")
 		nearby_targets = _typed_dictionary_array(values.get("nearby_targets", []))
 		player = values.get("player")
+		primary_action = String(values.get("primary_action", "Explore"))
 		progression = values.get("progression")
 		quests = values.get("quests")
 		shop_id = String(values.get("shop_id", ""))
@@ -125,7 +124,7 @@ static func build(ctx: HudContext) -> Dictionary:
 		"player_max_mana": ctx.player.max_mana,
 		"player_sneaking": ctx.player.is_sneaking,
 		"nearby": target_name,
-		"primary_action": _primary_action(ctx, ctx.nearby, auto_target),
+		"primary_action": ctx.primary_action,
 		"target_detail": target_detail,
 		"nearby_targets": ctx.nearby_targets,
 		"context_actions": MainContextActions.secondary(ctx.context_actions_context, ctx.nearby),
@@ -187,21 +186,6 @@ static func build(ctx: HudContext) -> Dictionary:
 			"location_details": location_details
 		})
 	}
-
-
-static func _primary_action(ctx: HudContext, nearby, auto_target) -> String:
-	if ctx.auto_move_active or auto_target:
-		return "Stop"
-	var preferred := MainContextActions.preferred_primary(ctx.context_actions_context, nearby)
-	if not preferred.is_empty():
-		return String(preferred.get("text", "Interact"))
-	if nearby and ["container", "door"].has(nearby.get_kind()):
-		return ObjectInteractionRules.access_action_text(
-			nearby, ctx.chunks, ctx.condition_evaluator
-		)
-	if nearby and nearby.get_kind() == "poi":
-		return PoiInteraction.primary_action_text(nearby)
-	return PrimaryActionTextBuilder.for_kind(nearby.get_kind()) if nearby else "Explore"
 
 
 static func _system_tabs(values: Dictionary) -> Dictionary:

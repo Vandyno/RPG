@@ -26,14 +26,11 @@ class InputContext:
 	var close_open_overlay_panel: Callable
 	var get_nearby_entity: Callable
 	var get_nearby_entities: Callable
-	var handle_context_action_selected: Callable
 	var handle_cycle_target_requested: Callable
 	var handle_interact_requested: Callable
 	var handle_load_requested: Callable
 	var handle_save_requested: Callable
 	var index_of_target_id: Callable
-	var interact: Callable
-	var preferred_primary_action: Callable
 	var refresh_hud: Callable
 
 	func _init(main) -> void:
@@ -51,14 +48,11 @@ class InputContext:
 		close_open_overlay_panel = Callable(main, "_close_open_overlay_panel")
 		get_nearby_entity = Callable(main, "_get_nearby_entity")
 		get_nearby_entities = Callable(main, "_get_nearby_entities")
-		handle_context_action_selected = Callable(main, "_handle_context_action_selected")
 		handle_cycle_target_requested = Callable(main, "_handle_cycle_target_requested")
 		handle_interact_requested = Callable(main, "_handle_interact_requested")
 		handle_load_requested = Callable(main, "_handle_load_requested")
 		handle_save_requested = Callable(main, "_handle_save_requested")
 		index_of_target_id = Callable(main, "_index_of_target_id")
-		interact = Callable(main, "_interact")
-		preferred_primary_action = Callable(main, "_preferred_primary_context_action")
 		refresh_hud = Callable(main, "_refresh_hud")
 
 
@@ -158,25 +152,6 @@ static func move_to_world(source, world_position: Vector2) -> bool:
 	return true
 
 
-static func handle_interact_requested(source) -> void:
-	var ctx: InputContext = _input_context(source)
-	if not String(ctx.main.auto_interact_target_id).is_empty():
-		cancel_auto_interaction(ctx)
-		return
-	if ctx.main.auto_move_active:
-		cancel_auto_move(ctx)
-		return
-	if ctx.hud and ctx.hud.is_target_picker_visible():
-		ctx.hud.hide_target_picker()
-	elif ctx.close_open_overlay_panel.call():
-		return
-	var preferred := _preferred_primary_action(ctx)
-	if not preferred.is_empty():
-		ctx.handle_context_action_selected.call(String(preferred.get("id", "")))
-		return
-	ctx.interact.call()
-
-
 static func update_auto_interaction(source, delta_seconds: float) -> void:
 	var ctx: InputContext = _input_context(source)
 	var manual_move := _manual_move_vector(ctx)
@@ -272,13 +247,6 @@ static func _input_context(source) -> InputContext:
 
 static func _screen_to_world(ctx: InputContext, screen_position: Vector2) -> Vector2:
 	return ctx.get_viewport.call().get_canvas_transform().affine_inverse() * screen_position
-
-
-static func _preferred_primary_action(ctx: InputContext) -> Dictionary:
-	if not ctx.preferred_primary_action.is_valid():
-		return {}
-	var action: Variant = ctx.preferred_primary_action.call()
-	return action if action is Dictionary else {}
 
 
 static func _begin_auto_interaction(ctx: InputContext, entity, _distance: float) -> void:

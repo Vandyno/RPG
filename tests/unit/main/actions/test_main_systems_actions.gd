@@ -39,9 +39,12 @@ func test_handle_routes_service_owned_system_actions() -> void:
 func test_handle_routes_target_action_through_main_intent() -> void:
 	var main := AssignSpellMainStub.new()
 
-	MainSystemsActions.handle(MainSystemsActions.systems_context(main), "target:npc_harrow")
+	var result := MainSystemsActions.handle(
+		MainSystemsActions.systems_context(main), "target:npc_harrow"
+	)
 
-	assert_eq(main.calls, ["target:npc_harrow"])
+	assert_eq(result, {"intent": "target_entity", "entity_id": "npc_harrow"})
+	assert_eq(main.calls, [])
 
 
 func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
@@ -201,10 +204,6 @@ class AssignSpellMainStub:
 
 	func _refresh_hud() -> void:
 		calls.append("refresh")
-
-	func _handle_target_entity_intent(entity_id: String) -> void:
-		calls.append("target:%s" % entity_id)
-
 
 class AssignSpellContentStub:
 	extends RefCounted
