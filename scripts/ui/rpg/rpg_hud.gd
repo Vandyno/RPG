@@ -1,6 +1,6 @@
 # gdlint:disable=max-file-lines
 class_name RpgHud
-extends "res://scripts/ui/shell/hud_runtime_base.gd"
+extends "res://scripts/ui/shell/hud_shell.gd"
 signal aim_action_released(action_id: String, direction: Vector2)
 signal aim_action_held(action_id: String, direction: Vector2, delta: float)
 signal sneak_pressed

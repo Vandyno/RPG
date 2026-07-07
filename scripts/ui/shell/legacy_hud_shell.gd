@@ -1,5 +1,5 @@
-class_name LegacyHudShell
-extends "res://scripts/ui/shell/hud_runtime_base.gd"
+# Test-only legacy shell retained for old HUD layout/input coverage.
+extends "res://scripts/ui/shell/hud_shell.gd"
 
 const HoldActionButton = preload("res://scripts/ui/shell/hold_action_button.gd")
 const SystemsActionBuilder = preload("res://scripts/ui/systems/systems_action_builder.gd")
