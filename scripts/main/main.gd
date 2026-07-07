@@ -767,39 +767,7 @@ func _handle_inventory_item_selected(item_id: String) -> void:
 
 
 func _handle_systems_action_selected(action_id: String) -> void:
-	var parsed := MainSystemsActions.parse_action_id(action_id)
-	var action := String(parsed.get("action", "use"))
-	var target_id := String(parsed.get("target_id", action_id))
-	match action:
-		"equip":
-			_handle_equip_item(target_id)
-		"equip_slot":
-			_handle_equip_item_to_slot(target_id, String(parsed.get("slot_id", "")))
-		"swap_mainhand":
-			_handle_swap_mainhand_weapon()
-		"unequip":
-			_handle_unequip_slot(target_id)
-		"train":
-			_handle_train_stat(target_id)
-		"buy":
-			_handle_buy_item(target_id)
-		"sell":
-			_handle_sell_item(target_id)
-		"wait":
-			_handle_wait_action(target_id.to_int())
-		"target":
-			MainInputRouter.target_entity(MainInputRouter.context(self), target_id)
-		"save":
-			_handle_save_requested()
-		"load":
-			_handle_load_requested()
-		"ui":
-			if target_id == "back" and hud:
-				hud.hide_systems_panel()
-		"assign_spell", "take", "put":
-			MainSystemsActions.handle(MainSystemsActions.systems_context(self), action_id)
-		_:
-			_use_inventory_item(target_id)
+	MainSystemsActions.handle(MainSystemsActions.systems_context(self), action_id)
 
 
 func _handle_wait_action(hours: int) -> void:

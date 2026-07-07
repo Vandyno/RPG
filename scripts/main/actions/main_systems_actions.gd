@@ -2,6 +2,7 @@ class_name MainSystemsActions
 extends RefCounted
 
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
+const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
@@ -16,21 +17,88 @@ const MIN_PROJECTILE_CHARGE_DAMAGE_RATIO := 0.15
 class SystemsActionContext:
 	var content
 	var event_bus
+	var hud
 	var inventory_transfer_context
 	var spells
+	var _buy_item: Callable
+	var _equip_item: Callable
+	var _equip_item_to_slot: Callable
+	var _load_requested: Callable
 	var _refresh_hud: Callable
+	var _save_requested: Callable
+	var _sell_item: Callable
+	var _swap_mainhand_weapon: Callable
+	var _train_stat: Callable
+	var _unequip_slot: Callable
+	var _use_inventory_item: Callable
+	var _wait_action: Callable
+	var _target_entity: Callable
 
 	func _init(main) -> void:
 		content = main.get("content")
 		event_bus = main.get("event_bus")
+		hud = main.get("hud")
 		inventory_transfer_context = (
 			MainInventoryTransfer.context(main) if main.get("chunks") else null
 		)
 		spells = main.get("spells")
+		_buy_item = Callable(main, "_handle_buy_item")
+		_equip_item = Callable(main, "_handle_equip_item")
+		_equip_item_to_slot = Callable(main, "_handle_equip_item_to_slot")
+		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
+		_save_requested = Callable(main, "_handle_save_requested")
+		_sell_item = Callable(main, "_handle_sell_item")
+		_swap_mainhand_weapon = Callable(main, "_handle_swap_mainhand_weapon")
+		_train_stat = Callable(main, "_handle_train_stat")
+		_unequip_slot = Callable(main, "_handle_unequip_slot")
+		_use_inventory_item = Callable(main, "_use_inventory_item")
+		_wait_action = Callable(main, "_handle_wait_action")
+		_target_entity = func(target_id: String) -> void:
+			MainInputRouter.target_entity(MainInputRouter.context(main), target_id)
 
 	func refresh_hud() -> void:
 		_refresh_hud.call()
+
+	func buy_item(item_id: String) -> void:
+		_buy_item.call(item_id)
+
+	func equip_item(item_id: String) -> void:
+		_equip_item.call(item_id)
+
+	func equip_item_to_slot(item_id: String, slot_id: String) -> void:
+		_equip_item_to_slot.call(item_id, slot_id)
+
+	func hide_systems_panel() -> void:
+		if hud:
+			hud.hide_systems_panel()
+
+	func load_requested() -> void:
+		_load_requested.call()
+
+	func save_requested() -> void:
+		_save_requested.call()
+
+	func sell_item(item_id: String) -> void:
+		_sell_item.call(item_id)
+
+	func swap_mainhand_weapon() -> void:
+		_swap_mainhand_weapon.call()
+
+	func target_entity(target_id: String) -> void:
+		_target_entity.call(target_id)
+
+	func train_stat(stat_id: String) -> void:
+		_train_stat.call(stat_id)
+
+	func unequip_slot(slot_id: String) -> void:
+		_unequip_slot.call(slot_id)
+
+	func use_inventory_item(item_id: String) -> void:
+		_use_inventory_item.call(item_id)
+
+	func wait_action(hours: int) -> void:
+		_wait_action.call(hours)
 
 
 class AimCombatContext:
@@ -109,6 +177,31 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
+		"equip":
+			ctx.equip_item(target_id)
+		"equip_slot":
+			ctx.equip_item_to_slot(target_id, String(parsed.get("slot_id", "")))
+		"swap_mainhand":
+			ctx.swap_mainhand_weapon()
+		"unequip":
+			ctx.unequip_slot(target_id)
+		"train":
+			ctx.train_stat(target_id)
+		"buy":
+			ctx.buy_item(target_id)
+		"sell":
+			ctx.sell_item(target_id)
+		"wait":
+			ctx.wait_action(target_id.to_int())
+		"target":
+			ctx.target_entity(target_id)
+		"save":
+			ctx.save_requested()
+		"load":
+			ctx.load_requested()
+		"ui":
+			if target_id == "back":
+				ctx.hide_systems_panel()
 		"assign_spell":
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
 		"take":
@@ -116,8 +209,7 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> void:
 		"put":
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		_:
-			if ctx.event_bus:
-				ctx.event_bus.post_message("Unknown systems action.")
+			ctx.use_inventory_item(target_id)
 
 
 static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vector2) -> void:
