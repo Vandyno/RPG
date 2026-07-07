@@ -699,7 +699,6 @@ func _draw_tuskfolk_feature(
 ) -> void:
 	var head_size := _proportion(proportions, "head_size")
 	var head_offset := _head_turn_offset()
-	var torso_x := _body_turn_x()
 	var side_turn := _side_turn_amount()
 	var back_turn := _back_turn_amount()
 	var front_visible := back_turn < 0.55
@@ -713,6 +712,17 @@ func _draw_tuskfolk_feature(
 	var variant_index := _stable_index(variant_key, TUSKFOLK_CLAN_TINTS.size())
 	var clan_color: Color = skin.darkened(0.12).lerp(TUSKFOLK_CLAN_TINTS[variant_index], 0.56)
 	var ring_color := Color(0.58, 0.43, 0.22).lerp(clan_color.lightened(0.12), 0.24)
+	_draw_tuskfolk_torso(skin, waist_width, back_turn, clan_color, ring_color)
+	_draw_tuskfolk_head_shape(skin, head_size, head_offset, front_visible)
+	if front_visible and feature_ids.has("feature_tuskfolk_clan_marks"):
+		_draw_tuskfolk_clan_marks(shoulder_width, clan_color)
+	if front_visible:
+		_draw_tuskfolk_tusks(head_size, head_offset, side_turn, tusk_length, tusk_color, ring_color)
+
+
+func _draw_tuskfolk_torso(
+	skin: Color, waist_width: float, back_turn: float, clan_color: Color, ring_color: Color
+) -> void:
 	_draw_shape(
 		_body_polygon(
 			[
@@ -744,6 +754,11 @@ func _draw_tuskfolk_feature(
 		Rect2(_body_point(0.0, 1.1) - Vector2(1.5, 0.0), Vector2(3.0, 3.2)),
 		ring_color.darkened(0.08)
 	)
+
+
+func _draw_tuskfolk_head_shape(
+	skin: Color, head_size: float, head_offset: Vector2, front_visible: bool
+) -> void:
 	if front_visible:
 		var jaw := PackedVector2Array(
 			[
@@ -769,32 +784,41 @@ func _draw_tuskfolk_feature(
 		_draw_shape(brow, skin.darkened(0.16), Color(0.0, 0.0, 0.0, 0.0), 0.0)
 	else:
 		_draw_oval(
-			Rect2(
-				head_offset + Vector2(-4.6 * head_size, -15.4),
-				Vector2(9.2 * head_size, 7.6)
-			),
+			Rect2(head_offset + Vector2(-4.6 * head_size, -15.4), Vector2(9.2 * head_size, 7.6)),
 			skin.darkened(0.14)
 		)
-	if front_visible and feature_ids.has("feature_tuskfolk_clan_marks"):
-		draw_line(
-			_body_point(-shoulder_width * 0.34, -5.4),
-			_body_point(-shoulder_width * 0.14, -1.8),
-			clan_color.darkened(0.30),
-			1.0
-		)
-		draw_line(
-			_body_point(shoulder_width * 0.34, -5.4),
-			_body_point(shoulder_width * 0.14, -1.8),
-			clan_color.darkened(0.30),
-			1.0
-		)
-		draw_line(
-			_body_point(-shoulder_width * 0.28, -2.0),
-			_body_point(shoulder_width * 0.28, -2.3),
-			clan_color.lightened(0.10),
-			0.65
-		)
-	if front_visible and side_turn < 0.45:
+
+
+func _draw_tuskfolk_clan_marks(shoulder_width: float, clan_color: Color) -> void:
+	draw_line(
+		_body_point(-shoulder_width * 0.34, -5.4),
+		_body_point(-shoulder_width * 0.14, -1.8),
+		clan_color.darkened(0.30),
+		1.0
+	)
+	draw_line(
+		_body_point(shoulder_width * 0.34, -5.4),
+		_body_point(shoulder_width * 0.14, -1.8),
+		clan_color.darkened(0.30),
+		1.0
+	)
+	draw_line(
+		_body_point(-shoulder_width * 0.28, -2.0),
+		_body_point(shoulder_width * 0.28, -2.3),
+		clan_color.lightened(0.10),
+		0.65
+	)
+
+
+func _draw_tuskfolk_tusks(
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	tusk_length: float,
+	tusk_color: Color,
+	ring_color: Color
+) -> void:
+	if side_turn < 0.45:
 		var front_tusk_x := minf(tusk_length * 0.55, 5.2)
 		_draw_shape(
 			PackedVector2Array(
@@ -832,14 +856,9 @@ func _draw_tuskfolk_feature(
 			ring_color,
 			0.85
 		)
-	elif front_visible:
+	else:
 		var side := _face_side()
-		_draw_shape(
-			_tuskfolk_side_tusk_points(head_size, tusk_length),
-			tusk_color,
-			OUTLINE,
-			0.85
-		)
+		_draw_shape(_tuskfolk_side_tusk_points(head_size, tusk_length), tusk_color, OUTLINE, 0.85)
 		draw_line(
 			head_offset + Vector2(side * 2.8 * head_size, -8.8),
 			head_offset + Vector2(side * 3.5 * head_size, -7.9),
@@ -858,7 +877,9 @@ func _draw_mirefolk_feature(
 	if variant_key.is_empty():
 		variant_key = String(appearance.get("palette_id", ""))
 	var variant_index := _stable_index(variant_key, MIREFOLK_PATTERN_TINTS.size())
-	var pattern_color: Color = MIREFOLK_PATTERN_TINTS[variant_index].lerp(skin.lightened(0.12), 0.42)
+	var pattern_color: Color = MIREFOLK_PATTERN_TINTS[variant_index].lerp(
+		skin.lightened(0.12), 0.42
+	)
 	var throat_color := skin.lightened(0.18).lerp(pattern_color.lightened(0.16), 0.26)
 	var torso_x := _body_turn_x()
 	var back_turn := _back_turn_amount()
@@ -869,153 +890,233 @@ func _draw_mirefolk_feature(
 	var belly_side_width := belly_width * lerpf(1.0, 0.58, side_turn)
 	var belly_height := lerpf(12.2, 9.2, back_turn)
 	if front_visible:
-		_draw_shape(
-			_body_polygon(
-				[
-					Vector2(-belly_side_width * 0.48, -6.9),
-					Vector2(belly_side_width * 0.48, -6.9),
-					Vector2(belly_side_width * 0.42, -6.9 + belly_height * 0.58),
-					Vector2(0.0, -6.9 + belly_height),
-					Vector2(-belly_side_width * 0.42, -6.9 + belly_height * 0.58)
-				]
-			),
-			throat_color.darkened(back_turn * 0.10),
-			Color(0.0, 0.0, 0.0, 0.0),
-			0.0
+		_draw_mirefolk_belly(
+			skin,
+			belly_width,
+			belly_side_width,
+			belly_height,
+			back_turn,
+			variant_index,
+			throat_color,
+			pattern_color
 		)
+	if feature_ids.has("feature_mirefolk_webbed_hands"):
+		_draw_mirefolk_webbing(skin, proportions, pattern_color)
+	_draw_mirefolk_eyes(
+		head_size,
+		head_offset,
+		side_turn,
+		side,
+		front_visible,
+		feature_ids.has("feature_mirefolk_high_eyes"),
+		eye_color
+	)
+	if front_visible and feature_ids.has("feature_mirefolk_reed_marks"):
+		_draw_mirefolk_reed_marks(head_size, head_offset, side_turn, variant_index, pattern_color)
+	if front_visible:
+		_draw_mirefolk_mouth(head_size, head_offset, skin)
+	else:
+		_draw_mirefolk_back_spots(variant_index, pattern_color)
+
+
+func _draw_mirefolk_belly(
+	skin: Color,
+	belly_width: float,
+	belly_side_width: float,
+	belly_height: float,
+	back_turn: float,
+	variant_index: int,
+	throat_color: Color,
+	pattern_color: Color
+) -> void:
+	_draw_shape(
+		_body_polygon(
+			[
+				Vector2(-belly_side_width * 0.48, -6.9),
+				Vector2(belly_side_width * 0.48, -6.9),
+				Vector2(belly_side_width * 0.42, -6.9 + belly_height * 0.58),
+				Vector2(0.0, -6.9 + belly_height),
+				Vector2(-belly_side_width * 0.42, -6.9 + belly_height * 0.58)
+			]
+		),
+		throat_color.darkened(back_turn * 0.10),
+		Color(0.0, 0.0, 0.0, 0.0),
+		0.0
+	)
+	draw_line(
+		_body_point(-belly_width * 0.25, -5.2),
+		_body_point(belly_width * 0.25, -4.2),
+		skin.darkened(0.18),
+		0.55
+	)
+	var spot_count := 2 + variant_index % 3
+	for spot_index in spot_count:
+		var offset_x := -belly_width * 0.24 + float(spot_index) * belly_width * 0.18
+		var offset_y := -3.6 + float((spot_index + variant_index) % 3) * 2.3
+		draw_circle(
+			_body_point(offset_x, offset_y),
+			0.45 + 0.10 * float(spot_index % 2),
+			pattern_color.darkened(0.18)
+		)
+	if variant_index % 2 == 1:
 		draw_line(
-			_body_point(-belly_width * 0.25, -5.2),
-			_body_point(belly_width * 0.25, -4.2),
-			skin.darkened(0.18),
+			_body_point(-belly_width * 0.36, -1.2),
+			_body_point(belly_width * 0.30, 1.1),
+			pattern_color.darkened(0.10),
 			0.55
 		)
-		var spot_count := 2 + variant_index % 3
-		for spot_index in spot_count:
-			var offset_x := -belly_width * 0.24 + float(spot_index) * belly_width * 0.18
-			var offset_y := -3.6 + float((spot_index + variant_index) % 3) * 2.3
-			draw_circle(
-				_body_point(offset_x, offset_y),
-				0.45 + 0.10 * float(spot_index % 2),
-				pattern_color.darkened(0.18)
-			)
-		if variant_index % 2 == 1:
-			draw_line(
-				_body_point(-belly_width * 0.36, -1.2),
-				_body_point(belly_width * 0.30, 1.1),
-				pattern_color.darkened(0.10),
-				0.55
-			)
-	if feature_ids.has("feature_mirefolk_webbed_hands"):
-		var web_color := skin.lightened(0.22).lerp(pattern_color.lightened(0.08), 0.28)
-		for limb_side in [-1.0, 1.0]:
-			var hand := _hand_anchor(limb_side, proportions) + _hand_sway(limb_side)
-			_draw_shape(
-				PackedVector2Array(
-					[
-						hand + Vector2(-2.6 * limb_side, -1.5),
-						hand + Vector2(2.8 * limb_side, -0.8),
-						hand + Vector2(2.0 * limb_side, 2.6),
-						hand + Vector2(-1.8 * limb_side, 2.0)
-					]
-				),
-				web_color,
-				OUTLINE,
-				0.45
-			)
-			var foot := _foot_anchor(limb_side, proportions) + _stride_offset(limb_side)
-			_draw_shape(
-				PackedVector2Array(
-					[
-						foot + Vector2(-2.4 * limb_side, 1.2),
-						foot + Vector2(2.8 * limb_side, 1.0),
-						foot + Vector2(3.0 * limb_side, 3.4),
-						foot + Vector2(-2.0 * limb_side, 3.2)
-					]
-				),
-				web_color.darkened(0.05),
-				OUTLINE,
-				0.35
-			)
-	var has_high_eyes := feature_ids.has("feature_mirefolk_high_eyes")
+
+
+func _draw_mirefolk_webbing(
+	skin: Color, proportions: Dictionary, pattern_color: Color
+) -> void:
+	var web_color := skin.lightened(0.22).lerp(pattern_color.lightened(0.08), 0.28)
+	for limb_side in [-1.0, 1.0]:
+		var hand := _hand_anchor(limb_side, proportions) + _hand_sway(limb_side)
+		_draw_shape(
+			PackedVector2Array(
+				[
+					hand + Vector2(-2.6 * limb_side, -1.5),
+					hand + Vector2(2.8 * limb_side, -0.8),
+					hand + Vector2(2.0 * limb_side, 2.6),
+					hand + Vector2(-1.8 * limb_side, 2.0)
+				]
+			),
+			web_color,
+			OUTLINE,
+			0.45
+		)
+		var foot := _foot_anchor(limb_side, proportions) + _stride_offset(limb_side)
+		_draw_shape(
+			PackedVector2Array(
+				[
+					foot + Vector2(-2.4 * limb_side, 1.2),
+					foot + Vector2(2.8 * limb_side, 1.0),
+					foot + Vector2(3.0 * limb_side, 3.4),
+					foot + Vector2(-2.0 * limb_side, 3.2)
+				]
+			),
+			web_color.darkened(0.05),
+			OUTLINE,
+			0.35
+		)
+
+
+func _draw_mirefolk_eyes(
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	side: float,
+	front_visible: bool,
+	has_high_eyes: bool,
+	eye_color: Color
+) -> void:
 	if has_high_eyes:
-		if not front_visible:
-			draw_circle(
-				head_offset + Vector2(-4.8 * head_size, -18.1),
-				0.75 * head_size,
-				eye_color.darkened(0.22)
-			)
-			draw_circle(
-				head_offset + Vector2(4.8 * head_size, -18.1),
-				0.75 * head_size,
-				eye_color.darkened(0.22)
-			)
-		elif side_turn > 0.70:
-			var near_eye := head_offset + Vector2(side * 4.5 * head_size, -18.0)
-			var far_eye := head_offset + Vector2(-side * 2.5 * head_size, -18.5)
-			draw_circle(far_eye, 1.4 * head_size, eye_color.darkened(0.18))
-			draw_circle(near_eye, 2.85 * head_size, eye_color)
-			draw_circle(near_eye, 1.0 * head_size, OUTLINE)
-		else:
-			draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 2.8 * head_size, eye_color)
-			draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 2.8 * head_size, eye_color)
-			draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
-			draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
+		_draw_mirefolk_high_eyes(head_size, head_offset, side_turn, side, front_visible, eye_color)
 	elif front_visible:
+		_draw_mirefolk_low_eyes(head_size, head_offset, side_turn, eye_color)
+
+
+func _draw_mirefolk_high_eyes(
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	side: float,
+	front_visible: bool,
+	eye_color: Color
+) -> void:
+	if not front_visible:
 		draw_circle(
-			head_offset + Vector2(-4.1 * head_size, -16.9),
+			head_offset + Vector2(-4.8 * head_size, -18.1),
+			0.75 * head_size,
+			eye_color.darkened(0.22)
+		)
+		draw_circle(
+			head_offset + Vector2(4.8 * head_size, -18.1),
+			0.75 * head_size,
+			eye_color.darkened(0.22)
+		)
+	elif side_turn > 0.70:
+		var near_eye := head_offset + Vector2(side * 4.5 * head_size, -18.0)
+		var far_eye := head_offset + Vector2(-side * 2.5 * head_size, -18.5)
+		draw_circle(far_eye, 1.4 * head_size, eye_color.darkened(0.18))
+		draw_circle(near_eye, 2.85 * head_size, eye_color)
+		draw_circle(near_eye, 1.0 * head_size, OUTLINE)
+	else:
+		draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 2.8 * head_size, eye_color)
+		draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 2.8 * head_size, eye_color)
+		draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
+		draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
+
+
+func _draw_mirefolk_low_eyes(
+	head_size: float, head_offset: Vector2, side_turn: float, eye_color: Color
+) -> void:
+	draw_circle(
+		head_offset + Vector2(-4.1 * head_size, -16.9),
+		1.55 * head_size,
+		eye_color.lightened(0.05)
+	)
+	draw_circle(head_offset + Vector2(-4.1 * head_size, -16.9), 0.72 * head_size, OUTLINE)
+	if side_turn < 0.70:
+		draw_circle(
+			head_offset + Vector2(4.1 * head_size, -16.9),
 			1.55 * head_size,
 			eye_color.lightened(0.05)
 		)
-		draw_circle(head_offset + Vector2(-4.1 * head_size, -16.9), 0.72 * head_size, OUTLINE)
-		if side_turn < 0.70:
-			draw_circle(
-				head_offset + Vector2(4.1 * head_size, -16.9),
-				1.55 * head_size,
-				eye_color.lightened(0.05)
-			)
-			draw_circle(head_offset + Vector2(4.1 * head_size, -16.9), 0.72 * head_size, OUTLINE)
-	if front_visible and feature_ids.has("feature_mirefolk_reed_marks"):
-		if _face_detail_visible_on_side(-1.0):
-			draw_line(
-				_face_mark_point(-5.8, -15.4, head_size),
-				_face_mark_point(-2.0, -12.4, head_size),
-				pattern_color.darkened(0.28),
-				0.8
-			)
-			draw_circle(
-				_face_mark_point(-4.8, -10.2, head_size), 0.55, pattern_color.darkened(0.24)
-			)
-		if _face_detail_visible_on_side(1.0):
-			draw_line(
-				_face_mark_point(5.6, -15.0, head_size),
-				_face_mark_point(2.0, -12.0, head_size),
-				pattern_color.darkened(0.22),
-				0.7
-			)
-			draw_circle(
-				_face_mark_point(4.6, -10.1, head_size), 0.55, pattern_color.darkened(0.24)
-			)
-		if variant_index > 2 and side_turn < 0.70:
-			draw_line(
-				head_offset + Vector2(-3.0 * head_size, -17.2),
-				head_offset + Vector2(3.2 * head_size, -17.1),
-				pattern_color.lightened(0.08),
-				0.55
-			)
-	if front_visible:
+		draw_circle(head_offset + Vector2(4.1 * head_size, -16.9), 0.72 * head_size, OUTLINE)
+
+
+func _draw_mirefolk_reed_marks(
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	variant_index: int,
+	pattern_color: Color
+) -> void:
+	if _face_detail_visible_on_side(-1.0):
 		draw_line(
-			head_offset + Vector2(-5.3 * head_size, -11.0),
-			head_offset + Vector2(5.3 * head_size, -10.8),
-			skin.darkened(0.22),
-			0.9
+			_face_mark_point(-5.8, -15.4, head_size),
+			_face_mark_point(-2.0, -12.4, head_size),
+			pattern_color.darkened(0.28),
+			0.8
 		)
-	else:
-		for spot_index in 4:
-			draw_circle(
-				_body_point(-4.0 + spot_index * 2.6, -4.4 + float((spot_index + variant_index) % 3) * 1.8),
-				0.65,
-				pattern_color.darkened(0.22)
-			)
+		draw_circle(_face_mark_point(-4.8, -10.2, head_size), 0.55, pattern_color.darkened(0.24))
+	if _face_detail_visible_on_side(1.0):
+		draw_line(
+			_face_mark_point(5.6, -15.0, head_size),
+			_face_mark_point(2.0, -12.0, head_size),
+			pattern_color.darkened(0.22),
+			0.7
+		)
+		draw_circle(_face_mark_point(4.6, -10.1, head_size), 0.55, pattern_color.darkened(0.24))
+	if variant_index > 2 and side_turn < 0.70:
+		draw_line(
+			head_offset + Vector2(-3.0 * head_size, -17.2),
+			head_offset + Vector2(3.2 * head_size, -17.1),
+			pattern_color.lightened(0.08),
+			0.55
+		)
+
+
+func _draw_mirefolk_mouth(head_size: float, head_offset: Vector2, skin: Color) -> void:
+	draw_line(
+		head_offset + Vector2(-5.3 * head_size, -11.0),
+		head_offset + Vector2(5.3 * head_size, -10.8),
+		skin.darkened(0.22),
+		0.9
+	)
+
+
+func _draw_mirefolk_back_spots(variant_index: int, pattern_color: Color) -> void:
+	for spot_index in 4:
+		draw_circle(
+			_body_point(
+				-4.0 + spot_index * 2.6, -4.4 + float((spot_index + variant_index) % 3) * 1.8
+			),
+			0.65,
+			pattern_color.darkened(0.22)
+		)
 
 
 func _ravenfolk_variant_index(appearance: Dictionary = {}) -> int:
@@ -1247,6 +1348,31 @@ func _draw_rootborn_feature(
 	var torso_width := 15.0 * _proportion(proportions, "torso_width")
 	var waist_width := 14.0 * _proportion(proportions, "waist_width")
 	var bark_line := root_color.darkened(0.12).lerp(growth_tint.darkened(0.20), 0.18)
+	_draw_rootborn_body_growth(torso_width, waist_width, variant_index, bark_line, lichen)
+	_draw_rootborn_roots(proportions, root_color)
+	if feature_ids.has("feature_rootborn_branch_crown"):
+		_draw_rootborn_branch_crown(
+			skin, head_size, head_offset, side_turn, back_turn, side, variant_index, leaf, lichen
+		)
+	if feature_ids.has("feature_rootborn_leaf_crown"):
+		_draw_rootborn_leaf_crown(skin, head_size, head_offset, side_turn, side, variant_index, leaf)
+	if feature_ids.has("feature_rootborn_bark_marks"):
+		_draw_rootborn_bark_marks(
+			skin,
+			head_size,
+			head_offset,
+			torso_width,
+			variant_index,
+			root_color,
+			lichen,
+			front_visible,
+			side_turn
+		)
+
+
+func _draw_rootborn_body_growth(
+	torso_width: float, waist_width: float, variant_index: int, bark_line: Color, lichen: Color
+) -> void:
 	draw_line(
 		_body_point(-torso_width * 0.28, -3.8),
 		_body_point(torso_width * 0.26, -3.2),
@@ -1260,10 +1386,7 @@ func _draw_rootborn_feature(
 		0.5
 	)
 	draw_line(
-		_body_point(-waist_width * 0.25, 4.6),
-		_body_point(waist_width * 0.24, 4.0),
-		bark_line,
-		0.55
+		_body_point(-waist_width * 0.25, 4.6), _body_point(waist_width * 0.24, 4.0), bark_line, 0.55
 	)
 	for patch_index in 2 + variant_index % 2:
 		draw_circle(
@@ -1274,6 +1397,9 @@ func _draw_rootborn_feature(
 			0.65,
 			lichen.darkened(0.08)
 		)
+
+
+func _draw_rootborn_roots(proportions: Dictionary, root_color: Color) -> void:
 	for root_side in [-1.0, 1.0]:
 		var foot := _foot_anchor(root_side, proportions) + _stride_offset(root_side)
 		draw_line(
@@ -1294,168 +1420,174 @@ func _draw_rootborn_feature(
 			root_color.darkened(0.05),
 			0.65
 		)
-	if feature_ids.has("feature_rootborn_branch_crown"):
-		var branch_color := skin.darkened(0.42)
-		var left_lift := 23.0 + float(variant_index % 3) * 0.7
-		var right_lift := 23.4 + float((variant_index + 1) % 3) * 0.7
-		var near_scale := 1.0 + side_turn * 0.10
-		var far_scale := 1.0 - side_turn * 0.28
-		var left_scale := far_scale if side > 0.0 else near_scale
-		var right_scale := near_scale if side > 0.0 else far_scale
-		var crown_shift := side * side_turn * 1.2 - _facing_forward().x * back_turn * 0.8
-		var left_base := head_offset + Vector2(crown_shift - 2.4 * head_size * left_scale, -19.0)
-		var left_tip := head_offset + Vector2(
-			crown_shift - 3.2 * head_size * left_scale, -left_lift * head_size
-		)
-		var right_base := head_offset + Vector2(
-			crown_shift + 2.2 * head_size * right_scale, -19.0
-		)
-		var right_tip := head_offset + Vector2(
-			crown_shift + 2.9 * head_size * right_scale, -right_lift * head_size
-		)
-		var left_branch := head_offset + Vector2(
-			crown_shift - 5.1 * head_size * left_scale, -23.6 * head_size
-		)
-		var right_branch := head_offset + Vector2(
-			crown_shift + 4.6 * head_size * right_scale, -24.1 * head_size
-		)
-		draw_line(
-			left_base,
-			left_tip,
-			branch_color,
-			1.05
-		)
-		draw_line(
-			right_base,
-			right_tip,
-			branch_color,
-			1.05
-		)
-		draw_line(
-			head_offset + Vector2(crown_shift - 3.0 * head_size * left_scale, -22.5 * head_size),
-			left_branch,
-			branch_color,
-			0.75
-		)
-		draw_line(
-			head_offset + Vector2(crown_shift + 2.7 * head_size * right_scale, -22.9 * head_size),
-			right_branch,
-			branch_color,
-			0.75
-		)
-		draw_circle(left_tip, 0.9, leaf)
-		draw_circle(right_tip, 0.9, leaf)
-		draw_circle(left_branch + Vector2(0.0, -0.1), 0.7, leaf)
-		draw_circle(right_branch + Vector2(0.0, -0.1), 0.7, leaf)
-		if variant_index % 2 == 0:
-			draw_circle(head_offset + Vector2(crown_shift, -22.2 * head_size), 0.65, lichen)
-	if feature_ids.has("feature_rootborn_leaf_crown"):
-		draw_line(
-			head_offset + Vector2(side * side_turn * 0.8, -18.0),
-			head_offset + Vector2(side * side_turn * 1.5, -24.8 * head_size),
-			skin.darkened(0.36),
-			1.25
-		)
-		var leaf_spread := lerpf(1.0, 0.62, side_turn)
-		var left_leaf_tip := head_offset + Vector2(
-			(-5.8 * leaf_spread + side_turn * side) * head_size,
-			-25.0 * head_size
-		)
-		var left_leaf_inner := head_offset + Vector2(
-			(-2.0 * leaf_spread + side_turn * side) * head_size,
-			-23.2 * head_size
-		)
-		var right_leaf_tip := head_offset + Vector2(
-			(5.8 * leaf_spread + side_turn * side) * head_size,
-			-25.0 * head_size
-		)
-		var right_leaf_inner := head_offset + Vector2(
-			(2.0 * leaf_spread + side_turn * side) * head_size,
-			-23.2 * head_size
-		)
+
+
+func _draw_rootborn_branch_crown(
+	skin: Color,
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	back_turn: float,
+	side: float,
+	variant_index: int,
+	leaf: Color,
+	lichen: Color
+) -> void:
+	var branch_color := skin.darkened(0.42)
+	var left_lift := 23.0 + float(variant_index % 3) * 0.7
+	var right_lift := 23.4 + float((variant_index + 1) % 3) * 0.7
+	var near_scale := 1.0 + side_turn * 0.10
+	var far_scale := 1.0 - side_turn * 0.28
+	var left_scale := far_scale if side > 0.0 else near_scale
+	var right_scale := near_scale if side > 0.0 else far_scale
+	var crown_shift := side * side_turn * 1.2 - _facing_forward().x * back_turn * 0.8
+	var left_base := head_offset + Vector2(crown_shift - 2.4 * head_size * left_scale, -19.0)
+	var left_tip := (
+		head_offset + Vector2(crown_shift - 3.2 * head_size * left_scale, -left_lift * head_size)
+	)
+	var right_base := head_offset + Vector2(crown_shift + 2.2 * head_size * right_scale, -19.0)
+	var right_tip := (
+		head_offset + Vector2(crown_shift + 2.9 * head_size * right_scale, -right_lift * head_size)
+	)
+	var left_branch := (
+		head_offset + Vector2(crown_shift - 5.1 * head_size * left_scale, -23.6 * head_size)
+	)
+	var right_branch := (
+		head_offset + Vector2(crown_shift + 4.6 * head_size * right_scale, -24.1 * head_size)
+	)
+	draw_line(left_base, left_tip, branch_color, 1.05)
+	draw_line(right_base, right_tip, branch_color, 1.05)
+	draw_line(
+		head_offset + Vector2(crown_shift - 3.0 * head_size * left_scale, -22.5 * head_size),
+		left_branch,
+		branch_color,
+		0.75
+	)
+	draw_line(
+		head_offset + Vector2(crown_shift + 2.7 * head_size * right_scale, -22.9 * head_size),
+		right_branch,
+		branch_color,
+		0.75
+	)
+	draw_circle(left_tip, 0.9, leaf)
+	draw_circle(right_tip, 0.9, leaf)
+	draw_circle(left_branch + Vector2(0.0, -0.1), 0.7, leaf)
+	draw_circle(right_branch + Vector2(0.0, -0.1), 0.7, leaf)
+	if variant_index % 2 == 0:
+		draw_circle(head_offset + Vector2(crown_shift, -22.2 * head_size), 0.65, lichen)
+
+
+func _draw_rootborn_leaf_crown(
+	skin: Color,
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	side: float,
+	variant_index: int,
+	leaf: Color
+) -> void:
+	draw_line(
+		head_offset + Vector2(side * side_turn * 0.8, -18.0),
+		head_offset + Vector2(side * side_turn * 1.5, -24.8 * head_size),
+		skin.darkened(0.36),
+		1.25
+	)
+	var leaf_spread := lerpf(1.0, 0.62, side_turn)
+	var left_leaf_tip := (
+		head_offset + Vector2((-5.8 * leaf_spread + side_turn * side) * head_size, -25.0 * head_size)
+	)
+	var left_leaf_inner := (
+		head_offset + Vector2((-2.0 * leaf_spread + side_turn * side) * head_size, -23.2 * head_size)
+	)
+	var right_leaf_tip := (
+		head_offset + Vector2((5.8 * leaf_spread + side_turn * side) * head_size, -25.0 * head_size)
+	)
+	var right_leaf_inner := (
+		head_offset + Vector2((2.0 * leaf_spread + side_turn * side) * head_size, -23.2 * head_size)
+	)
+	_draw_shape(
+		PackedVector2Array([head_offset + Vector2(-1.0, -20.2), left_leaf_tip, left_leaf_inner]),
+		leaf,
+		OUTLINE,
+		0.8
+	)
+	_draw_shape(
+		PackedVector2Array([head_offset + Vector2(1.0, -20.2), right_leaf_tip, right_leaf_inner]),
+		leaf,
+		OUTLINE,
+		0.8
+	)
+	if variant_index > 1:
 		_draw_shape(
 			PackedVector2Array(
 				[
-					head_offset + Vector2(-1.0, -20.2),
-					left_leaf_tip,
-					left_leaf_inner
+					head_offset + Vector2(0.0, -20.8),
+					head_offset + Vector2(1.3 * head_size, -25.8 * head_size),
+					head_offset + Vector2(-1.3 * head_size, -23.4 * head_size)
 				]
 			),
-			leaf,
+			leaf.lightened(0.08),
 			OUTLINE,
-			0.8
+			0.6
 		)
-		_draw_shape(
-			PackedVector2Array(
-				[
-					head_offset + Vector2(1.0, -20.2),
-					right_leaf_tip,
-					right_leaf_inner
-				]
-			),
-			leaf,
-			OUTLINE,
-			0.8
+
+
+func _draw_rootborn_bark_marks(
+	skin: Color,
+	head_size: float,
+	head_offset: Vector2,
+	torso_width: float,
+	variant_index: int,
+	root_color: Color,
+	lichen: Color,
+	front_visible: bool,
+	side_turn: float
+) -> void:
+	if front_visible:
+		draw_line(
+			head_offset + Vector2(-3.6 * head_size, -13.0),
+			head_offset + Vector2(-1.0 * head_size, -9.5),
+			skin.darkened(0.34),
+			0.9
 		)
-		if variant_index > 1:
-			_draw_shape(
-				PackedVector2Array(
-					[
-						head_offset + Vector2(0.0, -20.8),
-						head_offset + Vector2(1.3 * head_size, -25.8 * head_size),
-						head_offset + Vector2(-1.3 * head_size, -23.4 * head_size)
-					]
-				),
-				leaf.lightened(0.08),
-				OUTLINE,
-				0.6
-			)
-	if feature_ids.has("feature_rootborn_bark_marks"):
-		if front_visible:
+		if side_turn < 0.72:
 			draw_line(
-				head_offset + Vector2(-3.6 * head_size, -13.0),
-				head_offset + Vector2(-1.0 * head_size, -9.5),
-				skin.darkened(0.34),
-				0.9
+				head_offset + Vector2(3.5 * head_size, -13.2),
+				head_offset + Vector2(0.8 * head_size, -9.2),
+				skin.darkened(0.32),
+				0.75
 			)
-			if side_turn < 0.72:
-				draw_line(
-					head_offset + Vector2(3.5 * head_size, -13.2),
-					head_offset + Vector2(0.8 * head_size, -9.2),
-					skin.darkened(0.32),
-					0.75
-				)
+	draw_line(
+		_body_point(-torso_width * 0.24, -5.5),
+		_body_point(-torso_width * 0.04, 5.8),
+		root_color,
+		0.95
+	)
+	draw_line(
+		_body_point(torso_width * 0.18, -4.0),
+		_body_point(torso_width * 0.02, 6.5),
+		root_color.lightened(0.10),
+		0.85
+	)
+	draw_line(
+		_body_point(-torso_width * 0.14, 2.8),
+		_body_point(torso_width * 0.18, 1.2),
+		root_color.darkened(0.12),
+		0.7
+	)
+	draw_line(
+		_body_point(-torso_width * 0.18, -0.6),
+		_body_point(torso_width * 0.16, -1.5),
+		root_color.darkened(0.18),
+		0.65
+	)
+	if variant_index % 2 == 1:
 		draw_line(
-			_body_point(-torso_width * 0.24, -5.5),
-			_body_point(-torso_width * 0.04, 5.8),
-			root_color,
-			0.95
+			_body_point(-torso_width * 0.22, -2.8),
+			_body_point(torso_width * 0.20, -3.4),
+			lichen.darkened(0.22),
+			0.55
 		)
-		draw_line(
-			_body_point(torso_width * 0.18, -4.0),
-			_body_point(torso_width * 0.02, 6.5),
-			root_color.lightened(0.10),
-			0.85
-		)
-		draw_line(
-			_body_point(-torso_width * 0.14, 2.8),
-			_body_point(torso_width * 0.18, 1.2),
-			root_color.darkened(0.12),
-			0.7
-		)
-		draw_line(
-			_body_point(-torso_width * 0.18, -0.6),
-			_body_point(torso_width * 0.16, -1.5),
-			root_color.darkened(0.18),
-			0.65
-		)
-		if variant_index % 2 == 1:
-			draw_line(
-				_body_point(-torso_width * 0.22, -2.8),
-				_body_point(torso_width * 0.20, -3.4),
-				lichen.darkened(0.22),
-				0.55
-			)
 
 
 func _draw_hair(hair_id: String, hair: Color, proportions: Dictionary) -> void:
