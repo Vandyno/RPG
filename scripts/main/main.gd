@@ -490,13 +490,15 @@ func _interact() -> void:
 			_interact_container(entity)
 		"poi":
 			PoiInteraction.interact(
-				entity,
-				world_state,
-				hud,
-				Callable(self, "apply_effect"),
-				event_bus,
-				active_content_choices,
-				condition_evaluator
+				PoiInteraction.InteractionContext.new(
+					entity,
+					world_state,
+					hud,
+					Callable(self, "apply_effect"),
+					event_bus,
+					active_content_choices,
+					condition_evaluator
+				)
 			)
 		"npc":
 			_interact_npc(entity)

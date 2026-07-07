@@ -196,13 +196,15 @@ static func _handle_poi_inspect_selected(ctx: ActionContext, _entity_id: String)
 		ctx.event_bus.post_message("No place to inspect.")
 		return
 	PoiInteraction.inspect(
-		entity,
-		ctx.world_state,
-		ctx.hud,
-		ctx._apply_effect,
-		ctx.event_bus,
-		ctx.active_content_choices,
-		ctx.condition_evaluator
+		PoiInteraction.InteractionContext.new(
+			entity,
+			ctx.world_state,
+			ctx.hud,
+			ctx._apply_effect,
+			ctx.event_bus,
+			ctx.active_content_choices,
+			ctx.condition_evaluator
+		)
 	)
 
 

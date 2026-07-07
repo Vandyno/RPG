@@ -2,6 +2,33 @@ class_name PoiInteraction
 extends RefCounted
 
 
+class InteractionContext:
+	var entity
+	var world_state
+	var hud
+	var apply_effect: Callable
+	var event_bus
+	var active_choices: Dictionary
+	var condition_evaluator
+
+	func _init(
+		p_entity,
+		p_world_state,
+		p_hud,
+		p_apply_effect: Callable,
+		p_event_bus,
+		p_active_choices: Dictionary,
+		p_condition_evaluator = null
+	) -> void:
+		entity = p_entity
+		world_state = p_world_state
+		hud = p_hud
+		apply_effect = p_apply_effect
+		event_bus = p_event_bus
+		active_choices = p_active_choices
+		condition_evaluator = p_condition_evaluator
+
+
 static func detail(entity) -> String:
 	var poi_type := String(entity.data.get("poi_type", "POI"))
 	var summary := String(entity.data.get("summary", ""))
@@ -24,47 +51,41 @@ static func available_actions(entity, condition_evaluator) -> Array[Dictionary]:
 	return _available_actions(entity, condition_evaluator)
 
 
-static func interact(
-	entity,
-	world_state,
-	hud,
-	apply_effect: Callable,
-	event_bus,
-	active_choices: Dictionary,
-	condition_evaluator = null
-) -> void:
-	active_choices.clear()
-	_discover_or_visit(entity, world_state, apply_effect, event_bus)
-	var shop_id := String(entity.data.get("shop_id", ""))
-	var system_tab := String(entity.data.get("system_tab", ""))
+static func interact(context: InteractionContext) -> void:
+	if not context:
+		return
+	context.active_choices.clear()
+	_discover_or_visit(context.entity, context.world_state, context.apply_effect, context.event_bus)
+	var shop_id := String(context.entity.data.get("shop_id", ""))
+	var system_tab := String(context.entity.data.get("system_tab", ""))
 	if system_tab.is_empty() and not shop_id.is_empty():
 		system_tab = "trade"
-	if not system_tab.is_empty() and hud and hud.has_method("show_systems_panel"):
-		hud.show_systems_panel(system_tab)
+	if (
+		not system_tab.is_empty()
+		and context.hud
+		and context.hud.has_method("show_systems_panel")
+	):
+		context.hud.show_systems_panel(system_tab)
 		return
-	var actions := _available_actions(entity, condition_evaluator)
-	for action in actions:
-		active_choices[String(action.get("id", ""))] = action
-	if hud:
-		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions, "place")
+	_show_content(context)
 
 
-static func inspect(
-	entity,
-	world_state,
-	hud,
-	apply_effect: Callable,
-	event_bus,
-	active_choices: Dictionary,
-	condition_evaluator = null
-) -> void:
-	active_choices.clear()
-	_discover_or_visit(entity, world_state, apply_effect, event_bus)
-	var actions := _available_actions(entity, condition_evaluator)
+static func inspect(context: InteractionContext) -> void:
+	if not context:
+		return
+	context.active_choices.clear()
+	_discover_or_visit(context.entity, context.world_state, context.apply_effect, context.event_bus)
+	_show_content(context)
+
+
+static func _show_content(context: InteractionContext) -> void:
+	var actions := _available_actions(context.entity, context.condition_evaluator)
 	for action in actions:
-		active_choices[String(action.get("id", ""))] = action
-	if hud:
-		hud.show_content_card(entity.get_display_name(), _body_text(entity), actions, "place")
+		context.active_choices[String(action.get("id", ""))] = action
+	if context.hud:
+		context.hud.show_content_card(
+			context.entity.get_display_name(), _body_text(context.entity), actions, "place"
+		)
 
 
 static func _body_text(entity) -> String:
