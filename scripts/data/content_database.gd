@@ -295,10 +295,15 @@ func _load_json(path: String) -> Variant:
 		_record_load_error("Missing content file: %s" % path)
 		return null
 	var raw := FileAccess.get_file_as_string(path)
-	var parsed: Variant = JSON.parse_string(raw)
-	if parsed == null:
-		_record_load_error("Invalid JSON: %s" % path)
-	return parsed
+	var parser := JSON.new()
+	var error := parser.parse(raw)
+	if error != OK:
+		_record_load_error(
+			"Invalid JSON at %s line %d: %s"
+			% [path, parser.get_error_line(), parser.get_error_message()]
+		)
+		return null
+	return parser.data
 
 
 func _record_load_error(message: String) -> void:

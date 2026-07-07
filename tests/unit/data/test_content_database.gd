@@ -90,6 +90,19 @@ func test_load_helpers_report_missing_or_wrong_json_shape() -> void:
 	assert_true(content.load_errors[2].contains("Missing content file"))
 
 
+func test_load_json_reports_parser_line_and_message() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	var path := "user://content_database_invalid.json"
+	_write_text(path, "{\n  \"id\": \"broken\",\n")
+
+	assert_eq(content._load_dictionary(path), {})
+	assert_eq(content.load_errors.size(), 1)
+	assert_true(content.load_errors[0].contains("Invalid JSON at %s line " % path))
+	assert_true(content.load_errors[0].contains(":"))
+	assert_false(content.load_errors[0].ends_with(": "))
+
+
 func _write_text(path: String, text: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(text)
