@@ -226,9 +226,20 @@ Humanoid presentation is owned by `HumanoidAvatar2D`. The current 2D renderer
 uses 16 facing buckets and explicit back/body/front layer bands so attached
 parts, worn layers, hands, and held items can sort correctly without needing a
 separate actor model.
-Player movement position may remain continuous, but facing, avatar body math,
-and attack VFX use snapped visual bucket directions. Attack hit shapes should
-use continuous aim direction so combat is not functionally locked to 16 angles.
+Player movement position may remain continuous, but facing and avatar body math
+use snapped visual bucket directions. Attack hit shapes should use continuous
+aim direction so combat is not functionally locked to 16 angles. Equipped
+weapon attacks should resolve through shared actor action nodes with timed
+weapon visuals and weapon-specific hit checks, so player and NPC attacks do not
+fork into separate combat implementations. An actor with no equipped weapon
+uses an unarmed punch action, not a fake sword swing. Weapon visuals should be
+driven from hand anchors so swords, polearms, bows, shields, and future tools
+look held and used by the body rather than projected from actor center. Attack
+action nodes own timing and hit checks only; the humanoid avatar/equipment
+renderer owns visible hand and weapon pose.
+Humanoid profiles may include optional handedness; held weapons and tools use
+dominant/off-hand body roles and must not swap sides just because the facing
+bucket changes.
 Appearance data may define anatomy, people features, palette, hair, markings,
 and proportions. It should not make a character visibly wear clothing. Visible
 clothing and armour should come from equipped item state.

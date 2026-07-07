@@ -3,6 +3,17 @@ extends GutTest
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 
 
+func test_empty_hand_attack_is_punch_not_weapon_swing() -> void:
+	var attack := DirectionalAttack.weapon_attack_from_item({})
+
+	assert_eq(attack["name"], "Unarmed")
+	assert_eq(attack["shape"], "punch")
+	assert_eq(attack["range_pixels"], 34.0)
+	assert_eq(attack["width_pixels"], 26.0)
+	assert_eq(attack["visual"], "punch")
+	assert_false(attack.has("item_id"))
+
+
 func test_thrust_hits_narrow_forward_line() -> void:
 	var attack := {"shape": "thrust", "range_pixels": 80.0, "width_pixels": 18.0}
 
@@ -22,10 +33,7 @@ func test_thrust_hits_narrow_forward_line() -> void:
 
 func test_swing_hits_front_arc_and_misses_behind() -> void:
 	var attack := {
-		"shape": "swing",
-		"range_pixels": 52.0,
-		"width_pixels": 38.0,
-		"arc_degrees": 120.0
+		"shape": "swing", "range_pixels": 52.0, "width_pixels": 38.0, "arc_degrees": 120.0
 	}
 
 	assert_true(
@@ -39,6 +47,24 @@ func test_swing_hits_front_arc_and_misses_behind() -> void:
 	)
 	assert_false(
 		DirectionalAttack.contains_point(Vector2.ZERO, Vector2.RIGHT, Vector2(60, 0), attack)
+	)
+
+
+func test_weapon_swing_sweep_hits_when_blade_reaches_target_angle() -> void:
+	var attack := {
+		"shape": "swing", "range_pixels": 52.0, "width_pixels": 18.0, "arc_degrees": 120.0
+	}
+	var target := Vector2(40.0, 0.0)
+
+	assert_false(
+		DirectionalAttack.weapon_sweep_contains_point(
+			Vector2.ZERO, Vector2.RIGHT, target, attack, 0.0, 0.2
+		)
+	)
+	assert_true(
+		DirectionalAttack.weapon_sweep_contains_point(
+			Vector2.ZERO, Vector2.RIGHT, target, attack, 0.4, 0.6
+		)
 	)
 
 

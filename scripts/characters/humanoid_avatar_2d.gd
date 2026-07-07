@@ -9,6 +9,7 @@ const HumanoidPeopleFeatureDrawer = preload(
 	"res://scripts/characters/humanoid_people_feature_drawer.gd"
 )
 const HumanoidEquipmentDrawer = preload("res://scripts/characters/humanoid_equipment_drawer.gd")
+const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 
 const PALETTES := {
 	"palette_human_warm_brown":
@@ -117,6 +118,7 @@ var locomotion_state := LOCOMOTION_IDLE
 var animation_time := 0.0
 var move_intensity := 0.0
 var is_sneaking := false
+var attack_pose: Dictionary = {}
 
 
 func setup(
@@ -178,6 +180,27 @@ func set_sneaking(value: bool) -> void:
 		locomotion_state = LOCOMOTION_SNEAK
 	elif locomotion_state == LOCOMOTION_SNEAK and not is_sneaking:
 		locomotion_state = LOCOMOTION_WALK
+	queue_redraw()
+
+
+func set_attack_pose(attack_data: Dictionary, direction: Vector2, progress: float) -> void:
+	var safe_direction := direction.normalized()
+	if safe_direction.length() <= 0.01:
+		safe_direction = _facing_forward()
+	attack_pose = {
+		"active": true,
+		"shape": String(attack_data.get("shape", "swing")),
+		"attack": attack_data.duplicate(true),
+		"direction": safe_direction,
+		"progress": clampf(progress, 0.0, 1.0)
+	}
+	queue_redraw()
+
+
+func clear_attack_pose() -> void:
+	if attack_pose.is_empty():
+		return
+	attack_pose.clear()
 	queue_redraw()
 
 
@@ -276,8 +299,8 @@ func get_body_part_anchors() -> Dictionary:
 		"head": _head_turn_offset() + Vector2(0.0, -14.2),
 		"chest": _body_point(0.0, -2.0),
 		"waist": _body_point(0.0, 4.8),
-		"left_hand": _hand_anchor(-1.0, proportions) + _hand_sway(-1.0),
-		"right_hand": _hand_anchor(1.0, proportions) + _hand_sway(1.0),
+		"left_hand": _hand_position(-1.0, proportions),
+		"right_hand": _hand_position(1.0, proportions),
 		"left_foot": Vector2.ZERO + _foot_anchor(-1.0, proportions),
 		"right_foot": Vector2.ZERO + _foot_anchor(1.0, proportions)
 	}
@@ -285,12 +308,22 @@ func get_body_part_anchors() -> Dictionary:
 	for anchor_id in anchors:
 		var point: Vector2 = anchors[anchor_id]
 		anchors[anchor_id] = Vector2(point.x, point.y * body_height)
+	var dominant_hand_id := _hand_slot_id(_dominant_hand_side())
+	var off_hand_id := _hand_slot_id(-_dominant_hand_side())
+	anchors["weapon_hand"] = anchors[dominant_hand_id]
+	anchors["draw_hand"] = anchors[dominant_hand_id]
+	anchors["off_hand"] = anchors[off_hand_id]
+	anchors["bow_hand"] = anchors[off_hand_id]
 	return {
 		"head": anchors["head"],
 		"chest": anchors["chest"],
 		"waist": anchors["waist"],
 		"left_hand": anchors["left_hand"],
 		"right_hand": anchors["right_hand"],
+		"weapon_hand": anchors["weapon_hand"],
+		"draw_hand": anchors["draw_hand"],
+		"off_hand": anchors["off_hand"],
+		"bow_hand": anchors["bow_hand"],
 		"left_foot": anchors["left_foot"],
 		"right_foot": anchors["right_foot"]
 	}
@@ -464,10 +497,7 @@ func _draw_torso(skin: Color, proportions: Dictionary) -> void:
 		]
 	)
 	_draw_shape(
-		chest_plane,
-		skin.lightened(0.03 + front_turn * 0.02),
-		Color(0.0, 0.0, 0.0, 0.0),
-		0.0
+		chest_plane, skin.lightened(0.03 + front_turn * 0.02), Color(0.0, 0.0, 0.0, 0.0), 0.0
 	)
 	draw_line(
 		_body_point(0.0, shoulder_y - 0.8),
@@ -491,19 +521,8 @@ func _draw_torso(skin: Color, proportions: Dictionary) -> void:
 
 func _draw_hands(skin: Color, proportions: Dictionary) -> void:
 	var hand_size := _proportion(proportions, "hand_size")
-	var sneak_lower := 1.6 if is_sneaking else 0.0
-	_draw_mitten(
-		_hand_anchor(-1.0, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(-1.0),
-		3.2 * hand_size,
-		-1.0,
-		skin
-	)
-	_draw_mitten(
-		_hand_anchor(1.0, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(1.0),
-		3.2 * hand_size,
-		1.0,
-		skin
-	)
+	_draw_mitten(_hand_position(-1.0, proportions), 3.2 * hand_size, -1.0, skin)
+	_draw_mitten(_hand_position(1.0, proportions), 3.2 * hand_size, 1.0, skin)
 
 
 func _draw_hand_layer(skin: Color, proportions: Dictionary, layer_id: String) -> void:
@@ -512,14 +531,14 @@ func _draw_hand_layer(skin: Color, proportions: Dictionary, layer_id: String) ->
 
 
 func _draw_hand_with_equipment(side: float, skin: Color, proportions: Dictionary) -> void:
+	if _hand_is_replaced_by_held_item(side):
+		var draw_slot_id := _held_item_draw_slot_for_side(side)
+		if not draw_slot_id.is_empty():
+			_draw_hand_equipment(draw_slot_id, proportions)
+		_draw_held_item_arm_and_hand(side, skin, proportions)
+		return
 	var hand_size := _proportion(proportions, "hand_size")
-	var sneak_lower := 1.6 if is_sneaking else 0.0
-	_draw_mitten(
-		_hand_anchor(side, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(side),
-		3.2 * hand_size,
-		side,
-		skin
-	)
+	_draw_mitten(_hand_position(side, proportions), 3.2 * hand_size, side, skin)
 	_draw_glove_equipment(side, proportions)
 	_draw_hand_equipment(_hand_slot_id(side), proportions)
 
@@ -641,8 +660,12 @@ func _draw_tanglekin_feature(
 					OUTLINE,
 					0.55
 				)
-				draw_circle(head_offset + Vector2(-2.6 * head_size, -14.8), 0.75 * head_size, eye_color)
-				draw_circle(head_offset + Vector2(2.6 * head_size, -14.8), 0.75 * head_size, eye_color)
+				draw_circle(
+					head_offset + Vector2(-2.6 * head_size, -14.8), 0.75 * head_size, eye_color
+				)
+				draw_circle(
+					head_offset + Vector2(2.6 * head_size, -14.8), 0.75 * head_size, eye_color
+				)
 				draw_line(
 					head_offset + Vector2(-1.8 * head_size, -10.1),
 					head_offset + Vector2(1.9 * head_size, -10.0),
@@ -651,12 +674,13 @@ func _draw_tanglekin_feature(
 				)
 			else:
 				_draw_outlined_oval(
-					_tanglekin_side_muzzle_rect(head_size),
-					muzzle_color,
-					OUTLINE,
-					0.55
+					_tanglekin_side_muzzle_rect(head_size), muzzle_color, OUTLINE, 0.55
 				)
-				draw_circle(head_offset + Vector2(side * 2.0 * head_size, -14.8), 0.78 * head_size, eye_color)
+				draw_circle(
+					head_offset + Vector2(side * 2.0 * head_size, -14.8),
+					0.78 * head_size,
+					eye_color
+				)
 				draw_line(
 					head_offset + Vector2(side * 2.0 * head_size, -10.5),
 					head_offset + Vector2(side * 3.3 * head_size, -10.6),
@@ -666,16 +690,11 @@ func _draw_tanglekin_feature(
 	elif back_turn > 0.55:
 		var rear_ear_scale := lerpf(1.0, 0.72, side_turn)
 		for ear_side in [-1.0, 1.0]:
-			var ear_center := head_offset + Vector2(
-				ear_side * 6.4 * head_size * rear_ear_scale,
-				-15.0
+			var ear_center := (
+				head_offset + Vector2(ear_side * 6.4 * head_size * rear_ear_scale, -15.0)
 			)
 			draw_circle(ear_center, 1.9 * head_size * rear_ear_scale, OUTLINE)
-			draw_circle(
-				ear_center,
-				1.18 * head_size * rear_ear_scale,
-				skin.darkened(0.14)
-			)
+			draw_circle(ear_center, 1.18 * head_size * rear_ear_scale, skin.darkened(0.14))
 	if feature_ids.has("feature_tanglekin_brow_tuft"):
 		for tuft_index in 3:
 			var offset := float(tuft_index - 1)
@@ -1193,10 +1212,7 @@ func _draw_ravenfolk_body_feature(
 		]
 	)
 	_draw_shape(
-		upper_patch,
-		feather_color.darkened(back_turn * 0.05),
-		Color(0.0, 0.0, 0.0, 0.0),
-		0.0
+		upper_patch, feather_color.darkened(back_turn * 0.05), Color(0.0, 0.0, 0.0, 0.0), 0.0
 	)
 	for row_index in 4:
 		var count := 3 + row_index
@@ -1224,8 +1240,12 @@ func _draw_ravenfolk_body_feature(
 	for side in [-1.0, 1.0]:
 		var shoulder := _body_point(side * shoulder_width * 0.43, -6.5)
 		for fringe_index in 3:
-			var tip := shoulder + Vector2(side * (1.8 + fringe_index * 1.2), 2.4 + fringe_index * 1.7)
-			draw_line(shoulder + Vector2(side * fringe_index * 0.9, fringe_index * 0.5), tip, shadow, 0.8)
+			var tip := (
+				shoulder + Vector2(side * (1.8 + fringe_index * 1.2), 2.4 + fringe_index * 1.7)
+			)
+			draw_line(
+				shoulder + Vector2(side * fringe_index * 0.9, fringe_index * 0.5), tip, shadow, 0.8
+			)
 
 
 func _draw_ravenfolk_front_feature(
@@ -1248,15 +1268,22 @@ func _draw_ravenfolk_front_feature(
 		var crest_fill := feather_color.lightened(0.07).darkened(back_turn * 0.10)
 		for crest_index in crest_count:
 			var offset := float(crest_index - 2)
-			var base := head_offset + Vector2(
-				crest_shift + offset * 1.35 * head_size * crest_spread,
-				-18.8 + back_turn * 0.8
+			var base := (
+				head_offset
+				+ Vector2(
+					crest_shift + offset * 1.35 * head_size * crest_spread, -18.8 + back_turn * 0.8
+				)
 			)
-			var tip := head_offset + Vector2(
-				crest_shift
-				+ offset * 2.05 * head_size * crest_spread
-				+ side * side_turn * 0.45 * absf(offset),
-				-18.8 - (5.4 + absf(offset) * 0.65) * head_size * crest_height
+			var tip := (
+				head_offset
+				+ Vector2(
+					(
+						crest_shift
+						+ offset * 2.05 * head_size * crest_spread
+						+ side * side_turn * 0.45 * absf(offset)
+					),
+					-18.8 - (5.4 + absf(offset) * 0.65) * head_size * crest_height
+				)
 			)
 			_draw_shape(
 				PackedVector2Array(
@@ -1284,10 +1311,10 @@ func _draw_ravenfolk_front_feature(
 		if side_turn >= 0.70:
 			draw_circle(_ravenfolk_near_eye_point(head_size), 0.85 * head_size, bone_color)
 		else:
-			draw_circle(head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, bone_color)
 			draw_circle(
-				head_offset + Vector2(1.8 * head_size, -14.4), 0.72 * head_size, bone_color
+				head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, bone_color
 			)
+			draw_circle(head_offset + Vector2(1.8 * head_size, -14.4), 0.72 * head_size, bone_color)
 		if feature_ids.has("feature_ravenfolk_beak"):
 			if side_turn < 0.45:
 				_draw_shape(
@@ -1310,10 +1337,7 @@ func _draw_ravenfolk_front_feature(
 				)
 			else:
 				_draw_shape(
-					_ravenfolk_side_beak_points(head_size),
-					bone_color.darkened(0.06),
-					OUTLINE,
-					0.62
+					_ravenfolk_side_beak_points(head_size), bone_color.darkened(0.06), OUTLINE, 0.62
 				)
 				draw_line(
 					head_offset + Vector2(side * 1.0 * head_size, -12.6),
@@ -1620,12 +1644,18 @@ func _draw_hair(hair_id: String, hair: Color, proportions: Dictionary) -> void:
 			var side := -1.0 if curl_index < 2 else 1.0
 			var curl_y := -17.2 + float(curl_index % 2) * 2.1
 			draw_circle(
-				head_offset + Vector2(side * radius * (0.72 + float(curl_index % 2) * 0.05), curl_y),
+				(
+					head_offset
+					+ Vector2(side * radius * (0.72 + float(curl_index % 2) * 0.05), curl_y)
+				),
 				1.7 * head_size,
 				hair
 			)
 			draw_arc(
-				head_offset + Vector2(side * radius * (0.72 + float(curl_index % 2) * 0.05), curl_y),
+				(
+					head_offset
+					+ Vector2(side * radius * (0.72 + float(curl_index % 2) * 0.05), curl_y)
+				),
 				1.7 * head_size,
 				0.0,
 				TAU,
@@ -1689,12 +1719,7 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 					mark_color
 				)
 		"marking_chest_band":
-			draw_line(
-				_body_point(-5.4, -2.4),
-				_body_point(5.4, -0.6),
-				mark_color,
-				0.85
-			)
+			draw_line(_body_point(-5.4, -2.4), _body_point(5.4, -0.6), mark_color, 0.85)
 		"marking_hand_wraps":
 			draw_line(
 				_hand_anchor(-1.0, proportions),
@@ -1763,12 +1788,7 @@ func _draw_back_equipment_layer(proportions: Dictionary, layer_id: String) -> vo
 		]
 	)
 	_draw_shape(points, color, OUTLINE, 0.75)
-	draw_line(
-		_body_point(0.0, y_top + 1.0),
-		_body_point(0.0, y_bottom),
-		color.darkened(0.28),
-		0.55
-	)
+	draw_line(_body_point(0.0, y_top + 1.0), _body_point(0.0, y_bottom), color.darkened(0.28), 0.55)
 
 
 func _draw_boot_equipment_layer(proportions: Dictionary) -> void:
@@ -2015,42 +2035,44 @@ func _draw_glove_equipment(side: float, proportions: Dictionary) -> void:
 	if not equipped_visuals.has("gloves"):
 		return
 	var hand_size := _proportion(proportions, "hand_size")
-	var sneak_lower := 1.6 if is_sneaking else 0.0
 	_draw_mitten(
-		_hand_anchor(side, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(side),
-		3.0 * hand_size,
-		side,
-		_equipment_color("gloves")
+		_hand_position(side, proportions), 3.0 * hand_size, side, _equipment_color("gloves")
 	)
 
 
 func _draw_hand_equipment(slot_id: String, proportions: Dictionary) -> void:
 	var normalized_slot := EquipmentSlots.normalize(slot_id)
-	if normalized_slot == "left_hand" and equipped_visuals.has("left_hand"):
-		var hand_center := (
-			_hand_anchor(-1.0, proportions)
-			+ Vector2(0.0, 1.6 if is_sneaking else 0.0)
-			+ _hand_sway(-1.0)
-		)
-		draw_circle(
-			hand_center,
-			5.0 * _proportion(proportions, "hand_size"),
-			_equipment_color("left_hand")
-		)
-	if normalized_slot == "right_hand" and equipped_visuals.has("right_hand"):
-		var color := _equipment_color("right_hand")
-		var direction := facing_direction.normalized()
-		if direction == Vector2.ZERO:
-			direction = Vector2.DOWN
-		var start := (
-			_hand_anchor(1.0, proportions)
-			+ direction * 3.0
-			+ Vector2(0.0, 1.6 if is_sneaking else 0.0)
-			+ _hand_sway(1.0)
-		)
-		var end := start + direction * 13.0
-		draw_line(start, end, color, 3.0)
-		draw_circle(end, 2.0, color.lightened(0.2))
+	if not equipped_visuals.has(normalized_slot):
+		return
+	var item_model := _held_item_model(normalized_slot, proportions)
+	if item_model.is_empty():
+		return
+	ItemVisual2D.draw_visual(self, item_model)
+
+
+func _held_item_model(slot_id: String, proportions: Dictionary) -> Dictionary:
+	var normalized_slot := EquipmentSlots.normalize(slot_id)
+	var visual_id := _equipment_layer_id(normalized_slot)
+	if not ItemVisual2D.is_item_visual(visual_id):
+		return {}
+	match visual_id:
+		"placeholder_polearm":
+			return _polearm_item_model(proportions)
+		"placeholder_bow":
+			return _bow_item_model(proportions)
+		_:
+			var item_side := _item_side_for_slot(normalized_slot)
+			var direction := (
+				_weapon_direction()
+				if _visual_uses_dominant_weapon_side(visual_id)
+				else _facing_forward()
+			)
+			return ItemVisual2D.model(
+				visual_id,
+				_hand_position(item_side, proportions),
+				direction,
+				{"color": _equipment_color(normalized_slot)}
+			)
 
 
 func _draw_face(proportions: Dictionary) -> void:
@@ -2062,48 +2084,169 @@ func _draw_face(proportions: Dictionary) -> void:
 	var eye_color := Color(0.025, 0.020, 0.016)
 	var mouth_color := Color(0.16, 0.08, 0.045, 0.55)
 	if side_turn > 0.70:
-		draw_line(
-			features["eye_a"],
-			features["eye_b"],
-			eye_color,
-			1.0 * head_size
-		)
-		draw_line(
-			features["mouth_a"],
-			features["mouth_b"],
-			mouth_color,
-			0.75
-		)
+		draw_line(features["eye_a"], features["eye_b"], eye_color, 1.0 * head_size)
+		draw_line(features["mouth_a"], features["mouth_b"], mouth_color, 0.75)
 		return
 
-	draw_line(
-		features["left_eye_a"],
-		features["left_eye_b"],
-		eye_color,
-		1.0 * head_size
-	)
+	draw_line(features["left_eye_a"], features["left_eye_b"], eye_color, 1.0 * head_size)
 	if side_turn < 0.75:
-		draw_line(
-			features["right_eye_a"],
-			features["right_eye_b"],
-			eye_color,
-			1.0 * head_size
-		)
-	draw_line(
-		features["mouth_a"],
-		features["mouth_b"],
-		mouth_color,
-		0.8
-	)
+		draw_line(features["right_eye_a"], features["right_eye_b"], eye_color, 1.0 * head_size)
+	draw_line(features["mouth_a"], features["mouth_b"], mouth_color, 0.8)
 
 
 func _equipment_color(slot_id: String) -> Color:
 	return EQUIPMENT_COLORS.get(_equipment_layer_id(slot_id), Color(0.82, 0.74, 0.52))
 
 
+func _current_skin_color() -> Color:
+	var appearance: Dictionary = profile.get("appearance", {})
+	var palette: Dictionary = PALETTES.get(
+		String(appearance.get("palette_id", "")), PALETTES["palette_human_warm_brown"]
+	)
+	return palette["skin"]
+
+
+func _draw_weapon_grip_hand(center: Vector2, side: float, proportions: Dictionary) -> void:
+	var hand_size := _proportion(proportions, "hand_size")
+	var color := (
+		_equipment_color("gloves") if equipped_visuals.has("gloves") else _current_skin_color()
+	)
+	_draw_mitten(center, 2.55 * hand_size, side, color)
+
+
+func _draw_held_item_arm_and_hand(side: float, skin: Color, proportions: Dictionary) -> void:
+	var grip_value: Variant = _held_item_grip_position_for_side(side, proportions)
+	if grip_value == null:
+		return
+	var grip: Vector2 = grip_value
+	var hand_size := _proportion(proportions, "hand_size")
+	var shoulder := _shoulder_anchor(side, proportions)
+	var base_hand := _base_hand_position(side, proportions)
+	var elbow_bias := _body_side_axis() * side * 2.1 * lerpf(1.0, 0.55, _side_turn_amount())
+	var elbow := base_hand.lerp(grip, 0.48) + elbow_bias
+	var arm_color := skin.darkened(0.08)
+	draw_line(shoulder, elbow, OUTLINE, 3.0 * hand_size)
+	draw_line(elbow, grip, OUTLINE, 2.8 * hand_size)
+	draw_line(shoulder, elbow, arm_color, 1.85 * hand_size)
+	draw_line(elbow, grip, arm_color.lightened(0.04), 1.7 * hand_size)
+	_draw_weapon_grip_hand(grip, side, proportions)
+
+
+func _held_item_grip_position_for_side(side: float, proportions: Dictionary) -> Variant:
+	var slot_id := _held_item_slot_for_side(side)
+	if slot_id.is_empty():
+		return null
+	var grip_id := _held_item_grip_id_for_side(slot_id, side)
+	if grip_id.is_empty():
+		return null
+	return ItemVisual2D.grip_position(_held_item_model(slot_id, proportions), grip_id)
+
+
 func _equipment_layer_id(slot_id: String) -> String:
 	var visual: Dictionary = equipped_visuals.get(EquipmentSlots.normalize(slot_id), {})
 	return String(visual.get("visual_layer_id", ""))
+
+
+func _slot_item_grip_sides(slot_id: String) -> Array[float]:
+	var visual_id := _equipment_layer_id(slot_id)
+	var result: Array[float] = []
+	for grip_id in ItemVisual2D.grip_ids(visual_id):
+		var side := _grip_side_for_slot(grip_id, slot_id)
+		if not is_zero_approx(side) and not result.has(side):
+			result.append(side)
+	return result
+
+
+func _grip_side_for_slot(grip_id: String, slot_id: String) -> float:
+	match grip_id:
+		"front", "bow":
+			return -_dominant_hand_side()
+		"rear", "draw":
+			return _dominant_hand_side()
+		"primary":
+			return _item_side_for_slot(slot_id)
+	return 0.0
+
+
+func _hand_is_replaced_by_held_item(side: float) -> bool:
+	return not _held_item_slot_for_side(side).is_empty()
+
+
+func _held_item_slot_for_side(side: float) -> String:
+	for slot_id in ["left_hand", "right_hand"]:
+		if _slot_item_grip_sides(slot_id).has(side):
+			return slot_id
+	return ""
+
+
+func _held_item_grip_id_for_side(slot_id: String, side: float) -> String:
+	var visual_id := _equipment_layer_id(slot_id)
+	for grip_id in ItemVisual2D.grip_ids(visual_id):
+		if is_equal_approx(_grip_side_for_slot(grip_id, slot_id), side):
+			return grip_id
+	return ""
+
+
+func _should_draw_held_item_from_side(side: float) -> bool:
+	return not _held_item_draw_slot_for_side(side).is_empty()
+
+
+func _held_item_draw_slot_for_side(side: float) -> String:
+	for slot_id in ["left_hand", "right_hand"]:
+		if not equipped_visuals.has(slot_id):
+			continue
+		if not _slot_item_grip_sides(slot_id).has(side):
+			continue
+		if is_equal_approx(_held_item_draw_side(slot_id), side):
+			return slot_id
+	return ""
+
+
+func _held_item_draw_side(slot_id: String) -> float:
+	var visual_id := _equipment_layer_id(slot_id)
+	if visual_id == "placeholder_bow":
+		return -_dominant_hand_side()
+	if _visual_uses_dominant_weapon_side(visual_id):
+		return _dominant_hand_side()
+	return _slot_side(slot_id)
+
+
+func _item_side_for_slot(slot_id: String) -> float:
+	var visual_id := _equipment_layer_id(slot_id)
+	if visual_id == "placeholder_bow":
+		return -_dominant_hand_side()
+	if _visual_uses_dominant_weapon_side(visual_id):
+		return _dominant_hand_side()
+	return _slot_side(slot_id)
+
+
+func _slot_side(slot_id: String) -> float:
+	return -1.0 if EquipmentSlots.normalize(slot_id) == "left_hand" else 1.0
+
+
+func _visual_uses_dominant_weapon_side(visual_id: String) -> bool:
+	return visual_id in ["placeholder_hatchet", "placeholder_sword", "placeholder_polearm"]
+
+
+func _visual_is_primary_weapon(visual_id: String) -> bool:
+	return (
+		visual_id
+		in ["placeholder_hatchet", "placeholder_sword", "placeholder_polearm", "placeholder_bow"]
+	)
+
+
+func _primary_weapon_slot_id() -> String:
+	for slot_id in ["right_hand", "left_hand"]:
+		if _visual_is_primary_weapon(_equipment_layer_id(slot_id)):
+			return slot_id
+	return ""
+
+
+func _primary_weapon_visual_id() -> String:
+	var slot_id := _primary_weapon_slot_id()
+	if slot_id.is_empty():
+		return ""
+	return _equipment_layer_id(slot_id)
 
 
 func _chest_equipment_uses_wrap_style() -> bool:
@@ -2115,6 +2258,12 @@ func _append_debug_hand_layer(
 ) -> void:
 	for side in _hand_sides_for_layer(layer_id, proportions):
 		var slot_id := _hand_slot_id(float(side))
+		if _hand_is_replaced_by_held_item(float(side)):
+			var draw_slot_id := _held_item_draw_slot_for_side(float(side))
+			if not draw_slot_id.is_empty():
+				order.append("equipment:%s" % draw_slot_id)
+			order.append("item_grip:%s" % slot_id)
+			continue
 		order.append("hand:%s" % slot_id)
 		if equipped_visuals.has("gloves"):
 			order.append("equipment:gloves:%s" % slot_id)
@@ -2132,7 +2281,10 @@ func _people_feature_layer_ids(people_id: String, layer_id: String) -> Array[Str
 			elif layer_id == PEOPLE_FEATURE_LAYER_FRONT and feature_id != "feature_tanglekin_tail":
 				result.append(feature_id)
 		elif people_id == "people_ravenfolk":
-			if layer_id == PEOPLE_FEATURE_LAYER_BACK and feature_id == "feature_ravenfolk_tail_feathers":
+			if (
+				layer_id == PEOPLE_FEATURE_LAYER_BACK
+				and feature_id == "feature_ravenfolk_tail_feathers"
+			):
 				result.append(feature_id)
 			elif (
 				layer_id == PEOPLE_FEATURE_LAYER_BODY
@@ -2141,12 +2293,14 @@ func _people_feature_layer_ids(people_id: String, layer_id: String) -> Array[Str
 				result.append(feature_id)
 			elif (
 				layer_id == PEOPLE_FEATURE_LAYER_FRONT
-				and feature_id
-				in [
-					"feature_ravenfolk_head_crest",
-					"feature_ravenfolk_beak",
-					"feature_ravenfolk_quill_marks"
-				]
+				and (
+					feature_id
+					in [
+						"feature_ravenfolk_head_crest",
+						"feature_ravenfolk_beak",
+						"feature_ravenfolk_quill_marks"
+					]
+				)
 			):
 				result.append(feature_id)
 		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
@@ -2162,19 +2316,18 @@ func _appearance_feature_ids(people_id: String) -> Array[String]:
 	if not feature_ids.is_empty():
 		return feature_ids
 	var defaults := {
-		"people_tanglekin": [
-			"feature_tanglekin_tail",
-			"feature_tanglekin_grasping_hands",
-			"feature_tanglekin_muzzle"
-		],
+		"people_tanglekin":
+		["feature_tanglekin_tail", "feature_tanglekin_grasping_hands", "feature_tanglekin_muzzle"],
 		"people_tuskfolk": ["feature_tusks_broad"],
 		"people_mirefolk": ["feature_mirefolk_high_eyes"],
-		"people_ravenfolk": [
+		"people_ravenfolk":
+		[
 			"feature_ravenfolk_body_feathers",
 			"feature_ravenfolk_head_crest",
 			"feature_ravenfolk_beak"
 		],
-		"people_rootborn": [
+		"people_rootborn":
+		[
 			"feature_rootborn_leaf_crown",
 			"feature_rootborn_bark_marks",
 			"feature_rootborn_branch_crown"
@@ -2203,10 +2356,7 @@ func _draw_outlined_oval(
 ) -> void:
 	var center := rect.get_center()
 	draw_ellipse(
-		center,
-		rect.size.x * 0.5 + outline_width,
-		rect.size.y * 0.5 + outline_width,
-		outline
+		center, rect.size.x * 0.5 + outline_width, rect.size.y * 0.5 + outline_width, outline
 	)
 	draw_ellipse(center, rect.size.x * 0.5, rect.size.y * 0.5, color)
 
@@ -2278,10 +2428,14 @@ func _bob_offset() -> float:
 func _stride_offset(side: float) -> Vector2:
 	if locomotion_state == LOCOMOTION_WALK:
 		var phase := sin(_walk_phase() + (PI if side > 0.0 else 0.0))
-		return (_facing_forward() * phase * 2.35 + Vector2(0.0, -absf(phase) * 0.25)) * move_intensity
+		return (
+			(_facing_forward() * phase * 2.35 + Vector2(0.0, -absf(phase) * 0.25)) * move_intensity
+		)
 	if locomotion_state == LOCOMOTION_SNEAK:
 		var phase := sin(_walk_phase() + (PI if side > 0.0 else 0.0))
-		return (_facing_forward() * phase * 1.05 + Vector2(0.0, -absf(phase) * 0.10)) * move_intensity
+		return (
+			(_facing_forward() * phase * 1.05 + Vector2(0.0, -absf(phase) * 0.10)) * move_intensity
+		)
 	return Vector2.ZERO
 
 
@@ -2293,6 +2447,219 @@ func _hand_sway(side: float) -> Vector2:
 		var phase := sin(_walk_phase() + (PI if side < 0.0 else 0.0))
 		return Vector2(phase * 0.25 * side, phase * 0.45) * move_intensity
 	return Vector2(0.0, sin(animation_time) * 0.12)
+
+
+func _hand_position(side: float, proportions: Dictionary) -> Vector2:
+	var base := _base_hand_position(side, proportions)
+	return base + _attack_hand_offset(side, proportions, base)
+
+
+func _base_hand_position(side: float, proportions: Dictionary) -> Vector2:
+	var sneak_lower := 1.6 if is_sneaking else 0.0
+	return _hand_anchor(side, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(side)
+
+
+func _attack_hand_offset(side: float, proportions: Dictionary, base_position: Vector2) -> Vector2:
+	if _is_polearm_item_held():
+		var grip_id := "rear" if is_equal_approx(side, _dominant_hand_side()) else "front"
+		return ItemVisual2D.grip_position(_polearm_item_model(proportions), grip_id) - base_position
+	if _is_bow_item_held():
+		var grip_id := "draw" if is_equal_approx(side, _dominant_hand_side()) else "bow"
+		return ItemVisual2D.grip_position(_bow_item_model(proportions), grip_id) - base_position
+	if not _attack_pose_active():
+		return Vector2.ZERO
+	var progress := _attack_pose_progress()
+	var pulse := sin(progress * PI)
+	var direction := _attack_pose_direction()
+	var side_axis := direction.orthogonal()
+	var shape := _attack_pose_shape()
+	var offset := Vector2.ZERO
+	match shape:
+		"punch":
+			if is_equal_approx(side, _dominant_hand_side()):
+				var eased := _smoothstep(progress)
+				var start := -direction * 2.5 + side_axis * 4.8
+				var peak := direction * 15.5 + side_axis * 2.4
+				var finish := direction * 8.5 - side_axis * 5.4
+				offset = _quadratic_bezier(start, peak, finish, eased)
+				offset += direction * 1.6 * pulse
+		"thrust":
+			if _is_polearm_attack_pose():
+				var grip_id := "rear" if is_equal_approx(side, _dominant_hand_side()) else "front"
+				offset = (
+					ItemVisual2D.grip_position(_polearm_item_model(proportions), grip_id)
+					- base_position
+				)
+			else:
+				var reach := 8.0 if is_equal_approx(side, _dominant_hand_side()) else 3.5
+				offset = direction * reach * pulse
+		"projectile":
+			var draw_amount := _bow_draw_amount()
+			offset = (
+				-direction * (4.0 + 8.5 * draw_amount) - side_axis * 0.8
+				if is_equal_approx(side, _dominant_hand_side())
+				else direction * 4.0
+			)
+		_:
+			if is_equal_approx(side, _dominant_hand_side()):
+				var attack: Dictionary = attack_pose.get("attack", {})
+				var arc := deg_to_rad(float(attack.get("arc_degrees", 110.0)))
+				var angle := direction.angle() + lerpf(-arc * 0.28, arc * 0.28, progress)
+				offset = Vector2.RIGHT.rotated(angle) * (3.0 + 4.5 * pulse)
+	return offset
+
+
+func _attack_pose_active() -> bool:
+	return bool(attack_pose.get("active", false))
+
+
+func _attack_pose_shape() -> String:
+	return String(attack_pose.get("shape", ""))
+
+
+func _attack_pose_progress() -> float:
+	return clampf(float(attack_pose.get("progress", 0.0)), 0.0, 1.0)
+
+
+func _attack_pose_direction() -> Vector2:
+	var value: Variant = attack_pose.get("direction", _facing_forward())
+	if value is Vector2 and value.length() > 0.01:
+		return value.normalized()
+	return _facing_forward()
+
+
+func _weapon_direction() -> Vector2:
+	if not _attack_pose_active():
+		return _facing_forward()
+	var direction := _attack_pose_direction()
+	if _attack_pose_shape() != "swing":
+		return direction
+	var attack: Dictionary = attack_pose.get("attack", {})
+	var arc := deg_to_rad(float(attack.get("arc_degrees", 110.0)))
+	var angle := direction.angle() + lerpf(-arc * 0.5, arc * 0.5, _attack_pose_progress())
+	return Vector2.RIGHT.rotated(angle).normalized()
+
+
+func _bow_draw_amount() -> float:
+	if not _attack_pose_active() or _attack_pose_shape() != "projectile":
+		return 0.0
+	var progress := _attack_pose_progress()
+	var attack: Dictionary = attack_pose.get("attack", {})
+	if bool(attack.get("released", false)):
+		var charge_ratio := clampf(float(attack.get("charge_ratio", 1.0)), 0.0, 1.0)
+		return charge_ratio * (1.0 - clampf(progress / 0.30, 0.0, 1.0))
+	return progress
+
+
+func _is_polearm_attack_pose() -> bool:
+	if _attack_pose_shape() != "thrust":
+		return false
+	var attack: Dictionary = attack_pose.get("attack", {})
+	var weapon_visual_id := String(attack.get("weapon_visual_id", _primary_weapon_visual_id()))
+	return weapon_visual_id == "placeholder_polearm"
+
+
+func _is_polearm_item_held() -> bool:
+	return _primary_weapon_visual_id() == "placeholder_polearm"
+
+
+func _is_bow_item_held() -> bool:
+	return _primary_weapon_visual_id() == "placeholder_bow"
+
+
+func _polearm_item_model(proportions: Dictionary) -> Dictionary:
+	var direction := _weapon_direction()
+	var progress := _attack_pose_progress()
+	if not _attack_pose_active() or _attack_pose_shape() != "thrust":
+		progress = 0.0
+	var thrust := sin(progress * PI) * 8.0
+	var shoulder_scale := _proportion(proportions, "shoulder_width")
+	var side_axis := _polearm_hold_side_axis(direction)
+	var grip_side_offset := 2.1 * shoulder_scale
+	var lane_offset := side_axis * (8.2 * shoulder_scale)
+	var rear_target := (
+		_base_hand_position(_dominant_hand_side(), proportions) + lane_offset + direction * thrust
+	)
+	var front_target := (
+		_base_hand_position(-_dominant_hand_side(), proportions)
+		+ lane_offset
+		+ direction * (thrust * 0.65)
+	)
+	var origin_from_rear := rear_target + direction * 6.0 - side_axis * grip_side_offset
+	var origin_from_front := front_target - direction * 10.0 + side_axis * grip_side_offset
+	var origin := origin_from_rear.lerp(origin_from_front, 0.42)
+	var slot_id := _primary_weapon_slot_id()
+	return ItemVisual2D.model(
+		"placeholder_polearm",
+		origin,
+		direction,
+		{
+			"color": _equipment_color(slot_id),
+			"grip_side_offset": grip_side_offset,
+			"side_axis": side_axis
+		}
+	)
+
+
+func _polearm_hold_side_axis(direction: Vector2) -> Vector2:
+	var safe_direction := direction.normalized()
+	if safe_direction.length() <= 0.01:
+		safe_direction = _facing_forward()
+	var side_axis := safe_direction.orthogonal()
+	var wanted_side_axis := _body_side_axis() * _dominant_hand_side()
+	if side_axis.dot(wanted_side_axis) < 0.0:
+		side_axis = -side_axis
+	return side_axis.normalized()
+
+
+func _bow_hold_side_axis(direction: Vector2) -> Vector2:
+	var safe_direction := direction.normalized()
+	if safe_direction.length() <= 0.01:
+		safe_direction = _facing_forward()
+	var side_axis := safe_direction.orthogonal()
+	var wanted_draw_axis := _body_side_axis() * _dominant_hand_side()
+	if (-side_axis).dot(wanted_draw_axis) < 0.0:
+		side_axis = -side_axis
+	return side_axis.normalized()
+
+
+func _bow_item_model(proportions: Dictionary) -> Dictionary:
+	var direction := _attack_pose_direction()
+	var side_axis := _bow_hold_side_axis(direction)
+	var origin := _base_hand_position(-_dominant_hand_side(), proportions) + direction * 0.5
+	var attack: Dictionary = attack_pose.get("attack", {})
+	var released := bool(attack.get("released", false))
+	var arrow_visible := (
+		_attack_pose_active()
+		and _attack_pose_shape() == "projectile"
+		and (not released or _attack_pose_progress() < 0.26)
+	)
+	return ItemVisual2D.model(
+		"placeholder_bow",
+		origin,
+		direction,
+		{
+			"color": _equipment_color(_primary_weapon_slot_id()),
+			"draw_amount": _bow_draw_amount(),
+			"arrow_visible": arrow_visible,
+			"side_axis": side_axis
+		}
+	)
+
+
+func _smoothstep(value: float) -> float:
+	var safe_value := clampf(value, 0.0, 1.0)
+	return safe_value * safe_value * (3.0 - 2.0 * safe_value)
+
+
+func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float) -> Vector2:
+	var safe_t := clampf(t, 0.0, 1.0)
+	var one_minus_t := 1.0 - safe_t
+	return (
+		start * one_minus_t * one_minus_t
+		+ control * 2.0 * one_minus_t * safe_t
+		+ end * safe_t * safe_t
+	)
 
 
 func _sneak_crouch_offset() -> float:
@@ -2307,10 +2674,7 @@ func _body_turn_x() -> float:
 
 func _body_side_axis() -> Vector2:
 	var side_turn := _side_turn_amount()
-	return Vector2(
-		lerpf(1.0, 0.54, side_turn),
-		_facing_forward().x * side_turn * 0.22
-	)
+	return Vector2(lerpf(1.0, 0.54, side_turn), _facing_forward().x * side_turn * 0.22)
 
 
 func _body_point(local_x: float, local_y: float) -> Vector2:
@@ -2356,8 +2720,8 @@ func _near_hand_sides(proportions: Dictionary) -> Array:
 		return [-1.0, 1.0]
 	if forward.y < -0.45:
 		return []
-	var left_y := (_hand_anchor(-1.0, proportions) + _hand_sway(-1.0)).y
-	var right_y := (_hand_anchor(1.0, proportions) + _hand_sway(1.0)).y
+	var left_y := _hand_position(-1.0, proportions).y
+	var right_y := _hand_position(1.0, proportions).y
 	if absf(left_y - right_y) < 0.05:
 		return [-1.0, 1.0]
 	return [-1.0] if left_y > right_y else [1.0]
@@ -2365,6 +2729,10 @@ func _near_hand_sides(proportions: Dictionary) -> Array:
 
 func _hand_slot_id(side: float) -> String:
 	return "left_hand" if side < 0.0 else "right_hand"
+
+
+func _dominant_hand_side() -> float:
+	return -1.0 if String(profile.get("handedness", "right")) == "left" else 1.0
 
 
 func _facing_forward() -> Vector2:

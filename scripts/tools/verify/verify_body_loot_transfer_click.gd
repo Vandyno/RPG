@@ -178,7 +178,7 @@ func _open_body_transfer(main) -> void:
 	for _index in range(8):
 		if not main.entities.get_entity("npc_road_thug"):
 			break
-		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 	var body = main.entities.get_entity("body_npc_road_thug")
 	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
@@ -209,7 +209,7 @@ func _open_people_body_transfer(main) -> void:
 	for _index in range(8):
 		if not main.entities.get_entity("npc_people_test_human"):
 			break
-		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 	var body = main.entities.get_entity("body_npc_people_test_human")
 	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)

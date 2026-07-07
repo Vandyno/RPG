@@ -9,6 +9,7 @@ func test_profile_defaults_keep_required_owner_shape() -> void:
 	assert_eq(profile["character_id"], "char_test")
 	assert_eq(profile["people_id"], "people_human")
 	assert_eq(profile["state"], "alive")
+	assert_eq(profile["handedness"], "right")
 	assert_eq(profile["inventory_owner_id"], "char_test")
 	assert_eq(profile["equipment_owner_id"], "char_test")
 	assert_eq(profile["spellbook_owner_id"], "char_test")
@@ -29,22 +30,22 @@ func test_profile_sanitizes_malformed_optional_fields() -> void:
 			"character_id": "char_bad",
 			"people_id": "",
 			"state": "sleeping",
+			"handedness": "middle",
 			"level": 0,
 			"stats": {"resolve": "high", "stamina": 2},
 			"derived_bonuses": "bad",
-			"appearance": {
+			"appearance":
+			{
 				"feature_ids": ["feature_a", "", "feature_a", 12],
 				"visual_model_id": "model_test",
-				"proportions": {
-					"shoulder_width": 100.0,
-					"hand_size": "large"
-				}
+				"proportions": {"shoulder_width": 100.0, "hand_size": "large"}
 			}
 		}
 	)
 
 	assert_eq(profile["people_id"], "people_human")
 	assert_eq(profile["state"], "alive")
+	assert_eq(profile["handedness"], "right")
 	assert_eq(profile["level"], 1)
 	assert_eq(profile["stats"], {"stamina": 2})
 	assert_eq(profile["derived_bonuses"], {})
@@ -61,18 +62,17 @@ func test_profile_validation_reports_malformed_required_shape() -> void:
 			"character_id": "",
 			"people_id": "",
 			"state": "lost",
+			"handedness": "middle",
 			"stats": "bad",
 			"derived_bonuses": {"": 1, "resolve": "high"},
-			"appearance": {
+			"appearance":
+			{
 				"people_id": "",
 				"body_plan_id": "",
 				"head_id": "",
 				"palette_id": "",
 				"base_clothing_id": "",
-				"proportions": {
-					"shoulder_width": "wide",
-					"hand_size": 2.0
-				}
+				"proportions": {"shoulder_width": "wide", "hand_size": 2.0}
 			}
 		},
 		"Character profile test"
@@ -82,6 +82,7 @@ func test_profile_validation_reports_malformed_required_shape() -> void:
 	assert_true(joined.contains("missing character_id"))
 	assert_true(joined.contains("missing people_id"))
 	assert_true(joined.contains("invalid state"))
+	assert_true(joined.contains("invalid handedness"))
 	assert_true(joined.contains("missing inventory_owner_id"))
 	assert_true(joined.contains("stats must be a dictionary"))
 	assert_true(joined.contains("derived_bonuses has blank id"))
@@ -89,3 +90,9 @@ func test_profile_validation_reports_malformed_required_shape() -> void:
 	assert_true(joined.contains("appearance is missing body_plan_id"))
 	assert_true(joined.contains("proportions shoulder_width must be numeric"))
 	assert_true(joined.contains("proportions hand_size must be between"))
+
+
+func test_profile_preserves_left_handedness() -> void:
+	var profile := HumanoidProfile.from_data({"character_id": "char_left", "handedness": "left"})
+
+	assert_eq(profile["handedness"], "left")

@@ -25,7 +25,8 @@ class ContentStub:
 		return {
 			"id": "item_training_sword",
 			"name": "Training Sword",
-			"weapon_attack": {
+			"weapon_attack":
+			{
 				"shape": "swing",
 				"range_pixels": 50,
 				"width_pixels": 38,
@@ -44,7 +45,8 @@ class EntitiesStub:
 	var entities_by_id: Dictionary = {}
 
 
-class BrainMainStub extends Node:
+class BrainMainStub:
+	extends Node
 	var player
 	var entities
 	var content
@@ -96,11 +98,11 @@ func test_ravenfolk_test_actor_can_cast_fire_spell() -> void:
 	assert_eq(actor.data["loadout_slots"]["ability_1"], "spell_fire_blast")
 	main.player.set_health(main.player.max_health)
 
-	HostileActorBrain.update(main, 0.1)
+	HostileActorBrain.update(main, 1.0)
 
 	assert_eq(main.player.health, 92)
 	assert_eq(actor.data["behavior_state"], "attacking")
-	assert_true(main.hud.log_label.text.contains("casts Fire Blast for 8"))
+	assert_true(main.hud.log_label.text.contains("channels Fire Blast for 8"))
 
 
 func test_regular_npc_without_brain_does_not_attack() -> void:
@@ -251,7 +253,7 @@ func _attack_actor_until_defeated(main, entity_id: String) -> void:
 		main.player.set_world_position(actor.global_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)
 		MainSystemsActions.handle_aim(
-			MainSystemsActions.context(main),
+			MainSystemsActions.aim_context(main),
 			"attack",
 			actor.global_position - main.player.global_position
 		)

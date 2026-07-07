@@ -1,8 +1,6 @@
 class_name CombatActionEffect
 extends Node2D
 
-const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
-
 var effect_kind := "swing"
 var direction := Vector2.RIGHT
 var attack := {}
@@ -13,7 +11,7 @@ var age := 0.0
 func setup(kind: String, origin: Vector2, aim: Vector2, attack_data: Dictionary) -> void:
 	effect_kind = kind
 	global_position = origin
-	direction = FacingBuckets.snap_direction(aim, Vector2.RIGHT)
+	direction = aim.normalized() if aim.length() > 0.01 else Vector2.RIGHT
 	attack = attack_data.duplicate(true)
 	z_index = 80
 	ttl = 0.10 if effect_kind == "fire_stream" else 0.22

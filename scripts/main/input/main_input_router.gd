@@ -108,7 +108,7 @@ static func handle_interact_requested(main) -> void:
 	elif main._close_open_overlay_panel():
 		return
 	var preferred: Dictionary = MainContextActions.preferred_primary(
-		MainContextActions.context(main), main._get_nearby_entity()
+		MainContextActions.action_list_context(main), main._get_nearby_entity()
 	)
 	if not preferred.is_empty():
 		main._handle_context_action_selected(String(preferred.get("id", "")))

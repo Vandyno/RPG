@@ -255,12 +255,12 @@ func _bootstrap() -> bool:
 	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
-			MainSystemsActions.handle_aim(MainSystemsActions.context(self), action_id, direction)
+			MainSystemsActions.handle_aim(MainSystemsActions.aim_context(self), action_id, direction)
 	)
 	hud.aim_action_held.connect(
 		func(action_id: String, direction: Vector2, delta: float) -> void:
 			MainSystemsActions.handle_aim_held(
-				MainSystemsActions.context(self), action_id, direction, delta
+				MainSystemsActions.aim_context(self), action_id, direction, delta
 			)
 	)
 	hud.context_action_selected.connect(_handle_context_action_selected)
@@ -594,7 +594,7 @@ func _interact_npc(entity) -> void:
 
 
 func _handle_context_action_selected(action_id: String) -> void:
-	MainContextActions.handle(MainContextActions.context(self), action_id)
+	MainContextActions.handle(MainContextActions.handle_context(self), action_id)
 
 
 func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
@@ -715,7 +715,7 @@ func _handle_systems_action_selected(action_id: String) -> void:
 			if target_id == "back" and hud:
 				hud.hide_systems_panel()
 		"assign_spell", "take", "put":
-			MainSystemsActions.handle(MainSystemsActions.context(self), action_id)
+			MainSystemsActions.handle(MainSystemsActions.systems_context(self), action_id)
 		_:
 			_use_inventory_item(target_id)
 

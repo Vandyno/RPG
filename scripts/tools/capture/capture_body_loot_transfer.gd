@@ -53,7 +53,7 @@ func _defeat_hostile_actor(main) -> void:
 	for _index in range(8):
 		if not main.entities.get_entity("npc_road_thug"):
 			return
-		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 
 
 func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:

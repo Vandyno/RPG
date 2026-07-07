@@ -30,8 +30,8 @@ func test_hostile_actor_defeat_does_not_leave_selected_interaction_target() -> v
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 
 	assert_null(main.entities.get_entity("npc_road_thug"))
 	assert_ne(main.selected_target_id, "npc_road_thug")

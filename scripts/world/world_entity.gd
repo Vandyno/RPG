@@ -5,6 +5,7 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 
 const COLLISION_RADIUS := 10.0
 const MAX_COLLISION_STEP := 8.0
@@ -30,15 +31,19 @@ var quest_marker_visible := false
 var quest_marker_text := ""
 var humanoid_avatar: HumanoidAvatar2D
 var facing_direction := Vector2.DOWN
+var content_database
 
 
 func setup(entity_data: Dictionary, content = null) -> void:
 	data = entity_data.duplicate(true)
+	content_database = content
 	global_tile = _tile_from_data(data.get("global_tile", [0, 0]))
 	if not data.has("_spawn_global_tile"):
 		data["_spawn_global_tile"] = [global_tile.x, global_tile.y]
 	facing_direction = _direction_from_data(data.get("facing_direction", [0, 1]))
-	position = _world_position_from_data(data.get("world_position", []), _center_of_tile(global_tile))
+	position = _world_position_from_data(
+		data.get("world_position", []), _center_of_tile(global_tile)
+	)
 	global_tile = GridMath.world_to_tile(position)
 	data["global_tile"] = [global_tile.x, global_tile.y]
 	name = String(data.get("id", "entity"))
@@ -202,7 +207,11 @@ func _draw() -> void:
 	elif get_kind() == "npc":
 		draw_circle(Vector2(0, -2), 3.0, Color(0.96, 0.88, 0.62))
 	elif get_kind() == "pickup":
-		draw_rect(Rect2(Vector2(-5, -5), Vector2(10, 10)), Color(0.93, 0.76, 0.25), true)
+		var item_model := get_pickup_item_visual_state()
+		if item_model.is_empty():
+			draw_rect(Rect2(Vector2(-5, -5), Vector2(10, 10)), Color(0.93, 0.76, 0.25), true)
+		else:
+			ItemVisual2D.draw_visual(self, item_model)
 	elif get_kind() == "container":
 		draw_rect(Rect2(Vector2(-7, -5), Vector2(14, 10)), Color(0.55, 0.34, 0.14), true)
 		draw_line(Vector2(-7, -1), Vector2(7, -1), Color(0.92, 0.76, 0.42), 1.5)
@@ -303,12 +312,39 @@ func _marker_pick_radius(requested_radius: float) -> float:
 	return base_radius
 
 
+func get_pickup_item_visual_state() -> Dictionary:
+	if get_kind() != "pickup" or not content_database:
+		return {}
+	var item_id := String(data.get("item_id", ""))
+	if item_id.is_empty() or not content_database.has_method("get_item"):
+		return {}
+	var item: Dictionary = content_database.get_item(item_id)
+	var visual_id := ItemVisual2D.visual_id_from_item(item)
+	if not ItemVisual2D.is_item_visual(visual_id):
+		return {}
+	var direction := _ground_item_direction()
+	var state := {"color": ItemVisual2D.default_color(visual_id), "ground": true}
+	return ItemVisual2D.model(visual_id, Vector2.ZERO, direction, state)
+
+
 func _ellipsized(value: String, max_chars: int) -> String:
 	if value.length() <= max_chars:
 		return value
 	if max_chars <= 1:
 		return value.substr(0, max_chars)
 	return "%s..." % value.substr(0, max_chars - 3)
+
+
+func _ground_item_direction() -> Vector2:
+	var value: Variant = data.get("item_direction", [])
+	if value is Array and value.size() >= 2 and _is_number(value[0]) and _is_number(value[1]):
+		var authored_direction := Vector2(float(value[0]), float(value[1]))
+		if authored_direction.length() > 0.01:
+			return authored_direction.normalized()
+	var seed := String(data.get("id", data.get("item_id", "")))
+	var hash_value: int = abs(seed.hash())
+	var angle := float(hash_value % 360) * PI / 180.0
+	return Vector2.RIGHT.rotated(angle)
 
 
 func _color_for_kind(kind: String) -> Color:

@@ -6,16 +6,29 @@ const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory
 const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
 
 
-class ActionContext:
-	var active_content_choices: Dictionary
+class ActionListContext:
 	var condition_evaluator
 	var content
+	var dialogues
+	var player
+	var world_state
+
+	func _init(main) -> void:
+		condition_evaluator = main.condition_evaluator
+		content = main.content
+		dialogues = main.dialogues
+		player = main.player
+		world_state = main.world_state
+
+
+class ActionHandleContext:
+	var active_content_choices: Dictionary
+	var actions: ActionListContext
 	var dialogues
 	var event_bus
 	var hud
 	var inventory_transfer_context
 	var player
-	var world_state
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
 	var _interact_npc: Callable
@@ -24,14 +37,12 @@ class ActionContext:
 
 	func _init(main) -> void:
 		active_content_choices = main.active_content_choices
-		condition_evaluator = main.condition_evaluator
-		content = main.content
+		actions = ActionListContext.new(main)
 		dialogues = main.dialogues
 		event_bus = main.event_bus
 		hud = main.hud
 		inventory_transfer_context = MainInventoryTransfer.context(main)
 		player = main.player
-		world_state = main.world_state
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
 		_interact_npc = Callable(main, "_interact_npc")
@@ -39,11 +50,19 @@ class ActionContext:
 		_update_nearby = Callable(main, "_update_nearby")
 
 
-static func context(main) -> ActionContext:
-	return ActionContext.new(main)
+static func context(main) -> ActionHandleContext:
+	return handle_context(main)
 
 
-static func build(ctx: ActionContext, entity) -> Array[Dictionary]:
+static func action_list_context(main) -> ActionListContext:
+	return ActionListContext.new(main)
+
+
+static func handle_context(main) -> ActionHandleContext:
+	return ActionHandleContext.new(main)
+
+
+static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
 	if entity and entity.get_kind() == "poi":
 		for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
@@ -73,7 +92,7 @@ static func build(ctx: ActionContext, entity) -> Array[Dictionary]:
 	return actions
 
 
-static func preferred_primary(ctx: ActionContext, entity) -> Dictionary:
+static func preferred_primary(ctx: ActionListContext, entity) -> Dictionary:
 	var actions := build(ctx, entity)
 	for action in actions:
 		var action_id := String(action.get("id", ""))
@@ -91,7 +110,7 @@ static func preferred_primary(ctx: ActionContext, entity) -> Dictionary:
 	return {}
 
 
-static func secondary(ctx: ActionContext, entity) -> Array[Dictionary]:
+static func secondary(ctx: ActionListContext, entity) -> Array[Dictionary]:
 	var actions := build(ctx, entity)
 	var primary := preferred_primary(ctx, entity)
 	var primary_id := String(primary.get("id", ""))
@@ -105,7 +124,7 @@ static func secondary(ctx: ActionContext, entity) -> Array[Dictionary]:
 	return result
 
 
-static func handle(ctx: ActionContext, action_id: String) -> void:
+static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 	var parsed := _parse_action_id(action_id)
 	match String(parsed.get("kind", "")):
 		"poi":
@@ -126,12 +145,12 @@ static func handle(ctx: ActionContext, action_id: String) -> void:
 			ctx.event_bus.post_message("Unknown action.")
 
 
-static func _handle_poi_action_selected(ctx: ActionContext, action_id: String) -> void:
+static func _handle_poi_action_selected(ctx: ActionHandleContext, action_id: String) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_kind() != "poi":
 		ctx.event_bus.post_message("No place action available.")
 		return
-	for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
+	for action in PoiInteraction.available_actions(entity, ctx.actions.condition_evaluator):
 		if String(action.get("id", "")) == action_id:
 			_apply_poi_action(ctx, action)
 			return
@@ -139,17 +158,17 @@ static func _handle_poi_action_selected(ctx: ActionContext, action_id: String) -
 	ctx._refresh_hud.call()
 
 
-static func _apply_poi_action(ctx: ActionContext, action: Dictionary) -> void:
+static func _apply_poi_action(ctx: ActionHandleContext, action: Dictionary) -> void:
 	_apply_choice_action(ctx, action)
 
 
-static func _handle_dialogue_action_selected(ctx: ActionContext, choice_id: String) -> void:
+static func _handle_dialogue_action_selected(ctx: ActionHandleContext, choice_id: String) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_kind() != "npc":
 		ctx.event_bus.post_message("No dialogue action available.")
 		return
-	var npc: Dictionary = _npc_for_entity(ctx, entity)
-	for choice in _effectful_dialogue_choices(ctx, npc, entity):
+	var npc: Dictionary = _npc_for_entity(ctx.actions, entity)
+	for choice in _effectful_dialogue_choices(ctx.actions, npc, entity):
 		if String(choice.get("id", "")) == choice_id:
 			_apply_choice_action(ctx, choice)
 			return
@@ -157,13 +176,15 @@ static func _handle_dialogue_action_selected(ctx: ActionContext, choice_id: Stri
 	ctx._refresh_hud.call()
 
 
-static func _handle_dialogue_line_action_selected(ctx: ActionContext, line_id: String) -> void:
+static func _handle_dialogue_line_action_selected(
+	ctx: ActionHandleContext, line_id: String
+) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_kind() != "npc":
 		ctx.event_bus.post_message("No dialogue action available.")
 		return
-	var npc: Dictionary = _npc_for_entity(ctx, entity)
-	var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
+	var npc: Dictionary = _npc_for_entity(ctx.actions, entity)
+	var line: Dictionary = _preview_dialogue_line(ctx.actions, npc, entity)
 	if String(line.get("line_id", "")) != line_id:
 		ctx.event_bus.post_message("That action is no longer available.")
 		ctx._refresh_hud.call()
@@ -171,7 +192,7 @@ static func _handle_dialogue_line_action_selected(ctx: ActionContext, line_id: S
 	_apply_line_action(ctx, line)
 
 
-static func _handle_trade_action_selected(ctx: ActionContext, shop_id: String) -> void:
+static func _handle_trade_action_selected(ctx: ActionHandleContext, shop_id: String) -> void:
 	if shop_id.is_empty() or not ctx.hud:
 		ctx.event_bus.post_message("No trader selected.")
 		return
@@ -182,7 +203,7 @@ static func _handle_trade_action_selected(ctx: ActionContext, shop_id: String) -
 	ctx._refresh_hud.call()
 
 
-static func _handle_talk_action_selected(ctx: ActionContext, _dialogue_id: String) -> void:
+static func _handle_talk_action_selected(ctx: ActionHandleContext, _dialogue_id: String) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_kind() != "npc":
 		ctx.event_bus.post_message("No one to talk to.")
@@ -190,7 +211,7 @@ static func _handle_talk_action_selected(ctx: ActionContext, _dialogue_id: Strin
 	ctx._interact_npc.call(entity)
 
 
-static func _handle_poi_inspect_selected(ctx: ActionContext, _entity_id: String) -> void:
+static func _handle_poi_inspect_selected(ctx: ActionHandleContext, _entity_id: String) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_kind() != "poi":
 		ctx.event_bus.post_message("No place to inspect.")
@@ -198,17 +219,17 @@ static func _handle_poi_inspect_selected(ctx: ActionContext, _entity_id: String)
 	PoiInteraction.inspect(
 		PoiInteraction.InteractionContext.new(
 			entity,
-			ctx.world_state,
+			ctx.actions.world_state,
 			ctx.hud,
 			ctx._apply_effect,
 			ctx.event_bus,
 			ctx.active_content_choices,
-			ctx.condition_evaluator
+			ctx.actions.condition_evaluator
 		)
 	)
 
 
-static func _handle_pickpocket_selected(ctx: ActionContext, entity_id: String) -> void:
+static func _handle_pickpocket_selected(ctx: ActionHandleContext, entity_id: String) -> void:
 	var entity = ctx._get_nearby_entity.call()
 	if not entity or entity.get_entity_id() != entity_id:
 		ctx.event_bus.post_message("No pickpocket target nearby.")
@@ -224,7 +245,7 @@ static func _handle_pickpocket_selected(ctx: ActionContext, entity_id: String) -
 	MainInventoryTransfer.open_pickpocket(ctx.inventory_transfer_context, entity)
 
 
-static func _apply_choice_action(ctx: ActionContext, action: Dictionary) -> void:
+static func _apply_choice_action(ctx: ActionHandleContext, action: Dictionary) -> void:
 	ctx.active_content_choices.clear()
 	if ctx.hud:
 		ctx.hud.hide_content_card()
@@ -237,7 +258,7 @@ static func _apply_choice_action(ctx: ActionContext, action: Dictionary) -> void
 	ctx._update_nearby.call()
 
 
-static func _apply_line_action(ctx: ActionContext, line: Dictionary) -> void:
+static func _apply_line_action(ctx: ActionHandleContext, line: Dictionary) -> void:
 	ctx.active_content_choices.clear()
 	if ctx.hud:
 		ctx.hud.hide_content_card()
@@ -251,7 +272,7 @@ static func _apply_line_action(ctx: ActionContext, line: Dictionary) -> void:
 
 
 static func _effectful_dialogue_choices(
-	ctx: ActionContext, npc: Dictionary, entity
+	ctx: ActionListContext, npc: Dictionary, entity
 ) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if npc.is_empty():
@@ -267,7 +288,7 @@ static func _effectful_dialogue_choices(
 
 
 static func _preview_dialogue_line(
-	ctx: ActionContext, npc: Dictionary, entity
+	ctx: ActionListContext, npc: Dictionary, entity
 ) -> Dictionary:
 	if npc.is_empty():
 		return {}
@@ -285,7 +306,7 @@ static func _line_action_text(line: Dictionary) -> String:
 	return "Continue"
 
 
-static func _npc_for_entity(ctx: ActionContext, entity) -> Dictionary:
+static func _npc_for_entity(ctx: ActionListContext, entity) -> Dictionary:
 	if not entity:
 		return {}
 	return ctx.content.get_npc(String(entity.data.get("npc_id", "")))
@@ -323,12 +344,12 @@ static func _first_action_with_prefix(actions: Array[Dictionary], prefix: String
 	return {}
 
 
-static func _poi_has_been_discovered(ctx: ActionContext, entity) -> bool:
+static func _poi_has_been_discovered(ctx: ActionListContext, entity) -> bool:
 	var location_id := String(entity.data.get("location_id", ""))
 	return location_id.is_empty() or ctx.world_state.discovered_locations.has(location_id)
 
 
-static func _poi_should_offer_inspect(ctx: ActionContext, entity) -> bool:
+static func _poi_should_offer_inspect(ctx: ActionListContext, entity) -> bool:
 	if String(entity.data.get("description", "")).is_empty():
 		return false
 	if not String(entity.data.get("shop_id", "")).is_empty():

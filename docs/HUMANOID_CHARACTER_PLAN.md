@@ -127,6 +127,7 @@ own the data.
   "people_id": "people_human",
   "faction_id": "faction_briarwatch",
   "state": "alive",
+  "handedness": "right",
   "level": 1,
   "stats": {},
   "derived_bonuses": {},
@@ -141,6 +142,9 @@ own the data.
 
 The `appearance` object should stay visual. Inventory, equipment, spells,
 faction, crime state, race/people bonuses, and stats should live outside it.
+`handedness` is optional profile data and defaults to right-handed. It controls
+which body side uses one-handed weapons, polearm rear grips, bow draw hands, and
+future tool poses; it should not swap visually just because the actor turns.
 
 ```json
 {
@@ -362,6 +366,8 @@ Rules:
 
 - equipped armour/clothing renders from equipment state, not appearance state
 - equipped weapons and offhand items render from equipment state
+- held equipment uses body-side roles: dominant hand for one-handed weapon use
+  and polearm rear grip, off-hand for shields and bow grip
 - taking an equipped item from a body updates both the loot view and visual body
 - pickpocketing equipped items should use the same equipment state
 - no visual clothing should come from `appearance`, `visual_model_id`, or
@@ -691,12 +697,17 @@ Updated 2026-07-06.
   validation rejects new world object IDs that start with `enemy_`.
 - NPC brain foundation: complete for first slice. Outside-town hostile test
   actors can opt into `brain_id: "hostile_basic"` to chase the player with the
-  same continuous movement/collision style as the player and attack using the
-  same authored weapon attack shapes. Spell use is explicit per actor; the
-  Ravenfolk people-test actor uses `spell_fire_blast`, while the other current
-  brain actors remain weapon-only. Brain actors path around blocked tiles, leash
-  back to their home/spawn area when pulled too far, and keep their live
-  position across entity refreshes instead of snapping back to authored spawn.
+  same continuous movement/collision style as the player. Player and NPC weapon
+  attacks now route through shared `ActorWeaponAttackAction` nodes that draw
+  no fake weapon art; they drive humanoid avatar attack pose while the existing
+  hand/equipment renderer moves the equipped weapon from hand anchors and the
+  action checks a weapon-specific swept hitbox. Empty hands use a punch action
+  instead of pretending to swing an invisible weapon. Spell use is explicit per
+  actor; the Ravenfolk people-test actor channels
+  `spell_fire_blast`, while the other current brain actors remain weapon-only.
+  Brain actors path around blocked tiles, leash back to their home/spawn area
+  when pulled too far, and keep their live position across entity refreshes
+  instead of snapping back to authored spawn.
 - Checkpoint 6, Pickpocket Groundwork: complete for first slice. Profile-backed
   living humanoids can expose owner-ID inventory through the shared transfer UI
   only while the player is sneaking and outside the target's 180-degree facing

@@ -167,6 +167,7 @@
       "range_pixels": 150,
       "width_pixels": 14,
       "damage": 5,
+      "charge_seconds": 2.0,
       "attack_interval_seconds": 0.85,
       "visual": "projectile",
       "miss_text": "Fired"

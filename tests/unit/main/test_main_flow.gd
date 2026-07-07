@@ -1023,7 +1023,7 @@ func _stand_by_hostile_actor(main, entity_id: String) -> void:
 
 func _attack_hostile_actor_once(main, entity_id: String) -> void:
 	_stand_by_hostile_actor(main, entity_id)
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 
 
 func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:

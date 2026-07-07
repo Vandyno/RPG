@@ -5,6 +5,7 @@ const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd
 const PlayerController = preload("res://scripts/player/player_controller.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 
 
 class ContentStub:
@@ -16,6 +17,26 @@ class ContentStub:
 			{
 				"avatar_slot": "right_hand",
 				"visual_layer_id": "placeholder_sword",
+				"accepted_placeholder": true
+			}
+		},
+		"item_test_polearm":
+		{
+			"id": "item_test_polearm",
+			"avatar_visual":
+			{
+				"avatar_slot": "right_hand",
+				"visual_layer_id": "placeholder_polearm",
+				"accepted_placeholder": true
+			}
+		},
+		"item_hunting_bow":
+		{
+			"id": "item_hunting_bow",
+			"avatar_visual":
+			{
+				"avatar_slot": "right_hand",
+				"visual_layer_id": "placeholder_bow",
 				"accepted_placeholder": true
 			}
 		},
@@ -111,13 +132,8 @@ func test_avatar_has_required_body_stack_and_equipment_refresh() -> void:
 	avatar.setup(
 		{
 			"character_id": "char_test",
-			"appearance": {
-				"proportions": {
-					"body_height": 0.9,
-					"shoulder_width": 1.2,
-					"hand_size": 0.8
-				}
-			}
+			"appearance":
+			{"proportions": {"body_height": 0.9, "shoulder_width": 1.2, "hand_size": 0.8}}
 		}
 	)
 
@@ -239,15 +255,18 @@ func test_avatar_turn_profile_changes_across_sixteen_buckets() -> void:
 		var profile := avatar.get_debug_turn_profile()
 		var axis: Vector2 = profile["body_axis"]
 		var head: Vector2 = profile["head_offset"]
-		var signature := "%0.2f:%0.2f:%0.2f:%0.1f:%0.2f:%0.2f:%0.2f" % [
-			float(profile["front"]),
-			float(profile["side"]),
-			float(profile["back"]),
-			float(profile["face_side"]),
-			axis.x,
-			axis.y,
-			head.y
-		]
+		var signature := (
+			"%0.2f:%0.2f:%0.2f:%0.1f:%0.2f:%0.2f:%0.2f"
+			% [
+				float(profile["front"]),
+				float(profile["side"]),
+				float(profile["back"]),
+				float(profile["face_side"]),
+				axis.x,
+				axis.y,
+				head.y
+			]
+		)
 		signatures[signature] = true
 
 	assert_gte(signatures.size(), 12)
@@ -278,14 +297,25 @@ func test_avatar_exposes_body_equipment_slots_for_armour_generation() -> void:
 		assert_true(slots.has(slot_id))
 
 	var anchors := avatar.get_body_part_anchors()
-	for anchor_id in ["head", "chest", "waist", "left_hand", "right_hand", "left_foot", "right_foot"]:
+	for anchor_id in [
+		"head",
+		"chest",
+		"waist",
+		"left_hand",
+		"right_hand",
+		"weapon_hand",
+		"draw_hand",
+		"off_hand",
+		"bow_hand",
+		"left_foot",
+		"right_foot"
+	]:
 		assert_true(anchors.has(anchor_id))
 		assert_true(anchors[anchor_id] is Vector2)
 	assert_lt((anchors["left_hand"] as Vector2).x, (anchors["right_hand"] as Vector2).x)
-	assert_gt(
-		(anchors["left_foot"] as Vector2).distance_to(anchors["right_foot"] as Vector2),
-		1.0
-	)
+	assert_eq(anchors["weapon_hand"], anchors["right_hand"])
+	assert_eq(anchors["bow_hand"], anchors["left_hand"])
+	assert_gt((anchors["left_foot"] as Vector2).distance_to(anchors["right_foot"] as Vector2), 1.0)
 
 
 func test_avatar_side_face_features_turn_with_character() -> void:
@@ -444,15 +474,9 @@ func test_avatar_layers_tanglekin_tail_behind_body() -> void:
 	avatar.set_facing_direction(Vector2.DOWN)
 	var order := avatar.get_debug_draw_layer_order()
 
-	assert_lt(
-		order.find("people_feature_back:feature_tanglekin_tail"),
-		order.find("body:torso")
-	)
+	assert_lt(order.find("people_feature_back:feature_tanglekin_tail"), order.find("body:torso"))
 	assert_eq(order.find("people_feature_front:feature_tanglekin_tail"), -1)
-	assert_gt(
-		order.find("people_feature_front:feature_tanglekin_muzzle"),
-		order.find("body:head")
-	)
+	assert_gt(order.find("people_feature_front:feature_tanglekin_muzzle"), order.find("body:head"))
 
 
 func test_avatar_keeps_mirefolk_eyes_in_face_feature_layer() -> void:
@@ -470,8 +494,7 @@ func test_avatar_keeps_mirefolk_eyes_in_face_feature_layer() -> void:
 
 	assert_true(feature_ids.has("feature_mirefolk_high_eyes"))
 	assert_gt(
-		order.find("people_feature_front:feature_mirefolk_high_eyes"),
-		order.find("body:head")
+		order.find("people_feature_front:feature_mirefolk_high_eyes"), order.find("body:head")
 	)
 
 
@@ -501,15 +524,15 @@ func test_avatar_layers_ravenfolk_feather_anatomy() -> void:
 		order.find("people_feature_back:feature_ravenfolk_tail_feathers"), order.find("body:feet")
 	)
 	assert_gt(
-		order.find("people_feature_body:feature_ravenfolk_body_feathers"),
-		order.find("body:torso")
+		order.find("people_feature_body:feature_ravenfolk_body_feathers"), order.find("body:torso")
 	)
 	assert_lt(
-		order.find("people_feature_body:feature_ravenfolk_body_feathers"),
-		order.find("body:head")
+		order.find("people_feature_body:feature_ravenfolk_body_feathers"), order.find("body:head")
 	)
 	assert_gt(order.find("people_feature_front:feature_ravenfolk_beak"), order.find("body:head"))
-	assert_gt(order.find("people_feature_front:feature_ravenfolk_head_crest"), order.find("body:head"))
+	assert_gt(
+		order.find("people_feature_front:feature_ravenfolk_head_crest"), order.find("body:head")
+	)
 	assert_eq(order.find("people_feature_front:feature_ravenfolk_tail_feathers"), -1)
 
 
@@ -529,6 +552,181 @@ func test_held_equipment_follows_near_and_far_hand_layers() -> void:
 	assert_gt(order.find("equipment:right_hand"), torso_index)
 
 
+func test_attack_pose_moves_hand_anchor_instead_of_external_effect_only() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({})
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var idle_hand: Vector2 = avatar.get_body_part_anchors()["weapon_hand"]
+
+	avatar.set_attack_pose({"shape": "punch"}, Vector2.RIGHT, 0.5)
+	var punch_hand: Vector2 = avatar.get_body_part_anchors()["weapon_hand"]
+
+	assert_gt(punch_hand.x, idle_hand.x + 4.0)
+	avatar.clear_attack_pose()
+	assert_eq(avatar.get_body_part_anchors()["weapon_hand"], idle_hand)
+
+
+func test_two_hand_weapon_anchors_to_item_grip_sockets() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({}, {"right_hand": "item_test_polearm"}, ContentStub.new())
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var anchors := avatar.get_body_part_anchors()
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := avatar._polearm_item_model(proportions)
+
+	assert_almost_eq(
+		anchors["left_hand"], ItemVisual2D.grip_position(model, "front"), Vector2.ONE * 0.001
+	)
+	assert_almost_eq(
+		anchors["right_hand"], ItemVisual2D.grip_position(model, "rear"), Vector2.ONE * 0.001
+	)
+	assert_eq(anchors["weapon_hand"], anchors["right_hand"])
+	assert_eq(anchors["off_hand"], anchors["left_hand"])
+
+
+func test_left_handed_two_hand_weapon_mirrors_grip_roles() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"handedness": "left"}, {"right_hand": "item_test_polearm"}, ContentStub.new())
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var anchors := avatar.get_body_part_anchors()
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := avatar._polearm_item_model(proportions)
+
+	assert_eq(anchors["weapon_hand"], anchors["left_hand"])
+	assert_eq(anchors["off_hand"], anchors["right_hand"])
+	assert_almost_eq(
+		anchors["right_hand"], ItemVisual2D.grip_position(model, "front"), Vector2.ONE * 0.001
+	)
+	assert_almost_eq(
+		anchors["left_hand"], ItemVisual2D.grip_position(model, "rear"), Vector2.ONE * 0.001
+	)
+
+
+func test_polearm_uses_side_lane_instead_of_torso_center() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({}, {"right_hand": "item_test_polearm"}, ContentStub.new())
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := avatar._polearm_item_model(proportions)
+	var origin: Vector2 = model.get("origin")
+	var torso_center := avatar._body_point(0.0, 1.2)
+
+	assert_gt(absf(origin.y - torso_center.y), 6.0)
+	assert_gt((origin - torso_center).dot(avatar._body_side_axis()), 1.0)
+
+	avatar.set_facing_direction(Vector2.LEFT)
+	model = avatar._polearm_item_model(proportions)
+	origin = model.get("origin")
+	torso_center = avatar._body_point(0.0, 1.2)
+
+	assert_gt(absf(origin.y - torso_center.y), 6.0)
+	assert_gt((origin - torso_center).dot(avatar._body_side_axis()), 1.0)
+
+	avatar.set_facing_direction(Vector2.DOWN)
+	model = avatar._polearm_item_model(proportions)
+	origin = model.get("origin")
+	torso_center = avatar._body_point(0.0, 1.2)
+
+	assert_gt(absf(origin.x - torso_center.x), 6.0)
+	assert_gt((origin - torso_center).dot(avatar._body_side_axis()), 1.0)
+
+	var left_handed := HumanoidAvatar2D.new()
+	add_child_autofree(left_handed)
+	left_handed.setup(
+		{"handedness": "left"}, {"right_hand": "item_test_polearm"}, ContentStub.new()
+	)
+	left_handed.set_facing_direction(Vector2.DOWN)
+	var left_proportions: Dictionary = left_handed.profile.get("appearance", {}).get(
+		"proportions", {}
+	)
+	var left_model := left_handed._polearm_item_model(left_proportions)
+	var left_origin: Vector2 = left_model.get("origin")
+	var left_torso := left_handed._body_point(0.0, 1.2)
+
+	assert_lt(left_origin.x, left_torso.x - 6.0)
+	assert_gt((left_origin - left_torso).dot(-left_handed._body_side_axis()), 1.0)
+
+
+func test_bow_grip_hands_replace_base_hands() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({}, {"right_hand": "item_hunting_bow"}, ContentStub.new())
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var order := avatar.get_debug_draw_layer_order()
+	var anchors := avatar.get_body_part_anchors()
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := avatar._bow_item_model(proportions)
+
+	assert_false(order.has("hand:left_hand"))
+	assert_false(order.has("hand:right_hand"))
+	assert_true(order.has("item_grip:left_hand"))
+	assert_true(order.has("item_grip:right_hand"))
+	assert_almost_eq(
+		anchors["left_hand"], ItemVisual2D.grip_position(model, "bow"), Vector2.ONE * 0.001
+	)
+	assert_almost_eq(
+		anchors["right_hand"], ItemVisual2D.grip_position(model, "draw"), Vector2.ONE * 0.001
+	)
+	assert_eq(anchors["bow_hand"], anchors["left_hand"])
+	assert_eq(anchors["draw_hand"], anchors["right_hand"])
+
+
+func test_left_handed_bow_mirrors_bow_and_draw_hands() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"handedness": "left"}, {"right_hand": "item_hunting_bow"}, ContentStub.new())
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var order := avatar.get_debug_draw_layer_order()
+	var anchors := avatar.get_body_part_anchors()
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := avatar._bow_item_model(proportions)
+
+	assert_false(order.has("hand:left_hand"))
+	assert_false(order.has("hand:right_hand"))
+	assert_true(order.has("item_grip:left_hand"))
+	assert_true(order.has("item_grip:right_hand"))
+	assert_almost_eq(
+		anchors["right_hand"], ItemVisual2D.grip_position(model, "bow"), Vector2.ONE * 0.001
+	)
+	assert_almost_eq(
+		anchors["left_hand"], ItemVisual2D.grip_position(model, "draw"), Vector2.ONE * 0.001
+	)
+	assert_eq(anchors["bow_hand"], anchors["right_hand"])
+	assert_eq(anchors["draw_hand"], anchors["left_hand"])
+
+
+func test_held_item_grips_match_hand_anchors_in_all_sixteen_directions() -> void:
+	for handedness in ["right", "left"]:
+		for item_id in ["item_training_sword", "item_test_polearm", "item_hunting_bow"]:
+			var avatar := HumanoidAvatar2D.new()
+			add_child_autofree(avatar)
+			avatar.setup({"handedness": handedness}, {"right_hand": item_id}, ContentStub.new())
+			for bucket_index in avatar.get_facing_bucket_count():
+				var angle := TAU * float(bucket_index) / float(avatar.get_facing_bucket_count())
+				avatar.set_facing_direction(Vector2(cos(angle), sin(angle)))
+				var anchors := avatar.get_body_part_anchors()
+				var proportions: Dictionary = avatar.profile.get("appearance", {}).get(
+					"proportions", {}
+				)
+				var model := avatar._held_item_model("right_hand", proportions)
+				for grip_id in ItemVisual2D.grip_ids(String(model.get("visual_id", ""))):
+					var side := avatar._grip_side_for_slot(grip_id, "right_hand")
+					if is_zero_approx(side):
+						continue
+					var hand_id := avatar._hand_slot_id(side)
+					assert_almost_eq(
+						anchors[hand_id],
+						ItemVisual2D.grip_position(model, grip_id),
+						Vector2.ONE * 0.001,
+						"%s %s %s bucket %d"
+						% [handedness, item_id, grip_id, bucket_index]
+					)
+
+
 func test_seed_humanoids_have_visual_variation() -> void:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)
@@ -546,8 +744,7 @@ func test_seed_humanoids_have_visual_variation() -> void:
 	assert_ne(player.get_proportion("shoulder_width"), harrow.get_proportion("shoulder_width"))
 	assert_ne(harrow.get_proportion("hand_size"), raider.get_proportion("hand_size"))
 	assert_ne(
-		player.get_body_part_anchors()["right_hand"],
-		harrow.get_body_part_anchors()["right_hand"]
+		player.get_body_part_anchors()["right_hand"], harrow.get_body_part_anchors()["right_hand"]
 	)
 
 

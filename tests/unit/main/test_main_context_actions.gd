@@ -104,7 +104,7 @@ class MainStub:
 
 func test_build_promotes_effectful_npc_actions_and_trade() -> void:
 	var main := MainStub.new()
-	var ctx := MainContextActions.context(main)
+	var ctx := MainContextActions.action_list_context(main)
 
 	var actions := MainContextActions.build(ctx, main.nearby_entity)
 	var primary := MainContextActions.preferred_primary(ctx, main.nearby_entity)
@@ -123,7 +123,7 @@ func test_build_promotes_effectful_npc_actions_and_trade() -> void:
 
 func test_handle_routes_dialogue_choice_and_unknown_actions() -> void:
 	var main := MainStub.new()
-	var ctx := MainContextActions.context(main)
+	var ctx := MainContextActions.handle_context(main)
 
 	MainContextActions.handle(ctx, "dialogue:choice_reward")
 	MainContextActions.handle(ctx, "unknown")
@@ -137,7 +137,7 @@ func test_handle_routes_dialogue_choice_and_unknown_actions() -> void:
 
 func test_handle_routes_talk_to_nearby_npc() -> void:
 	var main := MainStub.new()
-	var ctx := MainContextActions.context(main)
+	var ctx := MainContextActions.handle_context(main)
 
 	MainContextActions.handle(ctx, "talk:dialogue_trader")
 

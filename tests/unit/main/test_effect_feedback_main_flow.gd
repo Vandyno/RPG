@@ -79,7 +79,7 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _i in range(8):
-		MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 		if not main.entities.get_entity(entity_id):
 			return
 	fail_test("Hostile actor was not defeated: %s" % entity_id)

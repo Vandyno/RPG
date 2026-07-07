@@ -49,7 +49,7 @@ class HudContext:
 		chunks = main.chunks
 		condition_evaluator = main.condition_evaluator
 		content = main.content
-		context_actions_context = MainContextActions.context(main)
+		context_actions_context = MainContextActions.action_list_context(main)
 		entities = main.entities
 		equipment = main.equipment
 		factions = main.factions

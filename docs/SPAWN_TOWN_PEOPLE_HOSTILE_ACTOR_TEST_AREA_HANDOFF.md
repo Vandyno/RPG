@@ -64,8 +64,12 @@ actors are weapon-only.
 Current brain behavior is intentionally small:
 
 - chase uses the same continuous movement/collision path as the player
-- weapon attacks use the equipped right-hand item attack data
-- spell attacks are explicit per actor through `use_spells` and loadout fields
+- weapon attacks use the equipped right-hand item attack data through the shared
+  `ActorWeaponAttackAction` timing/hitbox path. The action node is invisible;
+  visible weapon use comes from the humanoid avatar's hand/equipment pose.
+- unarmed actors use punch actions instead of fake weapon swings
+- spell attacks are explicit per actor through `use_spells` and loadout fields;
+  channel spells such as Fire Blast apply damage over time instead of one tap
 - actors path around blocked tiles when direct movement is blocked
 - actors leash back to their home/spawn area when pulled too far
 - live actor position is preserved across entity refreshes, so they do not snap
@@ -88,8 +92,8 @@ Coverage lives in:
   - sword and coin transfer through the shared inventory UI
 - `tests/unit/main/test_hostile_actor_brain_main_flow.gd`
   - hostile brain movement chases toward the player
-  - weapon attacks use equipped item attack data
-  - Ravenfolk spell casting damages the player with Fire Blast
+  - weapon attacks use equipped item attack data through the shared action path
+  - Ravenfolk spell channeling damages the player with Fire Blast
   - normal NPCs without a brain do not attack
   - hostile actors leash back home after being pulled too far
   - hostile actors route around blocked tiles

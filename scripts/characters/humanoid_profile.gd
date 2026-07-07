@@ -2,9 +2,11 @@ class_name HumanoidProfile
 extends RefCounted
 
 const VALID_STATES := ["alive", "unconscious", "dead_body", "despawned"]
+const VALID_HANDEDNESS := ["right", "left"]
 const DEFAULT_CHARACTER_ID := "char_unknown"
 const DEFAULT_PEOPLE_ID := "people_human"
 const DEFAULT_STATE := "alive"
+const DEFAULT_HANDEDNESS := "right"
 const DEFAULT_BODY_PLAN_ID := "body_humanoid_average"
 const DEFAULT_HEAD_ID := "head_human_round"
 const DEFAULT_PALETTE_ID := "palette_human_warm_brown"
@@ -37,16 +39,14 @@ static func from_data(data: Dictionary) -> Dictionary:
 		"people_id": people_id,
 		"faction_id": _string_or_default(data.get("faction_id", ""), ""),
 		"state": state,
+		"handedness": handedness_from_data(data.get("handedness", DEFAULT_HANDEDNESS)),
 		"level": _positive_int(data.get("level", 1), 1),
 		"stats": number_dictionary(data.get("stats", {})),
 		"derived_bonuses": number_dictionary(data.get("derived_bonuses", {})),
 		"appearance": appearance_from_data(data.get("appearance", {}), people_id),
-		"inventory_owner_id":
-		_string_or_default(data.get("inventory_owner_id", ""), character_id),
-		"equipment_owner_id":
-		_string_or_default(data.get("equipment_owner_id", ""), character_id),
-		"spellbook_owner_id":
-		_string_or_default(data.get("spellbook_owner_id", ""), character_id),
+		"inventory_owner_id": _string_or_default(data.get("inventory_owner_id", ""), character_id),
+		"equipment_owner_id": _string_or_default(data.get("equipment_owner_id", ""), character_id),
+		"spellbook_owner_id": _string_or_default(data.get("spellbook_owner_id", ""), character_id),
 		"loadout_id": _string_or_default(data.get("loadout_id", ""), ""),
 		"corpse_entity_id": _string_or_default(data.get("corpse_entity_id", ""), "")
 	}
@@ -60,8 +60,7 @@ static func appearance_from_data(
 		data = value
 	return {
 		"people_id": _string_or_default(data.get("people_id", ""), people_id),
-		"body_plan_id":
-		_string_or_default(data.get("body_plan_id", ""), DEFAULT_BODY_PLAN_ID),
+		"body_plan_id": _string_or_default(data.get("body_plan_id", ""), DEFAULT_BODY_PLAN_ID),
 		"head_id": _string_or_default(data.get("head_id", ""), DEFAULT_HEAD_ID),
 		"palette_id": _string_or_default(data.get("palette_id", ""), DEFAULT_PALETTE_ID),
 		"hair_id": _string_or_default(data.get("hair_id", ""), DEFAULT_HAIR_ID),
@@ -101,6 +100,10 @@ static func validate(profile: Dictionary, owner: String) -> Array[String]:
 	var state := String(profile.get("state", ""))
 	if state.is_empty() or not VALID_STATES.has(state):
 		errors.append("%s has invalid state %s." % [owner, state])
+	if profile.has("handedness"):
+		var handedness := String(profile.get("handedness", ""))
+		if handedness.is_empty() or not VALID_HANDEDNESS.has(handedness):
+			errors.append("%s has invalid handedness %s." % [owner, handedness])
 	for owner_field in ["inventory_owner_id", "equipment_owner_id", "spellbook_owner_id"]:
 		if String(profile.get(owner_field, "")).is_empty():
 			errors.append("%s is missing %s." % [owner, owner_field])
@@ -112,12 +115,7 @@ static func validate(profile: Dictionary, owner: String) -> Array[String]:
 	if not (appearance is Dictionary):
 		errors.append("%s appearance must be a dictionary." % owner)
 	else:
-		for field_id in [
-			"people_id",
-			"body_plan_id",
-			"head_id",
-			"palette_id"
-		]:
+		for field_id in ["people_id", "body_plan_id", "head_id", "palette_id"]:
 			if String(appearance.get(field_id, "")).is_empty():
 				errors.append("%s appearance is missing %s." % [owner, field_id])
 		_validate_proportions(appearance.get("proportions", {}), "%s appearance" % owner, errors)
@@ -137,6 +135,13 @@ static func number_dictionary(value: Variant) -> Dictionary:
 			continue
 		result[id] = int(amount) if amount is int else float(amount)
 	return result
+
+
+static func handedness_from_data(value: Variant) -> String:
+	var handedness := String(value)
+	if VALID_HANDEDNESS.has(handedness):
+		return handedness
+	return DEFAULT_HANDEDNESS
 
 
 static func string_array(value: Variant) -> Array[String]:
@@ -181,8 +186,10 @@ static func _validate_proportions(value: Variant, owner: String, errors: Array[S
 		var amount := float(value[field_id])
 		if amount < MIN_PROPORTION or amount > MAX_PROPORTION:
 			errors.append(
-				"%s proportions %s must be between %.2f and %.2f."
-				% [owner, field_id, MIN_PROPORTION, MAX_PROPORTION]
+				(
+					"%s proportions %s must be between %.2f and %.2f."
+					% [owner, field_id, MIN_PROPORTION, MAX_PROPORTION]
+				)
 			)
 
 

@@ -23,7 +23,7 @@ func test_handle_routes_service_owned_system_actions() -> void:
 	var main := AssignSpellMainStub.new()
 
 	MainSystemsActions.handle(
-		MainSystemsActions.context(main), "assign_spell:spell_fire_blast:ability_1"
+		MainSystemsActions.systems_context(main), "assign_spell:spell_fire_blast:ability_1"
 	)
 
 	assert_eq(
@@ -40,24 +40,19 @@ func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
 	MainSystemsActions.handle_aim_held(
-		MainSystemsActions.context(main), "ability_1", Vector2.RIGHT, 1.0
+		MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT, 1.0
 	)
 
 	assert_eq(main.player.mana, 92.0)
 	assert_eq(
-		main.calls,
-		[
-			"damage:actor_east:1",
-			"message:Fire Blast hits Road Thug for 1.",
-			"refresh"
-		]
+		main.calls, ["damage:actor_east:1", "message:Fire Blast hits Road Thug for 1.", "refresh"]
 	)
 
 
 func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "ability_1", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT)
 
 	assert_eq(main.calls, ["refresh"])
 
@@ -65,15 +60,10 @@ func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
-		main.calls,
-		[
-			"damage:actor_west:2",
-			"message:Unarmed hits River Ruffian for 2.",
-			"refresh"
-		]
+		main.calls, ["damage:actor_west:2", "message:Unarmed hits River Ruffian for 2.", "refresh"]
 	)
 
 
@@ -81,8 +71,10 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_training_sword"
 
-	MainSystemsActions.handle_aim_held(MainSystemsActions.context(main), "attack", Vector2.LEFT, 1.0)
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "attack", Vector2.LEFT, 1.0
+	)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
 		main.calls,
@@ -99,20 +91,45 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	)
 
 
-func test_handle_held_bow_waits_for_release() -> void:
+func test_handle_held_bow_half_charge_releases_weaker_shot() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_hunting_bow"
 
-	MainSystemsActions.handle_aim_held(MainSystemsActions.context(main), "attack", Vector2.LEFT, 1.0)
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.LEFT)
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "attack", Vector2.LEFT, 1.0
+	)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.LEFT)
 
 	assert_eq(
 		main.calls,
-		[
-			"damage:actor_west:4",
-			"message:Hunting Bow hits River Ruffian for 4.",
-			"refresh"
-		]
+		["damage:actor_west:2", "message:Hunting Bow hits River Ruffian for 2.", "refresh"]
+	)
+
+
+func test_handle_held_bow_full_charge_releases_full_damage() -> void:
+	var main := AimMainStub.new()
+	main.equipment.equipped_item_id = "item_hunting_bow"
+
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "attack", Vector2.LEFT, 2.0
+	)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.LEFT)
+
+	assert_eq(
+		main.calls,
+		["damage:actor_west:4", "message:Hunting Bow hits River Ruffian for 4.", "refresh"]
+	)
+
+
+func test_handle_tapped_bow_releases_minimum_damage_shot() -> void:
+	var main := AimMainStub.new()
+	main.equipment.equipped_item_id = "item_hunting_bow"
+
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.LEFT)
+
+	assert_eq(
+		main.calls,
+		["damage:actor_west:1", "message:Hunting Bow hits River Ruffian for 1.", "refresh"]
 	)
 
 
@@ -121,10 +138,10 @@ func test_handle_aim_attack_swings_without_target() -> void:
 	main.enemies.clear()
 	main.entities.entities_by_id.clear()
 
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", Vector2.RIGHT)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 
 	assert_eq(main.player.facing_direction, Vector2.RIGHT)
-	assert_eq(main.calls, ["message:Attacked east.", "refresh"])
+	assert_eq(main.calls, ["message:Punched east.", "refresh"])
 
 
 func test_handle_aim_attack_uses_continuous_direction_for_hits() -> void:
@@ -138,17 +155,32 @@ func test_handle_aim_attack_uses_continuous_direction_for_hits() -> void:
 	]
 	main.entities = AimEntitiesStub.new(main.enemies)
 
-	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", raw_direction)
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "attack", raw_direction, 2.0
+	)
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", raw_direction)
 
 	assert_eq(main.player.facing_direction, snapped)
 	assert_eq(
-		main.calls,
-		[
-			"damage:actor_raw:4",
-			"message:Hunting Bow hits Raw Dummy for 4.",
-			"refresh"
-		]
+		main.calls, ["damage:actor_raw:4", "message:Hunting Bow hits Raw Dummy for 4.", "refresh"]
 	)
+
+
+func test_spell_effect_uses_continuous_aim_direction() -> void:
+	var main := AimMainStub.new()
+	main.enemies.clear()
+	main.entities.entities_by_id.clear()
+	var raw_direction := Vector2(1.0, 0.31).normalized()
+
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "ability_1", raw_direction, 0.25
+	)
+
+	assert_eq(main.effects.size(), 1)
+	var effect_direction: Vector2 = main.effects[0]["direction"]
+	assert_almost_eq(effect_direction.x, raw_direction.x, 0.001)
+	assert_almost_eq(effect_direction.y, raw_direction.y, 0.001)
+	assert_eq(main.calls, ["refresh"])
 
 
 class AssignSpellMainStub:
@@ -200,6 +232,7 @@ class AimMainStub:
 	var channeled_spell_damage_bank: Dictionary = {}
 	var channeled_spell_empty_reported: Dictionary = {}
 	var held_weapon_attack_elapsed: Dictionary = {}
+	var effects: Array[Dictionary] = []
 	var enemies := [
 		AimEntityStub.new("actor_west", "River Ruffian", Vector2.LEFT * 28.0),
 		AimEntityStub.new("actor_east", "Road Thug", Vector2.RIGHT * 28.0)
@@ -224,6 +257,15 @@ class AimMainStub:
 
 	func apply_effect(_effect: Dictionary, _refresh: bool = true) -> void:
 		calls.append("effect")
+
+	func add_child(effect: Node) -> void:
+		var effect_record := {
+			"type": effect.get_class(),
+			"direction":
+			effect.get("direction") if effect.get("direction") is Vector2 else Vector2.ZERO
+		}
+		effects.append(effect_record)
+		effect.free()
 
 
 class AimSpellsStub:
@@ -282,6 +324,7 @@ class AimContentStub:
 					"width_pixels": 14,
 					"damage": 4,
 					"attack_interval_seconds": 0.8,
+					"charge_seconds": 2.0,
 					"visual": "projectile"
 				}
 			}

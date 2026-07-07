@@ -4,6 +4,7 @@ extends RefCounted
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
+const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 
@@ -14,6 +15,7 @@ const DEFAULT_MOVE_SPEED := 80.0
 const DEFAULT_SPELL_INTERVAL := 1.0
 const DEFAULT_SPELL_SLOT := "ability_1"
 const DEFAULT_REPATH_SECONDS := 0.35
+const SPELL_EFFECT_PULSE_SECONDS := 0.08
 const PATH_DESTINATION_REPATH_DISTANCE := 24.0
 const PATH_WAYPOINT_ARRIVAL_DISTANCE := 8.0
 const HOME_ARRIVAL_DISTANCE := 8.0
@@ -35,8 +37,12 @@ static func _update_actor(main, actor, delta: float) -> void:
 	_tick_cooldown(actor.data, delta)
 	var to_player: Vector2 = main.player.global_position - actor.global_position
 	var distance: float = to_player.length()
-	var aggro_radius: float = _positive_float_field(actor.data, "aggro_radius", DEFAULT_AGGRO_RADIUS)
-	var leash_radius: float = _positive_float_field(actor.data, "leash_radius", DEFAULT_LEASH_RADIUS)
+	var aggro_radius: float = _positive_float_field(
+		actor.data, "aggro_radius", DEFAULT_AGGRO_RADIUS
+	)
+	var leash_radius: float = _positive_float_field(
+		actor.data, "leash_radius", DEFAULT_LEASH_RADIUS
+	)
 	var disengage_radius: float = _positive_float_field(
 		actor.data, "disengage_radius", maxf(aggro_radius * 1.5, leash_radius)
 	)
@@ -68,13 +74,15 @@ static func _update_actor(main, actor, delta: float) -> void:
 	):
 		_set_behavior_state(actor, "attacking")
 		_set_locomotion(actor, false, delta)
-		_try_attack_player(main, actor, attack_info, aim_direction)
+		_try_attack_player(main, actor, attack_info, aim_direction, delta)
 		return
 
 	_set_behavior_state(actor, "chasing")
 	var move_speed := _positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
 	var stop_distance := _approach_stop_distance(attack)
-	var move_target := _next_path_target(main, actor, main.player.global_position, stop_distance, true)
+	var move_target := _next_path_target(
+		main, actor, main.player.global_position, stop_distance, true
+	)
 	if actor.has_method("try_move"):
 		actor.try_move(move_target - actor.global_position, delta, main.chunks, move_speed)
 
@@ -107,14 +115,55 @@ static func _return_home(main, actor, home_position: Vector2, delta: float) -> v
 		actor.try_move(move_target - actor.global_position, delta, main.chunks, move_speed)
 
 
-static func _try_attack_player(main, actor, attack_info: Dictionary, direction: Vector2) -> void:
+static func _try_attack_player(
+	main, actor, attack_info: Dictionary, direction: Vector2, delta: float
+) -> void:
+	if (
+		String(attack_info.get("kind", "weapon")) == "spell"
+		and bool(attack_info.get("channel", false))
+	):
+		_try_channel_spell_player(main, actor, attack_info, direction, delta)
+		return
 	var cooldown := _non_negative_float_value(actor.data.get("_brain_attack_cooldown", 0.0), 0.0)
 	if cooldown > 0.0:
 		return
 	var damage := maxi(1, int(attack_info.get("damage", 1)))
-	_spawn_effect(main, actor, direction, attack_info.get("attack", {}))
-	main.player.apply_damage(damage)
+	if String(attack_info.get("kind", "weapon")) == "weapon":
+		_spawn_weapon_action(main, actor, direction, attack_info, damage)
+	else:
+		_spawn_effect(main, actor, direction, attack_info.get("attack", {}))
+		main.player.apply_damage(damage)
+		_post_attack_message(main, actor, attack_info, damage)
 	actor.data["_brain_attack_cooldown"] = maxf(0.05, float(attack_info.get("interval", 0.55)))
+	if main.player.health <= 0 and main.has_method("_handle_player_defeated"):
+		main._handle_player_defeated(actor.get_display_name())
+	_refresh_hud(main)
+
+
+static func _try_channel_spell_player(
+	main, actor, attack_info: Dictionary, direction: Vector2, delta: float
+) -> void:
+	var attack: Dictionary = attack_info.get("attack", {})
+	var effect_cooldown := _non_negative_float_value(
+		actor.data.get("_brain_spell_effect_cooldown", 0.0), 0.0
+	)
+	if effect_cooldown <= 0.0:
+		_spawn_effect(main, actor, direction, attack)
+		actor.data["_brain_spell_effect_cooldown"] = SPELL_EFFECT_PULSE_SECONDS
+	var damage_per_second := maxf(
+		0.0, float(attack.get("damage_per_second", attack_info.get("damage", 1)))
+	)
+	var bank: float = (
+		float(actor.data.get("_brain_spell_damage_bank", 0.0)) + damage_per_second * delta
+	)
+	var damage := 0
+	while bank >= 1.0:
+		damage += 1
+		bank -= 1.0
+	actor.data["_brain_spell_damage_bank"] = bank
+	if damage <= 0:
+		return
+	main.player.apply_damage(damage)
 	_post_attack_message(main, actor, attack_info, damage)
 	if main.player.health <= 0 and main.has_method("_handle_player_defeated"):
 		main._handle_player_defeated(actor.get_display_name())
@@ -171,7 +220,8 @@ static func _spell_attack_info(content, data: Dictionary) -> Dictionary:
 		"damage": _spell_damage_for_interval(spell, attack, interval),
 		"interval": interval,
 		"source_name": String(spell.get("name", spell_id)),
-		"kind": "spell"
+		"kind": "spell",
+		"channel": bool(spell.get("channel", false))
 	}
 
 
@@ -191,6 +241,11 @@ static func _post_attack_message(main, actor, attack_info: Dictionary, damage: i
 		return
 	var source_name := String(attack_info.get("source_name", "Attack"))
 	if String(attack_info.get("kind", "weapon")) == "spell":
+		if bool(attack_info.get("channel", false)):
+			main.event_bus.post_message(
+				"%s channels %s for %d." % [actor.get_display_name(), source_name, damage]
+			)
+			return
 		main.event_bus.post_message(
 			"%s casts %s for %d." % [actor.get_display_name(), source_name, damage]
 		)
@@ -209,6 +264,30 @@ static func _spawn_effect(main, actor, direction: Vector2, attack: Dictionary) -
 	effect.setup(visual, actor.global_position, direction.normalized(), attack)
 
 
+static func _spawn_weapon_action(
+	main, actor, direction: Vector2, attack_info: Dictionary, damage: int
+) -> void:
+	if not main or not main.has_method("add_child"):
+		return
+	var targets_provider := func() -> Array: return [main.player]
+	var hit_callback := func(_target, dealt_damage: int, _source_name: String) -> void:
+		main.player.apply_damage(dealt_damage)
+		_post_attack_message(main, actor, attack_info, dealt_damage)
+	var action := ActorWeaponAttackAction.new()
+	action.setup(
+		{
+			"source_actor": actor,
+			"direction": direction,
+			"attack": attack_info.get("attack", {}),
+			"damage": damage,
+			"source_name": String(attack_info.get("source_name", "Attack")),
+			"targets_provider": targets_provider,
+			"hit_callback": hit_callback
+		}
+	)
+	main.add_child(action)
+
+
 static func _attack_direction(actor, to_player: Vector2) -> Vector2:
 	if to_player.length() > MIN_DIRECTION_LENGTH:
 		return to_player.normalized()
@@ -222,6 +301,10 @@ static func _tick_cooldown(data: Dictionary, delta: float) -> void:
 	data["_brain_attack_cooldown"] = maxf(0.0, cooldown - delta)
 	var path_cooldown := _non_negative_float_value(data.get("_brain_path_cooldown", 0.0), 0.0)
 	data["_brain_path_cooldown"] = maxf(0.0, path_cooldown - delta)
+	var spell_effect_cooldown := _non_negative_float_value(
+		data.get("_brain_spell_effect_cooldown", 0.0), 0.0
+	)
+	data["_brain_spell_effect_cooldown"] = maxf(0.0, spell_effect_cooldown - delta)
 
 
 static func _next_path_target(
