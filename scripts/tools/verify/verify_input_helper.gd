@@ -2,7 +2,7 @@ class_name VerifyInputHelper
 extends RefCounted
 
 
-static func click_button(tree: SceneTree, root: Node, button: Button) -> void:
+static func real_click_button(tree: SceneTree, root: Node, button: Button) -> void:
 	var button_name := String(button.name)
 	await reveal_button(tree, button)
 	button = find_button(root, button_name)
@@ -16,6 +16,14 @@ static func click_button(tree: SceneTree, root: Node, button: Button) -> void:
 		viewport = button.get_viewport()
 		position = button.get_global_rect().get_center()
 	await push_click(tree, viewport, position)
+
+
+static func settle_main(tree: SceneTree, main, root_size: Vector2i) -> void:
+	if main.hud:
+		main.hud._apply_layout_for_size(Vector2(root_size))
+		main.hud.refresh()
+	await tree.process_frame
+	await tree.process_frame
 
 
 static func push_click(tree: SceneTree, viewport: Viewport, position: Vector2) -> void:
@@ -59,6 +67,8 @@ static func reveal_button(tree: SceneTree, button: Button) -> void:
 
 
 static func find_button(parent: Node, button_name: String) -> Button:
+	if not parent:
+		return null
 	for child in parent.get_children():
 		if child is Button and child.visible and child.name == button_name:
 			return child

@@ -2,6 +2,7 @@
 extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
+const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 
 
 func _initialize() -> void:
@@ -127,50 +128,11 @@ func _close_content(main) -> void:
 
 
 func _click(button: Button) -> void:
-	if not button.visible or not button.is_visible_in_tree():
-		return
-	await _push_click(button.get_viewport(), button.get_global_rect().get_center())
-	await process_frame
-	await process_frame
-
-
-func _push_click(viewport: Viewport, position: Vector2) -> void:
-	await _push_motion(viewport, position)
-
-	var press := InputEventMouseButton.new()
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.button_mask = MOUSE_BUTTON_MASK_LEFT
-	press.pressed = true
-	press.position = position
-	press.global_position = position
-	viewport.push_input(press, true)
-	await process_frame
-
-	var release := InputEventMouseButton.new()
-	release.button_index = MOUSE_BUTTON_LEFT
-	release.button_mask = 0
-	release.pressed = false
-	release.position = position
-	release.global_position = position
-	viewport.push_input(release, true)
-	await process_frame
-
-
-func _push_motion(viewport: Viewport, position: Vector2) -> void:
-	var motion := InputEventMouseMotion.new()
-	motion.position = position
-	motion.global_position = position
-	motion.button_mask = 0
-	viewport.push_input(motion, true)
-	await process_frame
+	await VerifyInputHelper.real_click_button(self, root, button)
 
 
 func _settle(main) -> void:
-	if main.hud:
-		main.hud._apply_layout_for_size(Vector2(root.size))
-		main.hud.refresh()
-	await process_frame
-	await process_frame
+	await VerifyInputHelper.settle_main(self, main, root.size)
 
 
 func _button_containing(parent: Node, text: String) -> Button:

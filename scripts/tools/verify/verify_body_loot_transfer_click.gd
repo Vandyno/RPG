@@ -24,12 +24,12 @@ func _verify() -> void:
 	var body_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_bow := _button_named(body_pane, "TransferTake_ItemHuntingBow")
+	var take_bow := VerifyInputHelper.find_button(body_pane, "TransferTake_ItemHuntingBow")
 	if not take_bow:
 		printerr("Hunting Bow transfer button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, take_bow)
+	await VerifyInputHelper.real_click_button(self, root, take_bow)
 	await process_frame
 
 	if main.inventory.get_count("item_hunting_bow") != 2:
@@ -44,12 +44,12 @@ func _verify() -> void:
 	var pack_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferPlayerInventory", true, false
 	)
-	var put_bow := _button_named(pack_pane, "TransferPut_ItemHuntingBow")
+	var put_bow := VerifyInputHelper.find_button(pack_pane, "TransferPut_ItemHuntingBow")
 	if not put_bow:
 		printerr("Hunting Bow put-back button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, put_bow)
+	await VerifyInputHelper.real_click_button(self, root, put_bow)
 	await process_frame
 	if main.inventory.get_count("item_hunting_bow") != 1:
 		printerr("Clicked Hunting Bow did not move back to body inventory.")
@@ -68,12 +68,12 @@ func _verify() -> void:
 	var cache_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_gold := _button_named(cache_pane, "TransferTake_ItemGoldCoin")
+	var take_gold := VerifyInputHelper.find_button(cache_pane, "TransferTake_ItemGoldCoin")
 	if not take_gold:
 		printerr("Gold Coin take button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, take_gold)
+	await VerifyInputHelper.real_click_button(self, root, take_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked Gold Coin did not move to player inventory.")
@@ -87,12 +87,12 @@ func _verify() -> void:
 	var cache_pack_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferPlayerInventory", true, false
 	)
-	var put_gold := _button_named(cache_pack_pane, "TransferPut_ItemGoldCoin")
+	var put_gold := VerifyInputHelper.find_button(cache_pack_pane, "TransferPut_ItemGoldCoin")
 	if not put_gold:
 		printerr("Gold Coin put-back button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, put_gold)
+	await VerifyInputHelper.real_click_button(self, root, put_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked Gold Coin did not move back to cache inventory.")
@@ -110,12 +110,15 @@ func _verify() -> void:
 	var people_body_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_people_gold := _button_named(people_body_pane, "TransferTake_ItemGoldCoin")
+	var take_people_gold := VerifyInputHelper.find_button(
+		people_body_pane,
+		"TransferTake_ItemGoldCoin"
+	)
 	if not take_people_gold:
 		printerr("People body Gold Coin take button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, take_people_gold)
+	await VerifyInputHelper.real_click_button(self, root, take_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked people body Gold Coin did not move to player inventory.")
@@ -129,12 +132,15 @@ func _verify() -> void:
 	var people_pack_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferPlayerInventory", true, false
 	)
-	var put_people_gold := _button_named(people_pack_pane, "TransferPut_ItemGoldCoin")
+	var put_people_gold := VerifyInputHelper.find_button(
+		people_pack_pane,
+		"TransferPut_ItemGoldCoin"
+	)
 	if not put_people_gold:
 		printerr("People body Gold Coin put button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, put_people_gold)
+	await VerifyInputHelper.real_click_button(self, root, put_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked people body Gold Coin did not move back to body inventory.")
@@ -148,12 +154,15 @@ func _verify() -> void:
 	people_body_pane = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_people_sword := _button_named(people_body_pane, "TransferTake_ItemTrainingSword")
+	var take_people_sword := VerifyInputHelper.find_button(
+		people_body_pane,
+		"TransferTake_ItemTrainingSword"
+	)
 	if not take_people_sword:
 		printerr("People body Training Sword take button missing.")
 		quit(1)
 		return
-	await VerifyInputHelper.click_button(self, root, take_people_sword)
+	await VerifyInputHelper.real_click_button(self, root, take_people_sword)
 	await process_frame
 	if main.inventory.get_count("item_training_sword") != 2:
 		printerr("Clicked people body Training Sword did not move to player inventory.")
@@ -218,19 +227,5 @@ func _open_people_body_transfer(main) -> void:
 	main.hud.set_systems_tab("inventory")
 
 
-func _button_named(parent: Node, button_name: String) -> Button:
-	for child in parent.get_children():
-		if child is Button and child.visible and child.name == button_name:
-			return child
-		var descendant := _button_named(child, button_name)
-		if descendant:
-			return descendant
-	return null
-
-
 func _settle(main) -> void:
-	if main.hud:
-		main.hud._apply_layout_for_size(Vector2(root.size))
-		main.hud.refresh()
-	await process_frame
-	await process_frame
+	await VerifyInputHelper.settle_main(self, main, root.size)
