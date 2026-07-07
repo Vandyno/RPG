@@ -55,7 +55,7 @@ func test_people_visual_and_profile_accessors_return_copies() -> void:
 	content.people = {"people_briarwatch": {"name": "Briarwatch"}}
 	content.people_visual_models = {"people_briarwatch": {"variants": []}}
 
-	var profile := content.get_character_profile_data("profile_harrow")
+	var profile := content.get_authored_character_profile("profile_harrow")
 	var people := content.get_people("people_briarwatch")
 	var visual := content.get_people_visual_model("people_briarwatch")
 	profile["base"]["height"] = 2.0
@@ -64,7 +64,7 @@ func test_people_visual_and_profile_accessors_return_copies() -> void:
 
 	assert_true(content.has_character_profile("profile_harrow"))
 	assert_true(content.character_profile_ids().has("profile_harrow"))
-	assert_eq(content.get_character_profile_data("profile_harrow")["base"]["height"], 1.0)
+	assert_eq(content.get_authored_character_profile("profile_harrow")["base"]["height"], 1.0)
 	assert_true(content.has_people("people_briarwatch"))
 	assert_true(content.people_ids().has("people_briarwatch"))
 	assert_eq(content.get_people("people_briarwatch")["name"], "Briarwatch")

@@ -747,9 +747,9 @@ func test_seed_humanoids_have_visual_variation() -> void:
 	add_child_autofree(player)
 	add_child_autofree(harrow)
 	add_child_autofree(raider)
-	player.setup(content.get_character_profile("char_player"))
-	harrow.setup(content.get_character_profile("char_harrow_venn"))
-	raider.setup(content.get_character_profile("char_test_raider"))
+	player.setup(content.get_resolved_character_profile("char_player"))
+	harrow.setup(content.get_resolved_character_profile("char_harrow_venn"))
+	raider.setup(content.get_resolved_character_profile("char_test_raider"))
 
 	assert_ne(player.get_proportion("shoulder_width"), harrow.get_proportion("shoulder_width"))
 	assert_ne(harrow.get_proportion("hand_size"), raider.get_proportion("hand_size"))

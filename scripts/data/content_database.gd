@@ -95,11 +95,11 @@ func npc_ids() -> Array[String]:
 	return _dictionary_keys(npcs)
 
 
-func get_character_profile(profile_id: String) -> Dictionary:
-	return _dictionary_copy(HumanoidProfileResolver.character_profile(self, profile_id))
+func get_resolved_character_profile(profile_id: String) -> Dictionary:
+	return _dictionary_copy(HumanoidProfileResolver.resolved_character_profile(self, profile_id))
 
 
-func get_character_profile_data(profile_id: String) -> Dictionary:
+func get_authored_character_profile(profile_id: String) -> Dictionary:
 	return _dictionary_copy(character_profiles.get(profile_id, {}))
 
 

@@ -8,8 +8,8 @@ const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const MAX_JITTER_STRENGTH := HumanoidAppearanceGenerator.MAX_JITTER_STRENGTH
 
 
-static func character_profile(content, profile_id: String) -> Dictionary:
-	var source: Dictionary = _dictionary_field(content.get_character_profile_data(profile_id))
+static func resolved_character_profile(content, profile_id: String) -> Dictionary:
+	var source: Dictionary = _dictionary_field(content.get_authored_character_profile(profile_id))
 	var resolved_source := profile_source_with_generated_appearance(content, source)
 	var profile := HumanoidProfile.from_data(resolved_source)
 	profile["derived_bonuses"] = people_bonuses(content, String(profile.get("people_id", "")))

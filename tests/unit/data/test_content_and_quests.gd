@@ -77,8 +77,11 @@ func test_content_database_loads_seed_content() -> void:
 		content.get_location("location_briarwatch_crossroads").get("name"), "Briarwatch Crossroads"
 	)
 	assert_eq(content.get_dialogue("dialogue_harrow_venn").get("id"), "dialogue_harrow_venn")
-	assert_eq(content.get_character_profile("char_player").get("character_id"), "char_player")
-	assert_eq(content.get_character_profile("char_maera_pike").get("character_id"), "char_maera_pike")
+	assert_eq(content.get_resolved_character_profile("char_player").get("character_id"), "char_player")
+	assert_eq(
+		content.get_resolved_character_profile("char_maera_pike").get("character_id"),
+		"char_maera_pike"
+	)
 	assert_eq(content.get_people("people_human").get("display_name"), "Human")
 	assert_eq(
 		content.get_people_visual_model("people_tuskfolk").get("people_id"), "people_tuskfolk"
@@ -94,10 +97,10 @@ func test_content_database_getters_return_defensive_copies() -> void:
 	item["name"] = "Mutated"
 	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
 
-	var profile: Dictionary = content.get_character_profile("char_player")
+	var profile: Dictionary = content.get_resolved_character_profile("char_player")
 	profile["appearance"]["palette_id"] = "mutated"
 	assert_ne(
-		content.get_character_profile("char_player").get("appearance", {}).get("palette_id"),
+		content.get_resolved_character_profile("char_player").get("appearance", {}).get("palette_id"),
 		"mutated"
 	)
 
@@ -122,7 +125,7 @@ func test_all_authored_npc_actors_are_profile_backed_characters() -> void:
 		var npc: Dictionary = content.npcs[npc_id]
 		var profile_id := String(npc.get("character_profile_id", ""))
 		assert_false(profile_id.is_empty(), "%s should have character_profile_id." % npc_id)
-		var profile: Dictionary = content.get_character_profile(profile_id)
+		var profile: Dictionary = content.get_resolved_character_profile(profile_id)
 		assert_eq(profile["character_id"], profile_id)
 		assert_eq(profile["inventory_owner_id"], profile_id)
 		assert_eq(profile["equipment_owner_id"], profile_id)
@@ -174,7 +177,7 @@ func test_people_default_proportions_apply_without_overwriting_authored_values()
 		"spellbook_owner_id": "char_tuskfolk_test"
 	}
 
-	var profile: Dictionary = content.get_character_profile("char_tuskfolk_test")
+	var profile: Dictionary = content.get_resolved_character_profile("char_tuskfolk_test")
 	var proportions: Dictionary = profile["appearance"]["proportions"]
 
 	assert_eq(proportions["body_height"], 0.76)
@@ -453,7 +456,7 @@ func test_character_profile_appearance_generation_resolves_with_authored_overrid
 		"spellbook_owner_id": "char_generated_tuskfolk"
 	}
 
-	var profile: Dictionary = content.get_character_profile("char_generated_tuskfolk")
+	var profile: Dictionary = content.get_resolved_character_profile("char_generated_tuskfolk")
 	var appearance: Dictionary = profile["appearance"]
 	assert_eq(profile["people_id"], "people_tuskfolk")
 	assert_eq(profile["derived_bonuses"], {})
@@ -473,7 +476,7 @@ func test_people_test_hostile_actors_use_generated_profiles() -> void:
 		var people_id := String(data["people_id"])
 		var expected_tile: Vector2i = data["tile"]
 		var world_entry := _world_object(entity_id)
-		var profile: Dictionary = content.get_character_profile(profile_id)
+		var profile: Dictionary = content.get_resolved_character_profile(profile_id)
 		var appearance: Dictionary = profile["appearance"]
 		var tile_array: Array = world_entry.get("global_tile", [])
 		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
@@ -555,8 +558,8 @@ func test_content_validation_reports_appearance_generation_errors() -> void:
 
 
 func test_people_bonuses_apply_to_player_and_npc_profiles() -> void:
-	var player_profile: Dictionary = content.get_character_profile("char_player")
-	var harrow_profile: Dictionary = content.get_character_profile("char_harrow_venn")
+	var player_profile: Dictionary = content.get_resolved_character_profile("char_player")
+	var harrow_profile: Dictionary = content.get_resolved_character_profile("char_harrow_venn")
 
 	assert_eq(player_profile["stats"], {})
 	assert_eq(harrow_profile["stats"], {})

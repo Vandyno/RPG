@@ -126,7 +126,7 @@ static func _validate_people_visual_variant_proportions(
 
 static func _validate_character_profiles(content, errors: Array[String]) -> void:
 	for profile_id in content.character_profile_ids():
-		var profile_value: Variant = content.get_character_profile_data(profile_id)
+		var profile_value: Variant = content.get_authored_character_profile(profile_id)
 		if not profile_value is Dictionary:
 			errors.append("Character profile %s must be a dictionary." % profile_id)
 			continue

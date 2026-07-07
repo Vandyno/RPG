@@ -383,7 +383,7 @@ func _entry_with_profile(entry: Dictionary) -> Dictionary:
 		return entry
 	if not content:
 		return entry
-	if not content.has_method("get_character_profile"):
+	if not content.has_method("get_resolved_character_profile"):
 		return entry
 	var profile_id := String(entry.get("character_profile_id", ""))
 	var should_use_npc_profile := profile_id.is_empty() and String(entry.get("kind", "")) == "npc"
@@ -392,7 +392,7 @@ func _entry_with_profile(entry: Dictionary) -> Dictionary:
 		profile_id = String(npc.get("character_profile_id", ""))
 	if profile_id.is_empty():
 		return entry
-	var profile: Dictionary = content.get_character_profile(profile_id)
+	var profile: Dictionary = content.get_resolved_character_profile(profile_id)
 	if profile.is_empty():
 		return entry
 	var next_entry := entry.duplicate(true)
