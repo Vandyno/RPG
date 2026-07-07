@@ -288,6 +288,22 @@ func _build_ui() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.resized.connect(_apply_responsive_layout)
 	add_child(root)
+	_build_status_panel()
+	_build_prompt_panel()
+	_build_message_panel()
+	_build_target_panel()
+	_build_context_action_panel()
+	_build_debug_panel()
+	_build_systems_panel()
+	_build_touch_controls()
+	_build_content_panel()
+	_build_additional_ui()
+	_apply_responsive_layout()
+	refresh()
+
+
+func _build_additional_ui() -> void:
+	pass
 
 
 func _build_status_panel() -> void:

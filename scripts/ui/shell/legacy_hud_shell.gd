@@ -7,21 +7,6 @@ const TargetUiTextBuilder = preload("res://scripts/ui/text/target_ui_text_builde
 const TouchControlStyle = preload("res://scripts/ui/shell/touch_control_style.gd")
 
 
-func _build_ui() -> void:
-	super._build_ui()
-	_build_status_panel()
-	_build_prompt_panel()
-	_build_message_panel()
-	_build_target_panel()
-	_build_context_action_panel()
-	_build_debug_panel()
-	_build_systems_panel()
-	_build_touch_controls()
-	_build_content_panel()
-	_apply_responsive_layout()
-	refresh()
-
-
 func _build_status_panel() -> void:
 	status_panel = _new_panel("StatusPanel")
 	status_panel.offset_left = 12
