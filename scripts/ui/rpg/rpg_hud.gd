@@ -378,8 +378,12 @@ func _build_target_panel() -> void:
 	target_list = null
 func _build_context_action_panel() -> void:
 	var nodes := RpgContextActionPanelBuilder.build(
-		root, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
-		Callable(self, "_new_label")
+		RpgContextActionPanelBuilder.BuildContext.new(
+			root,
+			Callable(self, "_new_panel"),
+			Callable(self, "_add_margin"),
+			Callable(self, "_new_label")
+		)
 	)
 	context_action_panel = nodes["panel"]
 	context_action_buttons = nodes["buttons"]
@@ -478,10 +482,14 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 		prompt_panel.visible = false
 	_layout_systems_panel(viewport_size, compact)
 	_layout_content_panel(viewport_size, compact)
-	RpgContextActionPanelBuilder.apply_layout(
-		context_action_panel, context_action_buttons, visible_context_action_count,
-		viewport_size, compact, HUD_MARGIN
-	)
+	var request := RpgContextActionPanelBuilder.LayoutRequest.new()
+	request.panel = context_action_panel
+	request.buttons = context_action_buttons
+	request.visible_count = visible_context_action_count
+	request.viewport_size = viewport_size
+	request.compact = compact
+	request.hud_margin = HUD_MARGIN
+	RpgContextActionPanelBuilder.apply_layout(request)
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 	_layout_message_panel(viewport_size, compact)
@@ -864,16 +872,16 @@ func _refresh_systems_actions(_state: Dictionary) -> void: pass
 func _refresh_content_choices(choices: Array) -> void:
 	if not content_choice_list:
 		return
-	content_choice_list.visible = RpgContentChoiceBuilder.refresh(
-		content_choice_list,
-		choices,
-		Callable(self, "_new_button"),
-		Callable(self, "_apply_row_button_style"),
-		self,
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0,
-		Callable(self, "hide_content_card"),
-		"Leave" if content_kind_label.text == "Dialogue" else "Close"
-	)
+	var request := RpgContentChoiceBuilder.RefreshRequest.new()
+	request.container = content_choice_list
+	request.choices = choices
+	request.new_button = Callable(self, "_new_button")
+	request.row_style = Callable(self, "_apply_row_button_style")
+	request.owner = self
+	request.compact = applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	request.close_callback = Callable(self, "hide_content_card")
+	request.close_text = "Leave" if content_kind_label.text == "Dialogue" else "Close"
+	content_choice_list.visible = RpgContentChoiceBuilder.refresh(request)
 
 func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if not content_preview_label:
@@ -902,14 +910,17 @@ func _refresh_context_actions(state: Dictionary) -> void:
 		return
 	var context_mode := true
 	var actions := _array_field(state.get("context_actions", []))
-	visible_context_action_count = RpgContextActionPanelBuilder.refresh(
-		context_action_buttons, actions, Callable(self, "_new_button"),
-		Callable(self, "_apply_row_button_style"),
-		func(action_id: String, is_context: bool) -> void: _emit_quick_action(action_id, is_context),
-		RpgContextActionPanelBuilder.title_text(state, context_mode),
-		context_mode,
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	)
+	var request := RpgContextActionPanelBuilder.RefreshRequest.new()
+	request.container = context_action_buttons
+	request.actions = actions
+	request.new_button = Callable(self, "_new_button")
+	request.row_style = Callable(self, "_apply_row_button_style")
+	request.action_callback = func(action_id: String, is_context: bool) -> void:
+		_emit_quick_action(action_id, is_context)
+	request.title_text = RpgContextActionPanelBuilder.title_text(state, context_mode)
+	request.context_mode = context_mode
+	request.compact = applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	visible_context_action_count = RpgContextActionPanelBuilder.refresh(request)
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = visible_context_action_count > 0

@@ -6,9 +6,48 @@ const RpgContentChoiceButton = preload(
 )
 
 
-static func build(
-	root: Control, new_panel: Callable, add_margin: Callable, new_label: Callable
-) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var new_panel: Callable
+	var add_margin: Callable
+	var new_label: Callable
+
+	func _init(
+		p_root: Control, p_new_panel: Callable, p_add_margin: Callable, p_new_label: Callable
+	) -> void:
+		root = p_root
+		new_panel = p_new_panel
+		add_margin = p_add_margin
+		new_label = p_new_label
+
+
+class RefreshRequest:
+	var container: HFlowContainer
+	var actions: Array
+	var new_button: Callable
+	var row_style: Callable
+	var action_callback: Callable
+	var title_text: String
+	var context_mode: bool
+	var compact: bool
+
+
+class LayoutRequest:
+	var panel: PanelContainer
+	var buttons: HFlowContainer
+	var visible_count: int
+	var viewport_size: Vector2
+	var compact: bool
+	var hud_margin: float
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
+	var root := context.root
+	var new_panel := context.new_panel
+	var add_margin := context.add_margin
+	var new_label := context.new_label
 	var panel: PanelContainer = new_panel.call("ContextActionPanel")
 	panel.anchor_left = 1.0
 	panel.anchor_right = 1.0
@@ -46,40 +85,34 @@ static func build(
 	return {"panel": panel, "buttons": buttons}
 
 
-static func refresh(
-	container: HFlowContainer,
-	actions: Array,
-	new_button: Callable,
-	row_style: Callable,
-	action_callback: Callable,
-	title_text: String,
-	context_mode: bool,
-	compact: bool
-) -> int:
-	_refresh_title(container, title_text)
+static func refresh(request: RefreshRequest) -> int:
+	if not request or not request.container:
+		return 0
+	var container := request.container
+	_refresh_title(container, request.title_text)
 	var button_index := 0
-	for action in actions:
+	for action in request.actions:
 		if not action is Dictionary:
 			continue
 		var action_id := String(action.get("id", ""))
 		var text := String(action.get("text", ""))
 		if action_id.is_empty() or text.is_empty():
 			continue
-		var button := _button(container, button_index, new_button)
+		var button := _button(container, button_index, request.new_button)
 		var subtitle := _subtitle(action_id, text)
 		button.text = "%s\n%s" % [text, subtitle]
 		button.disabled = false
 		button.visible = true
-		button.custom_minimum_size = Vector2(104, 50) if compact else Vector2(150, 58)
-		button.add_theme_font_size_override("font_size", 10 if compact else 12)
-		row_style.call(button, _is_recommended(action_id, text))
+		button.custom_minimum_size = Vector2(104, 50) if request.compact else Vector2(150, 58)
+		button.add_theme_font_size_override("font_size", 10 if request.compact else 12)
+		request.row_style.call(button, _is_recommended(action_id, text))
 		if button is RpgContentChoiceButton:
 			(button as RpgContentChoiceButton).set_choice_card(
 				_action_icon(action_id, text), text, subtitle
 			)
 		button.set_meta("action_id", action_id)
-		button.set_meta("context_mode", context_mode)
-		_bind_button(button, action_callback)
+		button.set_meta("context_mode", request.context_mode)
+		_bind_button(button, request.action_callback)
 		button_index += 1
 	for index in range(button_index, container.get_child_count()):
 		container.get_child(index).visible = false
@@ -102,14 +135,15 @@ static func title_text(state: Dictionary, context_mode: bool) -> String:
 	return "Nearby Actions"
 
 
-static func apply_layout(
-	panel: PanelContainer,
-	buttons: HFlowContainer,
-	visible_count: int,
-	viewport_size: Vector2,
-	compact: bool,
-	hud_margin: float
-) -> void:
+static func apply_layout(request: LayoutRequest) -> void:
+	if not request:
+		return
+	var panel := request.panel
+	var buttons := request.buttons
+	var visible_count := request.visible_count
+	var viewport_size := request.viewport_size
+	var compact := request.compact
+	var hud_margin := request.hud_margin
 	if not panel:
 		return
 	var width := minf(520.0, viewport_size.x - hud_margin * 2.0)

@@ -575,12 +575,14 @@ func _build_touch_controls() -> void:
 
 func _build_content_panel() -> void:
 	var nodes := ContentCardPresenter.build(
-		root,
-		Callable(self, "_new_panel"),
-		Callable(self, "_add_margin"),
-		Callable(self, "_new_label"),
-		Callable(self, "_new_button"),
-		Callable(self, "hide_content_card")
+		ContentCardPresenter.BuildContext.new(
+			root,
+			Callable(self, "_new_panel"),
+			Callable(self, "_add_margin"),
+			Callable(self, "_new_label"),
+			Callable(self, "_new_button"),
+			Callable(self, "hide_content_card")
+		)
 	)
 	content_panel = nodes["panel"]
 	content_kind_label = nodes["kind_label"]

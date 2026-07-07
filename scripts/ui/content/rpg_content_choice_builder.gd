@@ -6,25 +6,30 @@ const RpgContentChoiceButton = preload(
 )
 
 
-static func refresh(
-	container: VBoxContainer,
-	choices: Array,
-	new_button: Callable,
-	row_style: Callable,
-	owner: Object,
-	compact: bool,
-	close_callback: Callable = Callable(),
-	close_text := ""
-) -> bool:
+class RefreshRequest:
+	var container: VBoxContainer
+	var choices: Array
+	var new_button: Callable
+	var row_style: Callable
+	var owner: Object
+	var compact: bool
+	var close_callback: Callable
+	var close_text: String
+
+
+static func refresh(request: RefreshRequest) -> bool:
+	if not request or not request.container:
+		return false
+	var container := request.container
 	var button_index := 0
-	for choice in choices:
+	for choice in request.choices:
 		if not choice is Dictionary:
 			continue
 		var choice_id := String(choice.get("id", ""))
 		var text := String(choice.get("text", ""))
 		if choice_id.is_empty() or text.is_empty():
 			continue
-		var button := _button(container, button_index, new_button)
+		var button := _button(container, button_index, request.new_button)
 		var closes := _choice_closes(choice)
 		var subtitle := _subtitle(choice)
 		button.text = _button_text(choice, subtitle)
@@ -33,36 +38,42 @@ static func refresh(
 		button.disabled = false
 		button.visible = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 44)
-		button.add_theme_font_size_override("font_size", 10 if compact else 13)
+		button.custom_minimum_size = Vector2(0, 46) if request.compact else Vector2(0, 44)
+		button.add_theme_font_size_override("font_size", 10 if request.compact else 13)
 		button.set_meta("choice_id", choice_id)
 		button.set_meta("content_close_choice", closes)
 		var recommended := _is_recommended(choice) and not closes
 		button.set_meta("choice_recommended", recommended)
-		row_style.call(button, recommended)
+		request.row_style.call(button, recommended)
 		if button is RpgContentChoiceButton:
 			(button as RpgContentChoiceButton).set_choice_card(
 				_choice_icon(choice), text, subtitle, closes
 			)
-		_bind_button(button, owner, close_callback)
+		_bind_button(button, request.owner, request.close_callback)
 		button_index += 1
-	if button_index > 0 and not close_text.is_empty() and not _has_close_choice(choices):
-		var close := _button(container, button_index, new_button)
-		close.text = close_text
+	if (
+		button_index > 0
+		and not request.close_text.is_empty()
+		and not _has_close_choice(request.choices)
+	):
+		var close := _button(container, button_index, request.new_button)
+		close.text = request.close_text
 		close.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		close.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		close.disabled = false
 		close.visible = true
 		close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		close.custom_minimum_size = Vector2(0, 46) if compact else Vector2(0, 44)
-		close.add_theme_font_size_override("font_size", 10 if compact else 13)
+		close.custom_minimum_size = Vector2(0, 46) if request.compact else Vector2(0, 44)
+		close.add_theme_font_size_override("font_size", 10 if request.compact else 13)
 		close.set_meta("choice_id", "")
 		close.set_meta("content_close_choice", true)
 		close.set_meta("choice_recommended", false)
-		row_style.call(close, false)
+		request.row_style.call(close, false)
 		if close is RpgContentChoiceButton:
-			(close as RpgContentChoiceButton).set_choice_card("close", close_text, "", true)
-		_bind_button(close, owner, close_callback)
+			(close as RpgContentChoiceButton).set_choice_card(
+				"close", request.close_text, "", true
+			)
+		_bind_button(close, request.owner, request.close_callback)
 		button_index += 1
 	for index in range(button_index, container.get_child_count()):
 		container.get_child(index).visible = false

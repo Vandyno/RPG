@@ -4,14 +4,39 @@ extends RefCounted
 const UiActionButtons = preload("res://scripts/ui/shell/ui_action_buttons.gd")
 
 
-static func build(
-	root: Control,
-	new_panel: Callable,
-	add_margin: Callable,
-	new_label: Callable,
-	new_button: Callable,
-	close_callback: Callable
-) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var new_panel: Callable
+	var add_margin: Callable
+	var new_label: Callable
+	var new_button: Callable
+	var close_callback: Callable
+
+	func _init(
+		p_root: Control,
+		p_new_panel: Callable,
+		p_add_margin: Callable,
+		p_new_label: Callable,
+		p_new_button: Callable,
+		p_close_callback: Callable
+	) -> void:
+		root = p_root
+		new_panel = p_new_panel
+		add_margin = p_add_margin
+		new_label = p_new_label
+		new_button = p_new_button
+		close_callback = p_close_callback
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
+	var root := context.root
+	var new_panel := context.new_panel
+	var add_margin := context.add_margin
+	var new_label := context.new_label
+	var new_button := context.new_button
+	var close_callback := context.close_callback
 	var panel: PanelContainer = new_panel.call("ContentPanel")
 	panel.anchor_left = 0.5
 	panel.anchor_right = 0.5
