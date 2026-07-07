@@ -2188,16 +2188,12 @@ func _hand_sway(side: float) -> Vector2:
 
 func _hand_position(side: float, proportions: Dictionary) -> Vector2:
 	var base := _base_hand_position(side, proportions)
-	return base + _attack_hand_offset(side, proportions, base)
+	return base + HumanoidHeldItemDrawer.attack_hand_offset(self, side, proportions, base)
 
 
 func _base_hand_position(side: float, proportions: Dictionary) -> Vector2:
 	var sneak_lower := 1.6 if is_sneaking else 0.0
 	return _hand_anchor(side, proportions) + Vector2(0.0, sneak_lower) + _hand_sway(side)
-
-
-func _attack_hand_offset(side: float, proportions: Dictionary, base_position: Vector2) -> Vector2:
-	return HumanoidHeldItemDrawer.attack_hand_offset(self, side, proportions, base_position)
 
 
 func _sneak_crouch_offset() -> float:
