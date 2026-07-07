@@ -1,6 +1,7 @@
 extends SceneTree
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
+const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 
 const PEOPLE_ORDER := [
@@ -12,24 +13,7 @@ const PEOPLE_ORDER := [
 	"people_rootborn"
 ]
 const DIRECTIONS := [Vector2.DOWN, Vector2.RIGHT, Vector2.LEFT, Vector2.UP]
-const SIXTEEN_DIRECTIONS := [
-	Vector2.RIGHT,
-	Vector2(0.9239, 0.3827),
-	Vector2(0.7071, 0.7071),
-	Vector2(0.3827, 0.9239),
-	Vector2.DOWN,
-	Vector2(-0.3827, 0.9239),
-	Vector2(-0.7071, 0.7071),
-	Vector2(-0.9239, 0.3827),
-	Vector2.LEFT,
-	Vector2(-0.9239, -0.3827),
-	Vector2(-0.7071, -0.7071),
-	Vector2(-0.3827, -0.9239),
-	Vector2.UP,
-	Vector2(0.3827, -0.9239),
-	Vector2(0.7071, -0.7071),
-	Vector2(0.9239, -0.3827)
-]
+const SIXTEEN_DIRECTIONS := CaptureSheetHelper.SIXTEEN_DIRECTIONS
 const LABELED_VARIANTS_PER_PAGE := 6
 const LABELED_PAGE_SUFFIXES := ["a", "b", "c", "d", "e", "f"]
 const POPULATION_COLUMNS := 24
@@ -43,20 +27,16 @@ func _initialize() -> void:
 
 func _capture() -> void:
 	var args := OS.get_cmdline_user_args()
-	var output_dir := _string_arg(args, 0, "res://reports/people_iterations_v8")
-	var width := _positive_arg(args, 1, 1600)
-	var height := _positive_arg(args, 2, 768)
-	var page_filter := _string_arg(args, 3, "")
+	var output_dir := CaptureSheetHelper.string_arg(args, 0, "res://reports/people_iterations_v8")
+	var width := CaptureSheetHelper.positive_arg(args, 1, 1600)
+	var height := CaptureSheetHelper.positive_arg(args, 2, 768)
+	var page_filter := CaptureSheetHelper.string_arg(args, 3, "")
 	var round_label := _round_label(output_dir)
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
 	content.load_all()
-	var viewport := SubViewport.new()
-	viewport.size = Vector2i(width, height)
-	viewport.disable_3d = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-	root.add_child(viewport)
+	var viewport := CaptureSheetHelper.create_viewport(root, width, height)
 
 	var absolute_dir := ProjectSettings.globalize_path(output_dir)
 	var make_error := DirAccess.make_dir_recursive_absolute(absolute_dir)
@@ -79,7 +59,7 @@ func _capture() -> void:
 	for page_data in pages:
 		var page := _build_page(content, page_data, width, height, round_label)
 		viewport.add_child(page)
-		var image: Image = await _capture_viewport_image(viewport)
+		var image: Image = await CaptureSheetHelper.capture_viewport_image(self, viewport)
 		if image == null:
 			printerr(
 				"Could not capture people crowd image. Run this script without --headless."
@@ -87,7 +67,7 @@ func _capture() -> void:
 			quit(1)
 			return
 		var output_path := absolute_dir.path_join(String(page_data["name"]))
-		var error := _save_png_image(image, output_path)
+		var error := CaptureSheetHelper.save_png_image(image, output_path)
 		viewport.remove_child(page)
 		page.queue_free()
 		await process_frame
@@ -96,27 +76,6 @@ func _capture() -> void:
 			quit(1)
 			return
 	quit()
-
-
-func _capture_viewport_image(viewport: SubViewport) -> Image:
-	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-	await process_frame
-	await process_frame
-	var texture := viewport.get_texture()
-	if texture == null:
-		return null
-	return texture.get_image()
-
-
-func _save_png_image(image: Image, output_path: String) -> Error:
-	var buffer := image.save_png_to_buffer()
-	if buffer.is_empty():
-		return ERR_CANT_CREATE
-	var file := FileAccess.open(output_path, FileAccess.WRITE)
-	if not file:
-		return FileAccess.get_open_error()
-	file.store_buffer(buffer)
-	return OK
 
 
 func _filter_pages(pages: Array[Dictionary], page_filter: String) -> Array[Dictionary]:
@@ -662,18 +621,6 @@ func _add_label(
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
-
-
-func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:
-	if index >= args.size() or not args[index].is_valid_int():
-		return fallback
-	return maxi(1, int(args[index]))
-
-
-func _string_arg(args: PackedStringArray, index: int, fallback: String) -> String:
-	if index >= args.size() or args[index].is_empty():
-		return fallback
-	return args[index]
 
 
 func _round_label(output_dir: String) -> String:
