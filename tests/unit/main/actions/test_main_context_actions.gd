@@ -12,9 +12,13 @@ class EventBusStub:
 
 class HudStub:
 	var hidden := false
+	var shown_system_tab := ""
 
 	func hide_content_card() -> void:
 		hidden = true
+
+	func show_systems_panel(tab_id: String) -> void:
+		shown_system_tab = tab_id
 
 
 class DialoguesStub:
@@ -39,13 +43,21 @@ class DialoguesStub:
 
 class ContentStub:
 	func get_npc(npc_id: String) -> Dictionary:
-		if npc_id != "npc_trader":
-			return {}
-		return {
-			"name": "Trader",
-			"shop_id": "shop_trader",
-			"dialogue_id": "dialogue_trader"
-		}
+		match npc_id:
+			"npc_trader":
+				return {
+					"name": "Trader",
+					"shop_id": "shop_trader",
+					"dialogue_id": "dialogue_trader"
+				}
+			"npc_other_trader":
+				return {
+					"name": "Other Trader",
+					"shop_id": "shop_other",
+					"dialogue_id": "dialogue_other"
+				}
+			_:
+				return {}
 
 
 class PlayerStub:
@@ -55,12 +67,14 @@ class PlayerStub:
 
 class EntityStub:
 	var data := {"npc_id": "npc_trader"}
+	var kind := "npc"
+	var entity_id := "npc_trader_world"
 
 	func get_kind() -> String:
-		return "npc"
+		return kind
 
 	func get_entity_id() -> String:
-		return "npc_trader_world"
+		return entity_id
 
 	func get_display_name() -> String:
 		return "Trader"
@@ -154,6 +168,30 @@ func test_handle_routes_talk_to_nearby_npc() -> void:
 	MainContextActions.handle(ctx, "talk:dialogue_trader")
 
 	assert_eq(main.talked_to, main.nearby_entity)
+
+
+func test_trade_action_revalidates_nearby_trader_before_opening() -> void:
+	var main := MainStub.new()
+	var ctx := MainContextActions.handle_context(main)
+
+	MainContextActions.handle(ctx, "trade:shop_trader")
+
+	assert_true(main.hud.hidden)
+	assert_eq(main.hud.shown_system_tab, "trade")
+	assert_eq(main.event_bus.messages.back(), "Trading.")
+
+	main.hud.hidden = false
+	main.hud.shown_system_tab = ""
+	var refreshed_before_stale_action := main.refreshed
+	main.nearby_entity = EntityStub.new()
+	main.nearby_entity.data = {"npc_id": "npc_other_trader"}
+
+	MainContextActions.handle(ctx, "trade:shop_trader")
+
+	assert_false(main.hud.hidden)
+	assert_eq(main.hud.shown_system_tab, "")
+	assert_eq(main.event_bus.messages.back(), "That action is no longer available.")
+	assert_eq(main.refreshed, refreshed_before_stale_action + 1)
 
 
 func _action_ids(actions: Array[Dictionary]) -> Array[String]:

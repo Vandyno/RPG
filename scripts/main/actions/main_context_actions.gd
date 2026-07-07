@@ -206,6 +206,16 @@ static func _handle_trade_action_selected(ctx: ActionHandleContext, shop_id: Str
 	if shop_id.is_empty() or not ctx.hud:
 		ctx.event_bus.post_message("No trader selected.")
 		return
+	var entity = ctx._get_nearby_entity.call()
+	var nearby_shop_id := _trade_shop_id_for_entity(ctx, entity)
+	if nearby_shop_id.is_empty():
+		ctx.event_bus.post_message("No trader selected.")
+		ctx._refresh_hud.call()
+		return
+	if nearby_shop_id != shop_id:
+		ctx.event_bus.post_message("That action is no longer available.")
+		ctx._refresh_hud.call()
+		return
 	ctx.active_content_choices.clear()
 	ctx.hud.hide_content_card()
 	ctx.hud.show_systems_panel("trade")
@@ -320,6 +330,16 @@ static func _npc_for_entity(ctx: ActionListContext, entity) -> Dictionary:
 	if not entity:
 		return {}
 	return ctx.content.get_npc(String(entity.data.get("npc_id", "")))
+
+
+static func _trade_shop_id_for_entity(ctx: ActionHandleContext, entity) -> String:
+	if not entity:
+		return ""
+	if entity.get_kind() == "npc":
+		return String(_npc_for_entity(ctx.actions, entity).get("shop_id", ""))
+	if entity.get_kind() == "poi" and PoiInteraction.primary_action_text(entity) == "Trade":
+		return String(entity.data.get("shop_id", ""))
+	return ""
 
 
 static func _parse_action_id(action_id: String) -> Dictionary:
