@@ -895,66 +895,6 @@ func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
 	return choices
 
 
-func _inventory_text() -> String:
-	return hud_queries.inventory_text()
-
-
-func _inventory_details_text() -> String:
-	return hud_queries.inventory_details_text()
-
-
-func _inventory_actions_data() -> Array[Dictionary]:
-	return hud_queries.inventory_actions_data()
-
-
-func _sorted_inventory_ids() -> Array:
-	return hud_queries._sorted_inventory_ids()
-
-
-func _progression_actions_data() -> Array[Dictionary]:
-	return hud_queries.progression_actions_data()
-
-
-func _trade_text(shop_id: String) -> String:
-	return hud_queries.trade_text(shop_id)
-
-
-func _trade_actions_data(shop_id: String) -> Array[Dictionary]:
-	return hud_queries.trade_actions_data(shop_id)
-
-
-func _target_detail_text(entity) -> String:
-	return hud_queries.target_detail_text(entity)
-
-
-func _readable_detail_text(entity) -> String:
-	return hud_queries._readable_detail_text(entity)
-
-
-func _pickup_detail_text(entity) -> String:
-	return hud_queries._pickup_detail_text(entity)
-
-
-func _npc_detail_text(entity) -> String:
-	return hud_queries._npc_detail_text(entity)
-
-
-func _hostile_actor_detail_text(entity) -> String:
-	return hud_queries._hostile_actor_detail_text(entity)
-
-
-func _rest_detail_text(entity) -> String:
-	return hud_queries._rest_detail_text(entity)
-
-
-func _nearby_entities_text() -> String:
-	return hud_queries.nearby_entities_text(_ranked_nearby_entities(), selected_target_id)
-
-func _nearby_targets_data() -> Array[Dictionary]:
-	return hud_queries.nearby_targets_data(
-		_ranked_nearby_entities(), selected_target_id, player.global_position
-	)
-
 func _get_nearby_entity() -> WorldEntity:
 	var nearby_entities := _get_nearby_entities()
 	var facing: Vector2 = (

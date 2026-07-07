@@ -14,7 +14,9 @@ static func build(main) -> Dictionary:
 			"player_chunk": str(GridMath.tile_to_chunk(main.player.global_tile)),
 			"terrain": main.chunks.get_tile_kind(main.player.global_tile),
 			"loaded_chunk_count": main.streamer.get_loaded_chunk_keys().size(),
-			"nearby_all": main._nearby_entities_text(),
+			"nearby_all": main.hud_queries.nearby_entities_text(
+				main._ranked_nearby_entities(), main.selected_target_id
+			),
 			"navigation": main.entities.get_navigation_summary(main.player.global_position),
 			"flags":
 			(

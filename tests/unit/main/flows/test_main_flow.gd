@@ -683,7 +683,7 @@ func test_main_sanitizes_malformed_runtime_hostile_actor_numbers() -> void:
 	enemy.data["damage_taken_per_hit"] = "six"
 	enemy.data["attack_damage"] = "four"
 
-	assert_eq(main._target_detail_text(enemy), "Hostile HP 12/12, counter 4")
+	assert_eq(main.hud_queries.target_detail_text(enemy), "Hostile HP 12/12, counter 4")
 
 	_attack_hostile_actor_once(main, "npc_road_thug")
 
