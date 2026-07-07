@@ -89,6 +89,34 @@ func test_content_database_loads_seed_content() -> void:
 	assert_eq(content.validate_all(), [])
 
 
+func test_content_database_getters_return_defensive_copies() -> void:
+	var item: Dictionary = content.get_item("item_old_toolbox")
+	item["name"] = "Mutated"
+	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
+
+	var profile: Dictionary = content.get_character_profile("char_player")
+	profile["appearance"]["palette_id"] = "mutated"
+	assert_ne(
+		content.get_character_profile("char_player").get("appearance", {}).get("palette_id"),
+		"mutated"
+	)
+
+	var variant: Dictionary = content.get_people_visual_variant(
+		"people_human", "human_marches_worker"
+	)
+	variant["display_name"] = "Mutated"
+	assert_eq(
+		content.get_people_visual_variant("people_human", "human_marches_worker").get(
+			"display_name"
+		),
+		"Marches Worker"
+	)
+
+	var world_objects: Array[Dictionary] = content.world_object_entries()
+	world_objects[0]["display_name"] = "Mutated"
+	assert_ne(content.world_object_entries()[0].get("display_name"), "Mutated")
+
+
 func test_all_authored_npc_actors_are_profile_backed_characters() -> void:
 	for npc_id in content.npcs:
 		var npc: Dictionary = content.npcs[npc_id]

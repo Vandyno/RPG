@@ -96,7 +96,7 @@ func npc_ids() -> Array[String]:
 
 
 func get_character_profile(profile_id: String) -> Dictionary:
-	return HumanoidProfileResolver.character_profile(self, profile_id)
+	return _dictionary_copy(HumanoidProfileResolver.character_profile(self, profile_id))
 
 
 func get_character_profile_data(profile_id: String) -> Dictionary:
@@ -124,7 +124,7 @@ func people_ids() -> Array[String]:
 
 
 func get_people_bonuses(people_id: String) -> Dictionary:
-	return HumanoidProfileResolver.people_bonuses(self, people_id)
+	return _dictionary_copy(HumanoidProfileResolver.people_bonuses(self, people_id))
 
 
 func get_people_visual_model(people_id: String) -> Dictionary:
@@ -140,33 +140,39 @@ func people_visual_model_ids() -> Array[String]:
 
 
 func get_people_visual_variant(people_id: String, variant_id: String) -> Dictionary:
-	return HumanoidProfileResolver.people_visual_variant(self, people_id, variant_id)
+	return _dictionary_copy(HumanoidProfileResolver.people_visual_variant(self, people_id, variant_id))
 
 
 func get_people_visual_variant_profile(
 	people_id: String, variant_id: String, character_id: String = ""
 ) -> Dictionary:
-	return HumanoidProfileResolver.people_visual_variant_profile(
-		self, people_id, variant_id, character_id
+	return _dictionary_copy(
+		HumanoidProfileResolver.people_visual_variant_profile(
+			self, people_id, variant_id, character_id
+		)
 	)
 
 
 func get_generated_people_appearance(
 	people_id: String, seed_key: String = "", options: Dictionary = {}
 ) -> Dictionary:
-	return HumanoidProfileResolver.generated_people_appearance(self, people_id, seed_key, options)
+	return _dictionary_copy(
+		HumanoidProfileResolver.generated_people_appearance(self, people_id, seed_key, options)
+	)
 
 
 func get_generated_people_profile(
 	people_id: String, character_id: String, seed_key: String = "", options: Dictionary = {}
 ) -> Dictionary:
-	return HumanoidProfileResolver.generated_people_profile(
-		self, people_id, character_id, seed_key, options
+	return _dictionary_copy(
+		HumanoidProfileResolver.generated_people_profile(
+			self, people_id, character_id, seed_key, options
+		)
 	)
 
 
 func get_people_default_proportions(people_id: String) -> Dictionary:
-	return HumanoidProfileResolver.people_default_proportions(self, people_id)
+	return _dictionary_copy(HumanoidProfileResolver.people_default_proportions(self, people_id))
 
 
 func get_dialogue(dialogue_id: String) -> Dictionary:
