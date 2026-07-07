@@ -6,8 +6,8 @@ const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
-const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
 const SpellSlots = preload("res://scripts/core/spell_slots.gd")
+const WorldPathfinder = preload("res://scripts/core/world_pathfinder.gd")
 
 const BASIC_BRAIN_ID := "hostile_basic"
 const DEFAULT_AGGRO_RADIUS := 160.0
@@ -23,20 +23,76 @@ const HOME_ARRIVAL_DISTANCE := 8.0
 const MIN_DIRECTION_LENGTH := 0.01
 
 
-static func update(main, delta: float) -> void:
-	if delta <= 0.0 or not _has_runtime(main):
-		return
-	if main.player.health <= 0:
-		return
-	for entity in main.entities.entities_by_id.values():
-		_update_actor(main, entity, delta)
+class BrainContext:
+	var player
+	var entities
+	var content
+	var chunks
+	var event_bus
+	var _add_effect_child: Callable
+	var _player_defeated: Callable
+	var _refresh_hud: Callable
+
+	func _init(values: Dictionary = {}) -> void:
+		player = values.get("player")
+		entities = values.get("entities")
+		content = values.get("content")
+		chunks = values.get("chunks")
+		event_bus = values.get("event_bus")
+		_add_effect_child = values.get("add_effect_child", Callable())
+		_player_defeated = values.get("player_defeated", Callable())
+		_refresh_hud = values.get("refresh_hud", Callable())
+
+	func add_effect_child(effect: Node) -> void:
+		if _add_effect_child.is_valid():
+			_add_effect_child.call(effect)
+
+	func player_defeated(source_name: String) -> void:
+		if _player_defeated.is_valid():
+			_player_defeated.call(source_name)
+
+	func refresh_hud() -> void:
+		if _refresh_hud.is_valid():
+			_refresh_hud.call()
+
+	func path_query() -> Dictionary:
+		return {"chunks": chunks}
 
 
-static func _update_actor(main, actor, delta: float) -> void:
+static func context(main) -> BrainContext:
+	if not main:
+		return BrainContext.new()
+	return BrainContext.new(
+		{
+			"player": main.get("player"),
+			"entities": main.get("entities"),
+			"content": main.get("content"),
+			"chunks": main.get("chunks"),
+			"event_bus": main.get("event_bus"),
+			"add_effect_child": Callable(main, "add_child"),
+			"player_defeated": Callable(main, "_handle_player_defeated"),
+			"refresh_hud": Callable(main, "_refresh_hud")
+		}
+	)
+
+
+static func update(context_or_main, delta: float) -> void:
+	var ctx: BrainContext = (
+		context_or_main if context_or_main is BrainContext else context(context_or_main)
+	)
+	if delta <= 0.0 or not _has_runtime(ctx):
+		return
+	if ctx.player.health <= 0:
+		return
+	for entity in ctx.entities.entities_by_id.values():
+		_update_actor(ctx, entity, delta)
+
+
+static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 	if not _uses_basic_brain(actor):
 		return
 	_tick_cooldown(actor.data, delta)
-	var to_player: Vector2 = main.player.global_position - actor.global_position
+	var to_player: Vector2 = ctx.player.global_position - actor.global_position
 	var distance: float = to_player.length()
 	var aggro_radius: float = _positive_float_field(
 		actor.data, "aggro_radius", DEFAULT_AGGRO_RADIUS
@@ -54,13 +110,13 @@ static func _update_actor(main, actor, delta: float) -> void:
 		if distance <= aggro_radius and home_distance <= leash_radius:
 			actor.data["_brain_mode"] = "engaged"
 		else:
-			_return_home(main, actor, home_position, delta)
+			_return_home(ctx, actor, home_position, delta)
 			return
 	elif distance > aggro_radius and mode != "engaged":
-		_idle_or_return_home(main, actor, home_position, delta)
+		_idle_or_return_home(ctx, actor, home_position, delta)
 		return
 	elif distance > disengage_radius or home_distance > leash_radius:
-		_return_home(main, actor, home_position, delta)
+		_return_home(ctx, actor, home_position, delta)
 		return
 	actor.data["_brain_mode"] = "engaged"
 
@@ -68,30 +124,32 @@ static func _update_actor(main, actor, delta: float) -> void:
 	if actor.has_method("set_facing_direction"):
 		actor.set_facing_direction(aim_direction)
 
-	var attack_info := _selected_attack_info(main.content, actor.data)
+	var attack_info := _selected_attack_info(ctx.content, actor.data)
 	var attack: Dictionary = attack_info.get("attack", {})
 	var attack_query := {
 		"origin": actor.global_position, "direction": aim_direction, "attack": attack
 	}
-	if DirectionalAttack.contains_point(main.player.global_position, attack_query):
+	if DirectionalAttack.contains_point(ctx.player.global_position, attack_query):
 		_set_behavior_state(actor, "attacking")
 		_set_locomotion(actor, false, delta)
-		_try_attack_player(main, actor, attack_info, aim_direction, delta)
+		_try_attack_player(ctx, actor, attack_info, aim_direction, delta)
 		return
 
 	_set_behavior_state(actor, "chasing")
 	var move_speed := _positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
 	var stop_distance := _approach_stop_distance(attack)
 	var move_target := _next_path_target(
-		main, actor, main.player.global_position, stop_distance, true
+		ctx, actor, ctx.player.global_position, stop_distance, true
 	)
 	if actor.has_method("try_move"):
-		actor.try_move(move_target - actor.global_position, delta, main.chunks, move_speed)
+		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
 
 
-static func _idle_or_return_home(main, actor, home_position: Vector2, delta: float) -> void:
+static func _idle_or_return_home(
+	ctx: BrainContext, actor, home_position: Vector2, delta: float
+) -> void:
 	if actor.global_position.distance_to(home_position) > HOME_ARRIVAL_DISTANCE:
-		_return_home(main, actor, home_position, delta)
+		_return_home(ctx, actor, home_position, delta)
 		return
 	actor.data["_brain_mode"] = "idle"
 	_set_behavior_state(actor, "idle")
@@ -99,7 +157,7 @@ static func _idle_or_return_home(main, actor, home_position: Vector2, delta: flo
 	_set_locomotion(actor, false, delta)
 
 
-static func _return_home(main, actor, home_position: Vector2, delta: float) -> void:
+static func _return_home(ctx: BrainContext, actor, home_position: Vector2, delta: float) -> void:
 	var distance_to_home: float = actor.global_position.distance_to(home_position)
 	if distance_to_home <= HOME_ARRIVAL_DISTANCE:
 		actor.data["_brain_mode"] = "idle"
@@ -112,45 +170,45 @@ static func _return_home(main, actor, home_position: Vector2, delta: float) -> v
 	if actor.has_method("set_facing_direction"):
 		actor.set_facing_direction(home_position - actor.global_position)
 	var move_speed := _positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
-	var move_target := _next_path_target(main, actor, home_position, HOME_ARRIVAL_DISTANCE, false)
+	var move_target := _next_path_target(ctx, actor, home_position, HOME_ARRIVAL_DISTANCE, false)
 	if actor.has_method("try_move"):
-		actor.try_move(move_target - actor.global_position, delta, main.chunks, move_speed)
+		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
 
 
 static func _try_attack_player(
-	main, actor, attack_info: Dictionary, direction: Vector2, delta: float
+	ctx: BrainContext, actor, attack_info: Dictionary, direction: Vector2, delta: float
 ) -> void:
 	if (
 		String(attack_info.get("kind", "weapon")) == "spell"
 		and bool(attack_info.get("channel", false))
 	):
-		_try_channel_spell_player(main, actor, attack_info, direction, delta)
+		_try_channel_spell_player(ctx, actor, attack_info, direction, delta)
 		return
 	var cooldown := _non_negative_float_value(actor.data.get("_brain_attack_cooldown", 0.0), 0.0)
 	if cooldown > 0.0:
 		return
 	var damage := maxi(1, int(attack_info.get("damage", 1)))
 	if String(attack_info.get("kind", "weapon")) == "weapon":
-		_spawn_weapon_action(main, actor, direction, attack_info, damage)
+		_spawn_weapon_action(ctx, actor, direction, attack_info, damage)
 	else:
-		_spawn_effect(main, actor, direction, attack_info.get("attack", {}))
-		main.player.apply_damage(damage)
-		_post_attack_message(main, actor, attack_info, damage)
+		_spawn_effect(ctx, actor, direction, attack_info.get("attack", {}))
+		ctx.player.apply_damage(damage)
+		_post_attack_message(ctx, actor, attack_info, damage)
 	actor.data["_brain_attack_cooldown"] = maxf(0.05, float(attack_info.get("interval", 0.55)))
-	if main.player.health <= 0 and main.has_method("_handle_player_defeated"):
-		main._handle_player_defeated(actor.get_display_name())
-	_refresh_hud(main)
+	if ctx.player.health <= 0:
+		ctx.player_defeated(actor.get_display_name())
+	ctx.refresh_hud()
 
 
 static func _try_channel_spell_player(
-	main, actor, attack_info: Dictionary, direction: Vector2, delta: float
+	ctx: BrainContext, actor, attack_info: Dictionary, direction: Vector2, delta: float
 ) -> void:
 	var attack: Dictionary = attack_info.get("attack", {})
 	var effect_cooldown := _non_negative_float_value(
 		actor.data.get("_brain_spell_effect_cooldown", 0.0), 0.0
 	)
 	if effect_cooldown <= 0.0:
-		_spawn_effect(main, actor, direction, attack)
+		_spawn_effect(ctx, actor, direction, attack)
 		actor.data["_brain_spell_effect_cooldown"] = SPELL_EFFECT_PULSE_SECONDS
 	var damage_per_second := maxf(
 		0.0, float(attack.get("damage_per_second", attack_info.get("damage", 1)))
@@ -165,11 +223,11 @@ static func _try_channel_spell_player(
 	actor.data["_brain_spell_damage_bank"] = bank
 	if damage <= 0:
 		return
-	main.player.apply_damage(damage)
-	_post_attack_message(main, actor, attack_info, damage)
-	if main.player.health <= 0 and main.has_method("_handle_player_defeated"):
-		main._handle_player_defeated(actor.get_display_name())
-	_refresh_hud(main)
+	ctx.player.apply_damage(damage)
+	_post_attack_message(ctx, actor, attack_info, damage)
+	if ctx.player.health <= 0:
+		ctx.player_defeated(actor.get_display_name())
+	ctx.refresh_hud()
 
 
 static func _approach_stop_distance(attack: Dictionary) -> float:
@@ -238,43 +296,45 @@ static func _spell_damage_for_interval(
 	return maxi(1, ceili(damage_per_second * maxf(0.05, interval)))
 
 
-static func _post_attack_message(main, actor, attack_info: Dictionary, damage: int) -> void:
-	if not main.event_bus:
+static func _post_attack_message(
+	ctx: BrainContext, actor, attack_info: Dictionary, damage: int
+) -> void:
+	if not ctx.event_bus:
 		return
 	var source_name := String(attack_info.get("source_name", "Attack"))
 	if String(attack_info.get("kind", "weapon")) == "spell":
 		if bool(attack_info.get("channel", false)):
-			main.event_bus.post_message(
+			ctx.event_bus.post_message(
 				"%s channels %s for %d." % [actor.get_display_name(), source_name, damage]
 			)
 			return
-		main.event_bus.post_message(
+		ctx.event_bus.post_message(
 			"%s casts %s for %d." % [actor.get_display_name(), source_name, damage]
 		)
 	else:
-		main.event_bus.post_message(
+		ctx.event_bus.post_message(
 			"%s hits you with %s for %d." % [actor.get_display_name(), source_name, damage]
 		)
 
 
-static func _spawn_effect(main, actor, direction: Vector2, attack: Dictionary) -> void:
-	if not main or not main.has_method("add_child"):
+static func _spawn_effect(ctx: BrainContext, actor, direction: Vector2, attack: Dictionary) -> void:
+	if not ctx:
 		return
 	var visual := String(attack.get("visual", attack.get("shape", "swing")))
 	var effect := CombatActionEffect.new()
-	main.add_child(effect)
+	ctx.add_effect_child(effect)
 	effect.setup(visual, actor.global_position, direction.normalized(), attack)
 
 
 static func _spawn_weapon_action(
-	main, actor, direction: Vector2, attack_info: Dictionary, damage: int
+	ctx: BrainContext, actor, direction: Vector2, attack_info: Dictionary, damage: int
 ) -> void:
-	if not main or not main.has_method("add_child"):
+	if not ctx:
 		return
-	var targets_provider := func() -> Array: return [main.player]
+	var targets_provider := func() -> Array: return [ctx.player]
 	var hit_callback := func(_target, dealt_damage: int, _source_name: String) -> void:
-		main.player.apply_damage(dealt_damage)
-		_post_attack_message(main, actor, attack_info, dealt_damage)
+		ctx.player.apply_damage(dealt_damage)
+		_post_attack_message(ctx, actor, attack_info, dealt_damage)
 	var action := ActorWeaponAttackAction.new()
 	action.setup(
 		{
@@ -287,7 +347,7 @@ static func _spawn_weapon_action(
 			"hit_callback": hit_callback
 		}
 	)
-	main.add_child(action)
+	ctx.add_effect_child(action)
 
 
 static func _attack_direction(actor, to_player: Vector2) -> Vector2:
@@ -310,14 +370,16 @@ static func _tick_cooldown(data: Dictionary, delta: float) -> void:
 
 
 static func _next_path_target(
-	main, actor, destination: Vector2, stop_distance: float, approach_destination: bool
+	ctx: BrainContext, actor, destination: Vector2, stop_distance: float, approach_destination: bool
 ) -> Vector2:
 	var path := _current_path(actor.data)
 	if _should_repath(actor.data, path, destination):
 		path = (
-			MainPathfinder.approach_path_to(main, actor.global_position, destination, stop_distance)
+			WorldPathfinder.approach_path_to(
+				ctx.path_query(), actor.global_position, destination, stop_distance
+			)
 			if approach_destination
-			else MainPathfinder.path_to(main, actor.global_position, destination)
+			else WorldPathfinder.path_to(ctx.path_query(), actor.global_position, destination)
 		)
 		actor.data["_brain_path"] = path
 		actor.data["_brain_path_index"] = 0
@@ -405,18 +467,13 @@ static func _set_locomotion(actor, moving: bool, delta: float) -> void:
 		actor.set_locomotion(moving, delta)
 
 
-static func _refresh_hud(main) -> void:
-	if main and main.has_method("_refresh_hud"):
-		main._refresh_hud()
-
-
-static func _has_runtime(main) -> bool:
+static func _has_runtime(ctx: BrainContext) -> bool:
 	return (
-		main
-		and main.get("player")
-		and main.get("entities")
-		and main.get("content")
-		and main.get("chunks")
+		ctx
+		and ctx.player
+		and ctx.entities
+		and ctx.content
+		and ctx.chunks
 	)
 
 

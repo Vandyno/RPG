@@ -98,7 +98,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
-	HostileActorBrain.update(self, delta)
+	HostileActorBrain.update(HostileActorBrain.context(self), delta)
 	_update_location_discoveries()
 	_update_nearby()
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
