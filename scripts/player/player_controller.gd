@@ -77,12 +77,10 @@ func set_global_tile(tile: Vector2i) -> void:
 func set_world_position(world_position: Vector2) -> void:
 	position = world_position
 	var new_tile := GridMath.world_to_tile(position)
-	if new_tile != global_tile:
-		global_tile = new_tile
-		if event_bus:
-			event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
-	else:
-		global_tile = new_tile
+	var tile_changed := new_tile != global_tile
+	global_tile = new_tile
+	if tile_changed and event_bus:
+		event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
 	queue_redraw()
 
 
