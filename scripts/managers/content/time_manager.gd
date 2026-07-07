@@ -8,12 +8,12 @@ const START_DAY := 1
 const START_HOUR := 8
 const START_MINUTE := 0
 
-var event_bus
+var event_bus: EventBus
 var day := START_DAY
 var minute_of_day := START_HOUR * MINUTES_PER_HOUR + START_MINUTE
 
 
-func setup(bus) -> void:
+func setup(bus: EventBus) -> void:
 	event_bus = bus
 	_emit_changed()
 

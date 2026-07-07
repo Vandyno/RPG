@@ -4,13 +4,13 @@ extends Node
 const SLOTS := ["ability_1", "ability_2", "ability_3"]
 const PLAYER_OWNER_ID := "char_player"
 
-var event_bus
-var content
+var event_bus: EventBus
+var content: ContentDatabase
 var assigned_by_slot: Dictionary = {}
 var assigned_by_owner_id: Dictionary = {}
 
 
-func setup(bus, content_database = null) -> void:
+func setup(bus: EventBus, content_database: ContentDatabase = null) -> void:
 	event_bus = bus
 	content = content_database
 	_sync_player_alias()

@@ -19,12 +19,12 @@ const REQUIRED_PROVIDERS := [
 	"chunks"
 ]
 
-var event_bus
+var event_bus: EventBus
 var providers: Dictionary = {}
 var save_path := DEFAULT_SAVE_PATH
 
 
-func setup(bus, save_providers: Dictionary, path: String = DEFAULT_SAVE_PATH) -> void:
+func setup(bus: EventBus, save_providers: Dictionary, path: String = DEFAULT_SAVE_PATH) -> void:
 	event_bus = bus
 	providers = save_providers
 	save_path = path

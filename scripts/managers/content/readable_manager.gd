@@ -1,14 +1,14 @@
 class_name ReadableManager
 extends Node
 
-var event_bus
+var event_bus: EventBus
 var content
 var read: Dictionary = {}
 var discovered: Dictionary = {}
 var effect_handler: Callable
 
 
-func setup(bus, content_database, effects: Callable) -> void:
+func setup(bus: EventBus, content_database, effects: Callable) -> void:
 	event_bus = bus
 	content = content_database
 	effect_handler = effects

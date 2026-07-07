@@ -4,14 +4,14 @@ extends Node2D
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const ChunkRendererScript = preload("res://scripts/world/chunk_renderer.gd")
 
-var event_bus
-var chunk_manager
+var event_bus: EventBus
+var chunk_manager: ChunkManager
 var active_radius := 2
 var active_chunks: Dictionary = {}
 var current_center_chunk := Vector2i(999999, 999999)
 
 
-func setup(bus, chunks) -> void:
+func setup(bus: EventBus, chunks: ChunkManager) -> void:
 	event_bus = bus
 	chunk_manager = chunks
 

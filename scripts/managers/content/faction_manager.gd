@@ -4,12 +4,12 @@ extends Node
 const MIN_REPUTATION := -100
 const MAX_REPUTATION := 100
 
-var event_bus
-var content
+var event_bus: EventBus
+var content: ContentDatabase
 var reputation_by_faction_id: Dictionary = {}
 
 
-func setup(bus, content_database = null) -> void:
+func setup(bus: EventBus, content_database: ContentDatabase = null) -> void:
 	event_bus = bus
 	content = content_database
 

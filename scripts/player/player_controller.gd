@@ -14,7 +14,7 @@ const DEFAULT_MAX_MANA := 100.0
 const SNEAK_SPEED_MULTIPLIER := 0.45
 const MOVE_INPUT_THRESHOLD := 0.01
 
-var event_bus
+var event_bus: EventBus
 var chunk_manager
 var global_tile := Vector2i.ZERO
 var move_speed := 220.0
@@ -30,7 +30,7 @@ var humanoid_avatar: HumanoidAvatar2D
 var is_sneaking := false
 
 
-func setup(bus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
+func setup(bus: EventBus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
 	event_bus = bus
 	chunk_manager = chunks
 	_ensure_humanoid_avatar()
@@ -216,7 +216,7 @@ func set_humanoid_profile(profile_data: Dictionary) -> void:
 	humanoid_avatar.set_profile(humanoid_profile)
 
 
-func set_equipped_items(equipped_by_slot: Dictionary, content = null) -> void:
+func set_equipped_items(equipped_by_slot: Dictionary, content: ContentDatabase = null) -> void:
 	_ensure_humanoid_avatar()
 	humanoid_avatar.set_equipped_items(equipped_by_slot, content)
 

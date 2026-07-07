@@ -5,13 +5,13 @@ const MIN_LEVEL := 1
 const MAX_LEVEL := 50
 const BASE_XP_TO_LEVEL := 20
 
-var event_bus
+var event_bus: EventBus
 var level := MIN_LEVEL
 var experience := 0
 var skill_points := 0
 
 
-func setup(bus) -> void:
+func setup(bus: EventBus) -> void:
 	event_bus = bus
 	_emit_changed()
 

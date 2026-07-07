@@ -1,12 +1,12 @@
 class_name StatusEffectManager
 extends Node
 
-var event_bus
-var content
+var event_bus: EventBus
+var content: ContentDatabase
 var active_statuses: Dictionary = {}
 
 
-func setup(bus, content_database) -> void:
+func setup(bus: EventBus, content_database: ContentDatabase) -> void:
 	event_bus = bus
 	content = content_database
 	_emit_changed()

@@ -1,12 +1,14 @@
 class_name DialogueManager
 extends Node
 
-var content
-var condition_evaluator
-var effect_runner
+var content: ContentDatabase
+var condition_evaluator: ConditionEvaluator
+var effect_runner: EffectRunner
 
 
-func setup(content_database, conditions, effects) -> void:
+func setup(
+	content_database: ContentDatabase, conditions: ConditionEvaluator, effects: EffectRunner
+) -> void:
 	content = content_database
 	condition_evaluator = conditions
 	effect_runner = effects
