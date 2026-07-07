@@ -27,6 +27,10 @@ func setup(dependencies: Dictionary) -> void:
 	event_bus = dependencies.get("event_bus")
 
 
+func set_player(player_node) -> void:
+	player = player_node
+
+
 func apply(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	var effect_type := String(effect.get("type", ""))
 	var before := _feedback_snapshot() if _should_emit_feedback(emit_feedback) else {}

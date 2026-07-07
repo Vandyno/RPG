@@ -275,7 +275,7 @@ func _bootstrap() -> bool:
 	add_child(player)
 	player.setup(event_bus, chunks, Vector2i.ZERO)
 	player.set_humanoid_profile(content.get_character_profile("char_player"))
-	effect_runner.player = player
+	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
 			player.set_equipped_items(equipped_by_slot, content)
