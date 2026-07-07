@@ -8,19 +8,35 @@ const RpgPortraitSilhouette = preload(
 )
 
 
-static func build(
-	panel: PanelContainer,
-	new_label: Callable,
-	new_button: Callable,
-	add_margin: Callable,
-	portrait_style: Callable
-) -> Dictionary:
+class BuildContext:
+	var panel: PanelContainer
+	var new_label: Callable
+	var new_button: Callable
+	var add_margin: Callable
+	var portrait_style: Callable
+
+
+class EquipmentOnlyContext:
+	var panel: PanelContainer
+	var add_margin: Callable
+
+
+class RefreshRequest:
+	var nodes: Dictionary
+	var state: Dictionary
+	var row_style: Callable
+	var compact := false
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.panel:
+		return {}
 	var scroll := ScrollContainer.new()
 	scroll.name = "SystemsCharacterScroll"
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_margin.call(panel, scroll, 12)
+	context.add_margin.call(context.panel, scroll, 12)
 
 	var stack := VBoxContainer.new()
 	stack.name = "SystemsCharacterStack"
@@ -36,10 +52,10 @@ static func build(
 	var portrait := Panel.new()
 	portrait.name = "SystemsCharacterPortrait"
 	portrait.custom_minimum_size = Vector2(52, 52)
-	portrait_style.call(portrait)
+	context.portrait_style.call(portrait)
 	header.add_child(portrait)
 
-	var portrait_label: Label = new_label.call(18)
+	var portrait_label: Label = context.new_label.call(18)
 	portrait_label.name = "SystemsCharacterPortraitInitials"
 	portrait_label.text = ""
 	portrait_label.visible = false
@@ -53,12 +69,12 @@ static func build(
 	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title_stack)
 
-	var title: Label = new_label.call(17)
+	var title: Label = context.new_label.call(17)
 	title.name = "SystemsCharacterTitle"
 	title.text = "Adventurer"
 	title_stack.add_child(title)
 
-	var subtitle: Label = new_label.call(12)
+	var subtitle: Label = context.new_label.call(12)
 	subtitle.name = "SystemsCharacterSubtitle"
 	subtitle.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	title_stack.add_child(subtitle)
@@ -86,7 +102,7 @@ static func build(
 	rows.add_theme_constant_override("separation", 7)
 	stack.add_child(rows)
 
-	var hidden_label: Label = new_label.call(14)
+	var hidden_label: Label = context.new_label.call(14)
 	hidden_label.name = "SystemsCharacter"
 	hidden_label.visible = false
 	stack.add_child(hidden_label)
@@ -100,7 +116,7 @@ static func build(
 		"scroll": scroll,
 		"rows": rows,
 		"hidden_label": hidden_label,
-		"new_button": new_button
+		"new_button": context.new_button
 	}
 
 
@@ -111,11 +127,13 @@ static func _add_portrait_art(parent: Control) -> void:
 	parent.add_child(art)
 
 
-static func build_equipment_only(panel: PanelContainer, add_margin: Callable) -> Dictionary:
+static func build_equipment_only(context: EquipmentOnlyContext) -> Dictionary:
+	if not context or not context.panel:
+		return {}
 	var stack := VBoxContainer.new()
 	stack.name = "SystemsDetailEquipmentStack"
 	stack.add_theme_constant_override("separation", 5)
-	add_margin.call(panel, stack, 8)
+	context.add_margin.call(context.panel, stack, 8)
 
 	var title := Label.new()
 	title.name = "SystemsDetailEquipmentTitle"
@@ -142,14 +160,18 @@ static func build_equipment_only(panel: PanelContainer, add_margin: Callable) ->
 		"equipment_grid": equipment_grid,
 		"equipment_scroll": scroll,
 		"equipment_slots": _build_equipment_slots(equipment_grid),
-		"panel": panel,
+		"panel": context.panel,
 		"detail_only": true
 	}
 
 
-static func refresh(
-	nodes: Dictionary, state: Dictionary, row_style: Callable, compact := false
-) -> void:
+static func refresh(request: RefreshRequest) -> void:
+	if not request:
+		return
+	var nodes := request.nodes
+	var state := request.state
+	var row_style := request.row_style
+	var compact := request.compact
 	var rows: VBoxContainer = nodes.get("rows")
 	var health_bar: ProgressBar = nodes.get("health_bar")
 	var subtitle: Label = nodes.get("subtitle")

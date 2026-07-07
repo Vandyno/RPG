@@ -5,11 +5,22 @@ const RpgAimJoystick = preload("res://scripts/ui/controls/input/rpg_aim_joystick
 const RpgIconButton = preload("res://scripts/ui/controls/buttons/rpg_icon_button.gd")
 
 
-static func build(
-	root: Control,
-	aim_action: Callable,
-	held_action: Callable = Callable()
-) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var aim_action: Callable
+	var held_action: Callable
+
+
+class LayoutRequest:
+	var cluster: Control
+	var primary: Button
+	var compact: bool
+	var primary_style: Callable
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
 	var cluster := Control.new()
 	cluster.name = "CombatJoystickCluster"
 	cluster.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -21,7 +32,7 @@ static func build(
 	cluster.offset_top = -252
 	cluster.offset_right = -12
 	cluster.offset_bottom = -12
-	root.add_child(cluster)
+	context.root.add_child(cluster)
 
 	var utility_row := HBoxContainer.new()
 	utility_row.name = "UtilityButtonStack"
@@ -54,9 +65,9 @@ static func build(
 		)
 		ability.name = "%sButton" % slot_id.to_pascal_case()
 		ability.set_meta("ability_slot", slot_id)
-		ability.aimed.connect(aim_action)
-		if held_action.is_valid():
-			ability.aim_held.connect(held_action)
+		ability.aimed.connect(context.aim_action)
+		if context.held_action.is_valid():
+			ability.aim_held.connect(context.held_action)
 		ability_stack.add_child(ability)
 		ability_buttons[slot_id] = ability
 
@@ -65,9 +76,9 @@ static func build(
 	primary.set_meta("action_role", "primary")
 	primary.center_label = ""
 	primary.footer_label = "Attack"
-	primary.aimed.connect(aim_action)
-	if held_action.is_valid():
-		primary.aim_held.connect(held_action)
+	primary.aimed.connect(context.aim_action)
+	if context.held_action.is_valid():
+		primary.aim_held.connect(context.held_action)
 	cluster.add_child(primary)
 
 	return {
@@ -78,15 +89,13 @@ static func build(
 	}
 
 
-static func apply_layout(
-	cluster: Control,
-	primary: Button,
-	compact: bool,
-	_fallback_size: Vector2,
-	primary_style: Callable
-) -> void:
+static func apply_layout(request: LayoutRequest) -> void:
+	if not request:
+		return
+	var cluster := request.cluster
 	if not cluster:
 		return
+	var compact := request.compact
 	var cluster_size := Vector2(218, 176) if compact else Vector2(284, 228)
 	cluster.offset_left = -cluster_size.x - 12
 	cluster.offset_top = -cluster_size.y - 12
@@ -133,14 +142,14 @@ static func apply_layout(
 				nested.add_theme_font_size_override("font_size", 8 if compact else 10)
 				_apply_command_style(nested, false, compact)
 
-	if primary:
-		primary.position = Vector2(78, 40) if compact else Vector2(102, 58)
-		primary.custom_minimum_size = Vector2(136, 136) if compact else Vector2(170, 170)
-		primary.size = primary.custom_minimum_size
-		primary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		primary.add_theme_font_size_override("font_size", 11 if compact else 15)
-		primary_style.call(primary)
-		_apply_command_style(primary, true, compact)
+	if request.primary:
+		request.primary.position = Vector2(78, 40) if compact else Vector2(102, 58)
+		request.primary.custom_minimum_size = Vector2(136, 136) if compact else Vector2(170, 170)
+		request.primary.size = request.primary.custom_minimum_size
+		request.primary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		request.primary.add_theme_font_size_override("font_size", 11 if compact else 15)
+		request.primary_style.call(request.primary)
+		_apply_command_style(request.primary, true, compact)
 
 
 static func refresh_ability_buttons(buttons: Dictionary, slots: Dictionary) -> void:

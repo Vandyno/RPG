@@ -309,17 +309,23 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_detail_equipment_panel = PanelContainer.new()
 	systems_detail_equipment_panel.name = "SystemsDetailEquipmentPanel"
 	detail_stack.add_child(systems_detail_equipment_panel)
+	var equipment_context := RpgSystemsCharacterPaneBuilder.EquipmentOnlyContext.new()
+	equipment_context.panel = systems_detail_equipment_panel
+	equipment_context.add_margin = Callable(self, "_add_margin")
 	systems_detail_equipment_nodes = RpgSystemsCharacterPaneBuilder.build_equipment_only(
-		systems_detail_equipment_panel, Callable(self, "_add_margin")
+		equipment_context
 	)
 	for slot in (systems_detail_equipment_nodes.get("equipment_slots", {}) as Dictionary).values():
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
 
-	var spell_slot_nodes := RpgSpellSlotPanelBuilder.build(
-		detail_stack, Callable(self, "_new_panel"), Callable(self, "_add_margin"),
-		Callable(self, "_apply_button_style"), Callable(self, "_on_spell_slot_dropped")
-	)
+	var spell_build_context := RpgSpellSlotPanelBuilder.BuildContext.new()
+	spell_build_context.parent = detail_stack
+	spell_build_context.new_panel = Callable(self, "_new_panel")
+	spell_build_context.add_margin = Callable(self, "_add_margin")
+	spell_build_context.button_style = Callable(self, "_apply_button_style")
+	spell_build_context.drop_callback = Callable(self, "_on_spell_slot_dropped")
+	var spell_slot_nodes := RpgSpellSlotPanelBuilder.build(spell_build_context)
 	systems_spell_slot_panel = spell_slot_nodes["panel"]
 	systems_spell_slot_buttons = spell_slot_nodes["buttons"]
 	for slot_id in systems_spell_slot_buttons:
@@ -331,10 +337,13 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	systems_main_row.add_child(systems_character_panel)
 
-	systems_character_nodes = RpgSystemsCharacterPaneBuilder.build(
-		systems_character_panel, Callable(self, "_new_label"), Callable(self, "_new_button"),
-		Callable(self, "_add_margin"), Callable(self, "_apply_portrait_style")
-	)
+	var character_context := RpgSystemsCharacterPaneBuilder.BuildContext.new()
+	character_context.panel = systems_character_panel
+	character_context.new_label = Callable(self, "_new_label")
+	character_context.new_button = Callable(self, "_new_button")
+	character_context.add_margin = Callable(self, "_add_margin")
+	character_context.portrait_style = Callable(self, "_apply_portrait_style")
+	systems_character_nodes = RpgSystemsCharacterPaneBuilder.build(character_context)
 	for slot in (systems_character_nodes.get("equipment_slots", {}) as Dictionary).values():
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
@@ -392,9 +401,11 @@ func _build_context_action_panel() -> void:
 	context_action_panel = nodes["panel"]
 	context_action_buttons = nodes["buttons"]
 func _build_touch_controls() -> void:
-	var move_nodes := RpgMovePadBuilder.build(
-		root, Callable(self, "_on_move_pad_gui_input"), MOVE_KNOB_SIZE
-	)
+	var move_context := RpgMovePadBuilder.BuildContext.new()
+	move_context.root = root
+	move_context.input_callback = Callable(self, "_on_move_pad_gui_input")
+	move_context.knob_size = MOVE_KNOB_SIZE
+	var move_nodes := RpgMovePadBuilder.build(move_context)
 	move_pad = move_nodes["move_pad"]
 	move_knob = move_nodes["move_knob"]
 	_update_move_knob()
@@ -402,7 +413,11 @@ func _build_touch_controls() -> void:
 		aim_action_released.emit(action_id, direction)
 	var held_action := func(action_id: String, direction: Vector2, delta: float) -> void:
 		aim_action_held.emit(action_id, direction, delta)
-	var action_nodes := RpgActionClusterBuilder.build(root, aim_action, held_action)
+	var action_context := RpgActionClusterBuilder.BuildContext.new()
+	action_context.root = root
+	action_context.aim_action = aim_action
+	action_context.held_action = held_action
+	var action_nodes := RpgActionClusterBuilder.build(action_context)
 	action_buttons = action_nodes["cluster"]
 	primary_action_button = action_nodes["primary"]
 	ability_slot_buttons = action_nodes["ability_buttons"]
@@ -445,10 +460,12 @@ func _build_content_panel() -> void:
 	content_choice_list = nodes["choice_list"]
 
 func _set_action_button_layout(compact: bool) -> void:
-	RpgActionClusterBuilder.apply_layout(
-		action_buttons, primary_action_button, compact, BUTTON_SIZE,
-		Callable(self, "_apply_primary_action_style")
-	)
+	var request := RpgActionClusterBuilder.LayoutRequest.new()
+	request.cluster = action_buttons
+	request.primary = primary_action_button
+	request.compact = compact
+	request.primary_style = Callable(self, "_apply_primary_action_style")
+	RpgActionClusterBuilder.apply_layout(request)
 func _add_systems_tab(tab_id: String, text: String) -> void:
 	var button := RpgIconButton.new()
 	button.text = text
@@ -682,17 +699,25 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	if systems_detail_title_label:
 		systems_detail_title_label.text = _systems_detail_title()
 	_refresh_systems_rows(state)
-	RpgSystemsCharacterPaneBuilder.refresh(
-		systems_character_nodes, state, Callable(self, "_apply_row_button_style"),
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	)
-	RpgSystemsCharacterPaneBuilder.refresh(
-		systems_detail_equipment_nodes, state, Callable(self, "_apply_row_button_style"),
-		applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	)
+	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+	var character_refresh := RpgSystemsCharacterPaneBuilder.RefreshRequest.new()
+	character_refresh.nodes = systems_character_nodes
+	character_refresh.state = state
+	character_refresh.row_style = Callable(self, "_apply_row_button_style")
+	character_refresh.compact = compact
+	RpgSystemsCharacterPaneBuilder.refresh(character_refresh)
+	var detail_refresh := RpgSystemsCharacterPaneBuilder.RefreshRequest.new()
+	detail_refresh.nodes = systems_detail_equipment_nodes
+	detail_refresh.state = state
+	detail_refresh.row_style = Callable(self, "_apply_row_button_style")
+	detail_refresh.compact = compact
+	RpgSystemsCharacterPaneBuilder.refresh(detail_refresh)
 	var spell_value: Variant = state.get("spell_slots", {})
 	var spell_slots: Dictionary = spell_value if spell_value is Dictionary else {}
-	RpgSpellSlotPanelBuilder.refresh(systems_spell_slot_buttons, spell_slots)
+	var spell_refresh := RpgSpellSlotPanelBuilder.RefreshRequest.new()
+	spell_refresh.buttons = systems_spell_slot_buttons
+	spell_refresh.slots = spell_slots
+	RpgSpellSlotPanelBuilder.refresh(spell_refresh)
 	RpgActionClusterBuilder.refresh_ability_buttons(ability_slot_buttons, spell_slots)
 	if systems_spell_slot_panel:
 		systems_spell_slot_panel.visible = systems_active_tab == "spells"
@@ -706,7 +731,6 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 		return
 	if systems_detail_equipment_panel:
 		var char_tab := ["inventory", "character"].has(systems_active_tab)
-		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 		var show_character_panel := char_tab and not compact
 		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
 func _refresh_systems_rows(state: Dictionary) -> void:
@@ -718,10 +742,14 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 		var target: Dictionary = transfer.get("target", {})
 		_refresh_category_row(systems_active_tab)
-		RpgTransferPaneBuilder.refresh(
-			systems_item_list, state, systems_active_category,
-			func(action_id: String) -> void: inventory_item_selected.emit(action_id), compact
-		)
+		var request := RpgTransferPaneBuilder.RefreshRequest.new()
+		request.container = systems_item_list
+		request.state = state
+		request.category = systems_active_category
+		request.action_selected = func(action_id: String) -> void:
+			inventory_item_selected.emit(action_id)
+		request.compact = compact
+		RpgTransferPaneBuilder.refresh(request)
 		systems_selected_row_id = ""
 		systems_detail_label.text = "Move items between your inventory and %s." % String(
 			target.get("name", "container")

@@ -6,35 +6,40 @@ const RpgTransferItemButton = preload(
 )
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
-static func refresh(
-	container: BoxContainer,
-	state: Dictionary,
-	category: String,
-	action_selected: Callable,
-	compact: bool
-) -> void:
-	_clear_children(container)
-	var inventory_tab := SystemsTabState.inventory(state)
+
+class RefreshRequest:
+	var container: BoxContainer
+	var state: Dictionary
+	var category: String
+	var action_selected: Callable
+	var compact: bool
+
+
+static func refresh(request: RefreshRequest) -> void:
+	if not request or not request.container:
+		return
+	_clear_children(request.container)
+	var inventory_tab := SystemsTabState.inventory(request.state)
 	var transfer: Dictionary = inventory_tab.get("transfer", {})
 	var target: Dictionary = transfer.get("target", {})
 	var target_name := String(target.get("name", "Container"))
 	var target_short := "Body" if target_name.ends_with(" Body") else "Target"
-	var panes: BoxContainer = VBoxContainer.new() if compact else HBoxContainer.new()
+	var panes: BoxContainer = VBoxContainer.new() if request.compact else HBoxContainer.new()
 	panes.name = "TransferInventoryPanes"
 	panes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panes.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panes.custom_minimum_size = Vector2(0, 300 if compact else 360)
+	panes.custom_minimum_size = Vector2(0, 300 if request.compact else 360)
 	panes.add_theme_constant_override("separation", 10)
-	container.add_child(panes)
+	request.container.add_child(panes)
 	_add_side(
 		panes, "TransferPlayerInventory", "Your Inventory",
 		_array_field(transfer.get("player_items", [])), "put", target_short,
-		category, action_selected
+		request.category, request.action_selected
 	)
 	_add_side(
 		panes, "TransferTargetInventory", target_name,
 		_array_field(transfer.get("target_items", [])), "take", "Pack",
-		category, action_selected
+		request.category, request.action_selected
 	)
 
 

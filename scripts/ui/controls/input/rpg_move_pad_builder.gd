@@ -2,7 +2,15 @@ class_name RpgMovePadBuilder
 extends RefCounted
 
 
-static func build(root: Control, input_callback: Callable, knob_size: Vector2) -> Dictionary:
+class BuildContext:
+	var root: Control
+	var input_callback: Callable
+	var knob_size: Vector2
+
+
+static func build(context: BuildContext) -> Dictionary:
+	if not context or not context.root:
+		return {}
 	var move_pad := Panel.new()
 	move_pad.name = "MovePad"
 	move_pad.anchor_top = 1.0
@@ -12,9 +20,9 @@ static func build(root: Control, input_callback: Callable, knob_size: Vector2) -
 	move_pad.offset_right = 184
 	move_pad.offset_bottom = -12
 	move_pad.mouse_filter = Control.MOUSE_FILTER_STOP
-	move_pad.gui_input.connect(input_callback)
+	move_pad.gui_input.connect(context.input_callback)
 	move_pad.add_theme_stylebox_override("panel", _pad_style())
-	root.add_child(move_pad)
+	context.root.add_child(move_pad)
 
 	var outer_ring := Panel.new()
 	outer_ring.name = "MovePadOuterRing"
@@ -41,8 +49,8 @@ static func build(root: Control, input_callback: Callable, knob_size: Vector2) -
 	var knob := ColorRect.new()
 	knob.name = "MoveKnob"
 	knob.color = Color(0.90, 0.76, 0.42, 0.72)
-	knob.custom_minimum_size = knob_size
-	knob.size = knob_size
+	knob.custom_minimum_size = context.knob_size
+	knob.size = context.knob_size
 	knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	move_pad.add_child(knob)
 
