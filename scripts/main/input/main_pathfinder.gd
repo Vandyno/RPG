@@ -21,4 +21,4 @@ static func approach_path_to(
 
 
 static func _path_query(main) -> Dictionary:
-	return {"can_stand_at": Callable(main.player, "_can_stand_at"), "chunks": main.get("chunks")}
+	return {"can_stand_at": Callable(main.player, "_can_stand_at")}

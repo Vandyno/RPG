@@ -2,7 +2,6 @@ class_name WorldPathfinder
 extends RefCounted
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
-const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
 
 const MAX_SEARCH_RADIUS := 28
 
@@ -139,9 +138,7 @@ static func _has_clear_segment(query: Dictionary, start: Vector2, end: Vector2) 
 
 static func _can_stand_at(query: Dictionary, world_position: Vector2) -> bool:
 	var can_stand_at: Callable = query.get("can_stand_at", Callable())
-	if can_stand_at.is_valid():
-		return bool(can_stand_at.call(world_position))
-	return WorldEntityMovement.can_stand_at(world_position, query.get("chunks"))
+	return can_stand_at.is_valid() and bool(can_stand_at.call(world_position))
 
 
 static func _neighbors(tile: Vector2i) -> Array[Vector2i]:

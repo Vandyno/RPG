@@ -1,15 +1,15 @@
 class_name ActorRules
 extends RefCounted
 
-const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
+const ActorState = preload("res://scripts/core/actor_state.gd")
 
 const KIND_NPC := "npc"
 const KIND_BODY := "body"
 const CATEGORY_HUMANOID := "humanoid"
 const HOSTILITY_HOSTILE := "hostile"
-const STATE_ALIVE := HumanoidProfile.STATE_ALIVE
-const STATE_DEAD_BODY := HumanoidProfile.STATE_DEAD_BODY
-const DEAD_STATES := HumanoidProfile.DEAD_STATES
+const STATE_ALIVE := ActorState.ALIVE
+const STATE_DEAD_BODY := ActorState.DEAD_BODY
+const DEAD_STATES := ActorState.DEAD_STATES
 
 
 static func profile(data: Dictionary) -> Dictionary:

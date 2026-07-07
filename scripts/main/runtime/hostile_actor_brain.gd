@@ -56,7 +56,7 @@ class BrainContext:
 			_refresh_hud.call()
 
 	func path_query() -> Dictionary:
-		return {"chunks": chunks}
+		return {"can_stand_at": Callable(player, "_can_stand_at")}
 
 
 static func context(main) -> BrainContext:

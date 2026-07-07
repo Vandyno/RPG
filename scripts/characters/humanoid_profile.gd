@@ -1,17 +1,19 @@
 class_name HumanoidProfile
 extends RefCounted
 
-const STATE_ALIVE := "alive"
-const STATE_UNCONSCIOUS := "unconscious"
-const STATE_DEAD := "dead"
-const STATE_DEAD_BODY := "dead_body"
-const STATE_DESPAWNED := "despawned"
-const VALID_STATES := [STATE_ALIVE, STATE_UNCONSCIOUS, STATE_DEAD_BODY, STATE_DESPAWNED]
-const DEAD_STATES := [STATE_DEAD, STATE_DEAD_BODY, STATE_DESPAWNED]
+const ActorState = preload("res://scripts/core/actor_state.gd")
+
+const STATE_ALIVE := ActorState.ALIVE
+const STATE_UNCONSCIOUS := ActorState.UNCONSCIOUS
+const STATE_DEAD := ActorState.DEAD
+const STATE_DEAD_BODY := ActorState.DEAD_BODY
+const STATE_DESPAWNED := ActorState.DESPAWNED
+const VALID_STATES := ActorState.VALID_STATES
+const DEAD_STATES := ActorState.DEAD_STATES
 const VALID_HANDEDNESS := ["right", "left"]
 const DEFAULT_CHARACTER_ID := "char_unknown"
 const DEFAULT_PEOPLE_ID := "people_human"
-const DEFAULT_STATE := STATE_ALIVE
+const DEFAULT_STATE := ActorState.DEFAULT
 const DEFAULT_HANDEDNESS := "right"
 const DEFAULT_BODY_PLAN_ID := "body_humanoid_average"
 const DEFAULT_HEAD_ID := "head_human_round"
