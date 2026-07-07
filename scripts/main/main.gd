@@ -37,6 +37,7 @@ const MainContextActions = preload("res://scripts/main/actions/main_context_acti
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framing.gd")
+const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -91,6 +92,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(self, delta)
+	HostileActorBrain.update(self, delta)
 	_update_location_discoveries()
 	_update_nearby()
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:

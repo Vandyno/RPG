@@ -47,6 +47,7 @@ Each test actor:
 
 - is `kind: "npc"`
 - has `hostility: "hostile"` and `combat_enabled: true`
+- uses `brain_id: "hostile_basic"` for the current chase/attack test brain
 - has `character_profile_id`, `inventory_owner_id`, and `equipment_owner_id`
 - equips `item_training_sword` in `right_hand`
 - carries one `item_gold_coin`
@@ -54,6 +55,21 @@ Each test actor:
 - leaves a temporary lootable body through the existing death-body loop
 - does not set quest flags or complete quests
 - does not represent a canon encounter
+
+The Ravenfolk fixture is the current magic exception: it has
+`spellbook_owner_id`, `loadout_id`, `spell_ids`, and `loadout_slots.ability_1`
+pointing at `spell_fire_blast`, plus `use_spells: true`. The other people-test
+actors are weapon-only.
+
+Current brain behavior is intentionally small:
+
+- chase uses the same continuous movement/collision path as the player
+- weapon attacks use the equipped right-hand item attack data
+- spell attacks are explicit per actor through `use_spells` and loadout fields
+- actors path around blocked tiles when direct movement is blocked
+- actors leash back to their home/spawn area when pulled too far
+- live actor position is preserved across entity refreshes, so they do not snap
+  back to authored spawn during normal runtime respawns
 
 ## Verification
 
@@ -66,8 +82,19 @@ Coverage lives in:
   - owner IDs, equipment, health, reachable placement, and unique tiles are checked
 - `tests/unit/main/test_main_flow.gd`
   - all six spawn with humanoid avatars
+  - all six opt into the hostile basic brain
+  - only the Ravenfolk people-test actor opts into Fire Blast spell use
   - killing the Tuskfolk fixture creates a lootable generated humanoid body
   - sword and coin transfer through the shared inventory UI
+- `tests/unit/main/test_hostile_actor_brain_main_flow.gd`
+  - hostile brain movement chases toward the player
+  - weapon attacks use equipped item attack data
+  - Ravenfolk spell casting damages the player with Fire Blast
+  - normal NPCs without a brain do not attack
+  - hostile actors leash back home after being pulled too far
+  - hostile actors route around blocked tiles
+  - moved hostile actors keep live position across entity refreshes
+  - defeated moved hostile actors remain removed from their authored spawn
 
 Last verified with:
 

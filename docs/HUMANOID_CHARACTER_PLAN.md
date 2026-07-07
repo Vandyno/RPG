@@ -689,6 +689,14 @@ Updated 2026-07-06.
   Authored humanoid hostile actors now use `npc_*` world IDs instead of
   `enemy_*`, the Road Patrol quest targets `npc_road_thug`, and content
   validation rejects new world object IDs that start with `enemy_`.
+- NPC brain foundation: complete for first slice. Outside-town hostile test
+  actors can opt into `brain_id: "hostile_basic"` to chase the player with the
+  same continuous movement/collision style as the player and attack using the
+  same authored weapon attack shapes. Spell use is explicit per actor; the
+  Ravenfolk people-test actor uses `spell_fire_blast`, while the other current
+  brain actors remain weapon-only. Brain actors path around blocked tiles, leash
+  back to their home/spawn area when pulled too far, and keep their live
+  position across entity refreshes instead of snapping back to authored spawn.
 - Checkpoint 6, Pickpocket Groundwork: complete for first slice. Profile-backed
   living humanoids can expose owner-ID inventory through the shared transfer UI
   only while the player is sneaking and outside the target's 180-degree facing

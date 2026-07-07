@@ -17,6 +17,16 @@ const DEFAULT_ATTACK := {
 
 static func weapon_attack(content, equipment) -> Dictionary:
 	var item := equipped_weapon(content, equipment)
+	return weapon_attack_from_item(item)
+
+
+static func weapon_attack_for_item(content, item_id: String) -> Dictionary:
+	if not content or item_id.is_empty():
+		return weapon_attack_from_item({})
+	return weapon_attack_from_item(content.get_item(item_id))
+
+
+static func weapon_attack_from_item(item: Dictionary) -> Dictionary:
 	var attack := _dictionary_field(item.get("weapon_attack", {}))
 	if attack.is_empty():
 		attack = DEFAULT_ATTACK.duplicate(true)

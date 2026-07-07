@@ -4,7 +4,10 @@ extends Node2D
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
+const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 
+const COLLISION_RADIUS := 10.0
+const MAX_COLLISION_STEP := 8.0
 const ACTION_HINT_FONT_SIZE := 11
 const ACTION_HINT_HEIGHT := 22.0
 const ACTION_HINT_MAX_CHARS := 22
@@ -26,12 +29,18 @@ var action_hint_offset_y := 0.0
 var quest_marker_visible := false
 var quest_marker_text := ""
 var humanoid_avatar: HumanoidAvatar2D
+var facing_direction := Vector2.DOWN
 
 
 func setup(entity_data: Dictionary, content = null) -> void:
 	data = entity_data.duplicate(true)
 	global_tile = _tile_from_data(data.get("global_tile", [0, 0]))
-	position = _center_of_tile(global_tile)
+	if not data.has("_spawn_global_tile"):
+		data["_spawn_global_tile"] = [global_tile.x, global_tile.y]
+	facing_direction = _direction_from_data(data.get("facing_direction", [0, 1]))
+	position = _world_position_from_data(data.get("world_position", []), _center_of_tile(global_tile))
+	global_tile = GridMath.world_to_tile(position)
+	data["global_tile"] = [global_tile.x, global_tile.y]
 	name = String(data.get("id", "entity"))
 	_setup_humanoid_avatar(content)
 	queue_redraw()
@@ -63,6 +72,61 @@ func has_combat_behavior() -> bool:
 
 func is_combat_target() -> bool:
 	return ActorRules.is_combat_target_data(data)
+
+
+func set_global_tile(tile: Vector2i) -> void:
+	set_world_position(_center_of_tile(tile))
+
+
+func set_world_position(world_position: Vector2) -> void:
+	position = world_position
+	global_tile = GridMath.world_to_tile(position)
+	data["global_tile"] = [global_tile.x, global_tile.y]
+	data["world_position"] = [position.x, position.y]
+	data["_runtime_moved"] = true
+	queue_redraw()
+
+
+func set_facing_direction(value: Vector2) -> void:
+	if value.length() <= 0.01:
+		return
+	facing_direction = FacingBuckets.snap_direction(value, facing_direction)
+	data["facing_direction"] = [facing_direction.x, facing_direction.y]
+	if humanoid_avatar:
+		humanoid_avatar.set_facing_direction(facing_direction)
+
+
+func get_facing_direction() -> Vector2:
+	return facing_direction
+
+
+func set_locomotion(is_moving: bool, delta: float) -> void:
+	if humanoid_avatar:
+		humanoid_avatar.set_locomotion(is_moving, false, delta)
+
+
+func try_move(
+	direction: Vector2,
+	delta: float = 1.0,
+	chunk_manager = null,
+	speed_pixels_per_second: float = 80.0
+) -> bool:
+	var normalized_direction := direction.normalized()
+	if normalized_direction == Vector2.ZERO or delta <= 0.0 or speed_pixels_per_second <= 0.0:
+		set_locomotion(false, delta)
+		return false
+	set_facing_direction(normalized_direction)
+	var remaining_distance := speed_pixels_per_second * delta
+	var moved := false
+	while remaining_distance > 0.0:
+		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
+		var motion := normalized_direction * step_distance
+		if not _try_move_step(motion, chunk_manager):
+			break
+		moved = true
+		remaining_distance -= step_distance
+	set_locomotion(moved, delta)
+	return moved
 
 
 func set_highlighted(value: bool) -> void:
@@ -279,6 +343,65 @@ func _tile_from_data(value: Variant) -> Vector2i:
 	return Vector2i(int(value[0]), int(value[1]))
 
 
+func _try_move_step(motion: Vector2, chunk_manager = null) -> bool:
+	var next_position := position + motion
+	if _can_stand_at(next_position, chunk_manager):
+		set_world_position(next_position)
+		return true
+
+	var horizontal_position := position + Vector2(motion.x, 0.0)
+	if not is_zero_approx(motion.x) and _can_stand_at(horizontal_position, chunk_manager):
+		set_world_position(horizontal_position)
+		return true
+
+	var vertical_position := position + Vector2(0.0, motion.y)
+	if not is_zero_approx(motion.y) and _can_stand_at(vertical_position, chunk_manager):
+		set_world_position(vertical_position)
+		return true
+
+	return false
+
+
+func _can_stand_at(world_position: Vector2, chunk_manager = null) -> bool:
+	if not chunk_manager:
+		return true
+	var samples := [
+		Vector2.ZERO,
+		Vector2(COLLISION_RADIUS, 0.0),
+		Vector2(-COLLISION_RADIUS, 0.0),
+		Vector2(0.0, COLLISION_RADIUS),
+		Vector2(0.0, -COLLISION_RADIUS),
+		Vector2(COLLISION_RADIUS, COLLISION_RADIUS),
+		Vector2(COLLISION_RADIUS, -COLLISION_RADIUS),
+		Vector2(-COLLISION_RADIUS, COLLISION_RADIUS),
+		Vector2(-COLLISION_RADIUS, -COLLISION_RADIUS)
+	]
+	for sample_offset in samples:
+		var sampled_tile := GridMath.world_to_tile(world_position + sample_offset)
+		if not chunk_manager.is_walkable(sampled_tile):
+			return false
+	return true
+
+
+func _direction_from_data(value: Variant) -> Vector2:
+	if not value is Array or value.size() < 2:
+		return Vector2.DOWN
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return Vector2.DOWN
+	var direction := Vector2(float(value[0]), float(value[1]))
+	if direction.length() <= 0.01:
+		return Vector2.DOWN
+	return FacingBuckets.snap_direction(direction, Vector2.DOWN)
+
+
+func _world_position_from_data(value: Variant, fallback: Vector2) -> Vector2:
+	if not value is Array or value.size() < 2:
+		return fallback
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return fallback
+	return Vector2(float(value[0]), float(value[1]))
+
+
 func _center_of_tile(tile: Vector2i) -> Vector2:
 	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
 
@@ -299,6 +422,7 @@ func _setup_humanoid_avatar(content = null) -> void:
 	if data.get("equipped_items", {}) is Dictionary:
 		equipped = data.get("equipped_items", {})
 	humanoid_avatar.setup(data.get("character_profile", {}), equipped, content)
+	humanoid_avatar.set_facing_direction(facing_direction)
 	if get_kind() == "body":
 		humanoid_avatar.rotation = PI * 0.5
 		humanoid_avatar.position = Vector2(2.0, 4.0)

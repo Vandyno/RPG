@@ -15,6 +15,7 @@ var condition_evaluator: ConditionEvaluator
 var inventory: InventoryManager
 var entities_by_id: Dictionary = {}
 var runtime_entities_by_id: Dictionary = {}
+var entity_runtime_state_by_id: Dictionary = {}
 var highlighted_entity_id := ""
 var active_chunk_keys: Dictionary = {}
 var has_active_chunk_filter := false
@@ -42,11 +43,12 @@ func setup(
 		event_bus.faction_reputation_changed.connect(_queue_respawn)
 		event_bus.progression_changed.connect(_queue_respawn)
 		event_bus.time_changed.connect(_queue_respawn)
-		event_bus.load_completed.connect(_queue_respawn)
+		event_bus.load_completed.connect(_on_load_completed)
 	spawn_all()
 
 
 func spawn_all() -> void:
+	_capture_live_runtime_state()
 	_clear_spawned_entities()
 	entities_by_id.clear()
 	highlighted_entity_id = ""
@@ -79,7 +81,8 @@ func remove_entity(entity_id: String) -> void:
 	var entity = entities_by_id.get(entity_id)
 	if not entity:
 		return
-	chunk_manager.mark_entity_removed(entity_id, entity.global_tile)
+	chunk_manager.mark_entity_removed(entity_id, _persistent_removal_tile(entity))
+	entity_runtime_state_by_id.erase(entity_id)
 	entities_by_id.erase(entity_id)
 	if highlighted_entity_id == entity_id:
 		highlighted_entity_id = ""
@@ -260,12 +263,13 @@ func _spawn_entry(entry: Dictionary) -> void:
 	if not _conditions_pass(entry):
 		return
 	var entity_id := String(entry.get("id", ""))
-	var tile := _tile_from_entry(entry)
+	var spawn_entry := _entry_with_runtime_state(entity_id, entry)
+	var tile := _tile_from_entry(spawn_entry)
 	if not _is_in_active_chunk_window(tile):
 		return
-	if chunk_manager.is_entity_removed(entity_id, tile):
+	if chunk_manager.is_entity_removed(entity_id, _persistent_removal_tile_from_entry(spawn_entry)):
 		return
-	var spawn_entry := _entry_with_filtered_equipment(_entry_with_profile(entry))
+	spawn_entry = _entry_with_filtered_equipment(_entry_with_profile(spawn_entry))
 	var entity := WorldEntityScript.new()
 	add_child(entity)
 	entity.setup(spawn_entry, content)
@@ -294,6 +298,11 @@ func _respawn_after_state_change() -> void:
 	spawn_all()
 
 
+func _on_load_completed(_path: String = "") -> void:
+	entity_runtime_state_by_id.clear()
+	_queue_respawn()
+
+
 func _has_valid_tile(entry: Dictionary) -> bool:
 	var tile: Variant = entry.get("global_tile", [])
 	return tile is Array and tile.size() >= 2 and _is_number(tile[0]) and _is_number(tile[1])
@@ -302,6 +311,19 @@ func _has_valid_tile(entry: Dictionary) -> bool:
 func _tile_from_entry(entry: Dictionary) -> Vector2i:
 	var tile: Array = entry.get("global_tile", [0, 0])
 	return Vector2i(int(tile[0]), int(tile[1]))
+
+
+func _persistent_removal_tile(entity) -> Vector2i:
+	if not entity or not (entity.data is Dictionary):
+		return Vector2i.ZERO
+	return _persistent_removal_tile_from_entry(entity.data)
+
+
+func _persistent_removal_tile_from_entry(entry: Dictionary) -> Vector2i:
+	var tile: Variant = entry.get("_spawn_global_tile", entry.get("home_tile", []))
+	if tile is Array and tile.size() >= 2 and _is_number(tile[0]) and _is_number(tile[1]):
+		return Vector2i(int(tile[0]), int(tile[1]))
+	return _tile_from_entry(entry)
 
 
 func _is_in_active_chunk_window(tile: Vector2i) -> bool:
@@ -315,6 +337,45 @@ func _conditions_pass(entry: Dictionary) -> bool:
 	if not conditions is Array or conditions.is_empty():
 		return true
 	return condition_evaluator and condition_evaluator.evaluate_all(conditions)
+
+
+func _capture_live_runtime_state() -> void:
+	for entity_id in entities_by_id:
+		var entity = entities_by_id[entity_id]
+		if not entity or not (entity.data is Dictionary):
+			continue
+		if not _should_capture_runtime_state(entity.data):
+			continue
+		var state := {
+			"global_tile": [entity.global_tile.x, entity.global_tile.y],
+			"world_position": [entity.global_position.x, entity.global_position.y]
+		}
+		if entity.data.has("_spawn_global_tile"):
+			state["_spawn_global_tile"] = entity.data["_spawn_global_tile"]
+		if entity.data.has("behavior_state"):
+			state["behavior_state"] = entity.data["behavior_state"]
+		if entity.data.has("_brain_attack_cooldown"):
+			state["_brain_attack_cooldown"] = entity.data["_brain_attack_cooldown"]
+		if entity.has_method("get_facing_direction"):
+			var facing: Vector2 = entity.get_facing_direction()
+			state["facing_direction"] = [facing.x, facing.y]
+		entity_runtime_state_by_id[String(entity_id)] = state
+
+
+func _entry_with_runtime_state(entity_id: String, entry: Dictionary) -> Dictionary:
+	var state := _dictionary_field(entity_runtime_state_by_id.get(entity_id, {}))
+	if state.is_empty():
+		return entry
+	var next_entry := entry.duplicate(true)
+	for key in state:
+		next_entry[key] = state[key]
+	return next_entry
+
+
+func _should_capture_runtime_state(data: Dictionary) -> bool:
+	if not ActorRules.is_living_actor_data(data):
+		return false
+	return bool(data.get("_runtime_moved", false)) or not String(data.get("brain_id", "")).is_empty()
 
 
 func _entry_with_profile(entry: Dictionary) -> Dictionary:

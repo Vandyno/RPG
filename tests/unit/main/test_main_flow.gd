@@ -843,6 +843,8 @@ func test_dedicated_test_hostile_actor_outside_town_has_sword_bow_and_lootable_b
 	assert_eq(enemy.data["character_profile_id"], "char_test_raider")
 	assert_eq(enemy.data["inventory_owner_id"], "char_test_raider")
 	assert_eq(enemy.data["equipment_owner_id"], "char_test_raider")
+	assert_eq(enemy.data["brain_id"], "hostile_basic")
+	assert_false(bool(enemy.data.get("use_spells", false)))
 	assert_eq(enemy.data["spellbook_owner_id"], "char_test_raider")
 	assert_eq(enemy.data["loadout_id"], "loadout_test_raider")
 	assert_eq(enemy.data["loadout_slots"]["ability_1"], "spell_fire_blast")
@@ -891,7 +893,13 @@ func test_people_test_hostile_actors_spawn_with_generated_profiles_and_lootable_
 		var appearance: Dictionary = profile.get("appearance", {})
 		assert_eq(profile.get("people_id"), expected[entity_id])
 		assert_false(String(appearance.get("visual_model_id", "")).is_empty())
+		assert_eq(enemy.data["brain_id"], "hostile_basic")
 		assert_true(enemy.humanoid_avatar.has_equipment_visual("right_hand"))
+		if String(entity_id) == "npc_people_test_ravenfolk":
+			assert_true(bool(enemy.data.get("use_spells", false)))
+			assert_eq(enemy.data["loadout_slots"]["ability_1"], "spell_fire_blast")
+		else:
+			assert_false(bool(enemy.data.get("use_spells", false)))
 
 	_attack_hostile_actor_until_defeated(main, "npc_people_test_tuskfolk")
 
