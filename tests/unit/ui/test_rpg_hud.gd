@@ -617,6 +617,42 @@ func test_inventory_rows_do_not_invent_missing_item_actions() -> void:
 	assert_true(emitted.is_empty())
 
 
+func test_transfer_rows_emit_after_completed_click() -> void:
+	var state := _sample_state()
+	state["transfer_open"] = true
+	state["transfer_target"] = {"owner_id": "char_harrow_venn", "name": "Harrow Venn"}
+	state["transfer_player_items"] = []
+	state["transfer_target_items"] = [
+		{
+			"item_id": "item_gold_coin",
+			"name": "Gold Coin",
+			"count": 1,
+			"type": "currency",
+			"tags": [],
+			"value": 1,
+			"weight": 0.0
+		}
+	]
+	var hud := _new_hud(state)
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var emitted: Array[String] = []
+	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
+	var take_gold := hud.systems_item_list.find_child(
+		"TransferTake_ItemGoldCoin", true, false
+	) as Button
+	assert_not_null(take_gold)
+
+	take_gold.button_down.emit()
+	await get_tree().process_frame
+	assert_true(emitted.is_empty())
+
+	take_gold.pressed.emit()
+	await get_tree().process_frame
+	assert_eq(emitted, ["take:item_gold_coin"])
+
+
 func test_rpg_systems_menu_shows_right_character_pane_on_wide_desktop() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1920, 1080))

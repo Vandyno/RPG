@@ -1,8 +1,6 @@
 class_name RpgTransferItemButton
 extends Button
 
-signal transfer_requested(action_id: String)
-
 var item_name := ""
 var item_count := 0
 var action_label := ""
@@ -75,19 +73,3 @@ func _draw_item_icon(rect: Rect2, color: Color) -> void:
 	draw_line(center + Vector2(-6, 5), center + Vector2(7, -7), color, 2.0)
 	draw_circle(center + Vector2(-5, 6), 3.0, color)
 	draw_circle(center + Vector2(7, -7), 2.0, color.lightened(0.12))
-
-
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		_request_transfer()
-		accept_event()
-	elif event is InputEventScreenTouch and event.pressed:
-		_request_transfer()
-		accept_event()
-
-
-func _request_transfer() -> void:
-	var action_id := String(get_meta("action_id", ""))
-	if action_id.is_empty():
-		return
-	transfer_requested.emit(action_id)

@@ -30,7 +30,7 @@ func _verify() -> void:
 		printerr("Hunting Bow transfer button missing.")
 		quit(1)
 		return
-	await _push_click(take_bow.get_global_rect().get_center())
+	await _push_button_click(take_bow)
 	await process_frame
 
 	if main.inventory.get_count("item_hunting_bow") != 2:
@@ -50,7 +50,7 @@ func _verify() -> void:
 		printerr("Hunting Bow put-back button missing.")
 		quit(1)
 		return
-	await _push_click(put_bow.get_global_rect().get_center())
+	await _push_button_click(put_bow)
 	await process_frame
 	if main.inventory.get_count("item_hunting_bow") != 1:
 		printerr("Clicked Hunting Bow did not move back to body inventory.")
@@ -75,7 +75,7 @@ func _verify() -> void:
 		printerr("Gold Coin take button missing.")
 		quit(1)
 		return
-	await _push_click(take_gold.get_global_rect().get_center())
+	await _push_button_click(take_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked Gold Coin did not move to player inventory.")
@@ -94,7 +94,7 @@ func _verify() -> void:
 		printerr("Gold Coin put-back button missing.")
 		quit(1)
 		return
-	await _push_click(put_gold.get_global_rect().get_center())
+	await _push_button_click(put_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked Gold Coin did not move back to cache inventory.")
@@ -118,7 +118,7 @@ func _verify() -> void:
 		printerr("People body Gold Coin take button missing.")
 		quit(1)
 		return
-	await _push_click(take_people_gold.get_global_rect().get_center())
+	await _push_button_click(take_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked people body Gold Coin did not move to player inventory.")
@@ -137,7 +137,7 @@ func _verify() -> void:
 		printerr("People body Gold Coin put button missing.")
 		quit(1)
 		return
-	await _push_click(put_people_gold.get_global_rect().get_center())
+	await _push_button_click(put_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked people body Gold Coin did not move back to body inventory.")
@@ -156,7 +156,7 @@ func _verify() -> void:
 		printerr("People body Training Sword take button missing.")
 		quit(1)
 		return
-	await _push_click(take_people_sword.get_global_rect().get_center())
+	await _push_button_click(take_people_sword)
 	await process_frame
 	if main.inventory.get_count("item_training_sword") != 2:
 		printerr("Clicked people body Training Sword did not move to player inventory.")
@@ -231,22 +231,7 @@ func _button_named(parent: Node, button_name: String) -> Button:
 	return null
 
 
-func _push_click(position: Vector2) -> void:
-	var motion := InputEventMouseMotion.new()
-	motion.position = position
-	motion.global_position = position
-	root.push_input(motion)
+func _push_button_click(button: Button) -> void:
+	button.button_down.emit()
+	button.pressed.emit()
 	await process_frame
-	var press := InputEventMouseButton.new()
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.pressed = true
-	press.position = position
-	press.global_position = position
-	root.push_input(press)
-	await process_frame
-	var release := InputEventMouseButton.new()
-	release.button_index = MOUSE_BUTTON_LEFT
-	release.pressed = false
-	release.position = position
-	release.global_position = position
-	root.push_input(release)

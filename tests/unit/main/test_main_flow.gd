@@ -316,7 +316,7 @@ func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() ->
 	)
 	var take_apron := _button_named(target_pane, "TransferTake_ItemSmithApron")
 	assert_not_null(take_apron)
-	_press_transfer_button(take_apron)
+	await _press_transfer_button(take_apron)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_smith_apron"), 1)
@@ -329,7 +329,7 @@ func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() ->
 	)
 	var put_apron := _button_named(player_pane, "TransferPut_ItemSmithApron")
 	assert_not_null(put_apron)
-	_press_transfer_button(put_apron)
+	await _press_transfer_button(put_apron)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_smith_apron"), 0)
@@ -340,7 +340,7 @@ func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() ->
 	target_pane = main.hud.systems_item_list.find_child("TransferTargetInventory", true, false)
 	take_apron = _button_named(target_pane, "TransferTake_ItemSmithApron")
 	assert_not_null(take_apron)
-	_press_transfer_button(take_apron)
+	await _press_transfer_button(take_apron)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_smith_apron"), 1)
@@ -351,7 +351,7 @@ func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() ->
 	target_pane = main.hud.systems_item_list.find_child("TransferTargetInventory", true, false)
 	var take_gold := _button_named(target_pane, "TransferTake_ItemGoldCoin")
 	assert_not_null(take_gold)
-	_press_transfer_button(take_gold)
+	await _press_transfer_button(take_gold)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
@@ -972,7 +972,7 @@ func test_transfer_take_and_put_buttons_move_items() -> void:
 	)
 	var take_gold := _button_named(target_pane, "TransferTake_ItemGoldCoin")
 	assert_not_null(take_gold)
-	_press_transfer_button(take_gold)
+	await _press_transfer_button(take_gold)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
@@ -983,7 +983,7 @@ func test_transfer_take_and_put_buttons_move_items() -> void:
 	)
 	var put_gold := _button_named(player_pane, "TransferPut_ItemGoldCoin")
 	assert_not_null(put_gold)
-	_press_transfer_button(put_gold)
+	await _press_transfer_button(put_gold)
 	await get_tree().process_frame
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
@@ -1048,11 +1048,9 @@ func _select_kind(main, kind: String) -> void:
 
 
 func _press_transfer_button(button: Button) -> void:
-	var press := InputEventMouseButton.new()
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.pressed = true
-	press.position = button.size * 0.5
-	button._gui_input(press)
+	assert_not_null(button)
+	button.pressed.emit()
+	await get_tree().process_frame
 
 
 func _stand_by_hostile_actor(main, entity_id: String) -> void:

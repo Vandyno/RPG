@@ -105,9 +105,7 @@ static func _add_item_button(
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.set_meta("action_id", action_id)
 	button.set_transfer_data(item, verb, other_side)
-	button.transfer_requested.connect(
-		func(requested_action_id: String) -> void: action_selected.call_deferred(requested_action_id)
-	)
+	button.pressed.connect(func() -> void: action_selected.call(action_id), CONNECT_DEFERRED)
 	parent.add_child(button)
 
 
