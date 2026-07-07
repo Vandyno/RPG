@@ -4,6 +4,7 @@ extends RefCounted
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
+const ShopManagerScript = preload("res://scripts/managers/content/shop_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
@@ -145,21 +146,83 @@ func progression_actions_data() -> Array[Dictionary]:
 
 
 func trade_text(shop_id: String) -> String:
-	return "No trader selected." if shop_id.is_empty() else shops.get_shop_summary(shop_id)
+	if shop_id.is_empty():
+		return "No trader selected."
+	var shop_name := String(shops.get_shop_name(shop_id))
+	if shop_name.is_empty():
+		return "No shop available."
+	var lines: Array[String] = [shop_name]
+	lines.append(_shop_hours_text(shop_id))
+	if not shops.is_shop_open(shop_id):
+		lines.append("Closed now.")
+	lines.append(
+		"Gold: %d" % inventory.get_count(ShopManagerScript.CURRENCY_ITEM_ID)
+		if inventory
+		else "Gold: 0"
+	)
+	lines.append("")
+	lines.append("Stock:")
+	for stock_entry in shops.get_stock_entries(shop_id):
+		lines.append(
+			"- %s: %dg" % [
+				String(stock_entry.get("name", stock_entry.get("item_id", ""))),
+				int(stock_entry.get("price", 0))
+			]
+		)
+	var sellable: Array = shops.get_sellable_entries(shop_id)
+	lines.append("")
+	if sellable.is_empty():
+		lines.append("Sell: none")
+	else:
+		lines.append("Sell:")
+		for sell_entry in sellable:
+			lines.append("- %s" % _sell_action_text(sell_entry))
+	return "\n".join(lines)
 
 
 func trade_actions_data(shop_id: String) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
-	if not shop_id.is_empty():
-		actions.append_array(shops.get_buy_actions(shop_id))
-		actions.append_array(shops.get_sell_actions(shop_id))
+	if shop_id.is_empty() or not shops.is_shop_open(shop_id):
+		return actions
+	for stock_entry in shops.get_stock_entries(shop_id):
+		var item_id := String(stock_entry.get("item_id", ""))
+		if item_id.is_empty():
+			continue
+		actions.append({
+			"id": SystemsActionIds.buy_item(item_id),
+			"item_id": item_id,
+			"text": _buy_action_text(stock_entry)
+		})
+	for sell_entry in shops.get_sellable_entries(shop_id):
+		var item_id := String(sell_entry.get("item_id", ""))
+		if item_id.is_empty():
+			continue
+		actions.append({
+			"id": SystemsActionIds.sell_item(item_id),
+			"item_id": item_id,
+			"text": _sell_action_text(sell_entry)
+		})
 	return actions
 
 
 func trade_stock_rows_data(shop_id: String) -> Array[Dictionary]:
 	if shop_id.is_empty():
 		return []
-	return shops.get_stock_rows(shop_id)
+	var rows: Array[Dictionary] = []
+	var shop_open: bool = shops.is_shop_open(shop_id)
+	for stock_entry in shops.get_stock_entries(shop_id):
+		var item_id := String(stock_entry.get("item_id", ""))
+		if item_id.is_empty():
+			continue
+		rows.append({
+			"item_id": item_id,
+			"name": String(stock_entry.get("name", item_id)),
+			"price": int(stock_entry.get("price", 0)),
+			"action_id": SystemsActionIds.buy_item(item_id) if shop_open else "",
+			"available": shop_open,
+			"merchant_name": String(stock_entry.get("merchant_name", "Merchant"))
+		})
+	return rows
 
 
 func nearby_entities_text(nearby_entities: Array, selected_target_id: String) -> String:
@@ -280,6 +343,30 @@ func _rest_detail_text(entity) -> String:
 	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
 	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
 	return "Rest: heals %d, advances %dh" % [heal_amount, rest_hours]
+
+
+func _shop_hours_text(shop_id: String) -> String:
+	var hours: Dictionary = shops.get_shop_hours(shop_id)
+	if hours.is_empty():
+		return "Hours: always open"
+	return "Hours: %02d:00-%02d:00" % [
+		int(hours.get("open_hour", 0)),
+		int(hours.get("close_hour", 0))
+	]
+
+
+func _buy_action_text(stock_entry: Dictionary) -> String:
+	return "Buy %s (%dg)" % [
+		String(stock_entry.get("name", stock_entry.get("item_id", ""))),
+		int(stock_entry.get("price", 0))
+	]
+
+
+func _sell_action_text(sell_entry: Dictionary) -> String:
+	return "Sell %s (+%dg)" % [
+		String(sell_entry.get("name", sell_entry.get("item_id", ""))),
+		int(sell_entry.get("price", 0))
+	]
 
 
 func _array_field(value: Variant) -> Array:

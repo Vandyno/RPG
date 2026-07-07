@@ -2,7 +2,6 @@ class_name ShopManager
 extends Node
 
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
 
 const CURRENCY_ITEM_ID := "item_gold_coin"
 
@@ -117,82 +116,51 @@ func base_sell_price(item_id: String) -> int:
 	return maxi(1, int(floor(float(value) * 0.5)))
 
 
-func get_shop_summary(shop_id: String) -> String:
+func get_shop_name(shop_id: String) -> String:
 	var shop := _shop(shop_id)
 	if shop.is_empty():
-		return "No shop available."
-	var lines: Array[String] = [String(shop.get("name", shop_id))]
-	lines.append(_hours_text(shop_id))
-	if not is_shop_open(shop_id):
-		lines.append("Closed now.")
-	lines.append("Gold: %d" % inventory.get_count(CURRENCY_ITEM_ID) if inventory else "Gold: 0")
-	lines.append("")
-	lines.append("Stock:")
-	for stock_entry in _shop_stock(shop_id):
-		var item_id := String(stock_entry.get("item_id", ""))
-		var item := _item(item_id)
-		lines.append("- %s: %dg" % [String(item.get("name", item_id)), buy_price(shop_id, item_id)])
-	var sellable := get_sell_actions(shop_id)
-	lines.append("")
-	if sellable.is_empty():
-		lines.append("Sell: none")
-	else:
-		lines.append("Sell:")
-		for action in sellable:
-			lines.append("- %s" % String(action.get("text", "")))
-	return "\n".join(lines)
+		return ""
+	return String(shop.get("name", shop_id))
 
 
-func get_buy_actions(shop_id: String) -> Array[Dictionary]:
-	var actions: Array[Dictionary] = []
-	if not is_shop_open(shop_id):
-		return actions
-	for stock_entry in _shop_stock(shop_id):
-		var item_id := String(stock_entry.get("item_id", ""))
-		var price := buy_price(shop_id, item_id)
-		var item := _item(item_id)
-		if item.is_empty() or price <= 0:
-			continue
-		actions.append(
-			{
-				"id": SystemsActionIds.buy_item(item_id),
-				"text": "Buy %s (%dg)" % [String(item.get("name", item_id)), price]
-			}
-		)
-	return actions
+func get_shop_hours(shop_id: String) -> Dictionary:
+	var shop := _shop(shop_id)
+	if not shop.has("open_hour") or not shop.has("close_hour"):
+		return {}
+	return {
+		"open_hour": int(shop.get("open_hour", 0)),
+		"close_hour": int(shop.get("close_hour", 0))
+	}
 
 
-func get_stock_rows(shop_id: String) -> Array[Dictionary]:
-	var rows: Array[Dictionary] = []
+func get_stock_entries(shop_id: String) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
 	var shop := _shop(shop_id)
 	if shop.is_empty():
-		return rows
-	var shop_open := is_shop_open(shop_id)
+		return entries
 	for stock_entry in _shop_stock(shop_id):
 		var item_id := String(stock_entry.get("item_id", ""))
 		var item := _item(item_id)
 		var price := buy_price(shop_id, item_id)
 		if item.is_empty() or price <= 0:
 			continue
-		rows.append(
+		entries.append(
 			{
 				"item_id": item_id,
 				"name": String(item.get("name", item_id)),
 				"price": price,
-				"action_id": SystemsActionIds.buy_item(item_id) if shop_open else "",
-				"available": shop_open,
 				"merchant_name": String(shop.get("name", shop_id))
 			}
 		)
-	return rows
+	return entries
 
 
-func get_sell_actions(shop_id: String) -> Array[Dictionary]:
-	var actions: Array[Dictionary] = []
+func get_sellable_entries(shop_id: String) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
 	if not is_shop_open(shop_id):
-		return actions
+		return entries
 	if not inventory:
-		return actions
+		return entries
 	var item_ids: Array[String] = []
 	for item_id in inventory.items:
 		item_ids.append(String(item_id))
@@ -202,13 +170,14 @@ func get_sell_actions(shop_id: String) -> Array[Dictionary]:
 		var item := _item(item_id)
 		if price <= 0 or item.is_empty():
 			continue
-		actions.append(
+		entries.append(
 			{
-				"id": SystemsActionIds.sell_item(item_id),
-				"text": "Sell %s (+%dg)" % [String(item.get("name", item_id)), price]
+				"item_id": item_id,
+				"name": String(item.get("name", item_id)),
+				"price": price
 			}
 		)
-	return actions
+	return entries
 
 
 func is_shop_open(shop_id: String) -> bool:
@@ -223,15 +192,6 @@ func is_shop_open(shop_id: String) -> bool:
 	if open_minute < close_minute:
 		return current_minute >= open_minute and current_minute < close_minute
 	return current_minute >= open_minute or current_minute < close_minute
-
-
-func _hours_text(shop_id: String) -> String:
-	var shop := _shop(shop_id)
-	if not shop.has("open_hour") or not shop.has("close_hour"):
-		return "Hours: always open"
-	return (
-		"Hours: %02d:00-%02d:00" % [int(shop.get("open_hour", 0)), int(shop.get("close_hour", 0))]
-	)
 
 
 func _shop(shop_id: String) -> Dictionary:
