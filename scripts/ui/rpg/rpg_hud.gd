@@ -110,9 +110,13 @@ func toggle_debug() -> void:
 		debug_panel.visible = false
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
-	RpgContentPanelBuilder.apply_mode(
-		content_portrait_label, content_choice_panel, content_close_button, title, choices, kind
-	)
+	var mode_request := RpgContentPanelBuilder.ApplyModeRequest.new()
+	mode_request.portrait_label = content_portrait_label
+	mode_request.choice_panel = content_choice_panel
+	mode_request.close_button = content_close_button
+	mode_request.choices = choices
+	mode_request.kind = kind
+	RpgContentPanelBuilder.apply_mode(mode_request)
 	_refresh_content_preview(choices, kind)
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)

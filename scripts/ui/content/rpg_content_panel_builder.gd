@@ -54,6 +54,14 @@ class LayoutRequest:
 	var hud_margin: float
 
 
+class ApplyModeRequest:
+	var portrait_label: Label
+	var choice_panel: PanelContainer
+	var close_button: Button
+	var choices: Array
+	var kind: String
+
+
 static func build(context: BuildContext) -> Dictionary:
 	if not context or not context.root:
 		return {}
@@ -402,29 +410,26 @@ static func _place_preview_panel(
 		dialogue_row.move_child(preview_panel, dialogue_row.get_child_count() - 1)
 
 
-static func apply_mode(
-	portrait_label: Label,
-	choice_panel: PanelContainer,
-	close_button: Button,
-	_title: String,
-	choices: Array,
-	kind: String
-) -> void:
-	var normalized := kind.to_lower()
-	if portrait_label:
-		portrait_label.text = ""
-		portrait_label.visible = false
-		_set_identity_art_kind(portrait_label, normalized)
-	if close_button:
-		var has_choices := _has_valid_choices(choices)
-		close_button.text = "Leave" if normalized == "dialogue" else "Close"
-		close_button.tooltip_text = (
+static func apply_mode(request: ApplyModeRequest) -> void:
+	if not request:
+		return
+	var normalized := request.kind.to_lower()
+	if request.portrait_label:
+		request.portrait_label.text = ""
+		request.portrait_label.visible = false
+		_set_identity_art_kind(request.portrait_label, normalized)
+	if request.close_button:
+		var has_choices := _has_valid_choices(request.choices)
+		request.close_button.text = "Leave" if normalized == "dialogue" else "Close"
+		request.close_button.tooltip_text = (
 			"Leave conversation" if normalized == "dialogue" else "Close panel"
 		)
-		_place_close_button(portrait_label, choice_panel, close_button, has_choices)
-		close_button.visible = not has_choices
-	if choice_panel:
-		choice_panel.visible = _has_valid_choices(choices)
+		_place_close_button(
+			request.portrait_label, request.choice_panel, request.close_button, has_choices
+		)
+		request.close_button.visible = not has_choices
+	if request.choice_panel:
+		request.choice_panel.visible = _has_valid_choices(request.choices)
 
 
 static func _place_close_button(
