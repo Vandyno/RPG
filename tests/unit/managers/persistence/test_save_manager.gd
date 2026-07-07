@@ -50,7 +50,10 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	add_child_autofree(manager)
 	manager.setup(bus, providers, TEST_SAVE_PATH)
 
-	assert_true(manager.save_game())
+	var save_result := manager.save_game()
+	assert_true(save_result.ok)
+	assert_eq(save_result.code, "ok")
+	assert_eq(save_result.path, TEST_SAVE_PATH)
 	assert_true(FileAccess.file_exists(TEST_SAVE_PATH))
 	assert_eq(saves, [TEST_SAVE_PATH])
 
@@ -67,7 +70,10 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(int(parsed["time"]["minute_of_day"]), 1260)
 	assert_eq(int(parsed["combat"]["health_by_entity_id"]["enemy"]), 6)
 
-	assert_true(manager.load_game())
+	var load_result := manager.load_game()
+	assert_true(load_result.ok)
+	assert_eq(load_result.code, "ok")
+	assert_eq(load_result.path, TEST_SAVE_PATH)
 	assert_eq(loads, [TEST_SAVE_PATH])
 	assert_true(messages.back().contains("Loaded"))
 	assert_eq(int(providers["player"].loaded_payload["health"]), 77)
@@ -102,8 +108,11 @@ func test_load_missing_save_file_reports_failure() -> void:
 	add_child_autofree(manager)
 	manager.setup(bus, _provider_set(), TEST_SAVE_PATH)
 
-	assert_false(manager.load_game())
-	assert_true(messages.back().contains("No save file"))
+	var result := manager.load_game()
+	assert_false(result.ok)
+	assert_eq(result.code, "missing_file")
+	assert_true(result.message.contains("No save file"))
+	assert_eq(result.message, messages.back())
 
 
 func test_missing_required_provider_reports_failure() -> void:
@@ -117,8 +126,11 @@ func test_missing_required_provider_reports_failure() -> void:
 	add_child_autofree(manager)
 	manager.setup(bus, providers, TEST_SAVE_PATH)
 
-	assert_false(manager.save_game())
-	assert_true(messages.back().contains("combat"))
+	var result := manager.save_game()
+	assert_false(result.ok)
+	assert_eq(result.code, "missing_provider")
+	assert_true(result.message.contains("combat"))
+	assert_eq(result.message, messages.back())
 
 
 func test_unsupported_save_version_reports_failure_without_loading() -> void:
@@ -134,8 +146,11 @@ func test_unsupported_save_version_reports_failure_without_loading() -> void:
 	file.store_string(JSON.stringify({"version": SaveManager.CURRENT_VERSION + 1}))
 	file = null
 
-	assert_false(manager.load_game())
-	assert_true(messages.back().contains("not supported"))
+	var result := manager.load_game()
+	assert_false(result.ok)
+	assert_eq(result.code, "unsupported_version")
+	assert_true(result.message.contains("not supported"))
+	assert_eq(result.message, messages.back())
 	assert_eq(providers["player"].loaded_payload, {})
 	assert_eq(providers["entities"].spawn_count, 0)
 
@@ -155,8 +170,11 @@ func test_malformed_save_version_reports_failure_without_loading() -> void:
 		file.store_string(JSON.stringify({"version": malformed_version, "player": {"health": 1}}))
 		file = null
 
-		assert_false(manager.load_game())
-		assert_true(messages.back().contains("version is invalid"))
+		var result := manager.load_game()
+		assert_false(result.ok)
+		assert_eq(result.code, "invalid_version")
+		assert_true(result.message.contains("version is invalid"))
+		assert_eq(result.message, messages.back())
 		assert_eq(providers["player"].loaded_payload, {})
 		assert_eq(providers["entities"].spawn_count, 0)
 
@@ -194,8 +212,11 @@ func test_malformed_required_save_sections_fail_without_loading() -> void:
 	)
 	file = null
 
-	assert_false(manager.load_game())
-	assert_true(messages.back().contains("Save section is invalid: player"))
+	var result := manager.load_game()
+	assert_false(result.ok)
+	assert_eq(result.code, "invalid_section")
+	assert_true(result.message.contains("Save section is invalid: player"))
+	assert_eq(result.message, messages.back())
 	assert_eq(loads, [])
 	assert_eq(providers["player"].loaded_payload, {})
 	assert_eq(providers["world_state"].loaded_payload, {})
@@ -230,8 +251,11 @@ func test_missing_required_save_section_fails_without_loading() -> void:
 	file.store_string(JSON.stringify(save_data))
 	file = null
 
-	assert_false(manager.load_game())
-	assert_true(messages.back().contains("Save section is invalid: inventory"))
+	var result := manager.load_game()
+	assert_false(result.ok)
+	assert_eq(result.code, "invalid_section")
+	assert_true(result.message.contains("Save section is invalid: inventory"))
+	assert_eq(result.message, messages.back())
 	assert_eq(loads, [])
 	assert_eq(providers["player"].loaded_payload, {})
 	assert_eq(providers["inventory"].loaded_payload, {})

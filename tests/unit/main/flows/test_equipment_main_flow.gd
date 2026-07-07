@@ -24,11 +24,11 @@ func test_main_save_load_preserves_equipment() -> void:
 	assert_true(main.equipment.equip_item("item_road_hatchet"))
 	assert_true(main.equipment.equip_item("item_traveler_buckler"))
 
-	assert_true(main.save_manager.save_game())
+	assert_true(main.save_manager.save_game().ok)
 
 	main.equipment.unequip_slot("right_hand")
 	main.equipment.unequip_slot("left_hand")
-	assert_true(main.save_manager.load_game())
+	assert_true(main.save_manager.load_game().ok)
 
 	assert_eq(main.equipment.get_equipped_item("right_hand"), "item_road_hatchet")
 	assert_eq(main.equipment.get_equipped_item("left_hand"), "item_traveler_buckler")

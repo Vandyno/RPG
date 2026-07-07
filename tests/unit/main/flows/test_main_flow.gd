@@ -166,9 +166,9 @@ func test_spawn_location_discovery_is_nearby_visible_and_persistent() -> void:
 	assert_true(main.get_debug_state()["locations"].contains("Briarwatch Crossroads"))
 	assert_false(main.get_debug_state()["nearby_all"].contains("Briarwatch Crossroads"))
 
-	assert_true(main.save_manager.save_game())
+	assert_true(main.save_manager.save_game().ok)
 	main.world_state.discovered_locations.clear()
-	assert_true(main.save_manager.load_game())
+	assert_true(main.save_manager.load_game().ok)
 
 	assert_true(main.world_state.discovered_locations.has("location_briarwatch_crossroads"))
 
@@ -754,7 +754,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	main._handle_inventory_item_selected("take:item_gold_coin")
 	assert_true(main.time.advance_hours(6))
 
-	assert_true(main.save_manager.save_game())
+	assert_true(main.save_manager.save_game().ok)
 	assert_true(FileAccess.file_exists(TEST_SAVE_PATH))
 
 	main.inventory.remove_item("item_old_toolbox", 1)
@@ -766,7 +766,7 @@ func test_main_save_load_restores_spawn_yard_system_state() -> void:
 	main.entities.spawn_all()
 	assert_null(main.entities.get_entity("npc_road_thug"))
 
-	assert_true(main.save_manager.load_game())
+	assert_true(main.save_manager.load_game().ok)
 
 	assert_eq(main.player.health, 100)
 	assert_eq(main.equipment.get_equipped_item("right_hand"), "")
@@ -795,7 +795,7 @@ func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 	assert_eq(main.progression.experience, 10)
 	assert_false(main.combat.health_by_entity_id.has("npc_road_thug"))
 
-	assert_true(main.save_manager.save_game())
+	assert_true(main.save_manager.save_game().ok)
 
 	main.inventory.remove_item("item_gold_coin", 3)
 	main.factions.reputation_by_faction_id.clear()
@@ -805,7 +805,7 @@ func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 	main.entities.spawn_all()
 	assert_not_null(main.entities.get_entity("npc_road_thug"))
 
-	assert_true(main.save_manager.load_game())
+	assert_true(main.save_manager.load_game().ok)
 
 	assert_null(main.entities.get_entity("npc_road_thug"))
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
