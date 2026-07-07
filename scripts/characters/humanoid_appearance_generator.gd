@@ -2,6 +2,7 @@ class_name HumanoidAppearanceGenerator
 extends RefCounted
 
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
+const StableHash = preload("res://scripts/core/stable_hash.gd")
 
 const DEFAULT_JITTER_STRENGTH := 0.025
 const MAX_JITTER_STRENGTH := 0.08
@@ -104,7 +105,7 @@ static func _select_variant(
 	var key := "%s:%s" % [people_id, seed_key]
 	if seed_key.is_empty():
 		key = people_id
-	var index := _stable_index(key, variants.size())
+	var index := StableHash.index(key, variants.size())
 	var selected: Variant = variants[index]
 	if selected is Dictionary:
 		return selected.duplicate(true)
@@ -126,7 +127,7 @@ static func _apply_proportion_jitter(
 		return
 	for field_id in proportions:
 		var jitter_key := "%s:%s:%s:%s" % [people_id, variant_id, seed_key, String(field_id)]
-		var index := _stable_index(jitter_key, 2001)
+		var index := StableHash.index(jitter_key, 2001)
 		var amount := (float(index) / 1000.0) - 1.0
 		proportions[field_id] = clampf(
 			float(proportions[field_id]) + amount * strength,
@@ -148,12 +149,12 @@ static func _selected_marking_id(
 	var roll_key := "%s:%s:%s:marking_roll" % [
 		people_id, String(variant.get("id", "")), seed_key
 	]
-	if _stable_unit(roll_key) > chance:
+	if StableHash.unit(roll_key) > chance:
 		return fixed_marking_id
 	var pick_key := "%s:%s:%s:marking_pick" % [
 		people_id, String(variant.get("id", "")), seed_key
 	]
-	return optional_marking_ids[_stable_index(pick_key, optional_marking_ids.size())]
+	return optional_marking_ids[StableHash.index(pick_key, optional_marking_ids.size())]
 
 
 static func _marking_chance(value: Variant) -> float:
@@ -166,19 +167,6 @@ static func _jitter_strength(value: Variant) -> float:
 	if not _is_number(value):
 		return DEFAULT_JITTER_STRENGTH
 	return clampf(float(value), 0.0, MAX_JITTER_STRENGTH)
-
-
-static func _stable_index(text: String, size: int) -> int:
-	if size <= 0:
-		return 0
-	var total: int = 0
-	for index in text.length():
-		total += text.unicode_at(index) * (index + 1)
-	return total % size
-
-
-static func _stable_unit(text: String) -> float:
-	return float(_stable_index(text, 1001)) / 1000.0
 
 
 static func _array_field(value: Variant) -> Array:

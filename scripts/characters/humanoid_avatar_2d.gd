@@ -11,6 +11,7 @@ const HumanoidPeopleFeatureDrawer = preload(
 const HumanoidEquipmentDrawer = preload("res://scripts/characters/humanoid_equipment_drawer.gd")
 const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_item_drawer.gd")
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
+const StableHash = preload("res://scripts/core/stable_hash.gd")
 
 const PALETTES := {
 	"palette_human_warm_brown":
@@ -720,7 +721,7 @@ func _draw_tuskfolk_feature(
 	var variant_key := String(appearance.get("visual_model_id", ""))
 	if variant_key.is_empty():
 		variant_key = String(appearance.get("palette_id", ""))
-	var variant_index := _stable_index(variant_key, TUSKFOLK_CLAN_TINTS.size())
+	var variant_index := StableHash.index(variant_key, TUSKFOLK_CLAN_TINTS.size())
 	var clan_color: Color = skin.darkened(0.12).lerp(TUSKFOLK_CLAN_TINTS[variant_index], 0.56)
 	var ring_color := Color(0.58, 0.43, 0.22).lerp(clan_color.lightened(0.12), 0.24)
 	_draw_tuskfolk_torso(skin, waist_width, back_turn, clan_color, ring_color)
@@ -887,7 +888,7 @@ func _draw_mirefolk_feature(
 	var variant_key := String(appearance.get("visual_model_id", ""))
 	if variant_key.is_empty():
 		variant_key = String(appearance.get("palette_id", ""))
-	var variant_index := _stable_index(variant_key, MIREFOLK_PATTERN_TINTS.size())
+	var variant_index := StableHash.index(variant_key, MIREFOLK_PATTERN_TINTS.size())
 	var pattern_color: Color = MIREFOLK_PATTERN_TINTS[variant_index].lerp(
 		skin.lightened(0.12), 0.42
 	)
@@ -1134,7 +1135,7 @@ func _ravenfolk_variant_index(appearance: Dictionary = {}) -> int:
 	var variant_key := String(appearance.get("visual_model_id", ""))
 	if variant_key.is_empty():
 		variant_key = String(appearance.get("palette_id", ""))
-	return _stable_index(variant_key, RAVENFOLK_FEATHER_TINTS.size())
+	return StableHash.index(variant_key, RAVENFOLK_FEATHER_TINTS.size())
 
 
 func _ravenfolk_feather_color(skin: Color, appearance: Dictionary = {}) -> Color:
@@ -1356,7 +1357,7 @@ func _draw_rootborn_feature(
 	var variant_key := String(appearance.get("visual_model_id", ""))
 	if variant_key.is_empty():
 		variant_key = String(appearance.get("palette_id", ""))
-	var variant_index := _stable_index(variant_key, ROOTBORN_GROWTH_TINTS.size())
+	var variant_index := StableHash.index(variant_key, ROOTBORN_GROWTH_TINTS.size())
 	var growth_tint: Color = ROOTBORN_GROWTH_TINTS[variant_index]
 	var leaf := Color(0.30, 0.50, 0.24).lerp(growth_tint.lightened(0.10), 0.45)
 	var lichen := Color(0.55, 0.63, 0.42).lerp(growth_tint.lightened(0.18), 0.32)
@@ -2624,15 +2625,6 @@ func _tuskfolk_side_tusk_points(head_size: float, tusk_length: float) -> PackedV
 			head_offset + Vector2(side * 2.95 * head_size, -10.55)
 		]
 	)
-
-
-func _stable_index(text: String, size: int) -> int:
-	if size <= 0:
-		return 0
-	var total: int = 0
-	for index in text.length():
-		total += text.unicode_at(index) * (index + 1)
-	return total % size
 
 
 func _proportion(proportions: Dictionary, field_id: String) -> float:

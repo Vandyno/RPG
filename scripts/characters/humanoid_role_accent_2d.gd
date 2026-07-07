@@ -1,6 +1,8 @@
 class_name HumanoidRoleAccent2D
 extends RefCounted
 
+const StableHash = preload("res://scripts/core/stable_hash.gd")
+
 const OUTLINE := Color(0.045, 0.035, 0.025, 0.95)
 const COLORS := {
 	"accent_worker_apron": Color(0.38, 0.24, 0.15),
@@ -282,20 +284,11 @@ static func _accent_color(accent_id: String, appearance: Dictionary = {}) -> Col
 		key = String(appearance.get("palette_id", ""))
 	if key.is_empty():
 		return base
-	var tint: Color = VARIANT_TINTS[_stable_index(key, VARIANT_TINTS.size())]
+	var tint: Color = VARIANT_TINTS[StableHash.index(key, VARIANT_TINTS.size())]
 	var blend := 0.58
 	if String(appearance.get("people_id", "")) == "people_ravenfolk":
 		blend = 0.30
 	return base.lerp(tint, blend)
-
-
-static func _stable_index(text: String, size: int) -> int:
-	if size <= 0:
-		return 0
-	var total: int = 0
-	for index in text.length():
-		total += text.unicode_at(index) * (index + 1)
-	return total % size
 
 
 static func _proportion(proportions: Dictionary, field_id: String) -> float:
