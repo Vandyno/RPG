@@ -2,6 +2,9 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rows/rpg_systems_row_builder.gd")
+const RpgSystemsRowPresentation = preload(
+	"res://scripts/ui/systems/rows/rpg_systems_row_presentation.gd"
+)
 
 
 func test_seed_ingredient_pickup_feeds_inventory_ingredient_tab() -> void:
@@ -17,7 +20,7 @@ func test_seed_ingredient_pickup_feeds_inventory_ingredient_tab() -> void:
 
 	assert_eq(main.inventory.get_count("item_river_mint"), 2)
 	assert_true(
-		RpgSystemsRowBuilder.hidden_text(
+		RpgSystemsRowPresentation.hidden_text(
 			RpgSystemsRowBuilder.rows(main.get_hud_state(), "inventory", [], "ingredients")
 		).contains("River Mint")
 	)

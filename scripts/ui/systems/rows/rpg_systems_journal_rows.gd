@@ -1,6 +1,8 @@
 class_name RpgSystemsJournalRows
 extends RefCounted
 
+const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+
 
 static func category_labels() -> Array:
 	return ["Recent", "Factions", "Time", "System"]
@@ -9,7 +11,7 @@ static func category_labels() -> Array:
 static func rows(
 	state: Dictionary, message_log: Array[String], category: String
 ) -> Array[Dictionary]:
-	return RpgSystemsRowBuilder.category_filtered_rows(_journal_rows(state, message_log), category)
+	return RpgSystemsRowData.category_filtered_rows(_journal_rows(state, message_log), category)
 
 
 static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Array[Dictionary]:
@@ -20,7 +22,7 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 		{
 			"id": "journal_events",
 			"title": "Recent Events",
-			"subtitle": RpgSystemsRowBuilder.first_line(recent),
+			"subtitle": RpgSystemsRowData.first_line(recent),
 			"meta": "Log",
 			"detail": recent
 		},

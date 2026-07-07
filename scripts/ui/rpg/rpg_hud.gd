@@ -5,6 +5,9 @@ signal aim_action_released(action_id: String, direction: Vector2)
 signal aim_action_held(action_id: String, direction: Vector2, delta: float)
 signal sneak_pressed
 const RpgSystemsRowBuilder = preload("res://scripts/ui/systems/rows/rpg_systems_row_builder.gd")
+const RpgSystemsRowPresentation = preload(
+	"res://scripts/ui/systems/rows/rpg_systems_row_presentation.gd"
+)
 const RpgSystemsTextBuilder = preload("res://scripts/ui/text/rpg_systems_text_builder.gd")
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgTransferPaneBuilder = preload(
@@ -747,19 +750,19 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 			target.get("name", "container")
 		)
 		return
-	RpgSystemsRowBuilder.clear_non_button_children(systems_item_list)
+	RpgSystemsRowPresentation.clear_non_button_children(systems_item_list)
 	var rows := RpgSystemsRowBuilder.rows(
 		state, systems_active_tab, message_log, systems_active_category
 	)
 	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
 	_refresh_category_row(systems_active_tab)
-	if not RpgSystemsRowBuilder.has_id(rows, systems_selected_row_id):
+	if not RpgSystemsRowPresentation.has_id(rows, systems_selected_row_id):
 		systems_selected_row_id = String(rows[0].get("id", "")) if not rows.is_empty() else ""
 	for index in range(rows.size()):
 		var row := rows[index]
 		var button := _systems_row_button(index)
 		button.name = "SystemsRow_%s" % String(row.get("id", "")).to_pascal_case()
-		button.text = RpgSystemsRowBuilder.button_text(row)
+		button.text = RpgSystemsRowPresentation.button_text(row)
 		button.clip_text = false; button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.y = 82 if compact else 68
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -787,7 +790,7 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 		systems_item_list.add_child(empty)
 		systems_detail_label.text = RpgSystemsTextBuilder.detail_text(state, systems_active_tab)
 	else:
-		var selected_row := RpgSystemsRowBuilder.selected_row(rows, systems_selected_row_id)
+		var selected_row := RpgSystemsRowPresentation.selected_row(rows, systems_selected_row_id)
 		systems_detail_label.text = String(selected_row.get("detail", ""))
 func _systems_row_button(index: int) -> Button:
 	if index < systems_item_list.get_child_count():
@@ -837,7 +840,9 @@ func _refresh_category_row(tab_id: String) -> void:
 				func() -> void: _select_systems_category(String(button.get_meta("category_id", "")))
 			)
 		button.add_theme_font_size_override("font_size", 11 if compact else 13)
-		button.custom_minimum_size.x = RpgSystemsRowBuilder.tab_label_width(label, button_size.x, compact)
+		button.custom_minimum_size.x = RpgSystemsRowPresentation.tab_label_width(
+			label, button_size.x, compact
+		)
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
 func _select_systems_row(row_id: String) -> void:

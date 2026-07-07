@@ -3,6 +3,7 @@ extends RefCounted
 
 const RpgNavigationTextBuilder = preload("res://scripts/ui/text/rpg_navigation_text_builder.gd")
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
 
 
 static func category_labels() -> Array:
@@ -16,16 +17,16 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 		return _quest_reward_rows(state)
 	var tab := SystemsTabState.quests(state)
 	var rows_data: Array[Dictionary] = []
-	for quest in RpgSystemsRowBuilder.array_field(tab.get("quests", [])):
+	for quest in RpgSystemsRowData.array_field(tab.get("quests", [])):
 		var text := String(quest)
 		rows_data.append({
 			"id": "quest_%d" % rows_data.size(),
-			"title": RpgSystemsRowBuilder.title_before_colon(text),
-			"subtitle": RpgSystemsRowBuilder.text_after_colon(text, "Active quest"),
+			"title": RpgSystemsRowData.title_before_colon(text),
+			"subtitle": RpgSystemsRowData.text_after_colon(text, "Active quest"),
 			"meta": "Quest",
-			"detail": RpgSystemsRowBuilder.quest_detail_for_text(state, text)
+			"detail": _quest_detail_for_text(state, text)
 		})
-	for action in RpgSystemsRowBuilder.array_field(tab.get("actions", [])):
+	for action in RpgSystemsRowData.array_field(tab.get("actions", [])):
 		if not action is Dictionary:
 			continue
 		var text := String(action.get("text", ""))
@@ -53,8 +54,8 @@ static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
 				continue
 			rows_data.append({
 				"id": "quest_route_%d" % rows_data.size(),
-				"title": RpgSystemsRowBuilder.title_before_colon(stripped),
-				"subtitle": RpgSystemsRowBuilder.route_after_colon(stripped, "Route"),
+				"title": RpgSystemsRowData.title_before_colon(stripped),
+				"subtitle": _route_after_colon(stripped, "Route"),
 				"meta": "Route",
 				"detail": RpgNavigationTextBuilder.friendly_route_line(stripped)
 			})
@@ -71,7 +72,7 @@ static func _quest_route_rows(state: Dictionary) -> Array[Dictionary]:
 
 static func _quest_reward_rows(state: Dictionary) -> Array[Dictionary]:
 	var tab := SystemsTabState.quests(state)
-	var actions := RpgSystemsRowBuilder.array_field(tab.get("actions", []))
+	var actions := RpgSystemsRowData.array_field(tab.get("actions", []))
 	var rows_data: Array[Dictionary] = []
 	for action in actions:
 		if not action is Dictionary:
@@ -94,3 +95,18 @@ static func _quest_reward_rows(state: Dictionary) -> Array[Dictionary]:
 			"detail": "No quest rewards are ready."
 		})
 	return rows_data
+
+
+static func _quest_detail_for_text(state: Dictionary, quest_text: String) -> String:
+	var lines: Array[String] = [quest_text]
+	var quest_tab := SystemsTabState.quests(state)
+	var directions := String(quest_tab.get("directions", "none"))
+	if not directions.is_empty() and directions != "none":
+		lines.append("")
+		lines.append(RpgNavigationTextBuilder.friendly_route_lines(directions))
+	return "\n".join(lines)
+
+
+static func _route_after_colon(value: String, fallback: String) -> String:
+	var route := RpgSystemsRowData.text_after_colon(value, fallback)
+	return RpgNavigationTextBuilder.friendly_navigation(route)

@@ -1,6 +1,8 @@
 class_name RpgSystemsSpellRows
 extends RefCounted
 
+const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+
 
 static func category_labels() -> Array:
 	return ["All", "Fire", "Frost", "Storm", "Restore", "Utility"]
@@ -8,7 +10,7 @@ static func category_labels() -> Array:
 
 static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
-	for spell in RpgSystemsRowBuilder.array_field(state.get("spells", [])):
+	for spell in RpgSystemsRowData.array_field(state.get("spells", [])):
 		if not spell is Dictionary:
 			continue
 		var school := String(spell.get("school", "Utility"))
@@ -25,7 +27,7 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 			"spell_id": spell_id,
 			"title": name,
 			"subtitle": "%s school - %s" % [school, assignment],
-			"meta": "%s MP/s" % RpgSystemsRowBuilder.format_float(drain),
+			"meta": "%s MP/s" % RpgSystemsRowData.format_float(drain),
 			"detail": _spell_detail(spell)
 		})
 	if rows_data.is_empty():
@@ -45,7 +47,7 @@ static func _spell_detail(spell: Dictionary) -> String:
 	return "\n".join([
 		String(spell.get("name", "Spell")),
 		"School: %s" % String(spell.get("school", "Utility")),
-		"Mana cost/drain: %s per second" % RpgSystemsRowBuilder.format_float(drain),
+		"Mana cost/drain: %s per second" % RpgSystemsRowData.format_float(drain),
 		"Range: %s" % String(spell.get("range", "")),
 		"Behavior: %s" % String(spell.get("behavior", "")),
 		"Assigned slot: %s" % ("None" if assigned.is_empty() else assigned)

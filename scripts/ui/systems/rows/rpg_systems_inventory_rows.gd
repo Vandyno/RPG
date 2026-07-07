@@ -2,6 +2,7 @@ class_name RpgSystemsInventoryRows
 extends RefCounted
 
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
 
 const ARMOUR_EQUIPMENT_SLOTS := [
 	"left_hand",
@@ -29,11 +30,11 @@ static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
 	var typed_rows := _typed_inventory_rows(tab, category)
 	if not typed_rows.is_empty():
 		return typed_rows
-	var details_by_name := RpgSystemsRowBuilder.detail_lines_by_name(
+	var details_by_name := _detail_lines_by_name(
 		String(tab.get("details", ""))
 	)
 	var rows_data: Array[Dictionary] = []
-	for entry in RpgSystemsRowBuilder.summary_entries(String(tab.get("summary", "empty"))):
+	for entry in _summary_entries(String(tab.get("summary", "empty"))):
 		var title := String(entry.get("title", "Item"))
 		var detail := String(details_by_name.get(title, "No item details available."))
 		rows_data.append({
@@ -54,7 +55,7 @@ static func _transfer_rows(tab: Dictionary, category: String) -> Array[Dictionar
 	var target_name := String(target.get("name", "Container"))
 	_append_transfer_side_rows(
 		rows_data,
-		RpgSystemsRowBuilder.array_field(transfer.get("player_items", [])),
+		RpgSystemsRowData.array_field(transfer.get("player_items", [])),
 		"player",
 		"Player Pack",
 		"put",
@@ -62,7 +63,7 @@ static func _transfer_rows(tab: Dictionary, category: String) -> Array[Dictionar
 	)
 	_append_transfer_side_rows(
 		rows_data,
-		RpgSystemsRowBuilder.array_field(transfer.get("target_items", [])),
+		RpgSystemsRowData.array_field(transfer.get("target_items", [])),
 		"target",
 		target_name,
 		"take",
@@ -130,7 +131,7 @@ static func _transfer_category_matches(
 
 static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Dictionary]:
 	var rows_data: Array[Dictionary] = []
-	for item in RpgSystemsRowBuilder.array_field(tab.get("items", [])):
+	for item in RpgSystemsRowData.array_field(tab.get("items", [])):
 		if not item is Dictionary:
 			continue
 		var item_category := _inventory_category(item)
@@ -140,8 +141,8 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 		var count := maxi(0, int(item.get("count", 0)))
 		if name.is_empty() or count <= 0:
 			continue
-		var action := RpgSystemsRowBuilder.action_for_item_id(
-			RpgSystemsRowBuilder.array_field(tab.get("actions", [])),
+		var action := _action_for_item_id(
+			RpgSystemsRowData.array_field(tab.get("actions", [])),
 			String(item.get("item_id", ""))
 		)
 		var action_id := String(action.get("id", ""))
@@ -155,7 +156,7 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 		if not action_text.is_empty():
 			meta_parts.append(action_text)
 		if weight > 0.0:
-			meta_parts.append("%s wt" % RpgSystemsRowBuilder.format_weight(weight * count))
+			meta_parts.append("%s wt" % RpgSystemsRowData.format_weight(weight * count))
 		if value > 0:
 			meta_parts.append("%dg" % value)
 		rows_data.append({
@@ -174,7 +175,7 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 static func _inventory_category(item: Dictionary) -> String:
 	var item_type := String(item.get("type", "")).to_lower()
 	var slot := String(item.get("equipment_slot", "")).to_lower()
-	var tags := RpgSystemsRowBuilder.lower_array(item.get("tags", []))
+	var tags := RpgSystemsRowData.lower_array(item.get("tags", []))
 	if item_type == "weapon" or slot == "right_hand" or tags.has("weapon"):
 		return "weapons"
 	if ["armor", "armour", "shield"].has(item_type) or ARMOUR_EQUIPMENT_SLOTS.has(slot):
@@ -203,9 +204,55 @@ static func _inventory_item_detail(
 ) -> String:
 	var lines: Array[String] = ["%s x%d" % [name, count]]
 	if weight > 0.0:
-		lines.append("Weight: %s" % RpgSystemsRowBuilder.format_weight(weight * count))
+		lines.append("Weight: %s" % RpgSystemsRowData.format_weight(weight * count))
 	if value > 0:
 		lines.append("Value: %dg" % value)
 	lines.append("")
 	lines.append(description)
 	return "\n".join(lines)
+
+
+static func _action_for_item_id(actions: Array, item_id: String) -> Dictionary:
+	if item_id.is_empty():
+		return {}
+	for action in actions:
+		if not action is Dictionary:
+			continue
+		if String(action.get("item_id", "")) == item_id:
+			return action
+	return {}
+
+
+static func _summary_entries(summary: String) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	if summary.is_empty() or summary == "empty" or summary == "none":
+		return entries
+	for part in summary.split(",", false):
+		var stripped := part.strip_edges()
+		if stripped.is_empty():
+			continue
+		var title := stripped
+		var meta := "Carried item"
+		var marker := stripped.rfind(" x")
+		if marker > 0:
+			title = stripped.substr(0, marker)
+			meta = "Count %s" % stripped.substr(marker + 2)
+		entries.append({"title": title, "summary": stripped, "meta": meta})
+	return entries
+
+
+static func _detail_lines_by_name(details: String) -> Dictionary:
+	var result := {}
+	for raw_line in details.split("\n", false):
+		var line := raw_line.strip_edges()
+		if line.is_empty():
+			continue
+		var separator := line.find(":")
+		if separator <= 0:
+			continue
+		var key := line.substr(0, separator).strip_edges()
+		result[key] = line.substr(separator + 1).strip_edges()
+		var count_marker := key.rfind(" x")
+		if count_marker > 0:
+			result[key.substr(0, count_marker).strip_edges()] = result[key]
+	return result
