@@ -1,51 +1,26 @@
 extends GutTest
 
 
-func test_equipment_drawer_routes_each_layer_to_avatar() -> void:
-	var avatar := EquipmentAvatarStub.new()
-	var proportions := {"height": 1.0}
+func test_equipment_drawer_handles_empty_avatar_visuals() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	var proportions := HumanoidProfile.DEFAULT_PROPORTIONS.duplicate(true)
 
-	HumanoidEquipmentDrawer.draw_back_layer(avatar, proportions, "cloak")
-	HumanoidEquipmentDrawer.draw_boot_layer(avatar, proportions)
-	HumanoidEquipmentDrawer.draw_leg_layer(avatar, proportions)
-	HumanoidEquipmentDrawer.draw_chest_layer(avatar, proportions)
-	HumanoidEquipmentDrawer.draw_head_layer(avatar, proportions)
+	HumanoidEquipmentDrawer.draw_all_layers(avatar, proportions)
+	HumanoidEquipmentDrawer.draw_body_layers(avatar, proportions)
 
-	assert_eq(
-		avatar.calls,
-		[
-			"back:cloak",
-			"boots",
-			"legs",
-			"chest",
-			"head",
-		]
-	)
-	assert_eq(avatar.last_proportions, proportions)
+	assert_true(avatar.equipped_visuals.is_empty())
+	avatar.free()
 
 
-class EquipmentAvatarStub:
-	extends RefCounted
+func test_equipment_drawer_owns_apron_draw_mode_policy() -> void:
+	var avatar := HumanoidAvatar2D.new()
 
-	var calls: Array[String] = []
-	var last_proportions := {}
+	avatar.set_facing_direction(Vector2.UP)
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "back")
 
-	func _draw_back_equipment_layer(proportions: Dictionary, layer_id: String) -> void:
-		last_proportions = proportions
-		calls.append("back:%s" % layer_id)
+	avatar.set_facing_direction(Vector2.RIGHT)
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "side")
 
-	func _draw_boot_equipment_layer(proportions: Dictionary) -> void:
-		last_proportions = proportions
-		calls.append("boots")
-
-	func _draw_leg_equipment_layer(proportions: Dictionary) -> void:
-		last_proportions = proportions
-		calls.append("legs")
-
-	func _draw_chest_equipment_layer(proportions: Dictionary) -> void:
-		last_proportions = proportions
-		calls.append("chest")
-
-	func _draw_head_equipment_layer(proportions: Dictionary) -> void:
-		last_proportions = proportions
-		calls.append("head")
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "front")
+	avatar.free()

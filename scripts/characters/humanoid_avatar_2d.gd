@@ -1744,284 +1744,35 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 
 
 func _draw_equipment_layers(proportions: Dictionary) -> void:
-	_draw_back_equipment_layer(proportions, PEOPLE_FEATURE_LAYER_BACK)
-	_draw_boot_equipment_layer(proportions)
-	_draw_leg_equipment_layer(proportions)
-	_draw_chest_equipment_layer(proportions)
-	_draw_back_equipment_layer(proportions, PEOPLE_FEATURE_LAYER_FRONT)
-	_draw_head_equipment_layer(proportions)
-	HumanoidHeldItemDrawer.draw_hand_equipment(self, "left_hand", proportions)
-	HumanoidHeldItemDrawer.draw_hand_equipment(self, "right_hand", proportions)
+	HumanoidEquipmentDrawer.draw_all_layers(self, proportions)
 
 
 func _draw_body_equipment_layers(proportions: Dictionary) -> void:
-	_draw_chest_equipment_layer(proportions)
+	HumanoidEquipmentDrawer.draw_body_layers(self, proportions)
 
 
 func _draw_back_equipment_layer(proportions: Dictionary, layer_id: String) -> void:
-	if not equipped_visuals.has("back"):
-		return
-	var back_view := _is_back_view()
-	if layer_id == PEOPLE_FEATURE_LAYER_BACK and back_view:
-		return
-	if layer_id == PEOPLE_FEATURE_LAYER_FRONT and not back_view:
-		return
-	var color := _equipment_color("back")
-	var shoulder_width := 19.0 * _proportion(proportions, "shoulder_width")
-	var waist_width := 16.0 * _proportion(proportions, "waist_width")
-	var y_top := -8.5
-	var y_bottom := 10.6
-	var points := _body_polygon(
-		[
-			Vector2(-shoulder_width * 0.44, y_top),
-			Vector2(shoulder_width * 0.44, y_top),
-			Vector2(waist_width * 0.42, y_bottom),
-			Vector2(0.0, y_bottom + 2.0),
-			Vector2(-waist_width * 0.42, y_bottom)
-		]
-	)
-	_draw_shape(points, color, OUTLINE, 0.75)
-	draw_line(_body_point(0.0, y_top + 1.0), _body_point(0.0, y_bottom), color.darkened(0.28), 0.55)
+	HumanoidEquipmentDrawer.draw_back_layer(self, proportions, layer_id)
 
 
 func _draw_boot_equipment_layer(proportions: Dictionary) -> void:
-	if not equipped_visuals.has("boots"):
-		return
-	var color := _equipment_color("boots")
-	var foot_size := _proportion(proportions, "foot_size")
-	for side in [-1.0, 1.0]:
-		_draw_foot(
-			_foot_anchor(side, proportions) + _stride_offset(side) + Vector2(0.0, 0.8 * foot_size),
-			4.6 * foot_size,
-			3.8 * foot_size,
-			side,
-			color
-		)
+	HumanoidEquipmentDrawer.draw_boot_layer(self, proportions)
 
 
 func _draw_leg_equipment_layer(proportions: Dictionary) -> void:
-	if not equipped_visuals.has("legs"):
-		return
-	var color := _equipment_color("legs")
-	var waist_width := 13.0 * _proportion(proportions, "waist_width")
-	for side in [-1.0, 1.0]:
-		var hip := _body_point(side * waist_width * 0.20, 2.7)
-		var knee := _body_point(side * waist_width * 0.14, 7.9)
-		draw_line(hip, knee, color, 3.4)
-		draw_line(hip + Vector2(side * 0.7, 0.2), knee, color.lightened(0.16), 0.55)
+	HumanoidEquipmentDrawer.draw_leg_layer(self, proportions)
 
 
 func _draw_chest_equipment_layer(proportions: Dictionary) -> void:
-	if not equipped_visuals.has("chest"):
-		return
-	if _chest_equipment_uses_wrap_style():
-		_draw_smith_apron_equipment_layer(proportions)
-		return
-	_draw_chest_armour_equipment_layer(proportions)
-
-
-func _draw_chest_armour_equipment_layer(proportions: Dictionary) -> void:
-	var chest_width := 16.0 * _proportion(proportions, "torso_width")
-	var color := _equipment_color("chest")
-	var armour_points := _body_polygon(
-		[
-			Vector2(-chest_width * 0.43, -6.0),
-			Vector2(chest_width * 0.43, -6.0),
-			Vector2(chest_width * 0.34, 3.6),
-			Vector2(0.0, 5.2),
-			Vector2(-chest_width * 0.34, 3.6)
-		]
-	)
-	_draw_shape(armour_points, color, OUTLINE, 1.0)
-	draw_line(
-		_body_point(-chest_width * 0.22, -3.0),
-		_body_point(chest_width * 0.20, -3.3),
-		WARM_HIGHLIGHT,
-		0.8
-	)
-
-
-func _draw_smith_apron_equipment_layer(proportions: Dictionary) -> void:
-	var color := _equipment_color("chest")
-	var back_turn := _back_turn_amount()
-	var shoulder_width := 17.0 * _proportion(proportions, "shoulder_width")
-	var torso_width := 15.5 * _proportion(proportions, "torso_width")
-	var waist_width := 14.5 * _proportion(proportions, "waist_width")
-	var upper_top_y := -6.5
-	var waist_y := 3.9
-	var hem_y := 10.8
-
-	match _apron_draw_mode():
-		"back":
-			_draw_apron_back_straps(shoulder_width, waist_width, color, back_turn)
-			return
-		"side":
-			_draw_apron_side_panel(torso_width, waist_width, color, upper_top_y, waist_y, hem_y)
-			return
-	_draw_apron_front_panel(
-		shoulder_width, torso_width, waist_width, color, upper_top_y, waist_y, hem_y
-	)
-
-
-func _draw_apron_front_panel(
-	shoulder_width: float,
-	torso_width: float,
-	waist_width: float,
-	color: Color,
-	upper_top_y: float,
-	waist_y: float,
-	hem_y: float
-) -> void:
-	var side_turn := _side_turn_amount()
-	var side := _face_side()
-	var shift := side * torso_width * 0.08 * side_turn
-	var far_shrink := 1.0 - 0.34 * side_turn
-	var near_boost := 1.0 + 0.06 * side_turn
-	var left_scale := near_boost if side < 0.0 else far_shrink
-	var right_scale := near_boost if side > 0.0 else far_shrink
-	var upper_points := _body_polygon(
-		[
-			Vector2(shift - shoulder_width * 0.28 * left_scale, upper_top_y),
-			Vector2(shift + shoulder_width * 0.28 * right_scale, upper_top_y),
-			Vector2(shift + torso_width * 0.38 * right_scale, waist_y),
-			Vector2(shift - torso_width * 0.38 * left_scale, waist_y)
-		]
-	)
-	var lower_points := _body_polygon(
-		[
-			Vector2(shift - waist_width * 0.36 * left_scale, waist_y - 0.2),
-			Vector2(shift + waist_width * 0.36 * right_scale, waist_y - 0.2),
-			Vector2(shift + waist_width * 0.24 * right_scale, hem_y),
-			Vector2(shift - waist_width * 0.24 * left_scale, hem_y)
-		]
-	)
-	_draw_shape(upper_points, color, OUTLINE, 0.95)
-	_draw_shape(lower_points, color.darkened(0.04), OUTLINE, 0.95)
-	draw_line(
-		_body_point(shift - shoulder_width * 0.34 * left_scale, upper_top_y + 1.2),
-		_body_point(shift - torso_width * 0.43 * left_scale, waist_y + 0.2),
-		color.darkened(0.24),
-		0.75
-	)
-	draw_line(
-		_body_point(shift + shoulder_width * 0.34 * right_scale, upper_top_y + 1.2),
-		_body_point(shift + torso_width * 0.43 * right_scale, waist_y + 0.2),
-		color.darkened(0.24),
-		0.75
-	)
-	draw_line(
-		_body_point(shift - waist_width * 0.32 * left_scale, waist_y),
-		_body_point(shift + waist_width * 0.32 * right_scale, waist_y),
-		color.lightened(0.16),
-		0.85
-	)
-	draw_line(
-		_body_point(shift - side * waist_width * 0.05, waist_y + 1.5),
-		_body_point(shift - side * waist_width * 0.03, hem_y - 0.5),
-		color.darkened(0.18),
-		0.55
-	)
-
-
-func _draw_apron_side_panel(
-	torso_width: float,
-	waist_width: float,
-	color: Color,
-	upper_top_y: float,
-	waist_y: float,
-	hem_y: float
-) -> void:
-	var side := _face_side()
-	var side_points := _body_polygon(
-		[
-			Vector2(side * torso_width * 0.06, upper_top_y + 0.3),
-			Vector2(side * torso_width * 0.38, upper_top_y + 1.0),
-			Vector2(side * waist_width * 0.32, hem_y),
-			Vector2(side * waist_width * 0.06, hem_y - 0.4)
-		]
-	)
-	_draw_shape(side_points, color.darkened(0.03), OUTLINE, 0.85)
-	draw_line(
-		_body_point(side * torso_width * 0.04, upper_top_y + 1.0),
-		_body_point(side * waist_width * 0.03, waist_y + 0.3),
-		color.darkened(0.28),
-		0.70
-	)
-	draw_line(
-		_body_point(side * waist_width * 0.04, waist_y),
-		_body_point(side * waist_width * 0.35, waist_y + 0.4),
-		color.lightened(0.12),
-		0.75
-	)
-	draw_line(
-		_body_point(side * torso_width * 0.08, upper_top_y + 0.4),
-		_body_point(-side * torso_width * 0.16, upper_top_y - 0.2),
-		color.darkened(0.18),
-		0.65
-	)
-
-
-func _draw_apron_back_straps(
-	shoulder_width: float, waist_width: float, color: Color, back_turn: float
-) -> void:
-	var strap_color := color.darkened(0.18)
-	var top_y := -6.2 - back_turn * 0.35
-	var waist_y := 4.2
-	draw_line(
-		_body_point(-shoulder_width * 0.24, top_y),
-		_body_point(waist_width * 0.35, waist_y),
-		strap_color,
-		0.85
-	)
-	draw_line(
-		_body_point(shoulder_width * 0.24, top_y),
-		_body_point(-waist_width * 0.35, waist_y),
-		strap_color,
-		0.85
-	)
-	draw_line(
-		_body_point(-waist_width * 0.42, waist_y),
-		_body_point(waist_width * 0.42, waist_y),
-		color,
-		0.9
-	)
-
-
-func _apron_draw_mode() -> String:
-	var forward := _facing_forward()
-	if maxf(0.0, -forward.y) > 0.55:
-		return "back"
-	if absf(forward.x) > 0.72 and maxf(0.0, forward.y) < 0.32:
-		return "side"
-	return "front"
+	HumanoidEquipmentDrawer.draw_chest_layer(self, proportions)
 
 
 func _draw_head_equipment_layer(proportions: Dictionary) -> void:
-	if not equipped_visuals.has("head"):
-		return
-	var color := _equipment_color("head")
-	var head_size := _proportion(proportions, "head_size")
-	var radius := 7.1 * head_size
-	var head_offset := _head_turn_offset()
-	var back_turn := _back_turn_amount()
-	var cap := PackedVector2Array(
-		[
-			head_offset + Vector2(-radius * 0.78, -15.2 - back_turn * 0.4),
-			head_offset + Vector2(-radius * 0.52, -19.2),
-			head_offset + Vector2(0.0, -21.3),
-			head_offset + Vector2(radius * 0.52, -19.2),
-			head_offset + Vector2(radius * 0.78, -15.2 - back_turn * 0.4),
-			head_offset + Vector2(radius * 0.48, -13.4 + back_turn * 1.4),
-			head_offset + Vector2(-radius * 0.48, -13.4 + back_turn * 1.4)
-		]
-	)
-	_draw_shape(cap, color, OUTLINE, 0.75)
-	draw_line(
-		head_offset + Vector2(-radius * 0.42, -15.0),
-		head_offset + Vector2(radius * 0.42, -15.2),
-		color.lightened(0.18),
-		0.55
-	)
+	HumanoidEquipmentDrawer.draw_head_layer(self, proportions)
+
+
+func _apron_draw_mode() -> String:
+	return HumanoidEquipmentDrawer._apron_draw_mode(self)
 
 
 func _draw_face(proportions: Dictionary) -> void:
