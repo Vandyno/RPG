@@ -68,7 +68,7 @@ static func generated_people_profile(
 		{
 			"character_id": profile_id,
 			"people_id": people_id,
-			"state": "alive",
+			"state": HumanoidProfile.STATE_ALIVE,
 			"appearance": appearance,
 			"inventory_owner_id": profile_id,
 			"equipment_owner_id": profile_id,

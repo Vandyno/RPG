@@ -1,11 +1,17 @@
 class_name HumanoidProfile
 extends RefCounted
 
-const VALID_STATES := ["alive", "unconscious", "dead_body", "despawned"]
+const STATE_ALIVE := "alive"
+const STATE_UNCONSCIOUS := "unconscious"
+const STATE_DEAD := "dead"
+const STATE_DEAD_BODY := "dead_body"
+const STATE_DESPAWNED := "despawned"
+const VALID_STATES := [STATE_ALIVE, STATE_UNCONSCIOUS, STATE_DEAD_BODY, STATE_DESPAWNED]
+const DEAD_STATES := [STATE_DEAD, STATE_DEAD_BODY, STATE_DESPAWNED]
 const VALID_HANDEDNESS := ["right", "left"]
 const DEFAULT_CHARACTER_ID := "char_unknown"
 const DEFAULT_PEOPLE_ID := "people_human"
-const DEFAULT_STATE := "alive"
+const DEFAULT_STATE := STATE_ALIVE
 const DEFAULT_HANDEDNESS := "right"
 const DEFAULT_BODY_PLAN_ID := "body_humanoid_average"
 const DEFAULT_HEAD_ID := "head_human_round"

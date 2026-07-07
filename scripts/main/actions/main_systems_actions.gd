@@ -396,7 +396,7 @@ static func _create_body_for_defeated_humanoid(ctx: AimCombatContext, entity) ->
 		return
 	_seed_body_inventory(ctx, owner_id, entity.data)
 	var body_profile := profile.duplicate(true)
-	body_profile["state"] = "dead_body"
+	body_profile["state"] = ActorRules.STATE_DEAD_BODY
 	var entity_id: String = entity.get_entity_id()
 	var body_id: String = "body_%s" % entity_id
 	var body_entry := {
