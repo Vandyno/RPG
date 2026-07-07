@@ -47,6 +47,17 @@ func test_shop_blocks_selling_equipped_items_and_reports_actions() -> void:
 	assert_eq(shops.sell_price("shop_crossroads_peddler", "item_road_hatchet"), 9)
 	assert_true(shops.get_shop_summary("shop_crossroads_peddler").contains("Roadside Draught: 8g"))
 	assert_true(shops.get_buy_actions("shop_crossroads_peddler")[0]["text"].contains("Buy"))
+	assert_eq(
+		shops.get_stock_rows("shop_crossroads_peddler")[0],
+		{
+			"item_id": "item_roadside_draught",
+			"name": "Roadside Draught",
+			"price": 8,
+			"action_id": "buy:item_roadside_draught",
+			"available": true,
+			"merchant_name": "Crossroads Peddler"
+		}
+	)
 	assert_true(
 		shops.get_sell_actions("shop_crossroads_peddler")[0]["text"].contains("Sell Road Hatchet")
 	)

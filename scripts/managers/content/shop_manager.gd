@@ -129,6 +129,31 @@ func get_buy_actions(shop_id: String) -> Array[Dictionary]:
 	return actions
 
 
+func get_stock_rows(shop_id: String) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var shop := _shop(shop_id)
+	if shop.is_empty():
+		return rows
+	var shop_open := is_shop_open(shop_id)
+	for stock_entry in _shop_stock(shop_id):
+		var item_id := String(stock_entry.get("item_id", ""))
+		var item := _item(item_id)
+		var price := buy_price(shop_id, item_id)
+		if item.is_empty() or price <= 0:
+			continue
+		rows.append(
+			{
+				"item_id": item_id,
+				"name": String(item.get("name", item_id)),
+				"price": price,
+				"action_id": "buy:%s" % item_id if shop_open else "",
+				"available": shop_open,
+				"merchant_name": String(shop.get("name", shop_id))
+			}
+		)
+	return rows
+
+
 func get_sell_actions(shop_id: String) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
 	if not is_shop_open(shop_id):

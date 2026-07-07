@@ -93,6 +93,7 @@ static func build(ctx: HudContext) -> Dictionary:
 	var transfer_target_items := _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id)
 	var trade_summary := String(ctx.hud_queries.trade_text(shop_id))
 	var trade_actions: Array = ctx.hud_queries.trade_actions_data(shop_id)
+	var trade_stock_rows: Array = ctx.hud_queries.trade_stock_rows_data(shop_id)
 	var progression_summary := String(ctx.progression.get_summary())
 	var progression_details := String(ctx.progression.get_details())
 	var progression_actions: Array = ctx.hud_queries.progression_actions_data()
@@ -140,6 +141,7 @@ static func build(ctx: HudContext) -> Dictionary:
 		"spell_slots": _spell_slots_data(ctx),
 		"trade": trade_summary,
 		"trade_actions": trade_actions,
+		"trade_stock_rows": trade_stock_rows,
 		"equipment": equipment_summary,
 		"equipment_slots": _equipment_slots_data(ctx),
 		"factions": faction_summary,
@@ -174,6 +176,7 @@ static func build(ctx: HudContext) -> Dictionary:
 			"status_details": status_details,
 			"trade": trade_summary,
 			"trade_actions": trade_actions,
+			"trade_stock_rows": trade_stock_rows,
 			"quests": active_quests,
 			"quest_directions": quest_directions,
 			"quest_target_actions": quest_target_actions,
@@ -227,7 +230,8 @@ static func _system_tabs(values: Dictionary) -> Dictionary:
 		},
 		"trade": {
 			"summary": values.get("trade", "No trader selected."),
-			"actions": values.get("trade_actions", [])
+			"actions": values.get("trade_actions", []),
+			"stock_rows": values.get("trade_stock_rows", [])
 		},
 		"quests": {
 			"quests": values.get("quests", []),

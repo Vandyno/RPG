@@ -35,7 +35,8 @@ static func character(state: Dictionary) -> Dictionary:
 static func trade(state: Dictionary) -> Dictionary:
 	return _tab_with_fallback(state, "trade", {
 		"summary": state.get("trade", "No trader selected."),
-		"actions": state.get("trade_actions", [])
+		"actions": state.get("trade_actions", []),
+		"stock_rows": state.get("trade_stock_rows", [])
 	})
 
 

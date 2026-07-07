@@ -955,6 +955,25 @@ func _sample_state() -> Dictionary:
 			+ "Sell: none"
 		),
 		"trade_actions": [{"id": "buy:item_roadside_draught", "text": "Buy Roadside Draught (8g)"}],
+		"trade_stock_rows":
+		[
+			{
+				"item_id": "item_roadside_draught",
+				"name": "Roadside Draught",
+				"price": 8,
+				"action_id": "buy:item_roadside_draught",
+				"available": true,
+				"merchant_name": "Crossroads Peddler"
+			},
+			{
+				"item_id": "item_traveler_buckler",
+				"name": "Traveler Buckler",
+				"price": 18,
+				"action_id": "",
+				"available": false,
+				"merchant_name": "Crossroads Peddler"
+			}
+		],
 		"location_details": "Briarwatch Crossroads - Marches of Velcor",
 		"nearby_targets":
 		[

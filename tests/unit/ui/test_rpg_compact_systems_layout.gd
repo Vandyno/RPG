@@ -357,6 +357,17 @@ func _sample_state() -> Dictionary:
 			+ "Sell: none"
 		),
 		"trade_actions": [{"id": "buy:item_roadside_draught", "text": "Buy Roadside Draught"}],
+		"trade_stock_rows":
+		[
+			{
+				"item_id": "item_roadside_draught",
+				"name": "Roadside Draught",
+				"price": 8,
+				"action_id": "buy:item_roadside_draught",
+				"available": true,
+				"merchant_name": "Crossroads Peddler"
+			}
+		],
 		"nearby_targets":
 		[
 			{

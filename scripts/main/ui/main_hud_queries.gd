@@ -124,6 +124,12 @@ func trade_actions_data(shop_id: String) -> Array[Dictionary]:
 	return actions
 
 
+func trade_stock_rows_data(shop_id: String) -> Array[Dictionary]:
+	if shop_id.is_empty():
+		return []
+	return shops.get_stock_rows(shop_id)
+
+
 func nearby_entities_text(nearby_entities: Array, selected_target_id: String) -> String:
 	if nearby_entities.is_empty():
 		return "none"
