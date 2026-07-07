@@ -44,6 +44,7 @@ try {
 
   $realClickScripts = @(
     "scripts\tools\verify\verify_body_loot_transfer_click.gd",
+    "scripts\tools\verify\verify_spawn_slice_public_input.gd",
     "scripts\tools\verify\verify_rpg_ui_real_clicks.gd",
     "scripts\tools\verify\verify_debug_character_creator_clicks.gd"
   )
