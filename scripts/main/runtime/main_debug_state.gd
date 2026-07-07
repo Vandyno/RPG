@@ -6,7 +6,7 @@ const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
 
 
 static func build(main) -> Dictionary:
-	var state := MainHudState.build(main)
+	var state := MainHudState.build(MainHudState.context(main))
 	state.merge(
 		{
 			"player_world": "(%.1f, %.1f)" % [main.player.position.x, main.player.position.y],

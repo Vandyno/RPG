@@ -77,8 +77,7 @@ static func context(main) -> HudContext:
 	return HudContext.new(main)
 
 
-static func build(source) -> Dictionary:
-	var ctx := _context(source)
+static func build(ctx: HudContext) -> Dictionary:
 	var nearby = ctx.get_nearby_entity.call()
 	var auto_target = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	var displayed = auto_target if auto_target else nearby
@@ -387,6 +386,3 @@ static func _spell_slot_label(slot_id: String) -> String:
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
 
-
-static func _context(source) -> HudContext:
-	return source if source is HudContext else context(source)
