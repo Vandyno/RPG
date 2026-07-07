@@ -66,7 +66,8 @@ static func build(context: BuildContext) -> Dictionary:
 		)
 		ability.name = "%sButton" % slot_id.to_pascal_case()
 		ability.set_meta("ability_slot", slot_id)
-		ability.aimed.connect(context.aim_action)
+		if context.aim_action.is_valid():
+			ability.aimed.connect(context.aim_action)
 		if context.held_action.is_valid():
 			ability.aim_held.connect(context.held_action)
 		ability_stack.add_child(ability)
@@ -77,7 +78,8 @@ static func build(context: BuildContext) -> Dictionary:
 	primary.set_meta("action_role", "primary")
 	primary.center_label = ""
 	primary.footer_label = "Attack"
-	primary.aimed.connect(context.aim_action)
+	if context.aim_action.is_valid():
+		primary.aimed.connect(context.aim_action)
 	if context.held_action.is_valid():
 		primary.aim_held.connect(context.held_action)
 	cluster.add_child(primary)
