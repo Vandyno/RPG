@@ -55,6 +55,20 @@ static func push_motion(tree: SceneTree, viewport: Viewport, position: Vector2) 
 	await tree.process_frame
 
 
+static func push_key(tree: SceneTree, viewport: Viewport, keycode: Key) -> void:
+	var press := InputEventKey.new()
+	press.keycode = keycode
+	press.pressed = true
+	viewport.push_input(press)
+	await tree.process_frame
+
+	var release := InputEventKey.new()
+	release.keycode = keycode
+	release.pressed = false
+	viewport.push_input(release)
+	await tree.process_frame
+
+
 static func reveal_button(tree: SceneTree, button: Button) -> void:
 	var parent := button.get_parent()
 	while parent:
