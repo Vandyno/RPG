@@ -210,18 +210,6 @@ static func trade_item_detail(
 	])
 
 
-static func inventory_action_id_for_item(item: Dictionary) -> String:
-	var item_id := String(item.get("item_id", ""))
-	if item_id.is_empty():
-		return ""
-	var slot := String(item.get("equipment_slot", ""))
-	if not slot.is_empty():
-		return "equip:%s" % item_id
-	if String(item.get("type", "")).to_lower() == "consumable":
-		return "use:%s" % item_id
-	return ""
-
-
 static func action_id_for_text(actions: Array, prefix: String) -> String:
 	for action in actions:
 		if not action is Dictionary:
@@ -237,8 +225,7 @@ static func action_for_item_id(actions: Array, item_id: String) -> Dictionary:
 	for action in actions:
 		if not action is Dictionary:
 			continue
-		var action_id := String(action.get("id", ""))
-		if action_id.ends_with(":%s" % item_id):
+		if String(action.get("item_id", "")) == item_id:
 			return action
 	return {}
 

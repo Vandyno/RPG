@@ -679,8 +679,16 @@ func _sample_state() -> Dictionary:
 		"Old Toolbox x1: A heavy wooden toolbox stamped with Harrow Venn's maker's mark.",
 		"inventory_actions":
 		[
-			{"id": "use:item_roadside_draught", "text": "Use Roadside Draught"},
-			{"id": "equip:item_road_hatchet", "text": "Equip Road Hatchet"}
+			{
+				"id": "use:item_roadside_draught",
+				"item_id": "item_roadside_draught",
+				"text": "Use Roadside Draught"
+			},
+			{
+				"id": "equip:item_road_hatchet",
+				"item_id": "item_road_hatchet",
+				"text": "Equip Road Hatchet"
+			}
 		],
 		"equipment": "Weapon: Road Hatchet\nOffhand: empty\nBody: empty",
 		"factions": "Marches of Velcor +5",

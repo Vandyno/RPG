@@ -33,6 +33,16 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 	assert_false(main.get_hud_state().has("player_world"))
 	assert_true(main.get_debug_state().has("player_world"))
 	assert_true(main.hud.get_state.get_method() == "get_hud_state")
+	var inventory_actions: Array = main.get_hud_state()["system_tabs"]["inventory"]["actions"]
+	var hatchet_action_has_item_id := false
+	for action in inventory_actions:
+		if (
+			action is Dictionary
+			and String(action.get("id", "")) == "equip:item_road_hatchet"
+			and String(action.get("item_id", "")) == "item_road_hatchet"
+		):
+			hatchet_action_has_item_id = true
+	assert_true(hatchet_action_has_item_id)
 
 func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	var hud := _new_hud()
@@ -611,6 +621,28 @@ func test_empty_inventory_and_quests_do_not_create_fake_rows() -> void:
 	assert_true(hud.systems_detail_label.text.contains("No active quests"))
 
 
+func test_inventory_rows_do_not_invent_missing_item_actions() -> void:
+	var state := _sample_state()
+	state["inventory_actions"] = [
+		{
+			"id": "use:item_roadside_draught",
+			"item_id": "item_roadside_draught",
+			"text": "Use Roadside Draught"
+		}
+	]
+	var hud := _new_hud(state)
+	hud._apply_layout_for_size(Vector2(1152, 648))
+	hud.show_systems_panel("inventory")
+
+	var emitted: Array[String] = []
+	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
+	var hatchet_row := _button_containing(hud.systems_item_list, "Road Hatchet")
+	assert_not_null(hatchet_row)
+	assert_eq(String(hatchet_row.get_meta("action_id", "")), "")
+	hatchet_row.pressed.emit()
+	assert_true(emitted.is_empty())
+
+
 func test_rpg_systems_menu_shows_right_character_pane_on_wide_desktop() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1920, 1080))
@@ -847,8 +879,16 @@ func _sample_state() -> Dictionary:
 		),
 		"inventory_actions":
 		[
-			{"id": "use:item_roadside_draught", "text": "Use Roadside Draught"},
-			{"id": "equip:item_road_hatchet", "text": "Equip Road Hatchet"}
+			{
+				"id": "use:item_roadside_draught",
+				"item_id": "item_roadside_draught",
+				"text": "Use Roadside Draught"
+			},
+			{
+				"id": "equip:item_road_hatchet",
+				"item_id": "item_road_hatchet",
+				"text": "Equip Road Hatchet"
+			}
 		],
 		"equipment": "Weapon: Road Hatchet\nOffhand: empty\nBody: empty",
 		"equipment_slots":

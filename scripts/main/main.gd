@@ -889,7 +889,12 @@ func _inventory_actions_data() -> Array[Dictionary]:
 			continue
 		var item_name := String(item.get("name", item_id))
 		if has_use:
-			actions.append({"id": "use:%s" % item_id, "text": "Use %s" % item_name, "count": count})
+			actions.append({
+				"id": "use:%s" % item_id,
+				"item_id": item_id,
+				"text": "Use %s" % item_name,
+				"count": count
+			})
 		if not slot.is_empty():
 			var equipped_item_id: String = equipment.get_equipped_item(slot)
 			var action_id := (
@@ -898,7 +903,7 @@ func _inventory_actions_data() -> Array[Dictionary]:
 			var action_text := (
 				"Unequip %s" % item_name if equipped_item_id == item_id else "Equip %s" % item_name
 			)
-			actions.append({"id": action_id, "text": action_text})
+			actions.append({"id": action_id, "item_id": item_id, "text": action_text})
 	return actions
 
 

@@ -144,9 +144,7 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 			RpgSystemsRowBuilder.array_field(tab.get("actions", [])),
 			String(item.get("item_id", ""))
 		)
-		var action_id := String(action.get(
-			"id", RpgSystemsRowBuilder.inventory_action_id_for_item(item)
-		))
+		var action_id := String(action.get("id", ""))
 		var action_text := String(action.get("text", ""))
 		var item_type := _inventory_category_label(item_category)
 		var description := String(item.get("description", "No item details available."))
