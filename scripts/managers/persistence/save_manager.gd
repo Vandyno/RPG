@@ -90,7 +90,11 @@ func save_game() -> SaveResult:
 	}
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if not file:
-		return _save_failure("write_failed", "Could not write save file.")
+		var open_error := FileAccess.get_open_error()
+		return _save_failure(
+			"write_failed",
+			"Could not write save file at %s: %s." % [save_path, error_string(open_error)]
+		)
 	file.store_string(JSON.stringify(data, "\t"))
 	var result := SaveResult.new(true, "ok", "Saved to %s" % save_path, save_path)
 	if event_bus:
@@ -151,13 +155,20 @@ func _missing_required_provider() -> String:
 
 func _parsed_save_file() -> LoadResult:
 	if not FileAccess.file_exists(save_path):
-		return _load_failure("missing_file", "No save file yet.")
+		return _load_failure("missing_file", "No save file yet at %s." % save_path)
 	var json := JSON.new()
-	if json.parse(FileAccess.get_file_as_string(save_path)) != OK:
-		return _load_failure("invalid_json", "Save file is invalid.")
+	var parse_error := json.parse(FileAccess.get_file_as_string(save_path))
+	if parse_error != OK:
+		return _load_failure(
+			"invalid_json",
+			(
+				"Save file is invalid at %s line %d: %s."
+				% [save_path, json.get_error_line(), json.get_error_message()]
+			)
+		)
 	var parsed: Variant = json.data
 	if not parsed is Dictionary:
-		return _load_failure("invalid_root", "Save file is invalid.")
+		return _load_failure("invalid_root", "Save file is invalid at %s." % save_path)
 	return LoadResult.new(true, "ok", "", save_path, parsed)
 
 

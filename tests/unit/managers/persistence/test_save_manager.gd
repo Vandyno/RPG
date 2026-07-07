@@ -4,6 +4,7 @@ const SaveManager = preload("res://scripts/managers/persistence/save_manager.gd"
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 const TEST_SAVE_PATH := "user://test_save_manager.json"
+const TEST_BAD_SAVE_PATH := "user://missing_save_dir/test_save_manager.json"
 
 
 class ProviderStub:
@@ -29,10 +30,12 @@ class EntityProviderStub:
 
 func before_each() -> void:
 	_remove_test_save()
+	_remove_bad_save_path()
 
 
 func after_each() -> void:
 	_remove_test_save()
+	_remove_bad_save_path()
 
 
 func test_save_and_load_round_trips_all_system_sections() -> void:
@@ -131,6 +134,51 @@ func test_missing_required_provider_reports_failure() -> void:
 	assert_eq(result.code, "missing_provider")
 	assert_true(result.message.contains("combat"))
 	assert_eq(result.message, messages.back())
+
+
+func test_write_failure_reports_path_and_open_error() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var messages: Array[String] = []
+	bus.message_posted.connect(func(text: String) -> void: messages.append(text))
+	var manager := SaveManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, _provider_set(), TEST_BAD_SAVE_PATH)
+
+	var result := manager.save_game()
+
+	assert_false(result.ok)
+	assert_eq(result.code, "write_failed")
+	assert_eq(result.path, TEST_BAD_SAVE_PATH)
+	assert_true(result.message.contains(TEST_BAD_SAVE_PATH))
+	assert_true(result.message.contains("Could not write save file"))
+	assert_eq(result.message, messages.back())
+
+
+func test_invalid_json_reports_path_line_and_parser_message() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var messages: Array[String] = []
+	bus.message_posted.connect(func(text: String) -> void: messages.append(text))
+	var providers := _provider_set()
+	var manager := SaveManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, providers, TEST_SAVE_PATH)
+	var file := FileAccess.open(TEST_SAVE_PATH, FileAccess.WRITE)
+	file.store_string("{\"version\":")
+	file = null
+
+	var result := manager.load_game()
+
+	assert_false(result.ok)
+	assert_eq(result.code, "invalid_json")
+	assert_eq(result.path, TEST_SAVE_PATH)
+	assert_true(result.message.contains(TEST_SAVE_PATH))
+	assert_true(result.message.contains("line"))
+	assert_true(result.message.contains("Expected"))
+	assert_eq(result.message, messages.back())
+	assert_eq(providers["player"].loaded_payload, {})
+	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_unsupported_save_version_reports_failure_without_loading() -> void:
@@ -305,3 +353,11 @@ func _complete_save_data() -> Dictionary:
 func _remove_test_save() -> void:
 	if FileAccess.file_exists(TEST_SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE_PATH))
+
+
+func _remove_bad_save_path() -> void:
+	if FileAccess.file_exists(TEST_BAD_SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_BAD_SAVE_PATH))
+	var bad_dir := ProjectSettings.globalize_path("user://missing_save_dir")
+	if DirAccess.dir_exists_absolute(bad_dir):
+		DirAccess.remove_absolute(bad_dir)
