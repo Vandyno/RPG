@@ -3,6 +3,7 @@ extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 
 
 func _initialize() -> void:
@@ -28,7 +29,7 @@ func _verify() -> void:
 		printerr("Hunting Bow transfer button missing.")
 		quit(1)
 		return
-	await _push_button_click(take_bow)
+	await VerifyInputHelper.click_button(self, root, take_bow)
 	await process_frame
 
 	if main.inventory.get_count("item_hunting_bow") != 2:
@@ -48,7 +49,7 @@ func _verify() -> void:
 		printerr("Hunting Bow put-back button missing.")
 		quit(1)
 		return
-	await _push_button_click(put_bow)
+	await VerifyInputHelper.click_button(self, root, put_bow)
 	await process_frame
 	if main.inventory.get_count("item_hunting_bow") != 1:
 		printerr("Clicked Hunting Bow did not move back to body inventory.")
@@ -72,7 +73,7 @@ func _verify() -> void:
 		printerr("Gold Coin take button missing.")
 		quit(1)
 		return
-	await _push_button_click(take_gold)
+	await VerifyInputHelper.click_button(self, root, take_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked Gold Coin did not move to player inventory.")
@@ -91,7 +92,7 @@ func _verify() -> void:
 		printerr("Gold Coin put-back button missing.")
 		quit(1)
 		return
-	await _push_button_click(put_gold)
+	await VerifyInputHelper.click_button(self, root, put_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked Gold Coin did not move back to cache inventory.")
@@ -114,7 +115,7 @@ func _verify() -> void:
 		printerr("People body Gold Coin take button missing.")
 		quit(1)
 		return
-	await _push_button_click(take_people_gold)
+	await VerifyInputHelper.click_button(self, root, take_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 4:
 		printerr("Clicked people body Gold Coin did not move to player inventory.")
@@ -133,7 +134,7 @@ func _verify() -> void:
 		printerr("People body Gold Coin put button missing.")
 		quit(1)
 		return
-	await _push_button_click(put_people_gold)
+	await VerifyInputHelper.click_button(self, root, put_people_gold)
 	await process_frame
 	if main.inventory.get_count("item_gold_coin") != 3:
 		printerr("Clicked people body Gold Coin did not move back to body inventory.")
@@ -152,7 +153,7 @@ func _verify() -> void:
 		printerr("People body Training Sword take button missing.")
 		quit(1)
 		return
-	await _push_button_click(take_people_sword)
+	await VerifyInputHelper.click_button(self, root, take_people_sword)
 	await process_frame
 	if main.inventory.get_count("item_training_sword") != 2:
 		printerr("Clicked people body Training Sword did not move to player inventory.")
@@ -233,56 +234,3 @@ func _settle(main) -> void:
 		main.hud.refresh()
 	await process_frame
 	await process_frame
-
-
-func _push_button_click(button: Button) -> void:
-	var button_name := String(button.name)
-	await _reveal_button(button)
-	button = _button_named(root, button_name)
-	if not button:
-		return
-	var viewport: Viewport = button.get_viewport()
-	var position := button.get_global_rect().get_center()
-	await _push_motion(viewport, position)
-	button = _button_named(root, button_name)
-	if button:
-		viewport = button.get_viewport()
-		position = button.get_global_rect().get_center()
-
-	var press := InputEventMouseButton.new()
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.button_mask = MOUSE_BUTTON_MASK_LEFT
-	press.pressed = true
-	press.position = position
-	press.global_position = position
-	viewport.push_input(press, true)
-	await process_frame
-
-	var release := InputEventMouseButton.new()
-	release.button_index = MOUSE_BUTTON_LEFT
-	release.button_mask = 0
-	release.pressed = false
-	release.position = position
-	release.global_position = position
-	viewport.push_input(release, true)
-	await process_frame
-
-
-func _push_motion(viewport: Viewport, position: Vector2) -> void:
-	var motion := InputEventMouseMotion.new()
-	motion.position = position
-	motion.global_position = position
-	motion.button_mask = 0
-	viewport.push_input(motion)
-	await process_frame
-
-
-func _reveal_button(button: Button) -> void:
-	var parent := button.get_parent()
-	while parent:
-		if parent is ScrollContainer:
-			parent.ensure_control_visible(button)
-			await process_frame
-			await process_frame
-			return
-		parent = parent.get_parent()
