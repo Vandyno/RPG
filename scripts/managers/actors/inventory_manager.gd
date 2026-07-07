@@ -47,10 +47,8 @@ func add_item_to_owner(owner_id: String, item_id: String, count: int = 1) -> boo
 
 func remove_item_from_owner(owner_id: String, item_id: String, count: int = 1) -> bool:
 	var normalized_owner := _owner_id(owner_id)
-	if item_id.is_empty():
+	if item_id.is_empty() or count <= 0:
 		return false
-	if count <= 0:
-		return true
 	var owner_inventory := _items_for_owner(normalized_owner)
 	var current := _count_from_value(owner_inventory.get(item_id, 0))
 	if current < count:
@@ -65,6 +63,8 @@ func remove_item_from_owner(owner_id: String, item_id: String, count: int = 1) -
 
 
 func has_item_for_owner(owner_id: String, item_id: String, count: int = 1) -> bool:
+	if item_id.is_empty() or count <= 0:
+		return false
 	return get_count_for_owner(owner_id, item_id) >= count
 
 

@@ -27,9 +27,12 @@ func before_each() -> void:
 
 func test_player_inventory_clamps_known_stack_sizes_and_emits_changes() -> void:
 	assert_false(inventory.add_item("missing_item", 1))
+	assert_false(inventory.add_item("item_gold_coin", 0))
 	assert_true(inventory.add_item("item_gold_coin", 1200))
 	assert_eq(inventory.get_count("item_gold_coin"), 999)
 	assert_false(inventory.add_item("item_gold_coin", 1))
+	assert_false(inventory.remove_item("item_gold_coin", 0))
+	assert_false(inventory.has_item("item_gold_coin", 0))
 	assert_true(inventory.remove_item("item_gold_coin", 12))
 	assert_eq(inventory.get_count("item_gold_coin"), 987)
 	assert_eq(changed_items, ["item_gold_coin", "item_gold_coin"])
@@ -41,6 +44,9 @@ func test_owner_transfer_rolls_back_when_destination_cannot_accept() -> void:
 
 	assert_false(
 		inventory.transfer_item("char_bandit", InventoryManager.PLAYER_OWNER_ID, "item_old_toolbox", 1)
+	)
+	assert_false(
+		inventory.transfer_item("char_bandit", InventoryManager.PLAYER_OWNER_ID, "item_old_toolbox", 0)
 	)
 	assert_eq(inventory.get_count_for_owner("char_bandit", "item_old_toolbox"), 1)
 	assert_eq(inventory.get_count("item_old_toolbox"), 1)
