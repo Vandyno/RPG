@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
+const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
 
 func _initialize() -> void:
@@ -9,10 +10,10 @@ func _initialize() -> void:
 
 func _capture() -> void:
 	var args := OS.get_cmdline_user_args()
-	var width := _positive_arg(args, 0, 1152)
-	var height := _positive_arg(args, 1, 648)
-	var output_path := _string_arg(args, 2, "res://reports/content_panel.png")
-	var mode := _string_arg(args, 3, "dialogue")
+	var width := CaptureSheetHelper.positive_arg(args, 0, 1152)
+	var height := CaptureSheetHelper.positive_arg(args, 1, 648)
+	var output_path := CaptureSheetHelper.string_arg(args, 2, "res://reports/content_panel.png")
+	var mode := CaptureSheetHelper.string_arg(args, 3, "dialogue")
 
 	root.size = Vector2i(width, height)
 	var main := Main.new()
@@ -32,18 +33,6 @@ func _capture() -> void:
 		quit(1)
 		return
 	quit()
-
-
-func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:
-	if index >= args.size() or not args[index].is_valid_int():
-		return fallback
-	return maxi(1, int(args[index]))
-
-
-func _string_arg(args: PackedStringArray, index: int, fallback: String) -> String:
-	if index >= args.size() or args[index].is_empty():
-		return fallback
-	return args[index]
 
 
 func _show_fixture(main, mode: String) -> void:

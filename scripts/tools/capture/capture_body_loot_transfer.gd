@@ -2,6 +2,7 @@ extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
 
 func _initialize() -> void:
@@ -10,9 +11,11 @@ func _initialize() -> void:
 
 func _capture() -> void:
 	var args := OS.get_cmdline_user_args()
-	var width := _positive_arg(args, 0, 1152)
-	var height := _positive_arg(args, 1, 648)
-	var output_path := _string_arg(args, 2, "res://reports/body_loot_transfer.png")
+	var width := CaptureSheetHelper.positive_arg(args, 0, 1152)
+	var height := CaptureSheetHelper.positive_arg(args, 1, 648)
+	var output_path := CaptureSheetHelper.string_arg(
+		args, 2, "res://reports/body_loot_transfer.png"
+	)
 
 	root.size = Vector2i(width, height)
 	var main := Main.new()
@@ -54,15 +57,3 @@ func _defeat_hostile_actor(main) -> void:
 		if not main.entities.get_entity("npc_road_thug"):
 			return
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-
-
-func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:
-	if index >= args.size() or not args[index].is_valid_int():
-		return fallback
-	return maxi(1, int(args[index]))
-
-
-func _string_arg(args: PackedStringArray, index: int, fallback: String) -> String:
-	if index >= args.size() or args[index].is_empty():
-		return fallback
-	return args[index]

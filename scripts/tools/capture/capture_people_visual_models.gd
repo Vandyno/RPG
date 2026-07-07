@@ -2,6 +2,7 @@ extends SceneTree
 
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
+const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
 const PEOPLE_ORDER := [
 	"people_human",
@@ -69,9 +70,9 @@ func _initialize() -> void:
 
 func _capture() -> void:
 	var args := OS.get_cmdline_user_args()
-	var output_dir := _string_arg(args, 0, "res://reports/people_iterations_v7")
-	var width := _positive_arg(args, 1, 1152)
-	var height := _positive_arg(args, 2, 648)
+	var output_dir := CaptureSheetHelper.string_arg(args, 0, "res://reports/people_iterations_v7")
+	var width := CaptureSheetHelper.positive_arg(args, 1, 1152)
+	var height := CaptureSheetHelper.positive_arg(args, 2, 648)
 	root.size = Vector2i(width, height)
 
 	var content := ContentDatabase.new()
@@ -276,15 +277,3 @@ func _feature_text(value: Variant) -> String:
 	for entry in value:
 		parts.append(str(entry))
 	return ", ".join(parts)
-
-
-func _positive_arg(args: PackedStringArray, index: int, fallback: int) -> int:
-	if index >= args.size() or not args[index].is_valid_int():
-		return fallback
-	return maxi(1, int(args[index]))
-
-
-func _string_arg(args: PackedStringArray, index: int, fallback: String) -> String:
-	if index >= args.size() or args[index].is_empty():
-		return fallback
-	return args[index]
