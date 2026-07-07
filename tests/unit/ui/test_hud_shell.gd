@@ -1,6 +1,6 @@
 extends GutTest
 
-const LegacyHudShell = preload("res://scripts/ui/shell/legacy_hud_shell.gd")
+const LegacyHudShell = preload("res://tests/fixtures/ui/legacy_hud_shell.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 
 
