@@ -23,8 +23,7 @@ func _verify() -> void:
 		printerr("Sneak button missing.")
 		quit(1)
 		return
-	var click_position: Vector2 = button.get_global_rect().get_center()
-	_push_click(click_position)
+	await _click(button)
 	await process_frame
 	await process_frame
 
@@ -41,7 +40,7 @@ func _verify() -> void:
 		quit(1)
 		return
 
-	_push_click(click_position)
+	await _click(button)
 	await process_frame
 	await process_frame
 	if main.player.is_sneaking:
@@ -57,22 +56,40 @@ func _verify() -> void:
 	quit()
 
 
-func _push_click(position: Vector2) -> void:
-	var motion := InputEventMouseMotion.new()
-	motion.position = position
-	motion.global_position = position
-	root.push_input(motion)
+func _click(button: Button) -> void:
+	if not button.visible or not button.is_visible_in_tree():
+		return
+	await _push_click(button.get_viewport(), button.get_global_rect().get_center())
+	await process_frame
+	await process_frame
+
+
+func _push_click(viewport: Viewport, position: Vector2) -> void:
+	await _push_motion(viewport, position)
 
 	var press := InputEventMouseButton.new()
 	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
 	press.pressed = true
 	press.position = position
 	press.global_position = position
-	root.push_input(press)
+	viewport.push_input(press, true)
+	await process_frame
 
 	var release := InputEventMouseButton.new()
 	release.button_index = MOUSE_BUTTON_LEFT
+	release.button_mask = 0
 	release.pressed = false
 	release.position = position
 	release.global_position = position
-	root.push_input(release)
+	viewport.push_input(release, true)
+	await process_frame
+
+
+func _push_motion(viewport: Viewport, position: Vector2) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = position
+	motion.global_position = position
+	motion.button_mask = 0
+	viewport.push_input(motion, true)
+	await process_frame
