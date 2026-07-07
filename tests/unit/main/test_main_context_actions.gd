@@ -70,6 +70,10 @@ class MainStub:
 	var active_content_choices := {"old": true}
 	var active_transfer_name := ""
 	var active_transfer_owner_id := ""
+	var active_transfer_source_id := ""
+	var active_transfer_source_kind := ""
+	var active_transfer_source_tile := Vector2i.ZERO
+	var active_transfer_access_mode := ""
 	var chunks = null
 	var condition_evaluator = null
 	var content := ContentStub.new()
@@ -100,6 +104,14 @@ class MainStub:
 
 	func _update_nearby() -> void:
 		updated_nearby += 1
+
+	func _clear_active_transfer(_refresh_hud: bool = true) -> void:
+		active_transfer_name = ""
+		active_transfer_owner_id = ""
+		active_transfer_source_id = ""
+		active_transfer_source_kind = ""
+		active_transfer_source_tile = Vector2i.ZERO
+		active_transfer_access_mode = ""
 
 
 func test_build_promotes_effectful_npc_actions_and_trade() -> void:

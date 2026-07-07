@@ -990,6 +990,48 @@ func test_transfer_take_and_put_buttons_move_items() -> void:
 	assert_eq(main.inventory.get_count_for_owner("char_people_test_human", "item_gold_coin"), 1)
 
 
+func test_transfer_take_clears_when_source_is_no_longer_available() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	_attack_hostile_actor_until_defeated(main, "npc_people_test_human")
+	_select_entity(main, "body_npc_people_test_human")
+	main._handle_interact_requested()
+
+	assert_eq(main.active_transfer_owner_id, "char_people_test_human")
+	assert_eq(main.active_transfer_source_id, "body_npc_people_test_human")
+
+	main.player.set_world_position(Vector2(2000.0, 2000.0))
+	MainInventoryTransfer.take_item(MainInventoryTransfer.context(main), "item_gold_coin")
+
+	assert_eq(main.active_transfer_owner_id, "")
+	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_people_test_human", "item_gold_coin"), 1)
+	assert_true(main.hud.log_label.text.contains("Transfer source is gone."))
+
+
+func test_pickpocket_transfer_rechecks_sneaking_before_taking_item() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	_select_entity(main, "npc_harrow_venn_world")
+	main.player.set_sneaking(true)
+	main._refresh_hud()
+	var pickpocket_button := _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	assert_not_null(pickpocket_button)
+	pickpocket_button.pressed.emit()
+
+	assert_eq(main.active_transfer_owner_id, "char_harrow_venn")
+	assert_eq(main.active_transfer_source_id, "npc_harrow_venn_world")
+
+	main.player.set_sneaking(false)
+	MainInventoryTransfer.take_item(MainInventoryTransfer.context(main), "item_gold_coin")
+
+	assert_eq(main.active_transfer_owner_id, "")
+	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
+	assert_eq(main.inventory.get_count_for_owner("char_harrow_venn", "item_gold_coin"), 1)
+	assert_true(main.hud.log_label.text.contains("Need to be sneaking."))
+
+
 func _select_kind(main, kind: String) -> void:
 	for candidate in main.entities.entities_by_id.values():
 		if candidate and candidate.get_kind() == kind:

@@ -81,6 +81,10 @@ var auto_move_path_index := 0
 var active_content_choices: Dictionary = {}
 var active_transfer_owner_id := ""
 var active_transfer_name := ""
+var active_transfer_source_id := ""
+var active_transfer_source_kind := ""
+var active_transfer_source_tile := Vector2i.ZERO
+var active_transfer_access_mode := ""
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
 var held_weapon_attack_elapsed: Dictionary = {}
@@ -482,10 +486,20 @@ func _close_open_overlay_panel(consume_action: bool = true) -> bool:
 
 
 func _clear_active_transfer(refresh_hud: bool = true) -> void:
-	if active_transfer_owner_id.is_empty() and active_transfer_name.is_empty():
+	if (
+		active_transfer_owner_id.is_empty()
+		and active_transfer_name.is_empty()
+		and active_transfer_source_id.is_empty()
+		and active_transfer_source_kind.is_empty()
+		and active_transfer_access_mode.is_empty()
+	):
 		return
 	active_transfer_owner_id = ""
 	active_transfer_name = ""
+	active_transfer_source_id = ""
+	active_transfer_source_kind = ""
+	active_transfer_source_tile = Vector2i.ZERO
+	active_transfer_access_mode = ""
 	if refresh_hud:
 		_refresh_hud()
 
