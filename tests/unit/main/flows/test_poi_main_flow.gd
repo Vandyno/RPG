@@ -2,23 +2,30 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_town_hall_job_board_shows_place_card() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "poi_briarwatch_square")
+	assert_true(
+		await MainFlowInputHelper.target_entity(
+			main, "poi_briarwatch_square", get_tree(), false
+		)
+	)
 	assert_eq(
 		main.get_debug_state()["target_detail"],
 		"Town Hall: jobs, notices, and town records"
 	)
-	main._handle_interact_requested()
+	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 
 	assert_eq(main.hud.content_kind_label.text, "Place")
 	assert_true(main.hud.content_title_label.text.contains("Warden's Job Board"))
 	assert_true(main.hud.content_body_label.text.contains("town hall"))
-	assert_not_null(_button_containing(main.hud.content_choice_list, "Take Road Patrol Job"))
+	assert_not_null(
+		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "Take Road Patrol Job")
+	)
 	assert_true(main.hud.log_label.text.contains("Visited Warden's Job Board"))
 
 
@@ -26,21 +33,36 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "npc_harrow_venn_world")
-	_button_containing(main.hud.context_action_buttons, "I'll find it.").pressed.emit()
+	assert_true(await MainFlowInputHelper.target_entity(main, "npc_harrow_venn_world", get_tree()))
+	await MainFlowInputHelper.click(
+		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "I'll find it."),
+		get_tree()
+	)
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
 
-	_select_entity(main, "poi_briarwatch_square")
+	assert_true(
+		await MainFlowInputHelper.target_entity(
+			main, "poi_briarwatch_square", get_tree(), false
+		)
+	)
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
-	main._handle_interact_requested()
+	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 	assert_true(main.hud.content_body_label.text.contains("official notices"))
 	main.hud.hide_content_card()
-	main._update_nearby()
-	var job_button := _button_containing(main.hud.context_action_buttons, "Take Road Patrol Job")
+	assert_true(
+		await MainFlowInputHelper.target_entity(
+			main, "poi_briarwatch_square", get_tree(), false
+		)
+	)
+	var job_button := MainFlowInputHelper.button_containing(
+		main.hud.context_action_buttons, "Take Road Patrol Job"
+	)
 	assert_not_null(job_button)
-	assert_not_null(_button_containing(main.hud.context_action_buttons, "Inspect"))
+	assert_not_null(
+		MainFlowInputHelper.button_containing(main.hud.context_action_buttons, "Inspect")
+	)
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
-	job_button.pressed.emit()
+	await MainFlowInputHelper.click(job_button, get_tree())
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
 	assert_false(main.hud.is_content_card_visible())

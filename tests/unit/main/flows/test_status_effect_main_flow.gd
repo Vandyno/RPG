@@ -2,20 +2,22 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_consumable_applies_visible_status_that_modifies_next_attacks() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "pickup_roadside_draught")
-	main._handle_interact_requested()
+	assert_true(await MainFlowInputHelper.target_entity(main, "pickup_roadside_draught", get_tree()))
 	assert_eq(main.inventory.get_count("item_roadside_draught"), 1)
 
 	main.hud.toggle_systems()
-	var use_button := _button_containing(main.hud.systems_action_list, "Use Roadside Draught")
+	var use_button := MainFlowInputHelper.button_containing(
+		main.hud.systems_action_list, "Use Roadside Draught"
+	)
 	assert_not_null(use_button)
-	use_button.pressed.emit()
+	await MainFlowInputHelper.click(use_button, get_tree())
 
 	assert_eq(main.inventory.get_count("item_roadside_draught"), 0)
 	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 2)
