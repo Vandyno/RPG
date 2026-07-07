@@ -245,6 +245,13 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	systems_main_row.add_theme_constant_override("separation", 10)
 	parent.add_child(systems_main_row)
+	_build_systems_nav_panel()
+	_build_systems_center_panel()
+	_build_systems_detail_panel()
+	_build_systems_character_panel()
+
+
+func _build_systems_nav_panel() -> void:
 	systems_left_panel = _new_panel("SystemsNavPanel")
 	systems_left_panel.custom_minimum_size = Vector2(176, 0)
 	systems_main_row.add_child(systems_left_panel)
@@ -262,6 +269,9 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	_add_systems_tab("quests", "Quests")
 	_add_systems_tab("journal", "Journal")
 	_add_systems_tab("trade", "Trade")
+
+
+func _build_systems_center_panel() -> void:
 	systems_center_panel = _new_panel("SystemsContentPanel")
 	systems_center_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	systems_main_row.add_child(systems_center_panel)
@@ -289,6 +299,9 @@ func _build_systems_body(parent: BoxContainer) -> void:
 	systems_body_label.visible = false
 	center_stack.add_child(systems_body_label)
 	systems_action_list = systems_item_list
+
+
+func _build_systems_detail_panel() -> void:
 	systems_detail_panel = _new_panel("SystemsDetailPanel")
 	systems_detail_panel.custom_minimum_size = Vector2(232, 0)
 	systems_main_row.add_child(systems_detail_panel)
@@ -329,6 +342,8 @@ func _build_systems_body(parent: BoxContainer) -> void:
 		if spell_slot:
 			spell_slot.pressed.connect(Callable(self, "_on_spell_slot_pressed").bind(String(slot_id)))
 
+
+func _build_systems_character_panel() -> void:
 	systems_character_panel = _new_panel("SystemsCharacterPanel")
 	systems_character_panel.custom_minimum_size = Vector2(210, 0)
 	systems_main_row.add_child(systems_character_panel)
