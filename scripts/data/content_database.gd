@@ -265,20 +265,26 @@ func validate_all() -> Array[String]:
 
 
 func _load_dictionary(path: String) -> Dictionary:
+	var error_count := load_errors.size()
 	var parsed: Variant = _load_json(path)
 	if parsed is Dictionary:
 		return parsed
+	if parsed == null and load_errors.size() > error_count:
+		return {}
 	_record_load_error("Expected dictionary JSON at %s" % path)
 	return {}
 
 
 func _load_array(path: String) -> Array[Dictionary]:
+	var error_count := load_errors.size()
 	var parsed: Variant = _load_json(path)
 	var result: Array[Dictionary] = []
 	if parsed is Array:
 		for entry in parsed:
 			if entry is Dictionary:
 				result.append(entry)
+		return result
+	if parsed == null and load_errors.size() > error_count:
 		return result
 	_record_load_error("Expected array JSON at %s" % path)
 	return result
