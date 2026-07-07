@@ -14,17 +14,42 @@ var event_bus
 var feedback_suppression_depth := 0
 
 
-func setup(dependencies: Dictionary) -> void:
-	world_state = dependencies.get("world_state")
-	quests = dependencies.get("quests")
-	inventory = dependencies.get("inventory")
-	content = dependencies.get("content")
-	player = dependencies.get("player")
-	factions = dependencies.get("factions")
-	progression = dependencies.get("progression")
-	time = dependencies.get("time")
-	statuses = dependencies.get("statuses")
-	event_bus = dependencies.get("event_bus")
+class Dependencies:
+	var world_state
+	var quests
+	var inventory
+	var content
+	var player
+	var factions
+	var progression
+	var time
+	var statuses
+	var event_bus
+
+	func _init(values: Dictionary = {}) -> void:
+		world_state = values.get("world_state")
+		quests = values.get("quests")
+		inventory = values.get("inventory")
+		content = values.get("content")
+		player = values.get("player")
+		factions = values.get("factions")
+		progression = values.get("progression")
+		time = values.get("time")
+		statuses = values.get("statuses")
+		event_bus = values.get("event_bus")
+
+
+func setup(dependencies: Dependencies) -> void:
+	world_state = dependencies.world_state
+	quests = dependencies.quests
+	inventory = dependencies.inventory
+	content = dependencies.content
+	player = dependencies.player
+	factions = dependencies.factions
+	progression = dependencies.progression
+	time = dependencies.time
+	statuses = dependencies.statuses
+	event_bus = dependencies.event_bus
 
 
 func set_player(player_node) -> void:

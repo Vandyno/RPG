@@ -207,17 +207,19 @@ func _bootstrap() -> bool:
 
 	effect_runner = EffectRunnerScript.new()
 	effect_runner.setup(
-		{
-			"world_state": world_state,
-			"quests": quests,
-			"inventory": inventory,
-			"content": content,
-			"factions": factions,
-			"progression": progression,
-			"time": time,
-			"statuses": statuses,
-			"event_bus": event_bus
-		}
+		EffectRunnerScript.Dependencies.new(
+			{
+				"world_state": world_state,
+				"quests": quests,
+				"inventory": inventory,
+				"content": content,
+				"factions": factions,
+				"progression": progression,
+				"time": time,
+				"statuses": statuses,
+				"event_bus": event_bus
+			}
+		)
 	)
 
 	readables = ReadableManagerScript.new()
@@ -293,20 +295,22 @@ func _bootstrap() -> bool:
 
 	hud_queries = MainHudQueries.new()
 	hud_queries.setup(
-		{
-			"chunks": chunks,
-			"combat": combat,
-			"condition_evaluator": condition_evaluator,
-			"content": content,
-			"equipment": equipment,
-			"entities": entities,
-			"factions": factions,
-			"inventory": inventory,
-			"player": player,
-			"progression": progression,
-			"quests": quests,
-			"shops": shops
-		}
+		MainHudQueries.Dependencies.new(
+			{
+				"chunks": chunks,
+				"combat": combat,
+				"condition_evaluator": condition_evaluator,
+				"content": content,
+				"equipment": equipment,
+				"entities": entities,
+				"factions": factions,
+				"inventory": inventory,
+				"player": player,
+				"progression": progression,
+				"quests": quests,
+				"shops": shops
+			}
+		)
 	)
 
 	camera = Camera2D.new()

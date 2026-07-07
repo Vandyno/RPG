@@ -139,14 +139,16 @@ func _make_systems() -> Dictionary:
 	progression.setup(bus)
 	var effects := EffectRunner.new()
 	effects.setup(
-		{
-			"world_state": world_state,
-			"quests": quests,
-			"inventory": inventory,
-			"content": content,
-			"factions": factions,
-			"progression": progression
-		}
+		EffectRunner.Dependencies.new(
+			{
+				"world_state": world_state,
+				"quests": quests,
+				"inventory": inventory,
+				"content": content,
+				"factions": factions,
+				"progression": progression
+			}
+		)
 	)
 	var conditions := ConditionEvaluator.new()
 	conditions.setup(

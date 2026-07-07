@@ -20,19 +20,48 @@ var quests
 var shops
 
 
-func setup(dependencies: Dictionary) -> void:
-	chunks = dependencies.get("chunks")
-	combat = dependencies.get("combat")
-	condition_evaluator = dependencies.get("condition_evaluator")
-	content = dependencies.get("content")
-	equipment = dependencies.get("equipment")
-	entities = dependencies.get("entities")
-	factions = dependencies.get("factions")
-	inventory = dependencies.get("inventory")
-	player = dependencies.get("player")
-	progression = dependencies.get("progression")
-	quests = dependencies.get("quests")
-	shops = dependencies.get("shops")
+class Dependencies:
+	var chunks
+	var combat
+	var condition_evaluator
+	var content
+	var equipment
+	var entities
+	var factions
+	var inventory
+	var player
+	var progression
+	var quests
+	var shops
+
+	func _init(values: Dictionary = {}) -> void:
+		chunks = values.get("chunks")
+		combat = values.get("combat")
+		condition_evaluator = values.get("condition_evaluator")
+		content = values.get("content")
+		equipment = values.get("equipment")
+		entities = values.get("entities")
+		factions = values.get("factions")
+		inventory = values.get("inventory")
+		player = values.get("player")
+		progression = values.get("progression")
+		quests = values.get("quests")
+		shops = values.get("shops")
+
+
+func setup(dependencies: Dependencies) -> void:
+	chunks = dependencies.chunks
+	combat = dependencies.combat
+	condition_evaluator = dependencies.condition_evaluator
+	content = dependencies.content
+	equipment = dependencies.equipment
+	entities = dependencies.entities
+	factions = dependencies.factions
+	inventory = dependencies.inventory
+	player = dependencies.player
+	progression = dependencies.progression
+	quests = dependencies.quests
+	shops = dependencies.shops
 
 
 func inventory_text() -> String:
