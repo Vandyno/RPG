@@ -1,6 +1,8 @@
 class_name HudShell
 extends CanvasLayer
 
+# Base shell for concrete HUD implementations. Required UI phases fail fast here so a
+# new shell cannot silently omit panels or refresh behavior.
 signal interact_pressed
 signal cycle_target_pressed
 signal target_selected(entity_id: String)
@@ -37,6 +39,7 @@ const HOLD_ACTIONS := ["move_up", "move_down", "move_left", "move_right"]
 const SYSTEMS_TAB_IDS := ["inventory", "spells", "character", "trade", "quests", "journal"]
 const PANEL_COLOR := Color(0.06, 0.08, 0.07, 0.78)
 const PANEL_BORDER := Color(0.86, 0.78, 0.58, 0.38)
+const REQUIRED_HOOK_MESSAGE := "%s must be implemented by a concrete HudShell subclass."
 
 var event_bus
 var get_state: Callable
@@ -303,11 +306,12 @@ func _build_ui() -> void:
 
 
 func _build_additional_ui() -> void:
+	# Optional: concrete HUDs can add extra chrome after the shared panels are built.
 	pass
 
 
 func _build_status_panel() -> void:
-	pass
+	_required_hook("_build_status_panel")
 
 
 func _build_prompt_panel() -> void:
@@ -340,11 +344,11 @@ func _build_message_panel() -> void:
 
 
 func _build_target_panel() -> void:
-	pass
+	_required_hook("_build_target_panel")
 
 
 func _build_context_action_panel() -> void:
-	pass
+	_required_hook("_build_context_action_panel")
 
 
 func _build_debug_panel() -> void:
@@ -360,15 +364,15 @@ func _build_debug_panel() -> void:
 
 
 func _build_systems_panel() -> void:
-	pass
+	_required_hook("_build_systems_panel")
 
 
 func _build_touch_controls() -> void:
-	pass
+	_required_hook("_build_touch_controls")
 
 
 func _build_content_panel() -> void:
-	pass
+	_required_hook("_build_content_panel")
 
 
 func _refresh_health_bar(state: Dictionary) -> void:
@@ -685,19 +689,20 @@ func _new_button(text: String, min_size: Vector2) -> Button:
 
 
 func _refresh_target_picker(_state: Dictionary) -> void:
+	# Optional: some concrete HUDs disable target picker UI entirely.
 	pass
 
 
 func _refresh_content_choices(_choices: Array) -> void:
-	pass
+	_required_hook("_refresh_content_choices")
 
 
 func _refresh_systems_actions(_state: Dictionary) -> void:
-	pass
+	_required_hook("_refresh_systems_actions")
 
 
 func _refresh_context_actions(_state: Dictionary) -> void:
-	pass
+	_required_hook("_refresh_context_actions")
 
 
 func _refresh_systems_tabs() -> void:
@@ -781,3 +786,9 @@ func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int
 
 func _is_number(value: Variant) -> bool:
 	return value is int or value is float
+
+
+func _required_hook(hook_name: String) -> void:
+	var message := REQUIRED_HOOK_MESSAGE % hook_name
+	push_error(message)
+	assert(false, message)

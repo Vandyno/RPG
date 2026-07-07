@@ -955,7 +955,9 @@ func _systems_detail_title() -> String:
 		"trade": "Trade Details"
 	}.get(systems_active_tab, "Details")
 
-func _refresh_systems_actions(_state: Dictionary) -> void: pass
+func _refresh_systems_actions(_state: Dictionary) -> void:
+	# RPG HUD renders systems rows through _refresh_systems_chrome.
+	pass
 
 func _refresh_content_choices(choices: Array) -> void:
 	if not content_choice_list:
