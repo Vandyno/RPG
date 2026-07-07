@@ -13,7 +13,6 @@ const WORLD_TOUCH_PICK_RADIUS := 48.0
 
 
 class InputContext:
-	var main
 	var entities
 	var event_bus
 	var hud
@@ -35,9 +34,10 @@ class InputContext:
 	var index_of_target_id: Callable
 	var interact: Callable
 	var refresh_hud: Callable
+	var route: RouteState
+	var target: TargetState
 
 	func _init(main) -> void:
-		self.main = main
 		entities = main.entities
 		event_bus = main.event_bus
 		hud = main.hud
@@ -59,6 +59,82 @@ class InputContext:
 		index_of_target_id = Callable(main, "_index_of_target_id")
 		interact = Callable(main, "_interact")
 		refresh_hud = Callable(main, "_refresh_hud")
+		route = RouteState.new(main)
+		target = TargetState.new(main)
+
+
+class RouteState:
+	var source
+	var auto_interact_target_id: String:
+		get:
+			return String(source.auto_interact_target_id)
+		set(value):
+			source.auto_interact_target_id = value
+	var auto_interact_previous_distance: float:
+		get:
+			return float(source.auto_interact_previous_distance)
+		set(value):
+			source.auto_interact_previous_distance = value
+	var auto_interact_stuck_seconds: float:
+		get:
+			return float(source.auto_interact_stuck_seconds)
+		set(value):
+			source.auto_interact_stuck_seconds = value
+	var auto_move_active: bool:
+		get:
+			return bool(source.auto_move_active)
+		set(value):
+			source.auto_move_active = value
+	var auto_move_destination: Vector2:
+		get:
+			return source.auto_move_destination
+		set(value):
+			source.auto_move_destination = value
+	var auto_move_previous_distance: float:
+		get:
+			return float(source.auto_move_previous_distance)
+		set(value):
+			source.auto_move_previous_distance = value
+	var auto_move_stuck_seconds: float:
+		get:
+			return float(source.auto_move_stuck_seconds)
+		set(value):
+			source.auto_move_stuck_seconds = value
+	var auto_move_path: Array:
+		get:
+			return source.auto_move_path
+		set(value):
+			source.auto_move_path = value
+	var auto_move_path_index: int:
+		get:
+			return int(source.auto_move_path_index)
+		set(value):
+			source.auto_move_path_index = value
+
+	func _init(owner) -> void:
+		source = owner
+
+
+class TargetState:
+	var source
+	var selected_target_id: String:
+		get:
+			return String(source.selected_target_id)
+		set(value):
+			source.selected_target_id = value
+	var manual_target_locked: bool:
+		get:
+			return bool(source.manual_target_locked)
+		set(value):
+			source.manual_target_locked = value
+	var target_cycle_index: int:
+		get:
+			return int(source.target_cycle_index)
+		set(value):
+			source.target_cycle_index = value
+
+	func _init(owner) -> void:
+		source = owner
 
 
 static func context(main) -> InputContext:
@@ -99,12 +175,12 @@ static func target_world(
 	ctx.close_open_overlay_panel.call(false)
 	var delta: Vector2 = entity.global_position - ctx.player.global_position
 	ctx.player.set_facing_direction(delta)
-	ctx.main.selected_target_id = entity.get_entity_id()
-	ctx.main.manual_target_locked = true
-	ctx.main.target_cycle_index = ctx.index_of_target_id.call(
-		ctx.get_nearby_entities.call(), ctx.main.selected_target_id
+	ctx.target.selected_target_id = entity.get_entity_id()
+	ctx.target.manual_target_locked = true
+	ctx.target.target_cycle_index = ctx.index_of_target_id.call(
+		ctx.get_nearby_entities.call(), ctx.target.selected_target_id
 	)
-	if ctx.main.target_cycle_index < 0:
+	if ctx.target.target_cycle_index < 0:
 		_begin_auto_interaction(ctx, entity, delta.length())
 		ctx.refresh_hud.call()
 		return true
@@ -126,12 +202,12 @@ static func target_entity(source, entity_id: String) -> bool:
 	ctx.close_open_overlay_panel.call(false)
 	var delta: Vector2 = entity.global_position - ctx.player.global_position
 	ctx.player.set_facing_direction(delta)
-	ctx.main.selected_target_id = entity.get_entity_id()
-	ctx.main.manual_target_locked = true
-	ctx.main.target_cycle_index = ctx.index_of_target_id.call(
+	ctx.target.selected_target_id = entity.get_entity_id()
+	ctx.target.manual_target_locked = true
+	ctx.target.target_cycle_index = ctx.index_of_target_id.call(
 		ctx.get_nearby_entities.call(), entity_id
 	)
-	if ctx.main.target_cycle_index < 0:
+	if ctx.target.target_cycle_index < 0:
 		_begin_auto_interaction(ctx, entity, delta.length())
 	else:
 		ctx.event_bus.post_message("Targeting %s." % entity.get_display_name())
@@ -149,9 +225,9 @@ static func move_to_world(source, world_position: Vector2) -> bool:
 	ctx.player.set_facing_direction(world_position - ctx.player.global_position)
 	_begin_auto_move(ctx, world_position)
 	ctx.close_open_overlay_panel.call(false)
-	ctx.main.selected_target_id = ""
-	ctx.main.manual_target_locked = false
-	ctx.main.target_cycle_index = 0
+	ctx.target.selected_target_id = ""
+	ctx.target.manual_target_locked = false
+	ctx.target.target_cycle_index = 0
 	ctx.event_bus.post_message("Moving.")
 	ctx.refresh_hud.call()
 	return true
@@ -159,10 +235,10 @@ static func move_to_world(source, world_position: Vector2) -> bool:
 
 static func handle_interact_requested(source) -> void:
 	var ctx: InputContext = _input_context(source)
-	if not String(ctx.main.auto_interact_target_id).is_empty():
+	if not String(ctx.route.auto_interact_target_id).is_empty():
 		cancel_auto_interaction(ctx)
 		return
-	if ctx.main.auto_move_active:
+	if ctx.route.auto_move_active:
 		cancel_auto_move(ctx)
 		return
 	if ctx.hud and ctx.hud.is_target_picker_visible():
@@ -183,7 +259,7 @@ static func update_auto_interaction(source, delta_seconds: float) -> void:
 	var manual_move := _manual_move_vector(ctx)
 	if manual_move.length() > 0.05:
 		var cancelled_route: bool = (
-			not String(ctx.main.auto_interact_target_id).is_empty() or ctx.main.auto_move_active
+			not String(ctx.route.auto_interact_target_id).is_empty() or ctx.route.auto_move_active
 		)
 		var unlocked_target := _clear_manual_target_lock(ctx)
 		ctx.player.set_facing_direction(manual_move)
@@ -192,26 +268,26 @@ static func update_auto_interaction(source, delta_seconds: float) -> void:
 		if cancelled_route or unlocked_target:
 			ctx.refresh_hud.call()
 		return
-	if String(ctx.main.auto_interact_target_id).is_empty():
+	if String(ctx.route.auto_interact_target_id).is_empty():
 		update_auto_move(ctx, delta_seconds)
 		return
-	var entity = ctx.entities.get_entity(ctx.main.auto_interact_target_id)
+	var entity = ctx.entities.get_entity(ctx.route.auto_interact_target_id)
 	if not entity:
 		_clear_auto_interaction(ctx)
 		return
 	var delta: Vector2 = entity.global_position - ctx.player.global_position
 	ctx.player.set_facing_direction(delta)
-	ctx.main.selected_target_id = entity.get_entity_id()
-	ctx.main.manual_target_locked = true
-	ctx.main.target_cycle_index = ctx.index_of_target_id.call(
-		ctx.get_nearby_entities.call(), ctx.main.selected_target_id
+	ctx.target.selected_target_id = entity.get_entity_id()
+	ctx.target.manual_target_locked = true
+	ctx.target.target_cycle_index = ctx.index_of_target_id.call(
+		ctx.get_nearby_entities.call(), ctx.target.selected_target_id
 	)
-	if ctx.main.target_cycle_index >= 0:
+	if ctx.target.target_cycle_index >= 0:
 		_clear_auto_interaction(ctx)
 		ctx.handle_interact_requested.call()
 		return
 	_follow_auto_path_or_direction(ctx, entity.global_position, delta, delta_seconds)
-	entity = ctx.entities.get_entity(ctx.main.auto_interact_target_id)
+	entity = ctx.entities.get_entity(ctx.route.auto_interact_target_id)
 	if not entity or not is_instance_valid(entity):
 		_clear_auto_interaction(ctx)
 		return
@@ -220,13 +296,13 @@ static func update_auto_interaction(source, delta_seconds: float) -> void:
 
 static func update_auto_move(source, delta_seconds: float) -> void:
 	var ctx: InputContext = _input_context(source)
-	if not ctx.main.auto_move_active:
+	if not ctx.route.auto_move_active:
 		return
 	var move_target := _current_auto_move_target(ctx)
 	var delta: Vector2 = move_target - ctx.player.global_position
 	if delta.length() <= AUTO_MOVE_ARRIVAL_DISTANCE:
-		if ctx.main.auto_move_path_index < ctx.main.auto_move_path.size() - 1:
-			ctx.main.auto_move_path_index += 1
+		if ctx.route.auto_move_path_index < ctx.route.auto_move_path.size() - 1:
+			ctx.route.auto_move_path_index += 1
 		else:
 			_clear_auto_move(ctx)
 			ctx.refresh_hud.call()
@@ -237,17 +313,17 @@ static func update_auto_move(source, delta_seconds: float) -> void:
 
 static func cancel_auto_interaction(source) -> void:
 	var ctx: InputContext = _input_context(source)
-	if String(ctx.main.auto_interact_target_id).is_empty():
+	if String(ctx.route.auto_interact_target_id).is_empty():
 		return
 	_clear_auto_interaction(ctx)
-	ctx.main.manual_target_locked = false
+	ctx.target.manual_target_locked = false
 	ctx.event_bus.post_message("Stopped.")
 	ctx.refresh_hud.call()
 
 
 static func cancel_auto_move(source) -> void:
 	var ctx: InputContext = _input_context(source)
-	if not ctx.main.auto_move_active:
+	if not ctx.route.auto_move_active:
 		return
 	_clear_auto_move(ctx)
 	ctx.event_bus.post_message("Stopped.")
@@ -280,76 +356,76 @@ static func _begin_auto_interaction(ctx: InputContext, entity, _distance: float)
 	if ctx.entities:
 		ctx.entities.set_action_hints({})
 	_set_auto_interaction_path(ctx, entity)
-	ctx.main.auto_interact_target_id = entity.get_entity_id()
-	ctx.main.auto_interact_previous_distance = _auto_interaction_progress_distance(ctx, entity)
-	ctx.main.auto_interact_stuck_seconds = 0.0
+	ctx.route.auto_interact_target_id = entity.get_entity_id()
+	ctx.route.auto_interact_previous_distance = _auto_interaction_progress_distance(ctx, entity)
+	ctx.route.auto_interact_stuck_seconds = 0.0
 	ctx.event_bus.post_message("Moving to %s." % entity.get_display_name())
 
 
 static func _clear_auto_interaction(ctx: InputContext) -> void:
-	ctx.main.auto_interact_target_id = ""
-	ctx.main.auto_interact_previous_distance = INF
-	ctx.main.auto_interact_stuck_seconds = 0.0
-	ctx.main.auto_move_path = []
-	ctx.main.auto_move_path_index = 0
+	ctx.route.auto_interact_target_id = ""
+	ctx.route.auto_interact_previous_distance = INF
+	ctx.route.auto_interact_stuck_seconds = 0.0
+	ctx.route.auto_move_path = []
+	ctx.route.auto_move_path_index = 0
 
 
 static func _begin_auto_move(ctx: InputContext, world_position: Vector2) -> void:
 	_clear_auto_interaction(ctx)
 	if ctx.entities:
 		ctx.entities.set_action_hints({})
-	ctx.main.auto_move_active = true
-	ctx.main.auto_move_destination = world_position
+	ctx.route.auto_move_active = true
+	ctx.route.auto_move_destination = world_position
 	_set_auto_path(ctx, world_position)
-	ctx.main.auto_move_previous_distance = ctx.player.global_position.distance_to(world_position)
-	ctx.main.auto_move_stuck_seconds = 0.0
+	ctx.route.auto_move_previous_distance = ctx.player.global_position.distance_to(world_position)
+	ctx.route.auto_move_stuck_seconds = 0.0
 
 
 static func _clear_auto_move(ctx: InputContext) -> void:
-	ctx.main.auto_move_active = false
-	ctx.main.auto_move_destination = Vector2.ZERO
-	ctx.main.auto_move_previous_distance = INF
-	ctx.main.auto_move_stuck_seconds = 0.0
-	ctx.main.auto_move_path = []
-	ctx.main.auto_move_path_index = 0
+	ctx.route.auto_move_active = false
+	ctx.route.auto_move_destination = Vector2.ZERO
+	ctx.route.auto_move_previous_distance = INF
+	ctx.route.auto_move_stuck_seconds = 0.0
+	ctx.route.auto_move_path = []
+	ctx.route.auto_move_path_index = 0
 
 
 static func _set_auto_path(ctx: InputContext, world_position: Vector2) -> void:
-	ctx.main.auto_move_path = MainPathfinder.path_to(
-		ctx.main, ctx.player.global_position, world_position
+	ctx.route.auto_move_path = MainPathfinder.path_to(
+		ctx.route.source, ctx.player.global_position, world_position
 	)
-	ctx.main.auto_move_path_index = 0
+	ctx.route.auto_move_path_index = 0
 
 
 static func _set_auto_interaction_path(ctx: InputContext, entity) -> void:
 	var radius: float = ctx.entities.get_interaction_radius(entity)
 	var stop_distance := maxf(AUTO_MOVE_ARRIVAL_DISTANCE, radius - 4.0)
-	ctx.main.auto_move_path = MainPathfinder.approach_path_to(
-		ctx.main, ctx.player.global_position, entity.global_position, stop_distance
+	ctx.route.auto_move_path = MainPathfinder.approach_path_to(
+		ctx.route.source, ctx.player.global_position, entity.global_position, stop_distance
 	)
-	ctx.main.auto_move_path_index = 0
+	ctx.route.auto_move_path_index = 0
 
 
 static func _current_auto_move_target(ctx: InputContext) -> Vector2:
 	if (
-		ctx.main.auto_move_path.is_empty()
-		or ctx.main.auto_move_path_index < 0
-		or ctx.main.auto_move_path_index >= ctx.main.auto_move_path.size()
+		ctx.route.auto_move_path.is_empty()
+		or ctx.route.auto_move_path_index < 0
+		or ctx.route.auto_move_path_index >= ctx.route.auto_move_path.size()
 	):
-		return ctx.main.auto_move_destination
-	return ctx.main.auto_move_path[ctx.main.auto_move_path_index]
+		return ctx.route.auto_move_destination
+	return ctx.route.auto_move_path[ctx.route.auto_move_path_index]
 
 
 static func _follow_auto_path_or_direction(
 	ctx: InputContext, destination: Vector2, fallback_delta: Vector2, delta_seconds: float
 ) -> void:
-	if ctx.main.auto_move_path.is_empty():
+	if ctx.route.auto_move_path.is_empty():
 		ctx.player.try_move(fallback_delta, delta_seconds)
 		return
 	var target := _current_auto_move_target(ctx)
 	if ctx.player.global_position.distance_to(target) <= AUTO_MOVE_ARRIVAL_DISTANCE:
-		if ctx.main.auto_move_path_index < ctx.main.auto_move_path.size() - 1:
-			ctx.main.auto_move_path_index += 1
+		if ctx.route.auto_move_path_index < ctx.route.auto_move_path.size() - 1:
+			ctx.route.auto_move_path_index += 1
 			target = _current_auto_move_target(ctx)
 		else:
 			target = destination
@@ -374,11 +450,11 @@ static func _manual_move_vector(ctx: InputContext) -> Vector2:
 
 
 static func _clear_manual_target_lock(ctx: InputContext) -> bool:
-	if not ctx.main.manual_target_locked:
+	if not ctx.target.manual_target_locked:
 		return false
-	ctx.main.manual_target_locked = false
-	ctx.main.selected_target_id = ""
-	ctx.main.target_cycle_index = 0
+	ctx.target.manual_target_locked = false
+	ctx.target.selected_target_id = ""
+	ctx.target.target_cycle_index = 0
 	if ctx.hud and ctx.hud.is_target_picker_visible():
 		ctx.hud.hide_target_picker()
 	return true
@@ -388,21 +464,21 @@ static func _track_auto_interaction_progress(
 	ctx: InputContext, entity, delta_seconds: float
 ) -> void:
 	var current_distance := _auto_interaction_progress_distance(ctx, entity)
-	if current_distance < ctx.main.auto_interact_previous_distance - 0.5:
-		ctx.main.auto_interact_previous_distance = current_distance
-		ctx.main.auto_interact_stuck_seconds = 0.0
+	if current_distance < ctx.route.auto_interact_previous_distance - 0.5:
+		ctx.route.auto_interact_previous_distance = current_distance
+		ctx.route.auto_interact_stuck_seconds = 0.0
 		return
-	ctx.main.auto_interact_stuck_seconds += delta_seconds
-	if ctx.main.auto_interact_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
+	ctx.route.auto_interact_stuck_seconds += delta_seconds
+	if ctx.route.auto_interact_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
 		_clear_auto_interaction(ctx)
 		ctx.event_bus.post_message("Can't reach %s." % entity.get_display_name())
-	ctx.main.auto_interact_previous_distance = minf(
-		ctx.main.auto_interact_previous_distance, current_distance
+	ctx.route.auto_interact_previous_distance = minf(
+		ctx.route.auto_interact_previous_distance, current_distance
 	)
 
 
 static func _auto_interaction_progress_distance(ctx: InputContext, entity) -> float:
-	if not ctx.main.auto_move_path.is_empty():
+	if not ctx.route.auto_move_path.is_empty():
 		return ctx.player.global_position.distance_to(_current_auto_move_target(ctx))
 	return ctx.player.global_position.distance_to(entity.global_position)
 
@@ -411,18 +487,18 @@ static func _track_auto_move_progress(
 	ctx: InputContext, distance_before_move: float, delta_seconds: float
 ) -> void:
 	var current_distance: float = ctx.player.global_position.distance_to(
-		ctx.main.auto_move_destination
+		ctx.route.auto_move_destination
 	)
-	if current_distance < ctx.main.auto_move_previous_distance - 0.5:
-		ctx.main.auto_move_previous_distance = current_distance
-		ctx.main.auto_move_stuck_seconds = 0.0
+	if current_distance < ctx.route.auto_move_previous_distance - 0.5:
+		ctx.route.auto_move_previous_distance = current_distance
+		ctx.route.auto_move_stuck_seconds = 0.0
 		return
-	ctx.main.auto_move_stuck_seconds += delta_seconds
-	if ctx.main.auto_move_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
+	ctx.route.auto_move_stuck_seconds += delta_seconds
+	if ctx.route.auto_move_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
 		_clear_auto_move(ctx)
 		ctx.event_bus.post_message("Can't get there.")
 		ctx.refresh_hud.call()
-	ctx.main.auto_move_previous_distance = minf(
-		ctx.main.auto_move_previous_distance, distance_before_move
+	ctx.route.auto_move_previous_distance = minf(
+		ctx.route.auto_move_previous_distance, distance_before_move
 	)
 
