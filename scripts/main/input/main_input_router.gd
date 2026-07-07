@@ -326,15 +326,15 @@ static func cancel_auto_move(source) -> void:
 	ctx._refresh_hud()
 
 
-static func _handle_pointer_event(main, event: InputEvent) -> bool:
+static func _handle_pointer_event(ctx: InputContext, event: InputEvent) -> bool:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var mouse_world := _screen_to_world(main, event.position)
-		return target_world(main, mouse_world) or move_to_world(main, mouse_world)
+		var mouse_world := _screen_to_world(ctx, event.position)
+		return target_world(ctx, mouse_world) or move_to_world(ctx, mouse_world)
 	if event is InputEventScreenTouch and event.pressed:
-		var touch_world := _screen_to_world(main, event.position)
+		var touch_world := _screen_to_world(ctx, event.position)
 		return (
-			target_world(main, touch_world, true, WORLD_TOUCH_PICK_RADIUS)
-			or move_to_world(main, touch_world)
+			target_world(ctx, touch_world, true, WORLD_TOUCH_PICK_RADIUS)
+			or move_to_world(ctx, touch_world)
 		)
 	return false
 
@@ -343,95 +343,95 @@ static func _input_context(source) -> InputContext:
 	return source if source is InputContext else InputContext.new(source)
 
 
-static func _screen_to_world(main, screen_position: Vector2) -> Vector2:
-	return main.get_viewport().get_canvas_transform().affine_inverse() * screen_position
+static func _screen_to_world(ctx: InputContext, screen_position: Vector2) -> Vector2:
+	return ctx.get_viewport().get_canvas_transform().affine_inverse() * screen_position
 
 
-static func _begin_auto_interaction(main, entity, _distance: float) -> void:
-	_clear_auto_move(main)
-	if main.entities:
-		main.entities.set_action_hints({})
-	_set_auto_interaction_path(main, entity)
-	main.auto_interact_target_id = entity.get_entity_id()
-	main.auto_interact_previous_distance = _auto_interaction_progress_distance(main, entity)
-	main.auto_interact_stuck_seconds = 0.0
-	main.event_bus.post_message("Moving to %s." % entity.get_display_name())
+static func _begin_auto_interaction(ctx: InputContext, entity, _distance: float) -> void:
+	_clear_auto_move(ctx)
+	if ctx.entities:
+		ctx.entities.set_action_hints({})
+	_set_auto_interaction_path(ctx, entity)
+	ctx.auto_interact_target_id = entity.get_entity_id()
+	ctx.auto_interact_previous_distance = _auto_interaction_progress_distance(ctx, entity)
+	ctx.auto_interact_stuck_seconds = 0.0
+	ctx.event_bus.post_message("Moving to %s." % entity.get_display_name())
 
 
-static func _clear_auto_interaction(main) -> void:
-	main.auto_interact_target_id = ""
-	main.auto_interact_previous_distance = INF
-	main.auto_interact_stuck_seconds = 0.0
-	main.auto_move_path = []
-	main.auto_move_path_index = 0
+static func _clear_auto_interaction(ctx: InputContext) -> void:
+	ctx.auto_interact_target_id = ""
+	ctx.auto_interact_previous_distance = INF
+	ctx.auto_interact_stuck_seconds = 0.0
+	ctx.auto_move_path = []
+	ctx.auto_move_path_index = 0
 
 
-static func _begin_auto_move(main, world_position: Vector2) -> void:
-	_clear_auto_interaction(main)
-	if main.entities:
-		main.entities.set_action_hints({})
-	main.auto_move_active = true
-	main.auto_move_destination = world_position
-	_set_auto_path(main, world_position)
-	main.auto_move_previous_distance = main.player.global_position.distance_to(world_position)
-	main.auto_move_stuck_seconds = 0.0
+static func _begin_auto_move(ctx: InputContext, world_position: Vector2) -> void:
+	_clear_auto_interaction(ctx)
+	if ctx.entities:
+		ctx.entities.set_action_hints({})
+	ctx.auto_move_active = true
+	ctx.auto_move_destination = world_position
+	_set_auto_path(ctx, world_position)
+	ctx.auto_move_previous_distance = ctx.player.global_position.distance_to(world_position)
+	ctx.auto_move_stuck_seconds = 0.0
 
 
-static func _clear_auto_move(main) -> void:
-	main.auto_move_active = false
-	main.auto_move_destination = Vector2.ZERO
-	main.auto_move_previous_distance = INF
-	main.auto_move_stuck_seconds = 0.0
-	main.auto_move_path = []
-	main.auto_move_path_index = 0
+static func _clear_auto_move(ctx: InputContext) -> void:
+	ctx.auto_move_active = false
+	ctx.auto_move_destination = Vector2.ZERO
+	ctx.auto_move_previous_distance = INF
+	ctx.auto_move_stuck_seconds = 0.0
+	ctx.auto_move_path = []
+	ctx.auto_move_path_index = 0
 
 
-static func _set_auto_path(main, world_position: Vector2) -> void:
-	main.auto_move_path = MainPathfinder.path_to(main, main.player.global_position, world_position)
-	main.auto_move_path_index = 0
+static func _set_auto_path(ctx: InputContext, world_position: Vector2) -> void:
+	ctx.auto_move_path = MainPathfinder.path_to(ctx, ctx.player.global_position, world_position)
+	ctx.auto_move_path_index = 0
 
 
-static func _set_auto_interaction_path(main, entity) -> void:
-	var radius: float = main.entities.get_interaction_radius(entity)
+static func _set_auto_interaction_path(ctx: InputContext, entity) -> void:
+	var radius: float = ctx.entities.get_interaction_radius(entity)
 	var stop_distance := maxf(AUTO_MOVE_ARRIVAL_DISTANCE, radius - 4.0)
-	main.auto_move_path = MainPathfinder.approach_path_to(
-		main, main.player.global_position, entity.global_position, stop_distance
+	ctx.auto_move_path = MainPathfinder.approach_path_to(
+		ctx, ctx.player.global_position, entity.global_position, stop_distance
 	)
-	main.auto_move_path_index = 0
+	ctx.auto_move_path_index = 0
 
 
-static func _current_auto_move_target(main) -> Vector2:
+static func _current_auto_move_target(ctx: InputContext) -> Vector2:
 	if (
-		main.auto_move_path.is_empty()
-		or main.auto_move_path_index < 0
-		or main.auto_move_path_index >= main.auto_move_path.size()
+		ctx.auto_move_path.is_empty()
+		or ctx.auto_move_path_index < 0
+		or ctx.auto_move_path_index >= ctx.auto_move_path.size()
 	):
-		return main.auto_move_destination
-	return main.auto_move_path[main.auto_move_path_index]
+		return ctx.auto_move_destination
+	return ctx.auto_move_path[ctx.auto_move_path_index]
 
 
 static func _follow_auto_path_or_direction(
-	main, destination: Vector2, fallback_delta: Vector2, delta_seconds: float
+	ctx: InputContext, destination: Vector2, fallback_delta: Vector2, delta_seconds: float
 ) -> void:
-	if main.auto_move_path.is_empty():
-		main.player.try_move(fallback_delta, delta_seconds)
+	if ctx.auto_move_path.is_empty():
+		ctx.player.try_move(fallback_delta, delta_seconds)
 		return
-	var target := _current_auto_move_target(main)
-	if main.player.global_position.distance_to(target) <= AUTO_MOVE_ARRIVAL_DISTANCE:
-		if main.auto_move_path_index < main.auto_move_path.size() - 1:
-			main.auto_move_path_index += 1
-			target = _current_auto_move_target(main)
+	var target := _current_auto_move_target(ctx)
+	if ctx.player.global_position.distance_to(target) <= AUTO_MOVE_ARRIVAL_DISTANCE:
+		if ctx.auto_move_path_index < ctx.auto_move_path.size() - 1:
+			ctx.auto_move_path_index += 1
+			target = _current_auto_move_target(ctx)
 		else:
 			target = destination
-	main.player.try_move(target - main.player.global_position, delta_seconds)
+	ctx.player.try_move(target - ctx.player.global_position, delta_seconds)
 
 
-static func _manual_move_active(main) -> bool:
-	return _manual_move_vector(main).length() > 0.05
+static func _manual_move_active(ctx: InputContext) -> bool:
+	return _manual_move_vector(ctx).length() > 0.05
 
 
-static func _manual_move_vector(main) -> Vector2:
-	var direction: Vector2 = main.player.external_move_vector
+static func _manual_move_vector(ctx: InputContext) -> Vector2:
+	var direction: Vector2 = ctx.player.external_move_vector
 	if Input.is_action_pressed("move_up"):
 		direction.y -= 1.0
 	if Input.is_action_pressed("move_down"):
@@ -443,52 +443,54 @@ static func _manual_move_vector(main) -> Vector2:
 	return direction.limit_length(1.0)
 
 
-static func _clear_manual_target_lock(main) -> bool:
-	if not main.manual_target_locked:
+static func _clear_manual_target_lock(ctx: InputContext) -> bool:
+	if not ctx.manual_target_locked:
 		return false
-	main.manual_target_locked = false
-	main.selected_target_id = ""
-	main.target_cycle_index = 0
-	if main.hud and main.hud.is_target_picker_visible():
-		main.hud.hide_target_picker()
+	ctx.manual_target_locked = false
+	ctx.selected_target_id = ""
+	ctx.target_cycle_index = 0
+	if ctx.hud and ctx.hud.is_target_picker_visible():
+		ctx.hud.hide_target_picker()
 	return true
 
 
-static func _track_auto_interaction_progress(main, entity, delta_seconds: float) -> void:
-	var current_distance := _auto_interaction_progress_distance(main, entity)
-	if current_distance < main.auto_interact_previous_distance - 0.5:
-		main.auto_interact_previous_distance = current_distance
-		main.auto_interact_stuck_seconds = 0.0
+static func _track_auto_interaction_progress(
+	ctx: InputContext, entity, delta_seconds: float
+) -> void:
+	var current_distance := _auto_interaction_progress_distance(ctx, entity)
+	if current_distance < ctx.auto_interact_previous_distance - 0.5:
+		ctx.auto_interact_previous_distance = current_distance
+		ctx.auto_interact_stuck_seconds = 0.0
 		return
-	main.auto_interact_stuck_seconds += delta_seconds
-	if main.auto_interact_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
-		_clear_auto_interaction(main)
-		main.event_bus.post_message("Can't reach %s." % entity.get_display_name())
-	main.auto_interact_previous_distance = minf(
-		main.auto_interact_previous_distance, current_distance
+	ctx.auto_interact_stuck_seconds += delta_seconds
+	if ctx.auto_interact_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
+		_clear_auto_interaction(ctx)
+		ctx.event_bus.post_message("Can't reach %s." % entity.get_display_name())
+	ctx.auto_interact_previous_distance = minf(
+		ctx.auto_interact_previous_distance, current_distance
 	)
 
 
-static func _auto_interaction_progress_distance(main, entity) -> float:
-	if not main.auto_move_path.is_empty():
-		return main.player.global_position.distance_to(_current_auto_move_target(main))
-	return main.player.global_position.distance_to(entity.global_position)
+static func _auto_interaction_progress_distance(ctx: InputContext, entity) -> float:
+	if not ctx.auto_move_path.is_empty():
+		return ctx.player.global_position.distance_to(_current_auto_move_target(ctx))
+	return ctx.player.global_position.distance_to(entity.global_position)
 
 
 static func _track_auto_move_progress(
-	main, distance_before_move: float, delta_seconds: float
+	ctx: InputContext, distance_before_move: float, delta_seconds: float
 ) -> void:
-	var current_distance: float = main.player.global_position.distance_to(
-		main.auto_move_destination
+	var current_distance: float = ctx.player.global_position.distance_to(
+		ctx.auto_move_destination
 	)
-	if current_distance < main.auto_move_previous_distance - 0.5:
-		main.auto_move_previous_distance = current_distance
-		main.auto_move_stuck_seconds = 0.0
+	if current_distance < ctx.auto_move_previous_distance - 0.5:
+		ctx.auto_move_previous_distance = current_distance
+		ctx.auto_move_stuck_seconds = 0.0
 		return
-	main.auto_move_stuck_seconds += delta_seconds
-	if main.auto_move_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
-		_clear_auto_move(main)
-		main.event_bus.post_message("Can't get there.")
-		main._refresh_hud()
-	main.auto_move_previous_distance = minf(main.auto_move_previous_distance, distance_before_move)
+	ctx.auto_move_stuck_seconds += delta_seconds
+	if ctx.auto_move_stuck_seconds >= AUTO_INTERACT_STUCK_SECONDS:
+		_clear_auto_move(ctx)
+		ctx.event_bus.post_message("Can't get there.")
+		ctx._refresh_hud()
+	ctx.auto_move_previous_distance = minf(ctx.auto_move_previous_distance, distance_before_move)
 
