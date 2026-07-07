@@ -642,7 +642,7 @@ func test_main_sanitizes_malformed_runtime_pickup_fields() -> void:
 	assert_null(main.entities.get_entity("pickup_old_toolbox"))
 
 
-func test_main_sanitizes_malformed_runtime_enemy_numbers() -> void:
+func test_main_sanitizes_malformed_runtime_hostile_actor_numbers() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
@@ -652,7 +652,7 @@ func test_main_sanitizes_malformed_runtime_enemy_numbers() -> void:
 	enemy.data["damage_taken_per_hit"] = "six"
 	enemy.data["attack_damage"] = "four"
 
-	assert_eq(main._target_detail_text(enemy), "Enemy HP 12/12, counter 4")
+	assert_eq(main._target_detail_text(enemy), "Hostile HP 12/12, counter 4")
 
 	_attack_enemy_once(main, "enemy_road_thug")
 
@@ -784,13 +784,15 @@ func test_main_save_load_preserves_defeated_enemy_and_loot() -> void:
 	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))
 
 
-func test_humanoid_enemy_defeat_creates_lootable_body_inventory() -> void:
+func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.inventory.add_item("item_hunting_bow", 1)
 	main.inventory.add_item("item_training_sword", 1)
 	var enemy = main.entities.get_entity("enemy_road_thug")
 	assert_not_null(enemy)
+	assert_eq(enemy.get_kind(), "npc")
+	assert_true(enemy.is_combat_target())
 	assert_eq(enemy.data["character_profile_id"], "char_road_thug")
 	assert_eq(enemy.data["inventory_owner_id"], "char_road_thug")
 	assert_eq(enemy.data["equipment_owner_id"], "char_road_thug")
@@ -835,6 +837,8 @@ func test_dedicated_test_enemy_outside_town_has_sword_bow_and_lootable_body() ->
 	add_child_autofree(main)
 	var enemy = main.entities.get_entity("enemy_test_raider")
 	assert_not_null(enemy)
+	assert_eq(enemy.get_kind(), "npc")
+	assert_true(enemy.is_combat_target())
 	assert_eq(enemy.global_tile, Vector2i(-10, 1))
 	assert_eq(enemy.data["character_profile_id"], "char_test_raider")
 	assert_eq(enemy.data["inventory_owner_id"], "char_test_raider")
@@ -880,6 +884,8 @@ func test_people_test_enemies_spawn_with_generated_profiles_and_lootable_body() 
 	for entity_id in expected:
 		var enemy = main.entities.get_entity(String(entity_id))
 		assert_not_null(enemy)
+		assert_eq(enemy.get_kind(), "npc")
+		assert_true(enemy.is_combat_target())
 		assert_not_null(enemy.humanoid_avatar)
 		var profile: Dictionary = enemy.data.get("character_profile", {})
 		var appearance: Dictionary = profile.get("appearance", {})

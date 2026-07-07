@@ -1,6 +1,8 @@
 class_name MainInventoryTransfer
 extends RefCounted
 
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
+
 class TransferContext:
 	var chunks
 	var content
@@ -164,20 +166,16 @@ static func _seed_loot_owner_from_open_effects(
 
 
 static func _loot_owner_id(entity) -> String:
-	var owner_id := String(entity.data.get("inventory_owner_id", ""))
+	var owner_id := ActorRules.inventory_owner_id(entity.data)
 	if not owner_id.is_empty():
 		return owner_id
 	return "loot:%s" % entity.get_entity_id()
 
 
 static func _humanoid_owner_id(entity) -> String:
-	var owner_id := String(entity.data.get("inventory_owner_id", ""))
-	if not owner_id.is_empty():
-		return owner_id
-	var profile: Variant = entity.data.get("character_profile", {})
-	if profile is Dictionary:
-		return String(profile.get("inventory_owner_id", ""))
-	return ""
+	if not ActorRules.is_living_humanoid_data(entity.data):
+		return ""
+	return ActorRules.inventory_owner_id(entity.data)
 
 
 static func _seed_owner_from_entity_inventory_once(

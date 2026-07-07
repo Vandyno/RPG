@@ -114,6 +114,8 @@ static func safe_appearance_generation_options(generation: Dictionary) -> Dictio
 		options["proportion_jitter"] = generation.get("proportion_jitter", false) == true
 	if _is_number(generation.get("jitter_strength")):
 		options["jitter_strength"] = generation.get("jitter_strength")
+	if _is_number(generation.get("marking_chance")):
+		options["marking_chance"] = generation.get("marking_chance")
 	if generation.get("appearance_overrides", {}) is Dictionary:
 		options["appearance_overrides"] = generation.get("appearance_overrides", {})
 	return options

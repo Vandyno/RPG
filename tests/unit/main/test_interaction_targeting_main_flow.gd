@@ -18,7 +18,7 @@ class BlockingChunks:
 		return "water" if not is_walkable(tile) else "grass"
 
 
-func test_default_interact_ignores_enemy_as_interaction_target() -> void:
+func test_default_interact_ignores_hostile_actor_as_interaction_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
@@ -26,11 +26,13 @@ func test_default_interact_ignores_enemy_as_interaction_target() -> void:
 	assert_eq(main.get_debug_state()["primary_action"], "Explore")
 
 	var enemy = main.entities.get_entity("enemy_road_thug")
+	assert_eq(enemy.get_kind(), "npc")
+	assert_true(enemy.is_combat_target())
 	main.player.set_world_position(enemy.global_position + Vector2(8.0, 0.0))
 	main.player.set_facing_direction(Vector2.LEFT)
 	var target = main._get_nearby_entity()
 
-	assert_true(target == null or target.get_kind() != "enemy")
+	assert_true(target == null or not target.is_combat_target())
 	assert_ne(main.get_debug_state()["primary_action"], "Attack")
 	assert_false(main.manual_target_locked)
 	assert_false(main.combat.health_by_entity_id.has("enemy_road_thug"))

@@ -4,7 +4,7 @@ const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 
 
-func test_enemy_has_no_interaction_quick_action_panel() -> void:
+func test_hostile_actor_has_no_interaction_quick_action_panel() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
@@ -16,7 +16,7 @@ func test_enemy_has_no_interaction_quick_action_panel() -> void:
 	assert_null(_visible_button_containing(main.hud.context_action_buttons, "Guard"))
 
 
-func test_enemy_context_stays_hidden_after_directional_attack() -> void:
+func test_hostile_actor_context_stays_hidden_after_directional_attack() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 

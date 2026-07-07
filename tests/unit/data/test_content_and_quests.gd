@@ -315,7 +315,7 @@ func test_people_visual_variant_composes_preview_profile() -> void:
 	var human_appearance: Dictionary = human_profile["appearance"]
 	assert_eq(human_appearance["hair_id"], "hair_wide_curls")
 	assert_eq(human_appearance["hair_color_id"], "hair_grey")
-	assert_eq(human_appearance["marking_id"], "marking_cheek_dots")
+	assert_eq(human_appearance["marking_id"], "")
 
 
 func test_generated_people_appearance_is_deterministic_and_profile_ready() -> void:
@@ -358,6 +358,17 @@ func test_generated_people_appearance_supports_exact_variant_overrides_and_jitte
 	)
 	assert_eq(exact["visual_model_id"], "tuskfolk_smith")
 	assert_almost_eq(float(Dictionary(exact["proportions"])["body_height"]), 0.74, 0.001)
+
+	var human_clean: Dictionary = content.get_generated_people_appearance(
+		"people_human", "clean_seed", {"variant_id": "human_orchard_healer"}
+	)
+	var human_marked: Dictionary = content.get_generated_people_appearance(
+		"people_human",
+		"marked_seed",
+		{"variant_id": "human_orchard_healer", "marking_chance": 1.0}
+	)
+	assert_eq(human_clean["marking_id"], "")
+	assert_eq(human_marked["marking_id"], "marking_cheek_dots")
 
 	var jittered: Dictionary = content.get_generated_people_appearance(
 		"people_tuskfolk",
@@ -439,7 +450,9 @@ func test_people_test_enemies_use_generated_profiles() -> void:
 		var tile_array: Array = world_entry.get("global_tile", [])
 		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
 
-		assert_eq(world_entry.get("kind"), "enemy")
+		assert_eq(world_entry.get("kind"), "npc")
+		assert_eq(world_entry.get("hostility"), "hostile")
+		assert_true(bool(world_entry.get("combat_enabled", false)))
 		assert_eq(world_entry.get("character_profile_id"), profile_id)
 		assert_eq(world_entry.get("inventory_owner_id"), profile_id)
 		assert_eq(world_entry.get("equipment_owner_id"), profile_id)
@@ -493,6 +506,7 @@ func test_content_validation_reports_appearance_generation_errors() -> void:
 				"seed": 7,
 				"proportion_jitter": "yes",
 				"jitter_strength": "much",
+				"marking_chance": "often",
 				"appearance_overrides": "bad"
 			},
 			"inventory_owner_id": "char_malformed_generation",
@@ -508,6 +522,7 @@ func test_content_validation_reports_appearance_generation_errors() -> void:
 	assert_true(joined.contains("seed must be a string"))
 	assert_true(joined.contains("proportion_jitter must be a boolean"))
 	assert_true(joined.contains("jitter_strength must be numeric"))
+	assert_true(joined.contains("marking_chance must be numeric"))
 	assert_true(joined.contains("appearance_overrides must be a dictionary"))
 
 
@@ -592,7 +607,9 @@ func test_content_validation_reports_missing_references() -> void:
 		{"id": "object_bad", "kind": "readable", "global_tile": [0, 0], "readable_id": "missing"},
 		{
 			"id": "object_bad",
-			"kind": "enemy",
+			"kind": "npc",
+			"hostility": "hostile",
+			"combat_enabled": true,
 			"global_tile": [1, 0],
 			"max_health": 0,
 			"damage_taken_per_hit": 0,
@@ -802,7 +819,9 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 		{
 			"id": "enemy_bad_numeric",
 			"name": "Bad Enemy",
-			"kind": "enemy",
+			"kind": "npc",
+			"hostility": "hostile",
+			"combat_enabled": true,
 			"global_tile": [1, 0],
 			"max_health": "twelve",
 			"damage_taken_per_hit": "six",
@@ -948,9 +967,14 @@ func test_content_validation_reports_authoring_contract_errors() -> void:
 	assert_true(joined.contains("item item_bad effects_on_use has malformed effect"))
 	assert_true(joined.contains("item item_bad effects_on_use heal_player amount must be numeric"))
 	assert_true(joined.contains("count must be numeric"))
-	assert_true(joined.contains("Enemy enemy_bad_numeric max_health must be numeric"))
-	assert_true(joined.contains("Enemy enemy_bad_numeric damage_taken_per_hit must be numeric"))
-	assert_true(joined.contains("Enemy enemy_bad_numeric attack_damage must be numeric"))
+	assert_true(joined.contains("Hostile actor enemy_bad_numeric max_health must be numeric"))
+	assert_true(
+		joined.contains("Hostile actor enemy_bad_numeric damage_taken_per_hit must be numeric")
+	)
+	assert_true(joined.contains("Hostile actor enemy_bad_numeric attack_damage must be numeric"))
+	assert_true(
+		joined.contains("World object enemy_bad_numeric is missing npc_id or character_profile_id")
+	)
 	assert_true(joined.contains("World object enemy_bad_numeric is missing character_profile_id"))
 	assert_true(joined.contains("World object enemy_bad_numeric is missing inventory_owner_id"))
 	assert_true(joined.contains("World object enemy_bad_numeric is missing equipment_owner_id"))

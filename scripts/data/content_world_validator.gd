@@ -2,6 +2,7 @@ class_name ContentWorldValidator
 extends RefCounted
 
 const Schema = preload("res://scripts/data/content_schema_validator.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 static func validate(content, errors: Array[String]) -> void:
@@ -72,7 +73,10 @@ static func _validate_world_object_kind(
 				content, entry, "effects_on_open", "world object %s" % object_id, errors
 			)
 		"enemy":
-			_validate_enemy_object(content, entry, object_id, errors)
+			errors.append(
+				"World object %s uses legacy kind enemy; use kind npc with hostility hostile."
+				% object_id
+			)
 		"rest":
 			_validate_rest_object(content, entry, object_id, errors)
 		"poi":
@@ -95,9 +99,14 @@ static func _validate_npc_object(
 	content, entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
 	var npc_id := String(entry.get("npc_id", ""))
-	if not content.npcs.has(npc_id):
+	var profile_id := String(entry.get("character_profile_id", ""))
+	if npc_id.is_empty() and profile_id.is_empty():
+		errors.append("World object %s is missing npc_id or character_profile_id." % object_id)
+	elif not npc_id.is_empty() and not content.npcs.has(npc_id):
 		errors.append("World object %s references missing NPC %s." % [object_id, npc_id])
 	_validate_actor_world_object(content, entry, object_id, errors)
+	if ActorRules.has_combat_behavior_data(entry):
+		_validate_combat_actor_object(entry, object_id, errors)
 
 
 static func _validate_pickup_object(
@@ -122,16 +131,17 @@ static func _validate_container_object(
 	)
 
 
-static func _validate_enemy_object(
-	content, entry: Dictionary, object_id: String, errors: Array[String]
+static func _validate_combat_actor_object(
+	entry: Dictionary, object_id: String, errors: Array[String]
 ) -> void:
-	_validate_actor_world_object(content, entry, object_id, errors)
-	Schema.validate_required_positive_number(entry, "max_health", "Enemy %s" % object_id, errors)
 	Schema.validate_required_positive_number(
-		entry, "damage_taken_per_hit", "Enemy %s" % object_id, errors
+		entry, "max_health", "Hostile actor %s" % object_id, errors
+	)
+	Schema.validate_required_positive_number(
+		entry, "damage_taken_per_hit", "Hostile actor %s" % object_id, errors
 	)
 	Schema.validate_required_non_negative_number(
-		entry, "attack_damage", "Enemy %s" % object_id, errors
+		entry, "attack_damage", "Hostile actor %s" % object_id, errors
 	)
 
 

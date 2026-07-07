@@ -305,6 +305,124 @@ func test_avatar_side_face_features_turn_with_character() -> void:
 	assert_gt((right_features["eye_a"] as Vector2).x, (left_features["eye_a"] as Vector2).x)
 
 
+func test_avatar_face_markings_hide_on_far_side_and_back() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"appearance": {"marking_id": "marking_brow_left"}})
+
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_true(avatar._should_draw_marking("marking_brow_left"))
+	assert_true(avatar.get_debug_draw_layer_order().has("marking"))
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	assert_false(avatar._should_draw_marking("marking_brow_left"))
+	assert_false(avatar.get_debug_draw_layer_order().has("marking"))
+
+	avatar.set_facing_direction(Vector2.LEFT)
+	assert_true(avatar._should_draw_marking("marking_brow_left"))
+
+	avatar.set_facing_direction(Vector2.UP)
+	assert_false(avatar._should_draw_marking("marking_brow_left"))
+
+	avatar.setup({"appearance": {"marking_id": "marking_cheek_dots"}})
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_true(avatar._should_draw_marking("marking_cheek_dots"))
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	assert_false(avatar._should_draw_marking("marking_cheek_dots"))
+
+	avatar.set_facing_direction(Vector2.LEFT)
+	assert_true(avatar._should_draw_marking("marking_cheek_dots"))
+
+
+func test_avatar_face_marking_points_turn_to_near_side() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup()
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var east_point := avatar._face_mark_point(3.8, -17.2, 1.0)
+	avatar.set_facing_direction(Vector2.LEFT)
+	var west_point := avatar._face_mark_point(-3.8, -17.2, 1.0)
+
+	assert_gt(east_point.x, 0.0)
+	assert_lt(west_point.x, 0.0)
+
+	avatar.set_facing_direction(Vector2.DOWN)
+	var left_cheek_point := avatar._face_mark_point(-2.6, -11.7, 1.0)
+	assert_lt(left_cheek_point.x, 0.0)
+
+
+func test_avatar_mirefolk_belly_is_front_surface_only() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"people_id": "people_mirefolk"})
+
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_true(avatar._front_surface_visible())
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	assert_true(avatar._front_surface_visible())
+
+	avatar.set_facing_direction(Vector2.UP)
+	assert_false(avatar._front_surface_visible())
+
+
+func test_avatar_tanglekin_side_muzzle_is_rounded_and_mirrored() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"people_id": "people_tanglekin"})
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var east_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+	avatar.set_facing_direction(Vector2.LEFT)
+	var west_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+
+	assert_gt(east_rect.size.x, east_rect.size.y)
+	assert_gt(east_rect.get_center().x, 0.0)
+	assert_lt(west_rect.get_center().x, 0.0)
+	assert_almost_eq(absf(east_rect.get_center().x), absf(west_rect.get_center().x), 0.001)
+
+
+func test_avatar_ravenfolk_side_eye_and_beak_are_mirrored_and_compact() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"people_id": "people_ravenfolk"})
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var east_eye := avatar._ravenfolk_near_eye_point(1.0)
+	var east_beak := avatar._ravenfolk_side_beak_points(1.0)
+	avatar.set_facing_direction(Vector2.LEFT)
+	var west_eye := avatar._ravenfolk_near_eye_point(1.0)
+	var west_beak := avatar._ravenfolk_side_beak_points(1.0)
+
+	assert_gt(east_eye.x, 0.0)
+	assert_lt(west_eye.x, 0.0)
+	assert_almost_eq(absf(east_eye.x), absf(west_eye.x), 0.001)
+	assert_almost_eq(east_eye.y, west_eye.y, 0.001)
+	assert_lt(absf((east_beak[1] as Vector2).x), 5.4)
+	assert_lt(absf((west_beak[1] as Vector2).x), 5.4)
+	assert_almost_eq(absf((east_beak[1] as Vector2).x), absf((west_beak[1] as Vector2).x), 0.001)
+
+
+func test_avatar_tuskfolk_side_tusk_stays_mounted_to_face() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup({"people_id": "people_tuskfolk"})
+
+	avatar.set_facing_direction(Vector2.RIGHT)
+	var points := avatar._tuskfolk_side_tusk_points(1.0, 9.2)
+	var base_top: Vector2 = points[0]
+	var tip: Vector2 = points[1]
+	var base_bottom: Vector2 = points[2]
+
+	assert_gt(base_top.x, 0.0)
+	assert_gt(tip.x, base_top.x)
+	assert_lt(tip.x, 5.8)
+	assert_lt(base_bottom.x, tip.x)
+	assert_lt(absf(base_top.y - base_bottom.y), 1.5)
+
+
 func test_avatar_layers_tanglekin_tail_behind_body() -> void:
 	var avatar := HumanoidAvatar2D.new()
 	add_child_autofree(avatar)

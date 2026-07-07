@@ -24,7 +24,7 @@
         "head_id": "head_human_round",
         "hair_id": "hair_close_crop",
         "hair_color_id": "hair_black",
-        "marking_id": "marking_brow_left",
+        "optional_marking_ids": ["marking_brow_left"],
         "feature_ids": [],
         "proportion_deltas": {
           "body_height": 0.02,
@@ -74,7 +74,7 @@
         "head_id": "head_human_round",
         "hair_id": "hair_wide_curls",
         "hair_color_id": "hair_brown",
-        "marking_id": "marking_cheek_dots",
+        "optional_marking_ids": ["marking_cheek_dots"],
         "feature_ids": [],
         "proportion_deltas": {
           "shoulder_width": -0.03,
@@ -210,7 +210,7 @@
         "head_id": "head_human_round",
         "hair_id": "hair_wide_curls",
         "hair_color_id": "hair_grey",
-        "marking_id": "marking_cheek_dots",
+        "optional_marking_ids": ["marking_cheek_dots"],
         "feature_ids": [],
         "proportion_deltas": {
           "body_height": -0.02,
@@ -263,7 +263,7 @@
         "head_id": "head_human_round",
         "hair_id": "hair_close_crop",
         "hair_color_id": "hair_grey",
-        "marking_id": "marking_brow_left",
+        "optional_marking_ids": ["marking_brow_left"],
         "feature_ids": [],
         "proportion_deltas": {
           "body_height": -0.01,

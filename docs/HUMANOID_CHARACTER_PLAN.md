@@ -15,7 +15,8 @@ ready instead of remaining one-off world markers.
 Universal NPC rule: everyone with person-like movement, interaction, inventory,
 or combat is an NPC/actor. Hostility is state. Combat is behavior. A humanoid
 "enemy" is an NPC currently hostile because of faction, crime response, scripted
-state, or test setup; it must not use a separate humanoid model.
+state, or test setup; it must not use a separate humanoid model or permanent
+`kind: "enemy"` content type.
 
 Humanoid NPCs should be full characters even when a test slice only uses part of
 that behavior. They should have a path to movement, attacking, interaction,
@@ -289,7 +290,8 @@ the back/body/front contract instead of drawing every people feature on top of
 the body. This keeps things like Tanglekin tails behind the torso from
 front-facing angles and lets side-facing held weapons follow the near/far hand.
 Movement position may remain analog, but stored facing, avatar body math,
-attack hit shapes, and attack VFX must use the same snapped bucket direction.
+and attack VFX use snapped bucket direction. Attack hit shapes use continuous
+aim direction so combat is not functionally limited to 16 angles.
 
 Current 16-direction QA uses large per-people detail captures from
 `scripts/tools/capture_people_crowd_sheet.gd`. The useful proof format is:
@@ -530,8 +532,8 @@ Stop line:
 
 Done means:
 
-- a fully functional humanoid enemy test fixture exists outside spawn town
-- the test enemy uses a humanoid profile, is combat-capable, has a sword
+- a fully functional hostile humanoid NPC test fixture exists outside spawn town
+- the test actor uses a humanoid profile, is combat-capable, has a sword
   equipped, and carries a bow in inventory for loot verification
 - killing a humanoid can create a body entity at the death position
 - body references character, inventory owner, equipment owner, and collapsed pose
@@ -550,7 +552,7 @@ Done means:
 - living humanoid inventory can be opened through a pickpocket action only when
   rules allow it
 - rule requires sneaking and not being seen
-- NPC/enemy sight uses a 180 degree cone in facing direction
+- NPC/hostile actor sight uses a 180 degree cone in facing direction
 - tests verify blocked while seen and allowed while sneaking unseen
 
 Stop line:
@@ -627,10 +629,10 @@ Updated 2026-07-06.
   aligned to these same body anchors instead of creating separate armour-only
   motion. Face feature positions are now turn-aware so side-view mouth/eye
   marks move with the head instead of sliding across it. Facing now resolves to
-  16 visual buckets for avatar body math, player facing, attack hit shapes, and
-  attack VFX. Tanglekin tails draw as back attachments instead of front
-  overlays, Mirefolk profiles always keep high-eye face features, and held
-  equipment follows near/far hand sorting.
+  16 visual buckets for avatar body math, player facing, and attack VFX, while
+  attack hit shapes use continuous aim. Tanglekin tails draw as back
+  attachments instead of front overlays, Mirefolk profiles always keep high-eye
+  face features, and held equipment follows near/far hand sorting.
 - Equipment/attachment layering after checkpoint 8: complete for first slice.
   Worn gear now has slot bands for back, boots, legs, gloves, chest, and head;
   back gear swaps rear/front sorting by facing; and Smith Apron uses a wrapping
@@ -677,9 +679,9 @@ Updated 2026-07-06.
   small proportion jitter, applies modular appearance overrides, and lets
   character profiles opt into `appearance_generation` while authored named NPC
   appearances remain static unless explicitly changed.
-- People enemy test area: complete for first slice.
-  Six non-canon enemies near spawn town now cover Human, Tanglekin, Tuskfolk,
-  Mirefolk, Ravenfolk, and Rootborn profiles generated through
+- People hostile actor test area: complete for first slice.
+  Six non-canon hostile NPC actors near spawn town now cover Human, Tanglekin,
+  Tuskfolk, Mirefolk, Ravenfolk, and Rootborn profiles generated through
   `appearance_generation`. Each has owner IDs, simple equipment/inventory,
   reachable placement, and death-body loot coverage. Fixture details live in
   `docs/SPAWN_TOWN_PEOPLE_ENEMY_TEST_AREA_HANDOFF.md`.

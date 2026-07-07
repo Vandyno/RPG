@@ -262,21 +262,29 @@ func test_world_distance_caps_authored_interaction_radius_to_requested_range() -
 	)
 
 
-func test_enemy_entities_are_combat_entities_not_interactables() -> void:
+func test_hostile_npc_actors_are_combat_entities_not_interactables() -> void:
 	var content := _content()
 	content.world_objects = [
-		{"id": "enemy", "name": "Enemy", "kind": "enemy", "global_tile": [-1, 2]}
+		{
+			"id": "hostile_npc",
+			"name": "Hostile NPC",
+			"kind": "npc",
+			"hostility": "hostile",
+			"combat_enabled": true,
+			"global_tile": [-1, 2]
+		}
 	]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
 	manager.setup(null, content, _chunks())
 
 	var entity = manager.get_nearest_interactable_world(Vector2(8.0, 8.0), 42.0)
-	var combat_entities := manager.get_entities_world(Vector2(8.0, 8.0), 42.0, "enemy")
+	var combat_entities := manager.get_entities_world(Vector2(8.0, 8.0), 42.0, "hostile")
 
 	assert_null(entity)
 	assert_eq(combat_entities.size(), 1)
-	assert_eq(combat_entities[0].get_kind(), "enemy")
+	assert_eq(combat_entities[0].get_kind(), "npc")
+	assert_true(combat_entities[0].is_combat_target())
 
 
 func test_spawn_all_replaces_entities_immediately_and_clears_highlight() -> void:
@@ -326,7 +334,7 @@ func test_spawn_all_skips_blank_duplicate_and_malformed_entities() -> void:
 		{"id": "dup", "name": "First Duplicate", "kind": "readable", "global_tile": [1, 0]},
 		{"id": "dup", "name": "Second Duplicate", "kind": "pickup", "global_tile": [2, 0]},
 		{"id": "bad_tile", "name": "Bad Tile", "kind": "npc", "global_tile": "bad"},
-		{"id": "text_tile", "name": "Text Tile", "kind": "enemy", "global_tile": ["x", 0]},
+		{"id": "text_tile", "name": "Text Tile", "kind": "npc", "global_tile": ["x", 0]},
 		{"id": "valid", "name": "Valid", "kind": "rest", "global_tile": [3, 0]}
 	]
 	var manager := EntityManager.new()

@@ -170,6 +170,7 @@ static func _validate_appearance_generation(
 	if generation.has("proportion_jitter") and not generation.get("proportion_jitter") is bool:
 		errors.append("%s proportion_jitter must be a boolean." % owner)
 	_validate_appearance_generation_jitter(content, generation, owner, errors)
+	_validate_appearance_generation_marking_chance(generation, owner, errors)
 	_validate_appearance_generation_overrides(generation, owner, errors)
 
 
@@ -196,6 +197,19 @@ static func _validate_appearance_generation_jitter(
 	var strength := float(generation.get("jitter_strength"))
 	if strength < 0.0 or strength > HumanoidProfileResolver.MAX_JITTER_STRENGTH:
 		errors.append("%s jitter_strength must be between 0.00 and 0.08." % owner)
+
+
+static func _validate_appearance_generation_marking_chance(
+	generation: Dictionary, owner: String, errors: Array[String]
+) -> void:
+	if not generation.has("marking_chance"):
+		return
+	if not Schema.is_number(generation.get("marking_chance")):
+		errors.append("%s marking_chance must be numeric." % owner)
+		return
+	var chance := float(generation.get("marking_chance"))
+	if chance < 0.0 or chance > 1.0:
+		errors.append("%s marking_chance must be between 0.00 and 1.00." % owner)
 
 
 static func _validate_appearance_generation_overrides(

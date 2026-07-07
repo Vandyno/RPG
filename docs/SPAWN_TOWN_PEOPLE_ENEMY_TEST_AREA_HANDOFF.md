@@ -1,16 +1,16 @@
-# Spawn Town People Enemy Test Area
+# Spawn Town People Hostile Actor Test Area
 
 Status: implemented test fixture.
 
-Purpose: non-canon debug range near Briarwatch/spawn town with one enemy for
-each current people. Use it to inspect generated silhouettes, combat, death
-bodies, loot, equipment visuals, and future pickpocket behavior.
+Purpose: non-canon debug range near Briarwatch/spawn town with one hostile NPC
+actor for each current people. Use it to inspect generated silhouettes, combat,
+death bodies, loot, equipment visuals, and future pickpocket behavior.
 
 This is not canon encounter design.
 
 ## Current Fixtures
 
-| People | Enemy ID | Profile ID | Tile |
+| People | Actor ID | Profile ID | Tile |
 | --- | --- | --- | --- |
 | Human | `enemy_people_test_human` | `char_people_test_human` | `[-16, 0]` |
 | Tanglekin | `enemy_people_test_tanglekin` | `char_people_test_tanglekin` | `[-18, -2]` |
@@ -19,7 +19,7 @@ This is not canon encounter design.
 | Ravenfolk | `enemy_people_test_ravenfolk` | `char_people_test_ravenfolk` | `[-23, -2]` |
 | Rootborn | `enemy_people_test_rootborn` | `char_people_test_rootborn` | `[-22, 2]` |
 
-The range is outside Briarwatch's authored town bounds. This keeps future enemy
+The range is outside Briarwatch's authored town bounds. This keeps future hostile
 AI from immediately rampaging through town while the fixtures still remain
 reachable from spawn through the west gate.
 
@@ -37,15 +37,16 @@ routes the generation through `HumanoidAppearanceGenerator`, which chooses a
 deterministic variant from `data/people_visual_models.json` using the profile's
 seed and applies small deterministic proportion jitter.
 
-Do not hand-author static appearances for these enemies unless the test needs
+Do not hand-author static appearances for these actors unless the test needs
 one exact look. They should stay generator-backed so future spawn work proves
 the same content path.
 
 ## Gameplay Contract
 
-Each test enemy:
+Each test actor:
 
-- is `kind: "enemy"`
+- is `kind: "npc"`
+- has `hostility: "hostile"` and `combat_enabled: true`
 - has `character_profile_id`, `inventory_owner_id`, and `equipment_owner_id`
 - equips `item_training_sword` in `right_hand`
 - carries one `item_gold_coin`

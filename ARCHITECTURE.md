@@ -206,9 +206,10 @@ Responsibilities:
 Future owner area for persistent actor and humanoid character profiles.
 
 Core rule: everyone with person-like movement, interaction, inventory, or
-combat is an NPC/actor. Hostility is state. Combat is behavior. "Enemy" should
-not become a separate humanoid data model; it is only shorthand for an NPC or
-creature currently hostile to the player.
+combat is an NPC/actor. Hostility is state. Combat is behavior. `enemy` is not
+a permanent content kind or actor category; it is only shorthand for an NPC,
+creature, monster, animal, bandit, guard, cultist, undead, or other actor
+currently hostile to the player.
 
 The player should be treated as one humanoid actor, not as the only character
 with inventory, equipment, spells, and appearance. Humanoid NPCs should be able
@@ -226,7 +227,8 @@ uses 16 facing buckets and explicit back/body/front layer bands so attached
 parts, worn layers, hands, and held items can sort correctly without needing a
 separate actor model.
 Player movement position may remain continuous, but facing, avatar body math,
-attack hit shapes, and attack VFX should use the same snapped bucket direction.
+and attack VFX use snapped visual bucket directions. Attack hit shapes should
+use continuous aim direction so combat is not functionally locked to 16 angles.
 Appearance data may define anatomy, people features, palette, hair, markings,
 and proportions. It should not make a character visibly wear clothing. Visible
 clothing and armour should come from equipped item state.
@@ -318,7 +320,8 @@ Owns readable content, read/discovered tracking, readable UI opening, and read e
 
 ## CombatManager
 
-Owns combat coordination, damage rules, enemy/player combat state integration, and combat events.
+Owns combat coordination, damage rules, hostile actor/player combat state
+integration, and combat events.
 When a humanoid dies, combat should report enough actor identity for the entity
 or profile layer to create a persistent lootable body instead of only removing
 the live NPC.

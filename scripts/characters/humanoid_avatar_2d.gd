@@ -262,7 +262,7 @@ func get_debug_draw_layer_order() -> Array[String]:
 		order.append("hair")
 	if equipped_visuals.has("head"):
 		order.append("equipment:head")
-	if not String(appearance.get("marking_id", "")).is_empty():
+	if _should_draw_marking(String(appearance.get("marking_id", ""))):
 		order.append("marking")
 	if _should_draw_generic_face(people_id):
 		order.append("face:generic")
@@ -632,12 +632,14 @@ func _draw_tanglekin_feature(
 			draw_circle(ear_center, 1.12 * head_size, skin.darkened(0.05))
 		if feature_ids.has("feature_tanglekin_muzzle"):
 			if side_turn < 0.58:
-				_draw_oval(
+				_draw_outlined_oval(
 					Rect2(
 						head_offset + Vector2(-3.8 * head_size, -12.3),
 						Vector2(7.6 * head_size, 4.3 * head_size)
 					),
-					muzzle_color
+					muzzle_color,
+					OUTLINE,
+					0.55
 				)
 				draw_circle(head_offset + Vector2(-2.6 * head_size, -14.8), 0.75 * head_size, eye_color)
 				draw_circle(head_offset + Vector2(2.6 * head_size, -14.8), 0.75 * head_size, eye_color)
@@ -648,22 +650,16 @@ func _draw_tanglekin_feature(
 					0.75
 				)
 			else:
-				_draw_shape(
-					PackedVector2Array(
-						[
-							head_offset + Vector2(side * 0.8 * head_size, -13.0),
-							head_offset + Vector2(side * 5.7 * head_size, -11.5),
-							head_offset + Vector2(side * 0.8 * head_size, -9.4)
-						]
-					),
+				_draw_outlined_oval(
+					_tanglekin_side_muzzle_rect(head_size),
 					muzzle_color,
 					OUTLINE,
 					0.55
 				)
-				draw_circle(head_offset + Vector2(side * 2.4 * head_size, -14.8), 0.78 * head_size, eye_color)
+				draw_circle(head_offset + Vector2(side * 2.0 * head_size, -14.8), 0.78 * head_size, eye_color)
 				draw_line(
-					head_offset + Vector2(side * 2.2 * head_size, -10.5),
-					head_offset + Vector2(side * 4.6 * head_size, -10.7),
+					head_offset + Vector2(side * 2.0 * head_size, -10.5),
+					head_offset + Vector2(side * 3.3 * head_size, -10.6),
 					fur_shadow,
 					0.65
 				)
@@ -838,22 +834,15 @@ func _draw_tuskfolk_feature(
 		)
 	elif front_visible:
 		var side := _face_side()
-		var side_tusk_length := tusk_length * 0.82
 		_draw_shape(
-			PackedVector2Array(
-				[
-					head_offset + Vector2(side * 1.9 * head_size, -9.7),
-					head_offset + Vector2(side * side_tusk_length * head_size, -5.3),
-					head_offset + Vector2(side * 3.3 * head_size, -10.8)
-				]
-			),
+			_tuskfolk_side_tusk_points(head_size, tusk_length),
 			tusk_color,
 			OUTLINE,
 			0.85
 		)
 		draw_line(
-			head_offset + Vector2(side * 3.1 * head_size, -8.8),
-			head_offset + Vector2(side * 4.0 * head_size, -7.8),
+			head_offset + Vector2(side * 2.8 * head_size, -8.8),
+			head_offset + Vector2(side * 3.5 * head_size, -7.9),
 			ring_color,
 			0.85
 		)
@@ -879,42 +868,43 @@ func _draw_mirefolk_feature(
 	var belly_width := 7.6 * _proportion(proportions, "torso_width")
 	var belly_side_width := belly_width * lerpf(1.0, 0.58, side_turn)
 	var belly_height := lerpf(12.2, 9.2, back_turn)
-	_draw_shape(
-		_body_polygon(
-			[
-				Vector2(-belly_side_width * 0.48, -6.9),
-				Vector2(belly_side_width * 0.48, -6.9),
-				Vector2(belly_side_width * 0.42, -6.9 + belly_height * 0.58),
-				Vector2(0.0, -6.9 + belly_height),
-				Vector2(-belly_side_width * 0.42, -6.9 + belly_height * 0.58)
-			]
-		),
-		throat_color.darkened(back_turn * 0.10),
-		Color(0.0, 0.0, 0.0, 0.0),
-		0.0
-	)
-	draw_line(
-		_body_point(-belly_width * 0.25, -5.2),
-		_body_point(belly_width * 0.25, -4.2),
-		skin.darkened(0.18),
-		0.55
-	)
-	var spot_count := 2 + variant_index % 3
-	for spot_index in spot_count:
-		var offset_x := -belly_width * 0.24 + float(spot_index) * belly_width * 0.18
-		var offset_y := -3.6 + float((spot_index + variant_index) % 3) * 2.3
-		draw_circle(
-			_body_point(offset_x, offset_y),
-			0.45 + 0.10 * float(spot_index % 2),
-			pattern_color.darkened(0.18)
+	if front_visible:
+		_draw_shape(
+			_body_polygon(
+				[
+					Vector2(-belly_side_width * 0.48, -6.9),
+					Vector2(belly_side_width * 0.48, -6.9),
+					Vector2(belly_side_width * 0.42, -6.9 + belly_height * 0.58),
+					Vector2(0.0, -6.9 + belly_height),
+					Vector2(-belly_side_width * 0.42, -6.9 + belly_height * 0.58)
+				]
+			),
+			throat_color.darkened(back_turn * 0.10),
+			Color(0.0, 0.0, 0.0, 0.0),
+			0.0
 		)
-	if front_visible and variant_index % 2 == 1:
 		draw_line(
-			_body_point(-belly_width * 0.36, -1.2),
-			_body_point(belly_width * 0.30, 1.1),
-			pattern_color.darkened(0.10),
+			_body_point(-belly_width * 0.25, -5.2),
+			_body_point(belly_width * 0.25, -4.2),
+			skin.darkened(0.18),
 			0.55
 		)
+		var spot_count := 2 + variant_index % 3
+		for spot_index in spot_count:
+			var offset_x := -belly_width * 0.24 + float(spot_index) * belly_width * 0.18
+			var offset_y := -3.6 + float((spot_index + variant_index) % 3) * 2.3
+			draw_circle(
+				_body_point(offset_x, offset_y),
+				0.45 + 0.10 * float(spot_index % 2),
+				pattern_color.darkened(0.18)
+			)
+		if variant_index % 2 == 1:
+			draw_line(
+				_body_point(-belly_width * 0.36, -1.2),
+				_body_point(belly_width * 0.30, 1.1),
+				pattern_color.darkened(0.10),
+				0.55
+			)
 	if feature_ids.has("feature_mirefolk_webbed_hands"):
 		var web_color := skin.lightened(0.22).lerp(pattern_color.lightened(0.08), 0.28)
 		for limb_side in [-1.0, 1.0]:
@@ -985,21 +975,27 @@ func _draw_mirefolk_feature(
 			)
 			draw_circle(head_offset + Vector2(4.1 * head_size, -16.9), 0.72 * head_size, OUTLINE)
 	if front_visible and feature_ids.has("feature_mirefolk_reed_marks"):
-		draw_line(
-			head_offset + Vector2(-5.8 * head_size, -15.4),
-			head_offset + Vector2(-2.0 * head_size, -12.4),
-			pattern_color.darkened(0.28),
-			0.8
-		)
-		draw_line(
-			head_offset + Vector2(5.6 * head_size, -15.0),
-			head_offset + Vector2(2.0 * head_size, -12.0),
-			pattern_color.darkened(0.22),
-			0.7
-		)
-		draw_circle(head_offset + Vector2(-4.8 * head_size, -10.2), 0.55, pattern_color.darkened(0.24))
-		draw_circle(head_offset + Vector2(4.6 * head_size, -10.1), 0.55, pattern_color.darkened(0.24))
-		if variant_index > 2:
+		if _face_detail_visible_on_side(-1.0):
+			draw_line(
+				_face_mark_point(-5.8, -15.4, head_size),
+				_face_mark_point(-2.0, -12.4, head_size),
+				pattern_color.darkened(0.28),
+				0.8
+			)
+			draw_circle(
+				_face_mark_point(-4.8, -10.2, head_size), 0.55, pattern_color.darkened(0.24)
+			)
+		if _face_detail_visible_on_side(1.0):
+			draw_line(
+				_face_mark_point(5.6, -15.0, head_size),
+				_face_mark_point(2.0, -12.0, head_size),
+				pattern_color.darkened(0.22),
+				0.7
+			)
+			draw_circle(
+				_face_mark_point(4.6, -10.1, head_size), 0.55, pattern_color.darkened(0.24)
+			)
+		if variant_index > 2 and side_turn < 0.70:
 			draw_line(
 				head_offset + Vector2(-3.0 * head_size, -17.2),
 				head_offset + Vector2(3.2 * head_size, -17.1),
@@ -1184,8 +1180,10 @@ func _draw_ravenfolk_front_feature(
 			]
 		)
 		_draw_shape(brow, feather_shadow, Color(0.0, 0.0, 0.0, 0.0), 0.0)
-		draw_circle(head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, bone_color)
-		if side_turn < 0.70:
+		if side_turn >= 0.70:
+			draw_circle(_ravenfolk_near_eye_point(head_size), 0.85 * head_size, bone_color)
+		else:
+			draw_circle(head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, bone_color)
 			draw_circle(
 				head_offset + Vector2(1.8 * head_size, -14.4), 0.72 * head_size, bone_color
 			)
@@ -1211,20 +1209,14 @@ func _draw_ravenfolk_front_feature(
 				)
 			else:
 				_draw_shape(
-					PackedVector2Array(
-						[
-							head_offset + Vector2(side * 0.8 * head_size, -13.1),
-							head_offset + Vector2(side * 9.0 * head_size, -11.2),
-							head_offset + Vector2(side * 0.8 * head_size, -8.8)
-						]
-					),
+					_ravenfolk_side_beak_points(head_size),
 					bone_color.darkened(0.06),
 					OUTLINE,
 					0.62
 				)
 				draw_line(
-					head_offset + Vector2(side * 1.2 * head_size, -12.7),
-					head_offset + Vector2(side * 6.8 * head_size, -11.3),
+					head_offset + Vector2(side * 1.0 * head_size, -12.6),
+					head_offset + Vector2(side * 4.3 * head_size, -11.7),
 					bone_color.lightened(0.24),
 					0.45
 				)
@@ -1545,23 +1537,22 @@ func _draw_hair(hair_id: String, hair: Color, proportions: Dictionary) -> void:
 
 
 func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> void:
-	if marking_id.is_empty():
+	if not _should_draw_marking(marking_id):
 		return
 	var head_size := _proportion(proportions, "head_size")
-	var head_offset := _head_turn_offset()
 	var mark_color := skin.darkened(0.36)
 	match marking_id:
 		"marking_brow_left":
 			draw_line(
-				head_offset + Vector2(-4.8 * head_size, -15.8),
-				head_offset + Vector2(-1.8 * head_size, -14.4),
+				_face_mark_point(-4.8, -15.8, head_size),
+				_face_mark_point(-1.8, -14.4, head_size),
 				mark_color,
 				0.85
 			)
 		"marking_cheek_dots":
 			for dot_index in 3:
 				draw_circle(
-					head_offset + Vector2((2.6 + dot_index * 1.2) * head_size, -11.7),
+					_face_mark_point(-2.6 - dot_index * 1.2, -11.7, head_size),
 					0.45 * head_size,
 					mark_color
 				)
@@ -1586,6 +1577,7 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 				0.7
 			)
 		"marking_leaf_specks":
+			var head_offset := _head_turn_offset()
 			for dot_index in 3:
 				draw_circle(
 					head_offset + Vector2((-2.2 + dot_index * 2.2) * head_size, -18.7),
@@ -1594,8 +1586,8 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 				)
 		"marking_ash_streak":
 			draw_line(
-				head_offset + Vector2(3.8 * head_size, -17.2),
-				head_offset + Vector2(0.8 * head_size, -9.8),
+				_face_mark_point(3.8, -17.2, head_size),
+				_face_mark_point(0.8, -9.8, head_size),
 				Color(0.68, 0.67, 0.60, 0.78),
 				0.9
 			)
@@ -2074,6 +2066,19 @@ func _draw_oval(rect: Rect2, color: Color) -> void:
 	draw_ellipse(rect.get_center(), rect.size.x * 0.5, rect.size.y * 0.5, color)
 
 
+func _draw_outlined_oval(
+	rect: Rect2, color: Color, outline: Color = OUTLINE, outline_width: float = 1.0
+) -> void:
+	var center := rect.get_center()
+	draw_ellipse(
+		center,
+		rect.size.x * 0.5 + outline_width,
+		rect.size.y * 0.5 + outline_width,
+		outline
+	)
+	draw_ellipse(center, rect.size.x * 0.5, rect.size.y * 0.5, color)
+
+
 func _draw_shape(
 	points: PackedVector2Array, fill: Color, outline: Color = OUTLINE, outline_width: float = 1.0
 ) -> void:
@@ -2294,6 +2299,80 @@ func _face_feature_positions(head_size: float) -> Dictionary:
 		"mouth_a": head_offset + Vector2((-1.1 + look_x) * head_size, -11.6),
 		"mouth_b": head_offset + Vector2((1.0 + look_x) * head_size, -11.4)
 	}
+
+
+func _should_draw_marking(marking_id: String) -> bool:
+	if marking_id.is_empty():
+		return false
+	match marking_id:
+		"marking_brow_left":
+			return _face_detail_visible_on_side(-1.0)
+		"marking_cheek_dots":
+			return _face_detail_visible_on_side(-1.0)
+		"marking_ash_streak":
+			return _face_detail_visible_on_side(1.0)
+		"marking_chest_band":
+			return _front_surface_visible()
+	return true
+
+
+func _face_detail_visible_on_side(local_side: float) -> bool:
+	if not _front_surface_visible():
+		return false
+	if _side_turn_amount() <= 0.62:
+		return true
+	return signf(local_side) == _face_side()
+
+
+func _front_surface_visible() -> bool:
+	return _back_turn_amount() < 0.55
+
+
+func _face_mark_point(local_x: float, y: float, head_size: float) -> Vector2:
+	var side_turn := _side_turn_amount()
+	var x := local_x
+	if side_turn > 0.62:
+		x = _face_side() * absf(local_x) * lerpf(0.72, 0.34, side_turn)
+	else:
+		x += facing_direction.x * side_turn * 0.45
+	return _head_turn_offset() + Vector2(x * head_size, y)
+
+
+func _tanglekin_side_muzzle_rect(head_size: float) -> Rect2:
+	var side := _face_side()
+	var center := _head_turn_offset() + Vector2(side * 2.45 * head_size, -11.25)
+	var size := Vector2(4.45 * head_size, 3.35 * head_size)
+	return Rect2(center - size * 0.5, size)
+
+
+func _ravenfolk_near_eye_point(head_size: float) -> Vector2:
+	return _head_turn_offset() + Vector2(_face_side() * 1.75 * head_size, -14.45)
+
+
+func _ravenfolk_side_beak_points(head_size: float) -> PackedVector2Array:
+	var side := _face_side()
+	var head_offset := _head_turn_offset()
+	return PackedVector2Array(
+		[
+			head_offset + Vector2(side * 0.75 * head_size, -12.9),
+			head_offset + Vector2(side * 3.85 * head_size, -11.65),
+			head_offset + Vector2(side * 3.35 * head_size, -10.35),
+			head_offset + Vector2(side * 0.80 * head_size, -9.15)
+		]
+	)
+
+
+func _tuskfolk_side_tusk_points(head_size: float, tusk_length: float) -> PackedVector2Array:
+	var side := _face_side()
+	var head_offset := _head_turn_offset()
+	var side_tusk_length := minf(tusk_length * 0.46, 4.05)
+	return PackedVector2Array(
+		[
+			head_offset + Vector2(side * 1.8 * head_size, -9.45),
+			head_offset + Vector2(side * side_tusk_length * head_size, -5.75),
+			head_offset + Vector2(side * 2.95 * head_size, -10.55)
+		]
+	)
 
 
 func _stable_index(text: String, size: int) -> int:

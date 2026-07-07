@@ -2,10 +2,11 @@ class_name EntityManager
 extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const WorldEntityScript = preload("res://scripts/world/world_entity.gd")
 const DEFAULT_INTERACTION_RADIUS_PIXELS := 32.0
 const DOOR_INTERACTION_RADIUS_PIXELS := 48.0
-const NON_INTERACTIVE_KINDS := ["location", "enemy"]
+const NON_INTERACTIVE_KINDS := ["location"]
 
 var event_bus: EventBus
 var content: ContentDatabase
@@ -154,7 +155,7 @@ func get_entities_world(
 	var matches := []
 	for entity_id in entities_by_id:
 		var entity = entities_by_id[entity_id]
-		if not kind_filter.is_empty() and entity.get_kind() != kind_filter:
+		if not _matches_kind_filter(entity, kind_filter):
 			continue
 		var distance := world_position.distance_to(entity.global_position)
 		if distance <= max_distance_pixels:
@@ -381,7 +382,7 @@ func _base_equipped_items(entry: Dictionary) -> Dictionary:
 
 
 func _entry_matches_equipment_owner(entry: Dictionary, owner_id: String) -> bool:
-	if String(entry.get("equipment_owner_id", "")) == owner_id:
+	if ActorRules.equipment_owner_id(entry) == owner_id:
 		return true
 	if _entry_inventory_owner_id(entry) == owner_id:
 		return true
@@ -389,13 +390,7 @@ func _entry_matches_equipment_owner(entry: Dictionary, owner_id: String) -> bool
 
 
 func _entry_inventory_owner_id(entry: Dictionary) -> String:
-	var owner_id := String(entry.get("inventory_owner_id", ""))
-	if not owner_id.is_empty():
-		return owner_id
-	var profile: Variant = entry.get("character_profile", {})
-	if profile is Dictionary:
-		return String(profile.get("inventory_owner_id", ""))
-	return ""
+	return ActorRules.inventory_owner_id(entry)
 
 
 func _interaction_radius_for(entity, fallback: float) -> float:
@@ -409,7 +404,29 @@ func _interaction_radius_for(entity, fallback: float) -> float:
 
 
 func _is_interactable(entity) -> bool:
-	return not NON_INTERACTIVE_KINDS.has(entity.get_kind())
+	if NON_INTERACTIVE_KINDS.has(entity.get_kind()):
+		return false
+	if _is_combat_entity(entity):
+		return false
+	return true
+
+
+func _matches_kind_filter(entity, kind_filter: String) -> bool:
+	if kind_filter.is_empty():
+		return true
+	if ["enemy", "hostile", "combat"].has(kind_filter):
+		return _is_combat_entity(entity)
+	return entity.get_kind() == kind_filter
+
+
+func _is_combat_entity(entity) -> bool:
+	if not entity:
+		return false
+	if entity.has_method("is_combat_target"):
+		return bool(entity.is_combat_target())
+	if entity.get("data") is Dictionary:
+		return ActorRules.is_combat_target_data(entity.data)
+	return false
 
 
 func _sort_entity_matches(matches: Array) -> void:

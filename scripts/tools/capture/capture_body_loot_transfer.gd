@@ -20,7 +20,7 @@ func _capture() -> void:
 	await process_frame
 	await process_frame
 
-	_defeat_enemy(main)
+	_defeat_hostile_actor(main)
 	var body = main.entities.get_entity("body_enemy_road_thug")
 	if not body:
 		printerr("Body was not created.")
@@ -46,9 +46,9 @@ func _capture() -> void:
 	quit()
 
 
-func _defeat_enemy(main) -> void:
-	var enemy = main.entities.get_entity("enemy_road_thug")
-	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+func _defeat_hostile_actor(main) -> void:
+	var actor = main.entities.get_entity("enemy_road_thug")
+	main.player.set_world_position(actor.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
 		if not main.entities.get_entity("enemy_road_thug"):

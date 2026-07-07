@@ -65,13 +65,13 @@ faction_sainted_church
 location_brindlemark
 area_old_road_camp
 flag_mine_door_unlocked
-enemy_forest_wolf
+actor_forest_wolf
 ```
 
-Use `enemy_*` IDs only as legacy/test shorthand or for non-person creatures
-where it is still useful. New humanoid people should be authored as NPC actors.
-Hostility is state, and combat is behavior; a hostile bandit is still an NPC
-with inventory, equipment, faction/state, and a character profile.
+Do not use `kind: "enemy"` as a content type. Hostility is state, and combat is
+behavior; a hostile bandit, guard, cultist, undead, animal, or monster is still
+an actor. Humanoid people should be authored as NPC actors with inventory,
+equipment, faction/state, and a character profile.
 
 Avoid vague IDs like:
 
@@ -100,7 +100,7 @@ Locations should have:
 - connected NPCs
 - connected readables
 - relevant factions
-- relevant enemies
+- relevant hostile actors or threats
 - world-state flags where needed
 
 Implemented location definitions live in `data/locations.json`.
@@ -1489,9 +1489,9 @@ It should include:
 - one reward item
 - gold
 
-## Enemy
+## Hostile Actor
 
-- one simple enemy type
+- one simple hostile actor or threat
 
 ## World State
 

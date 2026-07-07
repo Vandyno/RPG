@@ -5,6 +5,7 @@ const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 
 const DEFAULT_JITTER_STRENGTH := 0.025
 const MAX_JITTER_STRENGTH := 0.08
+const DEFAULT_MARKING_CHANCE := 0.0
 
 const APPEARANCE_FIELDS := [
 	"body_plan_id",
@@ -52,7 +53,7 @@ static func generate_appearance(
 		"hair_id": String(variant.get("hair_id", "")),
 		"hair_color_id": String(variant.get("hair_color_id", HumanoidProfile.DEFAULT_HAIR_COLOR_ID)),
 		"eye_id": HumanoidProfile.DEFAULT_EYE_ID,
-		"marking_id": String(variant.get("marking_id", "")),
+		"marking_id": _selected_marking_id(people_id, variant, seed_key, options),
 		"feature_ids": HumanoidProfile.string_array(variant.get("feature_ids", [])),
 		"visual_model_id": variant_id,
 		"base_clothing_id": HumanoidProfile.DEFAULT_BASE_CLOTHING_ID,
@@ -134,6 +135,33 @@ static func _apply_proportion_jitter(
 		)
 
 
+static func _selected_marking_id(
+	people_id: String, variant: Dictionary, seed_key: String, options: Dictionary
+) -> String:
+	var fixed_marking_id := _string_field(variant.get("marking_id", ""))
+	var optional_marking_ids := HumanoidProfile.string_array(variant.get("optional_marking_ids", []))
+	if optional_marking_ids.is_empty():
+		return fixed_marking_id
+	var chance := _marking_chance(options.get("marking_chance", DEFAULT_MARKING_CHANCE))
+	if chance <= 0.0:
+		return fixed_marking_id
+	var roll_key := "%s:%s:%s:marking_roll" % [
+		people_id, String(variant.get("id", "")), seed_key
+	]
+	if _stable_unit(roll_key) > chance:
+		return fixed_marking_id
+	var pick_key := "%s:%s:%s:marking_pick" % [
+		people_id, String(variant.get("id", "")), seed_key
+	]
+	return optional_marking_ids[_stable_index(pick_key, optional_marking_ids.size())]
+
+
+static func _marking_chance(value: Variant) -> float:
+	if not _is_number(value):
+		return DEFAULT_MARKING_CHANCE
+	return clampf(float(value), 0.0, 1.0)
+
+
 static func _jitter_strength(value: Variant) -> float:
 	if not _is_number(value):
 		return DEFAULT_JITTER_STRENGTH
@@ -147,6 +175,10 @@ static func _stable_index(text: String, size: int) -> int:
 	for index in text.length():
 		total += text.unicode_at(index) * (index + 1)
 	return total % size
+
+
+static func _stable_unit(text: String) -> float:
+	return float(_stable_index(text, 1001)) / 1000.0
 
 
 static func _array_field(value: Variant) -> Array:

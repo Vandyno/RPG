@@ -1,7 +1,7 @@
 class_name DirectionalAttack
 extends RefCounted
 
-const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 const DEFAULT_ATTACK := {
 	"name": "Unarmed",
@@ -38,12 +38,11 @@ static func equipped_weapon(content, equipment) -> Dictionary:
 static func targets_in_shape(
 	candidate_entities: Array, origin: Vector2, direction: Vector2, attack: Dictionary
 ) -> Array:
-	var facing := FacingBuckets.snap_direction(direction, Vector2.RIGHT)
 	var result := []
 	for entity in candidate_entities:
-		if not entity or entity.get_kind() != "enemy":
+		if not _is_combat_target(entity):
 			continue
-		if contains_point(origin, facing, entity.global_position, attack):
+		if contains_point(origin, direction, entity.global_position, attack):
 			result.append(entity)
 	return result
 
@@ -91,6 +90,16 @@ static func spell_attack(spell: Dictionary) -> Dictionary:
 
 static func is_melee_attack(attack: Dictionary) -> bool:
 	return not ["projectile"].has(String(attack.get("shape", "swing")))
+
+
+static func _is_combat_target(entity) -> bool:
+	if not entity:
+		return false
+	if entity.has_method("is_combat_target"):
+		return bool(entity.is_combat_target())
+	if entity.get("data") is Dictionary:
+		return ActorRules.is_combat_target_data(entity.data)
+	return false
 
 
 static func _merged_attack(base: Dictionary, override: Dictionary) -> Dictionary:

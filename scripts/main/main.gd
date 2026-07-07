@@ -914,6 +914,8 @@ func _trade_actions_data(shop_id: String) -> Array[Dictionary]:
 
 
 func _target_detail_text(entity) -> String:
+	if entity.has_method("is_combat_target") and entity.is_combat_target():
+		return _hostile_actor_detail_text(entity)
 	var detail := "Object"
 	match entity.get_kind():
 		"readable":
@@ -930,8 +932,6 @@ func _target_detail_text(entity) -> String:
 			detail = PoiInteraction.detail(entity)
 		"npc":
 			detail = _npc_detail_text(entity)
-		"enemy":
-			detail = _enemy_detail_text(entity)
 		"body":
 			detail = "Body: loot"
 		"rest":
@@ -968,7 +968,7 @@ func _npc_detail_text(entity) -> String:
 	return ", ".join(parts)
 
 
-func _enemy_detail_text(entity) -> String:
+func _hostile_actor_detail_text(entity) -> String:
 	var health: int = combat.get_entity_health(entity)
 	var max_health := _positive_int_field(
 		entity.data, "max_health", CombatManagerScript.DEFAULT_MAX_HEALTH
@@ -977,7 +977,7 @@ func _enemy_detail_text(entity) -> String:
 		entity.data, "attack_damage", CombatManagerScript.DEFAULT_ENEMY_DAMAGE
 	)
 	return (
-		"Enemy HP %d/%d, counter %d"
+		"Hostile HP %d/%d, counter %d"
 		% [health, max_health, attack_damage]
 	)
 

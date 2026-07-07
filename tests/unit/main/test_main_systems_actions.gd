@@ -127,12 +127,15 @@ func test_handle_aim_attack_swings_without_target() -> void:
 	assert_eq(main.calls, ["message:Attacked east.", "refresh"])
 
 
-func test_handle_aim_attack_uses_snapped_bucket_direction_for_hits() -> void:
+func test_handle_aim_attack_uses_continuous_direction_for_hits() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_hunting_bow"
-	var raw_direction := Vector2(1.0, 0.31)
+	var raw_direction := Vector2(1.0, 0.31).normalized()
 	var snapped := FacingBuckets.snap_direction(raw_direction)
-	main.enemies = [AimEntityStub.new("enemy_bucket", "Bucket Dummy", snapped * 88.0)]
+	main.enemies = [
+		AimEntityStub.new("enemy_raw", "Raw Dummy", raw_direction * 88.0),
+		AimEntityStub.new("enemy_bucket", "Bucket Dummy", snapped * 88.0)
+	]
 	main.entities = AimEntitiesStub.new(main.enemies)
 
 	MainSystemsActions.handle_aim(MainSystemsActions.context(main), "attack", raw_direction)
@@ -141,8 +144,8 @@ func test_handle_aim_attack_uses_snapped_bucket_direction_for_hits() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:enemy_bucket:4",
-			"message:Hunting Bow hits Bucket Dummy for 4.",
+			"damage:enemy_raw:4",
+			"message:Hunting Bow hits Raw Dummy for 4.",
 			"refresh"
 		]
 	)
@@ -350,7 +353,7 @@ class AimPlayerStub:
 	var mana := 100.0
 
 	func set_facing_direction(value: Vector2) -> void:
-		facing_direction = value.normalized()
+		facing_direction = FacingBuckets.snap_direction(value)
 
 	func spend_mana(amount: float) -> float:
 		var spent := minf(amount, mana)
@@ -377,4 +380,7 @@ class AimEntityStub:
 		return display_name
 
 	func get_kind() -> String:
-		return "enemy"
+		return "npc"
+
+	func is_combat_target() -> bool:
+		return true

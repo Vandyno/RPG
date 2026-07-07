@@ -2,6 +2,7 @@ class_name WorldEntity
 extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 
 const ACTION_HINT_FONT_SIZE := 11
@@ -46,6 +47,22 @@ func get_display_name() -> String:
 
 func get_kind() -> String:
 	return String(data.get("kind", "object"))
+
+
+func is_actor() -> bool:
+	return ActorRules.is_actor_data(data)
+
+
+func is_hostile_to_player() -> bool:
+	return ActorRules.is_hostile_to_player_data(data)
+
+
+func has_combat_behavior() -> bool:
+	return ActorRules.has_combat_behavior_data(data)
+
+
+func is_combat_target() -> bool:
+	return ActorRules.is_combat_target_data(data)
 
 
 func set_highlighted(value: bool) -> void:
@@ -103,7 +120,7 @@ func get_pick_distance(world_position: Vector2, pick_radius_pixels: float) -> fl
 
 
 func _draw() -> void:
-	var color := _color_for_kind(get_kind())
+	var color := Color(0.75, 0.20, 0.16) if is_combat_target() else _color_for_kind(get_kind())
 	if quest_marker_visible:
 		_draw_quest_marker()
 	if action_hint_visible:
@@ -115,7 +132,10 @@ func _draw() -> void:
 		return
 	draw_circle(Vector2.ZERO, 10.0, color)
 	draw_circle(Vector2.ZERO, 10.0, Color(0.04, 0.04, 0.04), false, 2.0)
-	if get_kind() == "npc":
+	if is_combat_target():
+		draw_line(Vector2(-5, -5), Vector2(5, 5), Color(0.12, 0.02, 0.02), 2.0)
+		draw_line(Vector2(5, -5), Vector2(-5, 5), Color(0.12, 0.02, 0.02), 2.0)
+	elif get_kind() == "npc":
 		draw_circle(Vector2(0, -2), 3.0, Color(0.96, 0.88, 0.62))
 	elif get_kind() == "pickup":
 		draw_rect(Rect2(Vector2(-5, -5), Vector2(10, 10)), Color(0.93, 0.76, 0.25), true)
@@ -127,9 +147,6 @@ func _draw() -> void:
 		draw_circle(Vector2(2, 0), 1.5, Color(0.96, 0.78, 0.34))
 	elif get_kind() == "readable":
 		draw_rect(Rect2(Vector2(-6, -8), Vector2(12, 16)), Color(0.93, 0.88, 0.67), true)
-	elif get_kind() == "enemy":
-		draw_line(Vector2(-5, -5), Vector2(5, 5), Color(0.12, 0.02, 0.02), 2.0)
-		draw_line(Vector2(5, -5), Vector2(-5, 5), Color(0.12, 0.02, 0.02), 2.0)
 	elif get_kind() == "body":
 		draw_ellipse(Vector2(0.0, 2.0), 11.0, 6.0, Color(0.36, 0.25, 0.17))
 		draw_ellipse(Vector2(0.0, 2.0), 11.0, 6.0, Color(0.05, 0.04, 0.03), false, 1.5)
@@ -243,8 +260,6 @@ func _color_for_kind(kind: String) -> Color:
 			color = Color(0.38, 0.25, 0.16)
 		"readable":
 			color = Color(0.84, 0.80, 0.58)
-		"enemy":
-			color = Color(0.75, 0.20, 0.16)
 		"rest":
 			color = Color(0.94, 0.45, 0.18)
 		"poi":
@@ -273,7 +288,7 @@ func _is_number(value: Variant) -> bool:
 
 
 func _setup_humanoid_avatar(content = null) -> void:
-	if not ["npc", "enemy", "body"].has(get_kind()):
+	if not ["npc", "body"].has(get_kind()):
 		return
 	if not (data.get("character_profile", {}) is Dictionary):
 		return

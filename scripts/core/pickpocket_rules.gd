@@ -1,14 +1,13 @@
 class_name PickpocketRules
 extends RefCounted
 
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
+
 
 static func is_pickpocket_target(entity) -> bool:
 	if not entity:
 		return false
-	if not ["npc", "enemy"].has(entity.get_kind()):
-		return false
-	var profile: Variant = entity.data.get("character_profile", {})
-	return profile is Dictionary and not profile.is_empty()
+	return ActorRules.can_pickpocket_data(entity.data)
 
 
 static func access_result(entity, player_position: Vector2, is_sneaking: bool) -> Dictionary:
