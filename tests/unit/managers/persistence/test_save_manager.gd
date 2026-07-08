@@ -21,13 +21,6 @@ class ProviderStub:
 		loaded_payload = data.duplicate(true)
 
 
-class EntityProviderStub:
-	var spawn_count := 0
-
-	func spawn_all() -> void:
-		spawn_count += 1
-
-
 func before_each() -> void:
 	_remove_test_save()
 	_remove_bad_save_path()
@@ -99,7 +92,6 @@ func test_save_and_load_round_trips_all_system_sections() -> void:
 	assert_eq(providers["readables"].loaded_payload, {"read": ["notice"]})
 	assert_eq(int(providers["combat"].loaded_payload["health_by_entity_id"]["enemy"]), 6)
 	assert_eq(providers["chunks"].loaded_payload, {"surface:0:0": {"removed_entities": []}})
-	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_load_missing_save_file_reports_failure() -> void:
@@ -178,7 +170,6 @@ func test_invalid_json_reports_path_line_and_parser_message() -> void:
 	assert_true(result.message.contains("Expected"))
 	assert_eq(result.message, messages.back())
 	assert_eq(providers["player"].loaded_payload, {})
-	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_unsupported_save_version_reports_failure_without_loading() -> void:
@@ -200,7 +191,6 @@ func test_unsupported_save_version_reports_failure_without_loading() -> void:
 	assert_true(result.message.contains("not supported"))
 	assert_eq(result.message, messages.back())
 	assert_eq(providers["player"].loaded_payload, {})
-	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_malformed_save_version_reports_failure_without_loading() -> void:
@@ -224,7 +214,6 @@ func test_malformed_save_version_reports_failure_without_loading() -> void:
 		assert_true(result.message.contains("version is invalid"))
 		assert_eq(result.message, messages.back())
 		assert_eq(providers["player"].loaded_payload, {})
-		assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_malformed_required_save_sections_fail_without_loading() -> void:
@@ -279,7 +268,6 @@ func test_malformed_required_save_sections_fail_without_loading() -> void:
 	assert_eq(providers["readables"].loaded_payload, {})
 	assert_eq(providers["combat"].loaded_payload, {})
 	assert_eq(providers["chunks"].loaded_payload, {})
-	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func test_missing_required_save_section_fails_without_loading() -> void:
@@ -307,7 +295,6 @@ func test_missing_required_save_section_fails_without_loading() -> void:
 	assert_eq(loads, [])
 	assert_eq(providers["player"].loaded_payload, {})
 	assert_eq(providers["inventory"].loaded_payload, {})
-	assert_eq(providers["entities"].spawn_count, 0)
 
 
 func _provider_set() -> Dictionary:
@@ -324,10 +311,9 @@ func _provider_set() -> Dictionary:
 		"statuses":
 		ProviderStub.new({"active": [{"status_id": "status_road_focus", "charges": 2}]}),
 		"time": ProviderStub.new({"day": 3, "minute_of_day": 1260}),
-		"readables": ProviderStub.new({"read": ["notice"]}),
-		"combat": ProviderStub.new({"health_by_entity_id": {"enemy": 6}}),
-		"chunks": ProviderStub.new({"surface:0:0": {"removed_entities": []}}),
-		"entities": EntityProviderStub.new()
+	"readables": ProviderStub.new({"read": ["notice"]}),
+	"combat": ProviderStub.new({"health_by_entity_id": {"enemy": 6}}),
+	"chunks": ProviderStub.new({"surface:0:0": {"removed_entities": []}})
 	}
 
 

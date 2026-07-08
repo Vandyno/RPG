@@ -198,7 +198,8 @@ Responsibilities:
 - spawn authored and runtime entities for active chunks
 - despawn entities outside the active chunk filter
 - maintain stable IDs for persistent entities
-- route save/load data for persistent entities
+- rebuild live entities from authored content, runtime spawn data, and persisted
+  chunk/combat/inventory/equipment state
 - expose entity lookup by ID and position where needed
 
 ## Actor And Character Profiles
@@ -595,7 +596,10 @@ hiding the primary result.
    can create direct drops if configured.
 6. `QuestManager` checks kill/clear objectives.
 7. `WorldStateManager` records persistent defeated state if needed.
-8. `SaveManager` persists the relevant entity/chunk/profile state.
+8. `SaveManager` persists chunk removals plus combat, inventory, equipment, and
+   profile-owned state. `EntityManager` rebuilds live entities from authored and
+   runtime spawn data; it is not a save provider unless a future feature adds a
+   real entity save/load contract.
 
 ---
 

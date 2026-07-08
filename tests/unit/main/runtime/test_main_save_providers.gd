@@ -19,8 +19,7 @@ func test_build_returns_all_save_provider_services_by_stable_key() -> void:
 		"time",
 		"readables",
 		"combat",
-		"chunks",
-		"entities"
+		"chunks"
 	]:
 		assert_true(providers.has(key))
 		assert_same(providers[key], main.get(key))
@@ -42,4 +41,3 @@ class SaveProviderMainStub:
 	var readables := RefCounted.new()
 	var combat := RefCounted.new()
 	var chunks := RefCounted.new()
-	var entities := RefCounted.new()

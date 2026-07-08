@@ -16,6 +16,5 @@ static func build(main) -> Dictionary:
 		"time": main.time,
 		"readables": main.readables,
 		"combat": main.combat,
-		"chunks": main.chunks,
-		"entities": main.entities
+		"chunks": main.chunks
 	}
