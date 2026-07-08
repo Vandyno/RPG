@@ -24,7 +24,15 @@ func load_authored_terrain(path: String) -> Array[String]:
 	if not FileAccess.file_exists(path):
 		authored_areas.clear()
 		return ["Missing authored terrain file: %s" % path]
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parser := JSON.new()
+	var parse_error := parser.parse(FileAccess.get_file_as_string(path))
+	if parse_error != OK:
+		authored_areas.clear()
+		return [
+			"Invalid JSON at %s line %d: %s"
+			% [path, parser.get_error_line(), parser.get_error_message()]
+		]
+	var parsed: Variant = parser.data
 	if not parsed is Dictionary:
 		authored_areas.clear()
 		return ["Expected dictionary JSON at %s" % path]

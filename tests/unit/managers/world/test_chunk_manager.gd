@@ -2,6 +2,16 @@ extends GutTest
 
 const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
 
+const INVALID_TERRAIN_PATH := "user://invalid_terrain.json"
+const ARRAY_TERRAIN_PATH := "user://array_terrain.json"
+
+
+func after_each() -> void:
+	if FileAccess.file_exists(INVALID_TERRAIN_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(INVALID_TERRAIN_PATH))
+	if FileAccess.file_exists(ARRAY_TERRAIN_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(ARRAY_TERRAIN_PATH))
+
 
 func test_chunk_manager_constructor_does_not_load_authored_terrain() -> void:
 	var chunks := ChunkManager.new()
@@ -48,3 +58,31 @@ func test_authored_terrain_file_loader_returns_boundary_errors() -> void:
 	var errors := chunks.load_authored_terrain("user://missing_terrain.json")
 
 	assert_eq(errors, ["Missing authored terrain file: user://missing_terrain.json"])
+
+
+func test_authored_terrain_file_loader_reports_json_parse_line_and_message() -> void:
+	_write_user_file(INVALID_TERRAIN_PATH, "{\n  bad\n")
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	var errors := chunks.load_authored_terrain(INVALID_TERRAIN_PATH)
+
+	assert_eq(errors.size(), 1)
+	assert_true(errors[0].contains("Invalid JSON at %s line " % INVALID_TERRAIN_PATH))
+	assert_true(errors[0].contains("Expected"))
+
+
+func test_authored_terrain_file_loader_keeps_dictionary_shape_error() -> void:
+	_write_user_file(ARRAY_TERRAIN_PATH, "[]")
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+
+	var errors := chunks.load_authored_terrain(ARRAY_TERRAIN_PATH)
+
+	assert_eq(errors, ["Expected dictionary JSON at %s" % ARRAY_TERRAIN_PATH])
+
+
+func _write_user_file(path: String, text: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	assert_not_null(file)
+	file.store_string(text)
