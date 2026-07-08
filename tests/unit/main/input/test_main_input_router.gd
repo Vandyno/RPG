@@ -37,6 +37,9 @@ class PlayerStub:
 	func try_move(delta: Vector2, _delta_seconds: float) -> void:
 		global_position += delta.limit_length(8.0)
 
+	func get_move_input_vector() -> Vector2:
+		return external_move_vector.limit_length(1.0)
+
 
 class EntitiesStub:
 	var hints_cleared := false

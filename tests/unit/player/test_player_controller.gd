@@ -112,6 +112,8 @@ func test_external_move_vector_drives_continuous_motion() -> void:
 	player.setup(null, null, Vector2i.ZERO)
 
 	player.set_external_move_vector(Vector2.RIGHT)
+
+	assert_eq(player.get_move_input_vector(), Vector2.RIGHT)
 	player._process(0.1)
 
 	assert_almost_eq(player.position.x, 30.0, 0.001)

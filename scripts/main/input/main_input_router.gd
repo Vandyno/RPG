@@ -335,16 +335,9 @@ static func _manual_move_active(ctx: InputContext) -> bool:
 
 
 static func _manual_move_vector(ctx: InputContext) -> Vector2:
-	var direction: Vector2 = ctx.player.external_move_vector
-	if Input.is_action_pressed("move_up"):
-		direction.y -= 1.0
-	if Input.is_action_pressed("move_down"):
-		direction.y += 1.0
-	if Input.is_action_pressed("move_left"):
-		direction.x -= 1.0
-	if Input.is_action_pressed("move_right"):
-		direction.x += 1.0
-	return direction.limit_length(1.0)
+	if ctx.player and ctx.player.has_method("get_move_input_vector"):
+		return ctx.player.get_move_input_vector()
+	return Vector2.ZERO
 
 
 static func _clear_manual_target_lock(ctx: InputContext) -> bool:

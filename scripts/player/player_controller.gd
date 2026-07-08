@@ -40,7 +40,7 @@ func setup(bus: EventBus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
 
 func _process(delta: float) -> void:
 	blocked_message_cooldown = maxf(0.0, blocked_message_cooldown - delta)
-	var direction := _read_direction()
+	var direction := get_move_input_vector()
 	var is_moving := direction.length() > MOVE_INPUT_THRESHOLD
 	if humanoid_avatar:
 		humanoid_avatar.set_locomotion(is_moving, is_sneaking, delta)
@@ -172,6 +172,19 @@ func set_external_move_vector(value: Vector2) -> void:
 	external_move_vector = value.limit_length(1.0)
 
 
+func get_move_input_vector() -> Vector2:
+	var direction := external_move_vector
+	if Input.is_action_pressed("move_up"):
+		direction.y -= 1.0
+	if Input.is_action_pressed("move_down"):
+		direction.y += 1.0
+	if Input.is_action_pressed("move_left"):
+		direction.x -= 1.0
+	if Input.is_action_pressed("move_right"):
+		direction.x += 1.0
+	return direction.limit_length(1.0)
+
+
 func toggle_sneaking() -> bool:
 	return set_sneaking(not is_sneaking)
 
@@ -203,19 +216,6 @@ func set_humanoid_profile(profile_data: Dictionary) -> void:
 func set_equipped_items(equipped_by_slot: Dictionary, content: ContentDatabase = null) -> void:
 	_ensure_humanoid_avatar()
 	humanoid_avatar.set_equipped_items(equipped_by_slot, content)
-
-
-func _read_direction() -> Vector2:
-	var direction := external_move_vector
-	if Input.is_action_pressed("move_up"):
-		direction.y -= 1.0
-	if Input.is_action_pressed("move_down"):
-		direction.y += 1.0
-	if Input.is_action_pressed("move_left"):
-		direction.x -= 1.0
-	if Input.is_action_pressed("move_right"):
-		direction.x += 1.0
-	return direction.limit_length(1.0)
 
 
 func _can_stand_at(world_position: Vector2) -> bool:
