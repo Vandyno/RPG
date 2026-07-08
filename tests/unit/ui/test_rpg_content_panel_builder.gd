@@ -126,14 +126,16 @@ func _build_panel(close_callback: Callable) -> Dictionary:
 	var root := Control.new()
 	add_child_autofree(root)
 	var context := RpgContentPanelBuilder.BuildContext.new(
-		root,
-		Callable(self, "_new_panel"),
-		Callable(self, "_add_margin"),
-		Callable(self, "_new_label"),
-		Callable(self, "_new_button"),
-		close_callback,
-		Callable(self, "_style_portrait"),
-		18.0
+		{
+			"root": root,
+			"new_panel": Callable(self, "_new_panel"),
+			"add_margin": Callable(self, "_add_margin"),
+			"new_label": Callable(self, "_new_label"),
+			"new_button": Callable(self, "_new_button"),
+			"close_callback": close_callback,
+			"portrait_style": Callable(self, "_style_portrait"),
+			"hud_margin": 18.0
+		}
 	)
 	return RpgContentPanelBuilder.build(context)
 

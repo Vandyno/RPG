@@ -16,24 +16,15 @@ class BuildContext:
 	var portrait_style: Callable
 	var hud_margin: float
 
-	func _init(
-		p_root: Control,
-		p_new_panel: Callable,
-		p_add_margin: Callable,
-		p_new_label: Callable,
-		p_new_button: Callable,
-		p_close_callback: Callable,
-		p_portrait_style: Callable,
-		p_hud_margin: float
-	) -> void:
-		root = p_root
-		new_panel = p_new_panel
-		add_margin = p_add_margin
-		new_label = p_new_label
-		new_button = p_new_button
-		close_callback = p_close_callback
-		portrait_style = p_portrait_style
-		hud_margin = p_hud_margin
+	func _init(values: Dictionary = {}) -> void:
+		root = values.get("root")
+		new_panel = values.get("new_panel", Callable())
+		add_margin = values.get("add_margin", Callable())
+		new_label = values.get("new_label", Callable())
+		new_button = values.get("new_button", Callable())
+		close_callback = values.get("close_callback", Callable())
+		portrait_style = values.get("portrait_style", Callable())
+		hud_margin = float(values.get("hud_margin", 0.0))
 
 
 class LayoutRequest:

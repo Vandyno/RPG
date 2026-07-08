@@ -330,13 +330,15 @@ func _refresh_systems_actions(state: Dictionary) -> void:
 	var actions := SystemsActionBuilder.actions_for_tab(state, systems_active_tab)
 	systems_action_list.visible = UiActionButtons.refresh(
 		UiActionButtons.RefreshRequest.new(
-			systems_action_list,
-			actions,
-			self,
-			"inventory_item_selected",
-			"item_id",
-			Vector2(0, 50),
-			14
+			{
+				"container": systems_action_list,
+				"actions": actions,
+				"owner": self,
+				"signal_id": "inventory_item_selected",
+				"meta_id": "item_id",
+				"min_size": Vector2(0, 50),
+				"font_size": 14
+			}
 		)
 	)
 
@@ -358,12 +360,14 @@ func _refresh_context_actions(state: Dictionary) -> void:
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = UiActionButtons.refresh(
 		UiActionButtons.RefreshRequest.new(
-			context_action_buttons,
-			actions,
-			self,
-			signal_id,
-			"action_id",
-			CONTEXT_ACTION_BUTTON_SIZE,
-			13
+			{
+				"container": context_action_buttons,
+				"actions": actions,
+				"owner": self,
+				"signal_id": signal_id,
+				"meta_id": "action_id",
+				"min_size": CONTEXT_ACTION_BUTTON_SIZE,
+				"font_size": 13
+			}
 		)
 	)

@@ -114,12 +114,14 @@ static func kind_text(kind: String) -> String:
 static func refresh_choices(choice_list: VBoxContainer, choices: Array, owner: Object) -> bool:
 	return UiActionButtons.refresh(
 		UiActionButtons.RefreshRequest.new(
-			choice_list,
-			choices,
-			owner,
-			"content_choice_selected",
-			"choice_id",
-			Vector2(0, 50),
-			14
+			{
+				"container": choice_list,
+				"actions": choices,
+				"owner": owner,
+				"signal_id": "content_choice_selected",
+				"meta_id": "choice_id",
+				"min_size": Vector2(0, 50),
+				"font_size": 14
+			}
 		)
 	)

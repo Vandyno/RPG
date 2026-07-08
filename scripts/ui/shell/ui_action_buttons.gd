@@ -12,24 +12,16 @@ class RefreshRequest:
 	var font_size: int
 	var empty_text: String
 
-	func _init(
-		p_container: Container,
-		p_actions: Array,
-		p_owner: Object,
-		p_signal_id: String,
-		p_meta_id: String,
-		p_min_size: Vector2,
-		p_font_size: int,
-		p_empty_text: String = ""
-	) -> void:
-		container = p_container
-		actions = p_actions
-		owner = p_owner
-		signal_id = p_signal_id
-		meta_id = p_meta_id
-		min_size = p_min_size
-		font_size = p_font_size
-		empty_text = p_empty_text
+	func _init(values: Dictionary = {}) -> void:
+		container = values.get("container")
+		var action_values: Variant = values.get("actions", [])
+		actions = action_values if action_values is Array else []
+		owner = values.get("owner")
+		signal_id = String(values.get("signal_id", ""))
+		meta_id = String(values.get("meta_id", ""))
+		min_size = values.get("min_size", Vector2.ZERO)
+		font_size = int(values.get("font_size", 0))
+		empty_text = String(values.get("empty_text", ""))
 
 
 class WrappedPanelMetrics:
@@ -44,28 +36,17 @@ class WrappedPanelMetrics:
 	var outer_margin: float
 	var viewport_height: float
 
-	func _init(
-		p_panel_width: float,
-		p_action_count: int,
-		p_button_size: Vector2,
-		p_separation: Vector2,
-		p_margin: float,
-		p_base_height: float,
-		p_top: float,
-		p_reserved_bottom: float,
-		p_outer_margin: float,
-		p_viewport_height: float
-	) -> void:
-		panel_width = p_panel_width
-		action_count = p_action_count
-		button_size = p_button_size
-		separation = p_separation
-		margin = p_margin
-		base_height = p_base_height
-		top = p_top
-		reserved_bottom = p_reserved_bottom
-		outer_margin = p_outer_margin
-		viewport_height = p_viewport_height
+	func _init(values: Dictionary = {}) -> void:
+		panel_width = float(values.get("panel_width", 0.0))
+		action_count = int(values.get("action_count", 0))
+		button_size = values.get("button_size", Vector2.ZERO)
+		separation = values.get("separation", Vector2.ZERO)
+		margin = float(values.get("margin", 0.0))
+		base_height = float(values.get("base_height", 0.0))
+		top = float(values.get("top", 0.0))
+		reserved_bottom = float(values.get("reserved_bottom", 0.0))
+		outer_margin = float(values.get("outer_margin", 0.0))
+		viewport_height = float(values.get("viewport_height", 0.0))
 
 
 static func refresh(request: RefreshRequest) -> bool:

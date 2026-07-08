@@ -444,14 +444,16 @@ func _build_touch_controls() -> void:
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
 		RpgContentPanelBuilder.BuildContext.new(
-			root,
-			Callable(self, "_new_panel"),
-			Callable(self, "_add_margin"),
-			Callable(self, "_new_label"),
-			Callable(self, "_new_button"),
-			Callable(self, "hide_content_card"),
-			Callable(self, "_apply_portrait_style"),
-			HUD_MARGIN
+			{
+				"root": root,
+				"new_panel": Callable(self, "_new_panel"),
+				"add_margin": Callable(self, "_add_margin"),
+				"new_label": Callable(self, "_new_label"),
+				"new_button": Callable(self, "_new_button"),
+				"close_callback": Callable(self, "hide_content_card"),
+				"portrait_style": Callable(self, "_apply_portrait_style"),
+				"hud_margin": HUD_MARGIN
+			}
 		)
 	)
 	content_panel = nodes["panel"]
