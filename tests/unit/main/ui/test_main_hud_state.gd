@@ -76,19 +76,28 @@ func test_context_uses_main_owned_primary_action_text() -> void:
 
 func test_system_tabs_preserve_transfer_character_and_journal_payloads() -> void:
 	var tabs := MainHudState._system_tabs(
-		{
-			"inventory_summary": "2 items",
-			"inventory_items": [{"name": "Apple"}],
-			"transfer_open": true,
-			"transfer_target": {"name": "Cache"},
-			"transfer_target_items": [{"name": "Coin"}],
-			"player_health": "8/10",
-			"player_mana": "3/5",
-			"equipment": "Weapon: Blade",
-			"time": "Day 2, 09:00",
-			"locations": "Town",
-			"quests": [{"title": "Missing Tools"}]
-		}
+		MainHudState._inventory_tab(
+			"2 items",
+			[{"name": "Apple"}],
+			"",
+			[],
+			true,
+			{"name": "Cache"},
+			[{"name": "Coin"}]
+		),
+		MainHudState._character_tab(
+			"8/10",
+			"3/5",
+			"Level 1",
+			"",
+			"Weapon: Blade",
+			"none",
+			"",
+			[]
+		),
+		MainHudState._trade_tab("No trader selected.", [], []),
+		MainHudState._quests_tab([{"title": "Missing Tools"}], "none", []),
+		MainHudState._journal_tab("Day 2, 09:00", [], "", "Town", "")
 	)
 
 	assert_true(tabs["inventory"]["transfer"]["open"])

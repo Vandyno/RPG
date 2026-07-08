@@ -115,6 +115,36 @@ static func build(ctx: HudContext) -> Dictionary:
 	]
 	var equipment_summary := String(ctx.equipment.get_summary())
 	var faction_summary := String(ctx.factions.get_summary())
+	var system_tabs := _system_tabs(
+		_inventory_tab(
+			inventory_summary,
+			inventory_items,
+			inventory_details,
+			inventory_actions,
+			transfer_open,
+			transfer_target,
+			transfer_target_items
+		),
+		_character_tab(
+			player_health,
+			player_mana,
+			progression_summary,
+			progression_details,
+			equipment_summary,
+			status_summary,
+			status_details,
+			progression_actions
+		),
+		_trade_tab(trade_summary, trade_actions, trade_stock_rows),
+		_quests_tab(active_quests, quest_directions, quest_target_actions),
+		_journal_tab(
+			time_summary,
+			time_actions,
+			faction_summary,
+			location_names,
+			location_details
+		)
+	)
 	return {
 		"player_health": player_health,
 		"player_health_value": ctx.player.health,
@@ -157,78 +187,93 @@ static func build(ctx: HudContext) -> Dictionary:
 		"quest_directions": quest_directions,
 		"quest_target_actions": quest_target_actions,
 		"quests": active_quests,
-		"system_tabs": _system_tabs({
-			"inventory_summary": inventory_summary,
-			"inventory_items": inventory_items,
-			"inventory_details": inventory_details,
-			"inventory_actions": inventory_actions,
-			"transfer_open": transfer_open,
-			"transfer_target": transfer_target,
-			"transfer_target_items": transfer_target_items,
-			"player_health": player_health,
-			"player_mana": player_mana,
-			"progression": progression_summary,
-			"progression_details": progression_details,
-			"progression_actions": progression_actions,
-			"equipment": equipment_summary,
-			"statuses": status_summary,
-			"status_details": status_details,
-			"trade": trade_summary,
-			"trade_actions": trade_actions,
-			"trade_stock_rows": trade_stock_rows,
-			"quests": active_quests,
-			"quest_directions": quest_directions,
-			"quest_target_actions": quest_target_actions,
-			"time": time_summary,
-			"time_actions": time_actions,
-			"factions": faction_summary,
-			"locations": location_names,
-			"location_details": location_details
-		})
+		"system_tabs": system_tabs
 	}
 
 
-static func _system_tabs(values: Dictionary) -> Dictionary:
+static func _system_tabs(
+	inventory_tab: Dictionary,
+	character_tab: Dictionary,
+	trade_tab: Dictionary,
+	quests_tab: Dictionary,
+	journal_tab: Dictionary
+) -> Dictionary:
 	return {
-		"inventory": {
-			"summary": values.get("inventory_summary", "empty"),
-			"items": values.get("inventory_items", []),
-			"details": values.get("inventory_details", ""),
-			"actions": values.get("inventory_actions", []),
-			"transfer": {
-				"open": values.get("transfer_open", false),
-				"target": values.get("transfer_target", {}),
-				"player_items": values.get("inventory_items", []),
-				"target_items": values.get("transfer_target_items", [])
-			}
-		},
-		"character": {
-			"health": values.get("player_health", "Health unknown"),
-			"mana": values.get("player_mana", "Mana unknown"),
-			"progression": values.get("progression", "Level 1"),
-			"progression_details": values.get("progression_details", ""),
-			"equipment": values.get("equipment", "Weapon: empty\nOffhand: empty\nBody: empty"),
-			"statuses": values.get("statuses", "none"),
-			"status_details": values.get("status_details", ""),
-			"actions": values.get("progression_actions", [])
-		},
-		"trade": {
-			"summary": values.get("trade", "No trader selected."),
-			"actions": values.get("trade_actions", []),
-			"stock_rows": values.get("trade_stock_rows", [])
-		},
-		"quests": {
-			"quests": values.get("quests", []),
-			"directions": values.get("quest_directions", "none"),
-			"actions": values.get("quest_target_actions", [])
-		},
-		"journal": {
-			"time": values.get("time", "Day 1, 08:00"),
-			"actions": values.get("time_actions", []),
-			"factions": values.get("factions", ""),
-			"locations": values.get("locations", ""),
-			"location_details": values.get("location_details", "")
+		"inventory": inventory_tab,
+		"character": character_tab,
+		"trade": trade_tab,
+		"quests": quests_tab,
+		"journal": journal_tab
+	}
+
+
+static func _inventory_tab(
+	summary: String,
+	items: Array,
+	details: String,
+	actions: Array,
+	transfer_open: bool,
+	transfer_target: Dictionary,
+	transfer_target_items: Array
+) -> Dictionary:
+	return {
+		"summary": summary,
+		"items": items,
+		"details": details,
+		"actions": actions,
+		"transfer":
+		{
+			"open": transfer_open,
+			"target": transfer_target,
+			"player_items": items,
+			"target_items": transfer_target_items
 		}
+	}
+
+
+static func _character_tab(
+	health: String,
+	mana: String,
+	progression: String,
+	progression_details: String,
+	equipment: String,
+	statuses: String,
+	status_details: String,
+	actions: Array
+) -> Dictionary:
+	return {
+		"health": health,
+		"mana": mana,
+		"progression": progression,
+		"progression_details": progression_details,
+		"equipment": equipment,
+		"statuses": statuses,
+		"status_details": status_details,
+		"actions": actions
+	}
+
+
+static func _trade_tab(summary: String, actions: Array, stock_rows: Array) -> Dictionary:
+	return {"summary": summary, "actions": actions, "stock_rows": stock_rows}
+
+
+static func _quests_tab(quests: Array, directions: String, actions: Array) -> Dictionary:
+	return {"quests": quests, "directions": directions, "actions": actions}
+
+
+static func _journal_tab(
+	time: String,
+	actions: Array,
+	factions: String,
+	locations: String,
+	location_details: String
+) -> Dictionary:
+	return {
+		"time": time,
+		"actions": actions,
+		"factions": factions,
+		"locations": locations,
+		"location_details": location_details
 	}
 
 
