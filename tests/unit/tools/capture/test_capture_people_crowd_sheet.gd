@@ -3,6 +3,17 @@ extends GutTest
 const CapturePeopleCrowdSheet = preload(
 	"res://scripts/tools/capture/capture_people_crowd_sheet.gd"
 )
+const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
+
+
+class ContentLoadSuccessStub:
+	func load_all() -> Array:
+		return []
+
+
+class ContentLoadFailureStub:
+	func load_all() -> Array:
+		return ["missing people.json"]
 
 
 func test_people_crowd_sheet_keeps_review_page_contract() -> void:
@@ -13,3 +24,11 @@ func test_people_crowd_sheet_keeps_review_page_contract() -> void:
 	)
 	assert_eq(CapturePeopleCrowdSheet.LABELED_VARIANTS_PER_PAGE, 6)
 	assert_eq(CapturePeopleCrowdSheet.HUNDRED_COLUMNS * CapturePeopleCrowdSheet.HUNDRED_ROWS, 100)
+
+
+func test_capture_content_load_helper_reports_success_and_failure() -> void:
+	assert_eq(CaptureSheetHelper.content_load_errors(ContentLoadSuccessStub.new()), [])
+	assert_eq(
+		CaptureSheetHelper.content_load_errors(ContentLoadFailureStub.new()),
+		["missing people.json"]
+	)

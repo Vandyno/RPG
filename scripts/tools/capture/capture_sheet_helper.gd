@@ -60,6 +60,20 @@ static func create_viewport(root: Window, width: int, height: int) -> SubViewpor
 	return viewport
 
 
+static func ensure_content_loaded(tree: SceneTree, content, label: String) -> bool:
+	var errors := content_load_errors(content)
+	if errors.is_empty():
+		return true
+	for error in errors:
+		printerr("%s content load failed: %s" % [label, String(error)])
+	tree.quit(1)
+	return false
+
+
+static func content_load_errors(content) -> Array:
+	return content.load_all()
+
+
 static func capture_viewport_image(tree: SceneTree, viewport: SubViewport) -> Image:
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	await tree.process_frame

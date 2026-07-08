@@ -77,7 +77,8 @@ func _capture() -> void:
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
-	content.load_all()
+	if not CaptureSheetHelper.ensure_content_loaded(self, content, "People visual model capture"):
+		return
 
 	var absolute_dir := ProjectSettings.globalize_path(output_dir)
 	var make_error := DirAccess.make_dir_recursive_absolute(absolute_dir)

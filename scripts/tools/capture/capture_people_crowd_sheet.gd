@@ -35,7 +35,8 @@ func _capture() -> void:
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
-	content.load_all()
+	if not CaptureSheetHelper.ensure_content_loaded(self, content, "People crowd capture"):
+		return
 	var viewport := CaptureSheetHelper.create_viewport(root, width, height)
 
 	var absolute_dir := ProjectSettings.globalize_path(output_dir)

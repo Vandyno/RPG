@@ -35,7 +35,8 @@ func _capture() -> void:
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
-	content.load_all()
+	if not CaptureSheetHelper.ensure_content_loaded(self, content, "Idle direction capture"):
+		return
 
 	var viewport := CaptureSheetHelper.create_viewport(root, width, height)
 
