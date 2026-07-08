@@ -35,7 +35,7 @@ const RpgEquipmentSlot = preload("res://scripts/ui/controls/slots/rpg_equipment_
 const RpgSpellSlotPanelBuilder = preload(
 	"res://scripts/ui/systems/panes/rpg_spell_slot_panel_builder.gd"
 )
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 const NAV_BUTTON_SIZE := Vector2(92, 58)
 const COMPACT_NAV_BUTTON_SIZE := Vector2(44, 46)
 const LOCATION_BANNER_WIDTH := 344.0

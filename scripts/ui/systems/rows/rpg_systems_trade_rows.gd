@@ -3,7 +3,7 @@ extends RefCounted
 
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 
 static func category_labels() -> Array:

@@ -1,7 +1,7 @@
 extends GutTest
 
 const RpgSystemsTradeRows = preload("res://scripts/ui/systems/rows/rpg_systems_trade_rows.gd")
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 
 func test_systems_action_ids_build_and_parse_slot_actions() -> void:

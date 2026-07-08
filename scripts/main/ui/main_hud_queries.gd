@@ -6,7 +6,7 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const ShopManagerScript = preload("res://scripts/managers/content/shop_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 var chunks
 var combat

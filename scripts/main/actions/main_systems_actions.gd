@@ -7,7 +7,7 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd")
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
-const SystemsActionIds = preload("res://scripts/ui/systems/systems_action_ids.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 const MIN_AIM_DIRECTION := 0.1
 const DEFAULT_BOW_CHARGE_SECONDS := 2.0
