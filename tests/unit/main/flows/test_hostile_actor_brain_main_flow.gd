@@ -1,6 +1,7 @@
 extends GutTest
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const Main = preload("res://scripts/main/main.gd")
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
@@ -105,19 +106,78 @@ func test_ravenfolk_test_actor_can_cast_fire_spell() -> void:
 	assert_true(main.hud.log_label.text.contains("channels Fire Blast for 8"))
 
 
-func test_regular_npc_without_brain_does_not_attack() -> void:
+func test_neutral_brained_npc_does_not_attack_until_hostile() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.set_process(false)
-	var harrow = main.entities.get_entity("npc_harrow_venn_world")
-	assert_not_null(harrow)
-	main.player.set_world_position(harrow.global_position + Vector2(24.0, 0.0))
+	var maera = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(maera)
+	_keep_only_brain(main, "npc_maera_pike_world")
+	main.player.set_world_position(maera.global_position + Vector2(24.0, 0.0))
 	main.player.set_health(main.player.max_health)
+	maera = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(maera)
 
 	HostileActorBrain.update(main, 1.0)
+	maera = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(maera)
 
 	assert_eq(main.player.health, main.player.max_health)
-	assert_false(harrow.data.has("behavior_state"))
+	assert_true(ActorRules.is_damageable_actor_entity(maera))
+	assert_false(maera.is_combat_target())
+	assert_eq(maera.data["behavior_state"], "idle")
+
+
+func test_attack_against_neutral_npc_makes_them_hostile_and_able_to_attack() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.set_process(false)
+	var maera = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(maera)
+	_keep_only_brain(main, "npc_maera_pike_world")
+	var start_health := main.combat.get_entity_health(maera)
+	main.player.set_world_position(maera.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
+	maera = main.entities.get_entity("npc_maera_pike_world")
+
+	assert_not_null(maera)
+	assert_lt(main.combat.get_entity_health(maera), start_health)
+	assert_true(maera.is_combat_target())
+	assert_eq(maera.data["hostility"], "hostile")
+	assert_eq(maera.data["_brain_mode"], "engaged")
+	assert_eq(maera.data["behavior_state"], "chasing")
+
+	main.player.set_health(main.player.max_health)
+	HostileActorBrain.update(main, 0.1)
+
+	assert_lt(main.player.health, main.player.max_health)
+	assert_eq(maera.data["behavior_state"], "attacking")
+
+
+func test_neutral_npc_defeat_creates_lootable_body() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.set_process(false)
+	_keep_only_brain(main, "npc_maera_pike_world")
+	var maera = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(maera)
+	var death_tile: Vector2i = maera.global_tile
+
+	_attack_actor_until_defeated(main, "npc_maera_pike_world")
+
+	assert_null(main.entities.get_entity("npc_maera_pike_world"))
+	var body = main.entities.get_entity("body_npc_maera_pike_world")
+	assert_not_null(body)
+	assert_eq(body.get_kind(), "body")
+	assert_eq(body.global_tile, death_tile)
+	assert_eq(body.data["character_id"], "char_maera_pike")
+	assert_eq(body.data["inventory_owner_id"], "char_maera_pike")
+	assert_eq(body.data["equipment_owner_id"], "char_maera_pike")
+	assert_eq(body.data["character_profile"]["state"], "dead_body")
+	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_gold_coin"), 2)
+	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_roadside_draught"), 1)
 
 
 func test_hostile_actor_returns_home_after_leash_breaks() -> void:
@@ -250,10 +310,11 @@ func _attack_actor_until_defeated(main, entity_id: String) -> void:
 		var actor = main.entities.get_entity(entity_id)
 		if not actor:
 			return
-		main.player.set_world_position(actor.global_position + Vector2(-8.0, 0.0))
+		var actor_position: Vector2 = actor.global_position
+		main.player.set_world_position(actor_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)
 		MainSystemsActions.handle_aim(
 			MainSystemsActions.aim_context(main),
 			"attack",
-			actor.global_position - main.player.global_position
+			actor_position - main.player.global_position
 		)

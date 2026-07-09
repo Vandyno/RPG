@@ -82,7 +82,9 @@ func remove_entity(entity_id: String) -> void:
 	var entity = entities_by_id.get(entity_id)
 	if not entity:
 		return
-	chunk_manager.mark_entity_removed(entity_id, _persistent_removal_tile(entity))
+	chunk_manager.mark_entity_removed(
+		entity_id, _persistent_removal_tile(entity), _world_layer_from_entry(entity.data)
+	)
 	entity_runtime_state_by_id.erase(entity_id)
 	entities_by_id.erase(entity_id)
 	if highlighted_entity_id == entity_id:
@@ -126,10 +128,18 @@ func get_interactable_at_world(
 		var entity = entities_by_id[entity_id]
 		if not _is_interactable(entity):
 			continue
-		var pick_distance: float = entity.get_pick_distance(world_position, pick_radius_pixels)
+		var pick_match := _entity_pick_match(entity, world_position, pick_radius_pixels)
+		var pick_distance: float = float(pick_match.get("distance", INF))
 		if pick_distance < INF:
-			matches.append({"entity": entity, "distance": pick_distance})
-	_sort_entity_matches(matches)
+			matches.append(
+				{
+					"entity": entity,
+					"distance": pick_distance,
+					"pick_kind": String(pick_match.get("kind", "")),
+					"selected_hint": bool(pick_match.get("selected", false))
+				}
+			)
+	_sort_pick_matches(matches)
 	if matches.is_empty():
 		return null
 	return matches[0]["entity"] as WorldEntity
@@ -270,9 +280,12 @@ func _spawn_entry(entry: Dictionary) -> void:
 	var entity_id := String(entry.get("id", ""))
 	var spawn_entry := _entry_with_runtime_state(entity_id, entry)
 	var tile := _tile_from_entry(spawn_entry)
-	if not _is_in_active_chunk_window(tile):
+	var layer := _world_layer_from_entry(spawn_entry)
+	if not _is_in_active_chunk_window(tile, layer):
 		return
-	if chunk_manager.is_entity_removed(entity_id, _persistent_removal_tile_from_entry(spawn_entry)):
+	if chunk_manager.is_entity_removed(
+		entity_id, _persistent_removal_tile_from_entry(spawn_entry), layer
+	):
 		return
 	spawn_entry = _entry_with_filtered_equipment(_entry_with_profile(spawn_entry))
 	var entity := WorldEntityScript.new()
@@ -331,10 +344,15 @@ func _persistent_removal_tile_from_entry(entry: Dictionary) -> Vector2i:
 	return _tile_from_entry(entry)
 
 
-func _is_in_active_chunk_window(tile: Vector2i) -> bool:
+func _is_in_active_chunk_window(tile: Vector2i, layer: String = "surface") -> bool:
 	if not has_active_chunk_filter:
 		return true
-	return active_chunk_keys.has(GridMath.chunk_key(GridMath.tile_to_chunk(tile)))
+	return active_chunk_keys.has(GridMath.chunk_key(GridMath.tile_to_chunk(tile), layer))
+
+
+func _world_layer_from_entry(entry: Dictionary) -> String:
+	var layer := String(entry.get("world_layer", "surface"))
+	return "surface" if layer.is_empty() else layer
 
 
 func _conditions_pass(entry: Dictionary) -> bool:
@@ -353,7 +371,8 @@ func _capture_live_runtime_state() -> void:
 			continue
 		var state := {
 			"global_tile": [entity.global_tile.x, entity.global_tile.y],
-			"world_position": [entity.global_position.x, entity.global_position.y]
+			"world_position": [entity.global_position.x, entity.global_position.y],
+			"world_layer": _world_layer_from_entry(entity.data)
 		}
 		if entity.data.has("_spawn_global_tile"):
 			state["_spawn_global_tile"] = entity.data["_spawn_global_tile"]
@@ -498,6 +517,41 @@ func _sort_entity_matches(matches: Array) -> void:
 				return distance_a < distance_b
 			return _entity_sort_key(a["entity"]) < _entity_sort_key(b["entity"])
 	)
+
+
+func _sort_pick_matches(matches: Array) -> void:
+	matches.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			var rank_a := _pick_rank(a)
+			var rank_b := _pick_rank(b)
+			if rank_a != rank_b:
+				return rank_a < rank_b
+			var distance_a := float(a["distance"])
+			var distance_b := float(b["distance"])
+			if not is_equal_approx(distance_a, distance_b):
+				return distance_a < distance_b
+			return _entity_sort_key(a["entity"]) < _entity_sort_key(b["entity"])
+	)
+
+
+func _pick_rank(match: Dictionary) -> int:
+	var kind := String(match.get("pick_kind", ""))
+	var distance := float(match.get("distance", INF))
+	if kind == "body" and distance <= 12.0:
+		return 0
+	if kind == "hint" and bool(match.get("selected_hint", false)):
+		return 1
+	if kind == "hint":
+		return 2
+	if kind == "quest":
+		return 3
+	return 4
+
+
+func _entity_pick_match(entity, world_position: Vector2, pick_radius_pixels: float) -> Dictionary:
+	if entity and entity.has_method("get_pick_match"):
+		return entity.get_pick_match(world_position, pick_radius_pixels)
+	return {"distance": entity.get_pick_distance(world_position, pick_radius_pixels), "kind": "body"}
 
 
 func _entity_sort_key(entity) -> String:

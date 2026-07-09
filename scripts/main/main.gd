@@ -17,9 +17,11 @@ const ShopManagerScript = preload("res://scripts/managers/content/shop_manager.g
 const ReadableManagerScript = preload("res://scripts/managers/content/readable_manager.gd")
 const DialogueManagerScript = preload("res://scripts/managers/content/dialogue_manager.gd")
 const ChunkManagerScript = preload("res://scripts/managers/world/chunk_manager.gd")
+const StructureManagerScript = preload("res://scripts/managers/world/structure_manager.gd")
 const WorldStreamingManagerScript = preload(
 	"res://scripts/managers/world/world_streaming_manager.gd"
 )
+const WorldQueryScript = preload("res://scripts/world/world_query.gd")
 const EntityManagerScript = preload("res://scripts/managers/world/entity_manager.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const EquipmentManagerScript = preload("res://scripts/managers/actors/equipment_manager.gd")
@@ -56,6 +58,8 @@ var shops: ShopManager
 var readables: ReadableManager
 var dialogues: DialogueManager
 var chunks: ChunkManager
+var structures: StructureManager
+var world_query: WorldQuery
 var streamer: WorldStreamingManager
 var entities: EntityManager
 var combat: CombatManager
@@ -124,6 +128,7 @@ func _hud_context() -> MainHudState.HudContext:
 			"condition_evaluator": condition_evaluator,
 			"content": content,
 			"context_actions_context": _action_list_context(),
+			"current_location_name": _current_location_name(),
 			"entities": entities,
 			"equipment": equipment,
 			"factions": factions,
@@ -144,6 +149,16 @@ func _hud_context() -> MainHudState.HudContext:
 			"world_state": world_state
 		}
 	)
+
+
+func _current_location_name() -> String:
+	if not player or player.world_layer == "surface":
+		return ""
+	if player.world_layer.begins_with("interior:") and structures:
+		var structure_id := player.world_layer.trim_prefix("interior:")
+		var structure := structures.get_structure(structure_id)
+		return String(structure.get("name", ""))
+	return player.world_layer
 
 
 func _action_list_context() -> MainContextActions.ActionListContext:
@@ -265,10 +280,18 @@ func _bootstrap() -> bool:
 	add_child(chunks)
 	chunks.load_world_terrain(content.get_world_terrain())
 
+	structures = StructureManagerScript.new()
+	structures.name = "StructureManager"
+	add_child(structures)
+	structures.setup(content)
+
+	world_query = WorldQueryScript.new()
+	world_query.setup(chunks, structures)
+
 	streamer = WorldStreamingManagerScript.new()
 	streamer.name = "WorldStreamingManager"
 	add_child(streamer)
-	streamer.setup(event_bus, chunks)
+	streamer.setup(event_bus, world_query)
 
 	entities = EntityManagerScript.new()
 	entities.name = "EntityManager"
@@ -298,7 +321,7 @@ func _bootstrap() -> bool:
 	player = PlayerControllerScript.new()
 	player.name = "Player"
 	add_child(player)
-	player.setup(event_bus, chunks, Vector2i.ZERO)
+	player.setup(event_bus, world_query, Vector2i.ZERO)
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
 	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
@@ -382,7 +405,7 @@ func _bootstrap() -> bool:
 			_refresh_hud()
 	)
 	event_bus.player_tile_changed.connect(_on_player_tile_changed)
-	streamer.update_center(player.global_tile)
+	streamer.update_center(player.global_tile, player.world_layer)
 	_sync_camera_to_player()
 	return true
 
@@ -399,7 +422,7 @@ func _report_content_bootstrap_errors(errors: Array[String], summary: String) ->
 
 
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
-	streamer.update_center(global_tile)
+	streamer.update_center(global_tile, player.world_layer if player else "surface")
 
 func _sync_camera_to_player() -> void:
 	if not camera or not player:
@@ -617,6 +640,13 @@ func _interact() -> void:
 	if not entity:
 		event_bus.post_message("Nothing nearby to interact with.")
 		return
+	_interact_entity(entity)
+
+
+func _interact_entity(entity: WorldEntity) -> void:
+	if not entity:
+		event_bus.post_message("Nothing nearby to interact with.")
+		return
 	match entity.get_kind():
 		"readable":
 			_interact_readable(entity)
@@ -687,18 +717,51 @@ func _interact_container(entity: WorldEntity) -> void:
 	if ["container", "body"].has(entity.get_kind()):
 		MainInventoryTransfer.open(MainInventoryTransfer.context(self), entity)
 		return
-	if chunks.is_object_opened(entity_id, entity.global_tile):
+	if entity.get_kind() == "door" and not _portal_data(entity).is_empty():
+		_interact_portal(entity)
+		return
+	var layer := _entity_layer(entity)
+	if chunks.is_object_opened(entity_id, entity.global_tile, layer):
 		event_bus.post_message("%s is already open." % entity.get_display_name())
 		return
 	var opened := false
 	for effect in _array_field(entity.data.get("effects_on_open", [])):
 		if effect is Dictionary and apply_effect(effect):
 			opened = true
-	chunks.mark_object_opened(entity_id, entity.global_tile)
+	chunks.mark_object_opened(entity_id, entity.global_tile, layer)
 	if opened:
 		event_bus.post_message("Opened %s." % entity.get_display_name())
 	else:
 		event_bus.post_message("%s is empty." % entity.get_display_name())
+	_update_nearby()
+
+
+func _interact_portal(entity: WorldEntity) -> void:
+	var portal := _portal_data(entity)
+	var display_name := entity.get_display_name()
+	var message := String(portal.get("message", "Moved through %s." % display_name))
+	var target_layer := String(portal.get("target_layer", "surface"))
+	var target_tile := _vector2i_from_pair(portal.get("target_tile", []), player.global_tile)
+	if world_query and not world_query.is_walkable(target_tile, target_layer):
+		event_bus.post_message("The way through is blocked.")
+		return
+	_clear_active_transfer(false)
+	selected_target_id = ""
+	target_cycle_index = 0
+	manual_target_locked = false
+	if hud:
+		hud.hide_target_picker()
+	player.set_world_layer(target_layer)
+	player.set_global_tile(target_tile)
+	var facing := _vector2_from_pair(portal.get("target_facing", []), Vector2.ZERO)
+	if facing.length() > 0.01:
+		player.set_facing_direction(facing)
+	if world_query:
+		world_query.set_layer(player.world_layer)
+	if streamer:
+		streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	event_bus.post_message(message)
 	_update_nearby()
 
 
@@ -789,6 +852,14 @@ func _handle_content_choice_selected(choice_id: String) -> void:
 	var choice: Dictionary = active_content_choices[choice_id]
 	active_content_choices.clear()
 	var result: Dictionary = dialogues.apply_choice(choice)
+	var open_shop_id := String(result.get("open_shop_id", ""))
+	if not open_shop_id.is_empty():
+		if hud:
+			hud.hide_content_card()
+			hud.show_systems_panel("trade")
+		event_bus.post_message("Trading.")
+		_update_nearby()
+		return
 	var response := String(result.get("response", ""))
 	if response.is_empty():
 		if hud:
@@ -883,6 +954,36 @@ func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:
 
 func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+func _portal_data(entity: WorldEntity) -> Dictionary:
+	if not entity or not (entity.data is Dictionary):
+		return {}
+	var portal: Variant = entity.data.get("portal", {})
+	return portal if portal is Dictionary else {}
+
+
+func _entity_layer(entity: WorldEntity) -> String:
+	if not entity or not (entity.data is Dictionary):
+		return "surface"
+	var layer := String(entity.data.get("world_layer", "surface"))
+	return "surface" if layer.is_empty() else layer
+
+
+func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
+	if not value is Array or value.size() < 2:
+		return fallback
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return fallback
+	return Vector2i(int(value[0]), int(value[1]))
+
+
+func _vector2_from_pair(value: Variant, fallback: Vector2) -> Vector2:
+	if not value is Array or value.size() < 2:
+		return fallback
+	if not _is_number(value[0]) or not _is_number(value[1]):
+		return fallback
+	return Vector2(float(value[0]), float(value[1]))
 
 
 func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:

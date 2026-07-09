@@ -9,7 +9,7 @@ const RpgInventoryItemButton = preload(
 )
 const RpgAimJoystick = preload("res://scripts/ui/controls/input/rpg_aim_joystick.gd")
 const RpgSpellSlot = preload("res://scripts/ui/controls/slots/rpg_spell_slot.gd")
-const HudClickHelper = preload("res://tests/unit/ui/hud_click_helper.gd")
+const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
 
 var _hud_state_override := {}
 

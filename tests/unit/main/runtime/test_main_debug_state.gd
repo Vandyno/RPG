@@ -8,6 +8,7 @@ func test_debug_state_merges_hud_state_with_runtime_details() -> void:
 
 	assert_eq(state["health"], "100/100")
 	assert_eq(state["player_world"], "(96.5, 128.3)")
+	assert_eq(state["player_layer"], "surface")
 	assert_eq(state["player_tile"], "(3, 4)")
 	assert_eq(state["player_chunk"], "(0, 0)")
 	assert_eq(state["terrain"], "road")
@@ -30,6 +31,7 @@ class DebugMainStub:
 
 	var player := DebugPlayerStub.new()
 	var chunks := DebugChunksStub.new()
+	var world_query := DebugWorldQueryStub.new()
 	var streamer := DebugStreamerStub.new()
 	var entities := DebugEntitiesStub.new()
 	var hud_queries := DebugHudQueriesStub.new()
@@ -49,12 +51,20 @@ class DebugPlayerStub:
 	var position := Vector2(96.5, 128.25)
 	var global_position := Vector2(96.5, 128.25)
 	var global_tile := Vector2i(3, 4)
+	var world_layer := "surface"
 
 
 class DebugChunksStub:
 	extends RefCounted
 
 	func get_tile_kind(_tile: Vector2i) -> String:
+		return "road"
+
+
+class DebugWorldQueryStub:
+	extends RefCounted
+
+	func get_tile_kind(_tile: Vector2i, _layer: String) -> String:
 		return "road"
 
 

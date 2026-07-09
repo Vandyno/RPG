@@ -3,6 +3,7 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 const TEST_SAVE_PATH := "user://test_main_flow.json"
 
 
@@ -205,11 +206,13 @@ func test_npc_completion_requires_authored_conditions() -> void:
 	_choose_content(main, "I'll find it.")
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
 	assert_true(main.hud.content_body_label.text.contains("brass latch"))
+	assert_true(MainFlowInputHelper.exit_forge_direct(main))
 	assert_true(main.get_debug_state()["quest_directions"].contains("Old Toolbox"))
 	assert_true(main.entities.get_entity("pickup_old_toolbox").quest_marker_visible)
-	assert_false(main.entities.get_entity("npc_harrow_venn_world").quest_marker_visible)
+	assert_false(main.entities.get_entity("object_harrow_forge_door").quest_marker_visible)
 
 	main.hud.hide_content_card()
+	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
 
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
@@ -224,6 +227,7 @@ func test_profile_backed_harrow_avatar_keeps_dialogue_interaction() -> void:
 
 	assert_not_null(main.player.humanoid_avatar)
 	assert_eq(main.player.humanoid_profile["character_id"], "char_player")
+	assert_true(MainFlowInputHelper.enter_forge_direct(main))
 
 	var harrow = main.entities.get_entity("npc_harrow_venn_world")
 	assert_not_null(harrow)
@@ -558,14 +562,13 @@ func test_full_spawn_yard_system_loop() -> void:
 
 	_select_entity(main, "npc_maera_pike_world")
 	assert_true(main.get_debug_state()["target_detail"].contains("trader"))
-	assert_eq(main.get_debug_state()["primary_action"], "Trade")
-	var maera_talk_button := _button_containing(main.hud.context_action_buttons, "Talk")
-	assert_not_null(maera_talk_button)
-	maera_talk_button.pressed.emit()
+	assert_eq(main.get_debug_state()["primary_action"], "Talk")
+	main._handle_interact_requested()
 	assert_true(main.hud.content_body_label.text.contains("warden's notice"))
 	assert_true(main.hud.content_body_label.text.contains("trade tab"))
-	main.hud.hide_content_card()
-	main._handle_interact_requested()
+	var maera_trade_button := _button_containing(main.hud.content_choice_list, "Trade")
+	assert_not_null(maera_trade_button)
+	maera_trade_button.pressed.emit()
 	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
 	assert_true(main.hud.systems_body_label.text.contains("Hours: 08:00-18:00"))
 	assert_false(main.hud.systems_body_label.text.contains("Closed now."))
@@ -581,7 +584,9 @@ func test_full_spawn_yard_system_loop() -> void:
 	main.hud.hide_systems_panel()
 	main.hud.refresh()
 	main._handle_interact_requested()
-	assert_true(main.hud.systems_body_label.text.contains("Closed now."))
+	assert_true(main.hud.content_body_label.text.contains("Road goods wait for daylight"))
+	var closed_trade_button := _button_containing(main.hud.content_choice_list, "Trade")
+	assert_true(closed_trade_button == null or not closed_trade_button.visible)
 	var closed_buy_button := _button_containing(
 		main.hud.systems_action_list, "Buy Roadside Draught"
 	)
@@ -1076,6 +1081,12 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 
 func _select_entity(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
+	if not target:
+		if entity_id == "npc_harrow_venn_world":
+			MainFlowInputHelper.enter_forge_direct(main)
+		elif main.player.world_layer != "surface":
+			MainFlowInputHelper.exit_forge_direct(main)
+		target = main.entities.get_entity(entity_id)
 	if target:
 		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)

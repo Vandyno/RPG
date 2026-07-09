@@ -128,7 +128,7 @@ class MainStub:
 		active_transfer_access_mode = ""
 
 
-func test_build_promotes_effectful_npc_actions_and_trade() -> void:
+func test_build_promotes_effectful_npc_actions_without_direct_trade() -> void:
 	var main := MainStub.new()
 	var ctx := MainContextActions.action_list_context(main)
 
@@ -138,12 +138,12 @@ func test_build_promotes_effectful_npc_actions_and_trade() -> void:
 
 	assert_eq(
 		_action_ids(actions),
-		["trade:shop_trader", "talk:dialogue_trader", "line:line_reward", "dialogue:choice_reward"]
+		["talk:dialogue_trader", "line:line_reward", "dialogue:choice_reward"]
 	)
 	assert_eq(primary.get("id", ""), "line:line_reward")
 	assert_eq(
 		_action_ids(secondary),
-		["trade:shop_trader", "talk:dialogue_trader", "dialogue:choice_reward"]
+		["talk:dialogue_trader", "dialogue:choice_reward"]
 	)
 
 

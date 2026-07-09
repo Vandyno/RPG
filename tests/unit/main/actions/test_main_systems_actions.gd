@@ -420,11 +420,19 @@ class AimEntityStub:
 	var id: String
 	var display_name: String
 	var global_position: Vector2
+	var data: Dictionary
 
 	func _init(entity_id: String, name: String, position: Vector2) -> void:
 		id = entity_id
 		display_name = name
 		global_position = position
+		data = {
+			"kind": "npc",
+			"actor_category": "humanoid",
+			"hostility": "hostile",
+			"combat_enabled": true,
+			"character_profile_id": "char_%s" % entity_id
+		}
 
 	func get_entity_id() -> String:
 		return id

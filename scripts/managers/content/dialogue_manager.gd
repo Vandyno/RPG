@@ -57,7 +57,8 @@ func apply_choice(choice: Dictionary) -> Dictionary:
 	return {
 		"choice_id": String(choice.get("id", "")),
 		"text": String(choice.get("text", "")),
-		"response": String(choice.get("response", ""))
+		"response": String(choice.get("response", "")),
+		"open_shop_id": String(choice.get("open_shop_id", ""))
 	}
 
 

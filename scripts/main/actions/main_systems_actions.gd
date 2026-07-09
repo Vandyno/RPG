@@ -467,8 +467,9 @@ static func _damage_targets(
 
 
 static func _damage_target(ctx: AimCombatContext, entity, damage: int, source_name: String) -> void:
-	if not ActorRules.is_combat_target_entity(entity):
+	if not ActorRules.is_damageable_actor_entity(entity):
 		return
+	_aggravate_attacked_actor(ctx, entity)
 	var result: Dictionary = ctx.combat.damage_entity(entity, damage, false)
 	if bool(result.get("defeated", false)):
 		_defeat_actor(ctx, entity, result)
@@ -476,6 +477,22 @@ static func _damage_target(ctx: AimCombatContext, entity, damage: int, source_na
 		ctx.event_bus.post_message(
 			"%s hits %s for %d." % [source_name, entity.get_display_name(), damage]
 		)
+
+
+static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
+	if not entity or not (entity.data is Dictionary):
+		return
+	if ActorRules.is_hostile_to_player_data(entity.data):
+		return
+	entity.data["hostility"] = ActorRules.HOSTILITY_HOSTILE
+	entity.data["hostile_to_player"] = true
+	entity.data["combat_enabled"] = true
+	if String(entity.data.get("brain_id", "")).is_empty():
+		entity.data["brain_id"] = "hostile_basic"
+	entity.data["_brain_mode"] = "engaged"
+	entity.data["behavior_state"] = "chasing"
+	if ctx.event_bus:
+		ctx.event_bus.post_message("%s turns hostile." % entity.get_display_name())
 
 
 static func _combat_candidates(ctx: AimCombatContext) -> Array:

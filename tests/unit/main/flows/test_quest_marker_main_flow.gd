@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_world_quest_marker_tracks_objective_target_changes() -> void:
@@ -10,9 +11,10 @@ func test_world_quest_marker_tracks_objective_target_changes() -> void:
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
 	_choose_content(main, "I'll find it.")
+	assert_true(MainFlowInputHelper.exit_forge_direct(main))
 
 	assert_true(main.entities.get_entity("pickup_old_toolbox").quest_marker_visible)
-	assert_false(main.entities.get_entity("npc_harrow_venn_world").quest_marker_visible)
+	assert_false(main.entities.get_entity("object_harrow_forge_door").quest_marker_visible)
 	main.hud.show_systems_panel("quests")
 	var target_toolbox := _button_containing(main.hud.systems_action_list, "Target Old Toolbox")
 	assert_not_null(target_toolbox)
@@ -27,7 +29,7 @@ func test_world_quest_marker_tracks_objective_target_changes() -> void:
 	main._handle_interact_requested()
 
 	assert_null(main.entities.get_entity("pickup_old_toolbox"))
-	assert_true(main.entities.get_entity("npc_harrow_venn_world").quest_marker_visible)
+	assert_true(main.entities.get_entity("object_harrow_forge_door").quest_marker_visible)
 
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
@@ -38,6 +40,12 @@ func test_world_quest_marker_tracks_objective_target_changes() -> void:
 
 func _select_entity(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
+	if not target:
+		if entity_id == "npc_harrow_venn_world":
+			MainFlowInputHelper.enter_forge_direct(main)
+		elif main.player.world_layer != "surface":
+			MainFlowInputHelper.exit_forge_direct(main)
+		target = main.entities.get_entity(entity_id)
 	if target:
 		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)

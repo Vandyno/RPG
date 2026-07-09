@@ -463,9 +463,9 @@ func test_spawn_town_uses_authored_tiles_and_walkability() -> void:
 	assert_true(chunks.is_walkable(Vector2i(-12, 0)))
 	assert_eq(chunks.get_tile_kind(Vector2i(-12, 2)), "road")
 	assert_true(chunks.is_walkable(Vector2i(-12, 2)))
-	assert_eq(chunks.get_tile_kind(Vector2i(8, -1)), "wood_wall")
-	assert_false(chunks.is_walkable(Vector2i(8, -1)))
-	assert_eq(chunks.get_tile_kind(Vector2i(6, 1)), "wood_floor")
+	assert_eq(chunks.get_tile_kind(Vector2i(8, -1)), "grass")
+	assert_true(chunks.is_walkable(Vector2i(8, -1)))
+	assert_eq(chunks.get_tile_kind(Vector2i(6, 1)), "road")
 	assert_true(chunks.is_walkable(Vector2i(6, 1)))
 
 
@@ -487,3 +487,16 @@ func test_streaming_loads_enough_chunks_for_small_tile_scale() -> void:
 	streamer.update_center(Vector2i.ZERO)
 
 	assert_eq(streamer.get_loaded_chunk_keys().size(), 25)
+
+
+func test_streaming_keys_include_world_layer() -> void:
+	var chunks := ChunkManager.new()
+	add_child_autofree(chunks)
+	var streamer := WorldStreamingManager.new()
+	add_child_autofree(streamer)
+	streamer.setup(null, chunks)
+
+	streamer.update_center(Vector2i.ZERO, "interior:test_house")
+
+	assert_eq(streamer.get_loaded_chunk_keys().size(), 25)
+	assert_true(streamer.get_loaded_chunk_keys().has("interior:test_house:0:0"))

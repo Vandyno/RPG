@@ -85,11 +85,8 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		var npc: Dictionary = _npc_for_entity(ctx, entity)
 		if ctx.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
 			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
-		var shop_id := String(npc.get("shop_id", ""))
-		if not shop_id.is_empty():
-			actions.append({"id": "trade:%s" % shop_id, "text": "Trade"})
-			if not String(npc.get("dialogue_id", "")).is_empty():
-				actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
+		if not String(npc.get("dialogue_id", "")).is_empty():
+			actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
 		var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
 		if not _array_field(line.get("effects", [])).is_empty():
 			actions.append(
@@ -108,8 +105,6 @@ static func preferred_primary(ctx: ActionListContext, entity) -> Dictionary:
 		var action_id := String(action.get("id", ""))
 		if action_id.begins_with("line:"):
 			return action
-	if entity and entity.get_kind() == "npc":
-		return _first_action_with_prefix(actions, "trade:")
 	if (
 		entity
 		and entity.get_kind() == "poi"

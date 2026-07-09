@@ -120,12 +120,26 @@
             "type": "read_readable",
             "readable_id": "readable_briarwatch_notice"
           }
+        ],
+        "choices": [
+          {
+            "id": "trade_crossroads_peddler",
+            "text": "Trade",
+            "open_shop_id": "shop_crossroads_peddler"
+          }
         ]
       },
       {
         "id": "shop_greeting",
         "speaker": "Maera Pike",
-        "text": "Road goods, fair enough for honest trouble. Check the trade tab if you have coin."
+        "text": "Road goods, fair enough for honest trouble.",
+        "choices": [
+          {
+            "id": "trade_crossroads_peddler",
+            "text": "Trade",
+            "open_shop_id": "shop_crossroads_peddler"
+          }
+        ]
       }
     ]
   }

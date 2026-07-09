@@ -17,6 +17,7 @@ class HudContext:
 	var condition_evaluator
 	var content
 	var context_actions_context
+	var current_location_name: String
 	var entities
 	var equipment
 	var factions
@@ -43,6 +44,7 @@ class HudContext:
 		condition_evaluator = values.get("condition_evaluator")
 		content = values.get("content")
 		context_actions_context = values.get("context_actions_context")
+		current_location_name = String(values.get("current_location_name", ""))
 		entities = values.get("entities")
 		equipment = values.get("equipment")
 		factions = values.get("factions")
@@ -183,6 +185,7 @@ static func build(ctx: HudContext) -> Dictionary:
 		"time_actions": time_actions,
 		"time_details": ctx.time.get_details(),
 		"locations": location_names,
+		"current_location": ctx.current_location_name,
 		"location_details": location_details,
 		"quest_directions": quest_directions,
 		"quest_target_actions": quest_target_actions,

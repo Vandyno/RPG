@@ -7,6 +7,9 @@ const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 static func draw_entity(
 	canvas: CanvasItem, kind: String, combat_target: bool, pickup_item_model: Dictionary
 ) -> void:
+	if kind == "pickup":
+		_draw_pickup(canvas, pickup_item_model)
+		return
 	var color := Color(0.75, 0.20, 0.16) if combat_target else color_for_kind(kind)
 	canvas.draw_circle(Vector2.ZERO, 10.0, color)
 	canvas.draw_circle(Vector2.ZERO, 10.0, Color(0.04, 0.04, 0.04), false, 2.0)
@@ -15,8 +18,6 @@ static func draw_entity(
 		canvas.draw_line(Vector2(5, -5), Vector2(-5, 5), Color(0.12, 0.02, 0.02), 2.0)
 	elif kind == "npc":
 		canvas.draw_circle(Vector2(0, -2), 3.0, Color(0.96, 0.88, 0.62))
-	elif kind == "pickup":
-		_draw_pickup(canvas, pickup_item_model)
 	elif kind == "container":
 		canvas.draw_rect(Rect2(Vector2(-7, -5), Vector2(14, 10)), Color(0.55, 0.34, 0.14), true)
 		canvas.draw_line(Vector2(-7, -1), Vector2(7, -1), Color(0.92, 0.76, 0.42), 1.5)

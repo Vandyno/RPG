@@ -2,16 +2,16 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainPathfinder = preload("res://scripts/main/input/main_pathfinder.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_spawn_town_places_existing_content_in_logical_groups() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	assert_eq(_tile(main, "npc_harrow_venn_world"), Vector2i(5, 1))
-	assert_eq(_tile(main, "poi_harrow_forge"), Vector2i(6, 2))
+	assert_eq(_tile(main, "object_harrow_forge_door"), Vector2i(8, 0))
 	assert_eq(_tile(main, "npc_maera_pike_world"), Vector2i(3, -5))
-	assert_eq(_tile(main, "poi_maera_stall"), Vector2i(3, -4))
+	assert_null(main.entities.get_entity("poi_maera_stall"))
 	assert_eq(_tile(main, "poi_briarwatch_square"), Vector2i(4, 5))
 	assert_eq(_tile(main, "object_road_notice"), Vector2i(2, 6))
 	assert_eq(_tile(main, "object_roadside_campfire"), Vector2i(-1, 4))
@@ -36,6 +36,9 @@ func test_spawn_town_places_existing_content_in_logical_groups() -> void:
 		main.entities.get_entity("pickup_old_toolbox").global_position.x,
 		main.entities.get_entity("npc_road_thug").global_position.x
 	)
+	assert_true(MainFlowInputHelper.enter_forge_direct(main))
+	assert_eq(_tile(main, "npc_harrow_venn_world"), Vector2i(4, 5))
+	assert_eq(_tile(main, "poi_harrow_forge"), Vector2i(3, 5))
 
 
 func test_spawn_town_keeps_west_road_clear_for_missing_tools_quest() -> void:

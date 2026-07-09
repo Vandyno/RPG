@@ -4,6 +4,7 @@ extends SceneTree
 const Main = preload("res://scripts/main/main.gd")
 const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 const VERIFY_SAVE_PATH := "user://verify_rpg_ui_real_clicks.json"
+const HARROW_FORGE_LAYER := "interior:structure_briarwatch_harrow_forge"
 
 
 func _initialize() -> void:
@@ -101,6 +102,8 @@ func _verify_inventory_categories_and_item_rows(main) -> bool:
 func _verify_shop_rows(main) -> bool:
 	main.hud.hide_systems_panel()
 	await _settle(main)
+	if not await _ensure_surface(main):
+		return _fail("Could not return to surface before Maera trade check.")
 	main.inventory.add_item("item_gold_coin", 20)
 	_select_entity(main, "npc_maera_pike_world")
 	main.hud.show_systems_panel("trade")
@@ -139,6 +142,8 @@ func _verify_content_choice_rows(main) -> bool:
 	main.hud.hide_content_card()
 	await _settle(main)
 
+	if not await _ensure_forge(main):
+		return _fail("Could not enter Harrow's forge before dialogue check.")
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
 	await _settle(main)
@@ -151,6 +156,8 @@ func _verify_content_choice_rows(main) -> bool:
 
 	main.hud.hide_content_card()
 	await _settle(main)
+	if not await _ensure_surface(main):
+		return _fail("Could not return to surface before job-board check.")
 	_select_entity(main, "poi_briarwatch_square")
 	main._handle_interact_requested()
 	await _settle(main)
@@ -186,6 +193,9 @@ func _verify_system_action_rows(main) -> bool:
 		return _fail("Save Game real click did not close systems panel.")
 	if not FileAccess.file_exists(VERIFY_SAVE_PATH):
 		return _fail("Save Game real click did not write a save file.")
+	var saved_health := _saved_player_health()
+	if saved_health < 0:
+		return _fail("Save Game real click wrote unreadable player health.")
 
 	main.player.set_health(5)
 	main.hud.show_systems_panel("journal")
@@ -197,8 +207,11 @@ func _verify_system_action_rows(main) -> bool:
 	await _click(load)
 	if main.hud.is_systems_panel_visible():
 		return _fail("Load Game real click did not close systems panel.")
-	if main.player.health != 42:
-		return _fail("Load Game real click did not restore saved player health.")
+	if main.player.health != saved_health:
+		return _fail(
+			"Load Game real click did not restore saved player health. Expected %d, got %d."
+			% [saved_health, main.player.health]
+		)
 	main.quests.quests.clear()
 	main.selected_target_id = ""
 	main.manual_target_locked = false
@@ -214,6 +227,8 @@ func _verify_context_action_rows(main) -> bool:
 	main.inventory.add_item("item_gold_coin", max(0, 2 - main.inventory.get_count("item_gold_coin")))
 	if not main.inventory.has_item("item_road_hatchet"):
 		main.inventory.add_item("item_road_hatchet", 1)
+	if not await _ensure_forge(main):
+		return _fail("Could not enter Harrow's forge before forge service check.")
 	_select_entity(main, "poi_harrow_forge")
 	await _settle(main)
 
@@ -232,6 +247,8 @@ func _verify_context_action_rows(main) -> bool:
 func _verify_pickpocket_context_row(main) -> bool:
 	main.hud.hide_systems_panel()
 	main.hud.hide_content_card()
+	if not await _ensure_forge(main):
+		return _fail("Could not enter Harrow's forge before pickpocket check.")
 	_select_entity(main, "npc_harrow_venn_world")
 	main.player.set_sneaking(true)
 	await _settle(main)
@@ -277,6 +294,59 @@ func _select_entity(main, entity_id: String) -> void:
 	main.manual_target_locked = true
 	main._update_nearby()
 	main._refresh_hud()
+
+
+func _ensure_forge(main) -> bool:
+	if String(main.player.world_layer) == HARROW_FORGE_LAYER:
+		return true
+	if not await _ensure_surface(main):
+		return false
+	await _world_click_entity(main, "object_harrow_forge_door")
+	await _settle(main)
+	return String(main.player.world_layer) == HARROW_FORGE_LAYER
+
+
+func _ensure_surface(main) -> bool:
+	if String(main.player.world_layer) == "surface":
+		return true
+	await _world_click_entity(main, "object_harrow_forge_exit")
+	await _settle(main)
+	return String(main.player.world_layer) == "surface"
+
+
+func _world_click_entity(main, entity_id: String) -> bool:
+	var entity = main.entities.get_entity(entity_id)
+	if not entity:
+		return false
+	var world_position: Vector2 = entity.global_position
+	main.player.set_world_position(world_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	await _settle(main)
+	var screen_position: Vector2 = main.get_viewport().get_canvas_transform() * world_position
+	var motion := InputEventMouseMotion.new()
+	motion.position = screen_position
+	motion.global_position = screen_position
+	main._unhandled_input(motion)
+	await process_frame
+
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.pressed = true
+	press.position = screen_position
+	press.global_position = screen_position
+	main._unhandled_input(press)
+	await process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.button_mask = 0
+	release.pressed = false
+	release.position = screen_position
+	release.global_position = screen_position
+	main._unhandled_input(release)
+	await process_frame
+	return true
 
 
 func _click(button: Button) -> void:
@@ -333,3 +403,17 @@ func _fail(message: String) -> bool:
 func _remove_verify_save() -> void:
 	if FileAccess.file_exists(VERIFY_SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(VERIFY_SAVE_PATH))
+
+
+func _saved_player_health() -> int:
+	if not FileAccess.file_exists(VERIFY_SAVE_PATH):
+		return -1
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(VERIFY_SAVE_PATH))
+	if not parsed is Dictionary:
+		return -1
+	var player_data: Variant = (parsed as Dictionary).get("player", {})
+	if not player_data is Dictionary:
+		return -1
+	if not (player_data as Dictionary).has("health"):
+		return -1
+	return int((player_data as Dictionary).get("health", -1))

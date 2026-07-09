@@ -24,6 +24,8 @@ var status_effects: Dictionary = {}
 var spells: Dictionary = {}
 var world_objects: Array[Dictionary] = []
 var world_terrain: Dictionary = {}
+var structure_archetypes: Dictionary = {}
+var world_structures: Array[Dictionary] = []
 var load_errors: Array[String] = []
 
 
@@ -44,6 +46,8 @@ func load_all() -> Array[String]:
 	spells = _load_dictionary("res://data/spells.json")
 	world_objects = _load_array("res://data/world_objects.json")
 	world_terrain = _load_dictionary("res://data/world_terrain.json")
+	structure_archetypes = _load_dictionary("res://data/structure_archetypes.json")
+	world_structures = _load_array("res://data/world_structures.json")
 	return load_errors.duplicate()
 
 
@@ -253,6 +257,22 @@ func world_object_entries() -> Array[Dictionary]:
 
 func get_world_terrain() -> Dictionary:
 	return world_terrain.duplicate(true)
+
+
+func get_structure_archetype(archetype_id: String) -> Dictionary:
+	return _dictionary_copy(structure_archetypes.get(archetype_id, {}))
+
+
+func has_structure_archetype(archetype_id: String) -> bool:
+	return structure_archetypes.has(archetype_id)
+
+
+func structure_archetype_ids() -> Array[String]:
+	return _dictionary_keys(structure_archetypes)
+
+
+func world_structure_entries() -> Array[Dictionary]:
+	return world_structures.duplicate(true)
 
 
 func validate_all() -> Array[String]:

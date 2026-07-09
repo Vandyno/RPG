@@ -132,24 +132,29 @@ The exact math should be centralized in a world/grid utility rather than duplica
 
 ## World Layers
 
-The first implementation can use a single world layer.
+World layers are implemented as explicit layer IDs, not separate coordinate
+systems. The surface layer is `surface`. Structure interiors use IDs shaped like
+`interior:<structure_id>`.
 
-Future layers may include:
-
-- surface
-- underground
-- interior
-- dungeon
-
-If layers are introduced, they should still use explicit coordinates and chunk-aware loading.
-
-Possible layered coordinate shape:
+Layered coordinate shape:
 
 ```text
 world_layer = "surface"
 global_tile = Vector2i(500, 200)
 chunk_coord = Vector2i(15, 6)
 ```
+
+Streaming keys include the layer, so the same tile/chunk coordinate can exist on
+the surface and inside an interior without sharing terrain or entities.
+
+`WorldQuery` is the read path for tile kind/walkability. It combines authored
+terrain with structure overrides and should be preferred over direct
+`ChunkManager` reads in systems that need layer-aware terrain.
+
+`StructureManager` owns authored structures from `data/world_structures.json`
+and archetype terrain/visual metadata from `data/structure_archetypes.json`.
+This is the current foundation for distinct buildings, interiors, and future
+generated structure layouts.
 
 ---
 
@@ -453,9 +458,9 @@ is separate from world-object `conditions`, which control whether the object
 spawns at all.
 
 Door-like access objects use `kind: "door"` and the same opened-state,
-`open_conditions`, `locked_text`, and `effects_on_open` machinery. This supports
-route gates and locked doors now, while leaving collision/path blocking as a
-later layer on top of the same authored data.
+`open_conditions`, `locked_text`, and `effects_on_open` machinery. Doors can also
+define a `portal` with `target_layer` and `target_tile`, which is used for
+structure entrances/exits such as Harrow's Forge.
 
 Town POIs use `kind: "poi"` for interactable places such as squares, stalls,
 forges, shrines, and job boards. POIs surface authored descriptions in the HUD,

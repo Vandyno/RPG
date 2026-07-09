@@ -51,7 +51,7 @@
         "objectives": {
           "return_toolbox": {
             "text": "Return the toolbox to Harrow Venn.",
-            "target_id": "npc_harrow_venn_world"
+            "target_id": "object_harrow_forge_door"
           }
         }
       }

@@ -2,6 +2,7 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_quest_feedback_reports_start_stage_and_completion_rewards() -> void:
@@ -54,6 +55,12 @@ func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> vo
 
 func _select_entity(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
+	if not target:
+		if entity_id == "npc_harrow_venn_world":
+			MainFlowInputHelper.enter_forge_direct(main)
+		elif main.player.world_layer != "surface":
+			MainFlowInputHelper.exit_forge_direct(main)
+		target = main.entities.get_entity(entity_id)
 	if target:
 		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)

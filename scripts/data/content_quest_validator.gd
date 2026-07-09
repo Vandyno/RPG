@@ -133,6 +133,9 @@ static func _validate_dialogue_choices(
 		seen_choice_ids[choice_id] = true
 		if String(choice.get("text", "")).is_empty():
 			errors.append("%s is missing text." % choice_owner)
+		var open_shop_id := String(choice.get("open_shop_id", ""))
+		if not open_shop_id.is_empty() and not content.has_shop(open_shop_id):
+			errors.append("%s references missing shop %s." % [choice_owner, open_shop_id])
 		Schema.validate_condition_list(content, choice, "conditions", choice_owner, errors)
 		Schema.validate_effect_list(content, choice, "effects", choice_owner, errors)
 

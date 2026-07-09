@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="330" viewBox="0 0 640 330">
+  <defs>
+    <style>
+      .title { font: 700 18px sans-serif; fill: #e8e0c8; }
+      .note { font: 12px sans-serif; fill: #cfc7b0; }
+      .label { font: 10px sans-serif; fill: #d9d1bb; }
+      .row { font: 700 12px sans-serif; fill: #f0d57a; }
+      .frame { fill: none; stroke: #70a7ff; stroke-width: 0.6; }
+      .safe { fill: rgba(80, 220, 150, 0.05); stroke: #50dc96; stroke-width: 0.4; stroke-dasharray: 1.5 1; }
+      .blocked { fill: rgba(255, 111, 111, 0.06); stroke: #ff6f6f; stroke-width: 0.5; stroke-dasharray: 1.5 1; }
+      .origin { fill: #ffdf5d; }
+    </style>
+    <symbol id="tile-walkable" viewBox="0 0 16 16">
+      <rect class="frame" x="0.25" y="0.25" width="15.5" height="15.5"/>
+      <rect class="safe" x="1.25" y="1.25" width="13.5" height="13.5"/>
+      <circle class="origin" cx="1" cy="1" r="0.9"/>
+    </symbol>
+    <symbol id="tile-blocked" viewBox="0 0 16 16">
+      <rect class="frame" x="0.25" y="0.25" width="15.5" height="15.5"/>
+      <rect class="blocked" x="1.25" y="1.25" width="13.5" height="13.5"/>
+      <line x1="2" y1="2" x2="14" y2="14" stroke="#ff6f6f" stroke-width="0.6"/>
+      <line x1="14" y1="2" x2="2" y2="14" stroke="#ff6f6f" stroke-width="0.6"/>
+      <circle class="origin" cx="1" cy="1" r="0.9"/>
+    </symbol>
+    <symbol id="tile-row-walkable" viewBox="0 0 64 16">
+      <use href="#tile-walkable" x="0" y="0"/>
+      <use href="#tile-walkable" x="16" y="0"/>
+      <use href="#tile-walkable" x="32" y="0"/>
+      <use href="#tile-walkable" x="48" y="0"/>
+    </symbol>
+    <symbol id="tile-row-blocked" viewBox="0 0 64 16">
+      <use href="#tile-blocked" x="0" y="0"/>
+      <use href="#tile-blocked" x="16" y="0"/>
+      <use href="#tile-blocked" x="32" y="0"/>
+      <use href="#tile-blocked" x="48" y="0"/>
+    </symbol>
+  </defs>
+
+  <text class="title" x="24" y="30">Optional terrain tile template: 16x16</text>
+  <text class="note" x="24" y="50">Transparent background. Yellow dot = top-left origin. Red X = blocked tile kind. Keep first pass optional.</text>
+
+  <g transform="translate(130,86) scale(3)">
+    <text class="label" x="0" y="-6">variant_0</text>
+    <text class="label" x="16" y="-6">variant_1</text>
+    <text class="label" x="32" y="-6">variant_2</text>
+    <text class="label" x="48" y="-6">variant_3</text>
+    <text class="row" x="-34" y="11">grass</text>
+    <use href="#tile-row-walkable" x="0" y="0"/>
+    <text class="row" x="-34" y="31">road</text>
+    <use href="#tile-row-walkable" x="0" y="20"/>
+    <text class="row" x="-34" y="51">wood_floor</text>
+    <use href="#tile-row-walkable" x="0" y="40"/>
+    <text class="row" x="-34" y="71">bridge</text>
+    <use href="#tile-row-walkable" x="0" y="60"/>
+    <text class="row" x="-34" y="91">hill</text>
+    <use href="#tile-row-walkable" x="0" y="80"/>
+    <text class="row" x="-34" y="111">forest</text>
+    <use href="#tile-row-walkable" x="0" y="100"/>
+    <text class="row" x="-34" y="131">water</text>
+    <use href="#tile-row-blocked" x="0" y="120"/>
+    <text class="row" x="-34" y="151">stone_wall</text>
+    <use href="#tile-row-blocked" x="0" y="140"/>
+    <text class="row" x="-34" y="171">wood_wall</text>
+    <use href="#tile-row-blocked" x="0" y="160"/>
+  </g>
+</svg>

@@ -1,0 +1,72 @@
+{
+  "archetype_briarwatch_forge_exterior": {
+    "id": "archetype_briarwatch_forge_exterior",
+    "name": "Briarwatch Forge Exterior",
+    "role": "surface_exterior",
+    "size": [6, 3],
+    "terrain_rows": [
+      "wwwwww",
+      "wwwwww",
+      "wwddww"
+    ],
+    "tile_kinds": {
+      "w": "wood_wall",
+      "f": "wood_floor",
+      "d": "wood_floor"
+    },
+    "visual_style": "forge_exterior",
+    "anchors": {
+      "entry": [2, 2],
+      "sign": [4, 2]
+    }
+  },
+  "archetype_briarwatch_forge_interior": {
+    "id": "archetype_briarwatch_forge_interior",
+    "name": "Briarwatch Forge Interior",
+    "role": "interior_room",
+    "size": [12, 9],
+    "terrain_rows": [
+      "wwwwwwwwwwww",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffddffffw",
+      "wwwwwwwwwwww"
+    ],
+    "tile_kinds": {
+      "w": "wood_wall",
+      "f": "wood_floor",
+      "d": "wood_floor"
+    },
+    "visual_style": "forge_interior",
+    "anchors": {
+      "exit": [5, 7],
+      "anvil": [3, 5],
+      "hearth": [8, 3],
+      "workbench": [8, 6]
+    }
+  },
+  "archetype_briarwatch_shop_front": {
+    "id": "archetype_briarwatch_shop_front",
+    "name": "Briarwatch Shop Front",
+    "role": "surface_exterior",
+    "size": [5, 5],
+    "visual_style": "shop_front",
+    "anchors": {
+      "stall": [2, 3]
+    }
+  },
+  "archetype_briarwatch_town_hall_front": {
+    "id": "archetype_briarwatch_town_hall_front",
+    "name": "Briarwatch Town Hall Front",
+    "role": "surface_exterior",
+    "size": [5, 4],
+    "visual_style": "town_hall_front",
+    "anchors": {
+      "notice_board": [3, 1]
+    }
+  }
+}

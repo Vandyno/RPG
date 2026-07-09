@@ -141,6 +141,12 @@ func test_all_authored_npc_actors_are_profile_backed_characters() -> void:
 		assert_false(profile_id.is_empty(), "%s should resolve a profile." % entry.get("id", ""))
 		assert_eq(String(entry.get("inventory_owner_id", "")), profile_id)
 		assert_eq(String(entry.get("equipment_owner_id", "")), profile_id)
+		assert_eq(String(entry.get("actor_category", "")), "humanoid")
+		assert_true(bool(entry.get("combat_enabled", false)))
+		assert_false(String(entry.get("brain_id", "")).is_empty())
+		assert_gt(int(entry.get("max_health", 0)), 0)
+		assert_gt(int(entry.get("damage_taken_per_hit", 0)), 0)
+		assert_gte(int(entry.get("attack_damage", -1)), 0)
 
 
 func test_people_default_proportions_apply_without_overwriting_authored_values() -> void:
@@ -1072,8 +1078,7 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		"npc_harrow_venn_world",
 		"npc_maera_pike_world",
 		"poi_briarwatch_square",
-		"poi_harrow_forge",
-		"poi_maera_stall",
+		"object_harrow_forge_door",
 		"pickup_old_toolbox",
 		"pickup_roadside_draught",
 		"pickup_road_hatchet",
@@ -1100,7 +1105,8 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 			continue
 		var tile_array: Array = entry.get("global_tile", [0, 0])
 		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
-		var tile_key := GridMath.tile_key(tile)
+		var world_layer := String(entry.get("world_layer", "surface"))
+		var tile_key := "%s:%s" % [world_layer, GridMath.tile_key(tile)]
 		var world_position := GridMath.tile_to_world(tile) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
 		var distance_from_spawn := spawn_world.distance_to(world_position)
 		if String(entry.get("kind", "")) != "location":
@@ -1297,7 +1303,7 @@ func test_quest_live_state_sanitizes_malformed_entries_for_summary_and_save() ->
 	assert_true(quests.set_stage("quest_missing_tools", "found_toolbox"))
 	assert_eq(quests.quests["quest_missing_tools"]["state"], "active")
 	assert_eq(quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
-	assert_eq(quests.get_active_objectives_data()[0]["target_id"], "npc_harrow_venn_world")
+	assert_eq(quests.get_active_objectives_data()[0]["target_id"], "object_harrow_forge_door")
 
 
 func test_quest_summary_and_save_regenerate_malformed_live_active_state() -> void:

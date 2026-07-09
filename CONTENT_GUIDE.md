@@ -228,6 +228,66 @@ code.
 
 ---
 
+# Structures And Interiors
+
+Reusable structure shapes live in `data/structure_archetypes.json`. Placed
+structures live in `data/world_structures.json`.
+
+Use structures when a building needs owned visuals, layer-aware collision, or an
+interior. Keep authored terrain for broad roads, rivers, town walls, and small
+tile fixes.
+
+Structure archetypes can define:
+
+- `size`: `[width, height]` in tiles.
+- `terrain_rows`: optional row strings for wall/floor overrides.
+- `tile_kinds`: map from row character to tile kind.
+- `visual_style`: renderer style key.
+- `anchors`: named local tiles such as `entry`, `exit`, `hearth`, or `stall`.
+
+Placed structures define:
+
+- `id`
+- `name`
+- `archetype_id`
+- `world_layer`, usually `surface` or `interior:<structure_id>`
+- `origin_tile`
+- `seed`
+
+Example:
+
+```json
+{
+  "id": "structure_briarwatch_harrow_forge",
+  "name": "Harrow's Forge",
+  "archetype_id": "archetype_briarwatch_forge_exterior",
+  "world_layer": "surface",
+  "origin_tile": [4, -1],
+  "seed": "briarwatch:harrow_forge:surface"
+}
+```
+
+Doors can move the player between layers with `portal`:
+
+```json
+{
+  "id": "object_harrow_forge_door",
+  "name": "Harrow's Forge Door",
+  "kind": "door",
+  "world_layer": "surface",
+  "global_tile": [4, 3],
+  "portal": {
+    "target_layer": "interior:structure_briarwatch_harrow_forge",
+    "target_tile": [3, 4]
+  }
+}
+```
+
+Use `pick_radius` on dense doors or markers when the visible target should be
+clickable without stealing exact clicks from nearby NPCs.
+
+---
+
 # NPCs
 
 NPCs should have:

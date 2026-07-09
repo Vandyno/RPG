@@ -28,6 +28,7 @@ class InputContext:
 	var get_nearby_entities: Callable
 	var handle_cycle_target_requested: Callable
 	var handle_interact_requested: Callable
+	var interact_entity: Callable
 	var handle_load_requested: Callable
 	var handle_save_requested: Callable
 	var index_of_target_id: Callable
@@ -50,6 +51,7 @@ class InputContext:
 		get_nearby_entities = Callable(main, "_get_nearby_entities")
 		handle_cycle_target_requested = Callable(main, "_handle_cycle_target_requested")
 		handle_interact_requested = Callable(main, "_handle_interact_requested")
+		interact_entity = Callable(main, "_interact_entity")
 		handle_load_requested = Callable(main, "_handle_load_requested")
 		handle_save_requested = Callable(main, "_handle_save_requested")
 		index_of_target_id = Callable(main, "_index_of_target_id")
@@ -182,7 +184,7 @@ static func update_auto_interaction(source, delta_seconds: float) -> void:
 	)
 	if ctx.main.target_cycle_index >= 0:
 		_clear_auto_interaction(ctx)
-		ctx.handle_interact_requested.call()
+		ctx.interact_entity.call(entity)
 		return
 	_follow_auto_path_or_direction(ctx, entity.global_position, delta, delta_seconds)
 	entity = ctx.entities.get_entity(ctx.main.auto_interact_target_id)

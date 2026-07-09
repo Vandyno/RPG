@@ -664,6 +664,9 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
 func _rpg_location_name(state: Dictionary) -> String:
+	var current_location := String(state.get("current_location", ""))
+	if not current_location.is_empty():
+		return current_location
 	var locations := String(state.get("locations", ""))
 	if locations.is_empty() or locations == "none":
 		return "Briarwatch"

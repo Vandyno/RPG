@@ -46,6 +46,27 @@ Map orientation:
 - Lake Orin sits in the east
 - River Veyn runs roughly north-south through the human heartland
 
+Updated concept reference:
+
+`docs/reference/velcor_continent_tangle_rootborn_shattered_isles.png`
+
+This image is direction, not locked canon. It establishes Velcor as the main
+continent-scale landmass surrounded by ocean, with island groups available for
+travel, smuggling, factions, dungeons, and later expansion.
+
+# Continent Direction
+
+Velcor should read as a continent or very large island, not as one cropped
+section of endless mainland.
+
+Use this rule for future maps:
+- water surrounds the full landmass
+- the Hollow Coast remains the western coast
+- the playable first slice stays in and around the Marches of Velcor
+- nearby islands are real places, but not all need to be playable early
+- island groups should support boats, ferries, smugglers, ruins, and mixed
+  communities
+
 # Map Reading
 
 ## Regional Layout
@@ -66,6 +87,12 @@ territory.
 The Tangle Heights occupy the northeast, with Stepcliff Monastery high in the
 mountains and Branchrest on the southern approach toward Lake Orin.
 
+Tanglekin routes and canopy settlements extend west/southwest from the Tangle
+Heights into the Shadegroves and nearby Rootborn-protected land. This overlap is
+a coexistence zone: shared sacred paths, tree-rights, monastery routes, and
+seasonal gathering places. It is not conquest, logging, or human-style road
+building.
+
 The Iron March occupies the southeast beyond the Greyfang Range and the Silent
 Barrows. Karag-Tor and Ashforge Hold sit along the Oathroad.
 
@@ -74,7 +101,44 @@ It is the main Mirefolk homeland in the current region, with frog-like wetland
 communities, ferry routes, herbalists, fishing places, and smuggling pressure.
 The Weeping Vale sits south of the Red Fields and west of the Greyfang Range.
 
+The Shattered Isles sit off the southwest and western coast near the Mireveil and
+Hollow Coast. Humans and Mirefolk mainly coexist there through fishing, ferry
+work, smuggling, salvage, shrine-tending, and rough port life. The islands are
+edgy and low-law, but less hostile to outsiders than the big human towns because
+practical coexistence matters more than clean authority.
+
 The Blackwater lies east of Lake Orin and feels remote, dark, and forbidding.
+
+## Coexistence And Border Zones
+
+Use border zones to make the world feel lived-in instead of split into hard
+racial blocks.
+
+Important zones:
+- Tanglekin / Rootborn overlap: Shadegroves, eastern Elderweald edges, and
+  western approaches to the Tangle Heights. Mostly respectful coexistence.
+- Human / Mirefolk overlap: the Shattered Isles, Mireveil ferries, Redfield
+  smuggling routes, and Hollow Coast ports. Rough but practical.
+- Human / Rootborn tension: Briarwatch, Greenwood Boundary, Stonebridge roads,
+  and logging treaty land. More tense than harmonious.
+- Human / Tuskfolk contract edge: Oathroad, Karag-Tor, Ashforge Hold, and Iron
+  March trade. Legalistic, martial, and reputation-driven.
+- Ravenfolk access: Blackrook Archive and its coastal approaches. Controlled,
+  guarded, and rare.
+
+## Island Groups
+
+Island groups are travel hooks, not required first-slice content.
+
+Preserve these island concepts:
+- The Shattered Isles: southwest/west coast, human and Mirefolk smugglers,
+  fishers, ferries, low government, mixed taverns, hidden coves.
+- Blackrook Skerries: northwest coastal rocks and small archive approaches near
+  Blackrook Archive. Ravenfolk-controlled access.
+- Blackwater Isles: eastern dark-water islands for later horror, ruins, or cult
+  content.
+- Ashen Isles: southeast volcanic or forge-adjacent islands tied to Iron March
+  pressure and Ashen Choir rumors.
 
 ## Major Roads And Travel
 
@@ -346,6 +410,7 @@ Map position: Southeast Iron March, south/east of Karag-Tor along the Oathroad.
 - Ashforge Hold
 - The Oathroad
 - The Mireveil
+- The Shattered Isles
 - The Weeping Vale
 - The Silent Barrows
 - The Red Fields
@@ -353,14 +418,18 @@ Map position: Southeast Iron March, south/east of Karag-Tor along the Oathroad.
 - River Veyn
 - Laford
 - Duskford
+- Blackrook Skerries
+- Blackwater Isles
+- Ashen Isles
 
 # Map Generation Prompt
 
 Create a clean, readable fantasy world map for a dark storybook RPG setting.
-Use a realistic overhead atlas style with clear terrain, readable labels, and a
-polished professional RPG map presentation. The map should feel closer to a
-Google Earth or atlas-style fantasy map than a decorative parchment
-illustration.
+Show Velcor as a continent-scale landmass surrounded by ocean, with several
+nearby island groups. Use a realistic overhead atlas style with clear terrain,
+readable labels, and a polished professional RPG map presentation. The map
+should feel closer to a Google Earth or atlas-style fantasy map than a
+decorative parchment illustration.
 
 Show realistic terrain placement: dark green forests, pale farmland and plains,
 gray rocky mountains, blue rivers and lakes, brown highlands, dark swamp,
@@ -374,7 +443,14 @@ Elderweald, The Shadegroves, Mosshollow, The Greenwood Boundary, The Tangle
 Heights, Stepcliff Monastery, Branchrest, Blackrook Archive, Lake Orin, The
 Blackwater, The Greyfang Range, The Iron March, Karag-Tor, Ashforge Hold, The
 Oathroad, The Mireveil, The Weeping Vale, The Silent Barrows, The Red Fields,
-Hollow Coast, and River Veyn.
+Hollow Coast, River Veyn, The Shattered Isles, Blackrook Skerries, Blackwater
+Isles, and Ashen Isles.
+
+Show the Tanglekin home area extending gently into Rootborn lands around the
+Shadegroves and western Tangle Heights as a respectful coexistence zone, not a
+destructive frontier. Show the Shattered Isles as a rough human/Mirefolk
+coexistence region with smugglers, ferries, low government, and less formal
+hostility than major human towns.
 
 Make settlements, roads, borders, and region boundaries easy to distinguish.
 Include a small clean legend, north arrow, and scale bar, but keep them

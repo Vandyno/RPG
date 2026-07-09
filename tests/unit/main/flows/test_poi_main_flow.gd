@@ -33,12 +33,14 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	var main := Main.new()
 	add_child_autofree(main)
 
+	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	assert_true(await MainFlowInputHelper.target_entity(main, "npc_harrow_venn_world", get_tree()))
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "I'll find it."),
 		get_tree()
 	)
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
+	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 
 	assert_true(
 		await MainFlowInputHelper.target_entity(
@@ -70,58 +72,18 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	assert_false(main.hud.status_label.text.contains("Quest:"))
 
 
-func test_shop_poi_opens_trade_panel_directly() -> void:
+func test_maera_stall_terminal_is_not_spawned() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "poi_maera_stall")
-	assert_eq(main.get_debug_state()["target_detail"], "Market Stall: trade and rumor hook")
-	assert_eq(main.get_debug_state()["primary_action"], "Trade")
-	var inspect_button := _button_containing(main.hud.context_action_buttons, "Inspect")
-	assert_not_null(inspect_button)
-	var stall = main.entities.get_entity("poi_maera_stall")
-	assert_true(stall.action_hint_visible)
-	assert_true(stall.action_hint_selected)
-	assert_eq(stall.action_hint_text, "Trade Maera's Stall")
-	inspect_button.pressed.emit()
-
-	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
-	assert_true(main.hud.is_content_card_visible())
-	assert_eq(main.hud.content_kind_label.text, "Place")
-	assert_true(main.hud.content_body_label.text.contains("wooden shop"))
-	assert_false(main.hud.is_systems_panel_visible())
-	main.hud.hide_content_card()
-	main._handle_interact_requested()
-
-	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
-	assert_true(main.hud.is_systems_panel_visible())
-	assert_eq(main.hud.get_systems_tab(), "trade")
-	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
-	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Roadside Draught"))
-	assert_true(main.hud.log_label.text.contains("Discovered Maera's Stall"))
-
-
-func test_shop_poi_shop_id_opens_trade_without_system_tab() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-	var stall = main.entities.get_entity("poi_maera_stall")
-
-	assert_not_null(stall)
-	stall.data.erase("system_tab")
-	_select_entity(main, "poi_maera_stall")
-	assert_eq(main.get_debug_state()["primary_action"], "Trade")
-	main._handle_interact_requested()
-
-	assert_true(main.hud.is_systems_panel_visible())
-	assert_eq(main.hud.get_systems_tab(), "trade")
-	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
-	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Roadside Draught"))
+	assert_null(main.entities.get_entity("poi_maera_stall"))
 
 
 func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
+	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "poi_harrow_forge")
 	main._handle_interact_requested()
 	assert_eq(main.hud.content_kind_label.text, "Place")
@@ -129,6 +91,7 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 	assert_null(_button_containing(main.hud.content_choice_list, "Sharpen Road Hatchet"))
 	main.hud.hide_content_card()
 
+	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 	_select_entity(main, "pickup_road_hatchet")
 	main._handle_interact_requested()
 	_select_entity(main, "object_road_cache")
@@ -138,6 +101,7 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
+	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "poi_harrow_forge")
 	assert_eq(main.get_debug_state()["primary_action"], "Sharpen Road Hatchet (2g)")
 	assert_not_null(_button_containing(main.hud.context_action_buttons, "Inspect"))
@@ -166,6 +130,7 @@ func test_forge_service_can_be_used_from_context_action_when_requirements_are_me
 	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
+	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "poi_harrow_forge")
 	var sharpen_button := _button_containing(
 		main.hud.context_action_buttons, "Sharpen Road Hatchet"

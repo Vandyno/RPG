@@ -11,6 +11,7 @@ const WorldEntityMarkerRenderer = preload("res://scripts/world/world_entity_mark
 const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
 
 var data: Dictionary
+var world_layer := "surface"
 var global_tile := Vector2i.ZERO
 var highlighted := false
 var action_hint_visible := false
@@ -27,6 +28,10 @@ var content_database
 func setup(entity_data: Dictionary, content = null) -> void:
 	data = entity_data.duplicate(true)
 	content_database = content
+	world_layer = String(data.get("world_layer", "surface"))
+	if world_layer.is_empty():
+		world_layer = "surface"
+	data["world_layer"] = world_layer
 	global_tile = _tile_from_data(data.get("global_tile", [0, 0]))
 	if not data.has("_spawn_global_tile"):
 		data["_spawn_global_tile"] = [global_tile.x, global_tile.y]
@@ -167,6 +172,22 @@ func get_pick_distance(world_position: Vector2, pick_radius_pixels: float) -> fl
 	return INF
 
 
+func get_pick_match(world_position: Vector2, pick_radius_pixels: float) -> Dictionary:
+	var local_position := to_local(world_position)
+	if action_hint_visible and _action_hint_rect().has_point(local_position):
+		return {
+			"distance": 0.0,
+			"kind": "hint",
+			"selected": action_hint_selected
+		}
+	if quest_marker_visible and _quest_marker_rect().has_point(local_position):
+		return {"distance": 0.0, "kind": "quest", "selected": false}
+	var marker_radius := _marker_pick_radius(pick_radius_pixels)
+	if local_position.length() <= marker_radius:
+		return {"distance": local_position.length(), "kind": "body", "selected": false}
+	return {"distance": INF, "kind": "none", "selected": false}
+
+
 func _draw() -> void:
 	if quest_marker_visible:
 		_draw_quest_marker()
@@ -209,6 +230,9 @@ func _action_hint_rect() -> Rect2:
 
 
 func _marker_pick_radius(requested_radius: float) -> float:
+	var authored_radius: Variant = data.get("pick_radius", null)
+	if _is_number(authored_radius) and float(authored_radius) > 0.0:
+		return minf(requested_radius, float(authored_radius))
 	return WorldEntityMarkerRenderer.marker_pick_radius(get_kind(), requested_radius)
 
 

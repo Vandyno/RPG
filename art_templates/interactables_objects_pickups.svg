@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="620" viewBox="0 0 920 620">
+  <defs>
+    <style>
+      .title { font: 700 18px sans-serif; fill: #e8e0c8; }
+      .note { font: 12px sans-serif; fill: #cfc7b0; }
+      .label { font: 11px sans-serif; fill: #d9d1bb; }
+      .section { font: 700 14px sans-serif; fill: #f0d57a; }
+      .frame { fill: none; stroke: #70a7ff; stroke-width: 1; }
+      .safe { fill: rgba(80, 220, 150, 0.06); stroke: #50dc96; stroke-width: 0.7; stroke-dasharray: 3 2; }
+      .footprint { fill: none; stroke: #ff6f6f; stroke-width: 0.8; stroke-dasharray: 2 2; }
+      .pivot { stroke: #ffdf5d; stroke-width: 1; }
+    </style>
+    <symbol id="frame32" viewBox="0 0 32 32">
+      <rect class="frame" x="0.5" y="0.5" width="31" height="31"/>
+      <rect class="safe" x="3.5" y="3.5" width="25" height="25"/>
+      <ellipse class="footprint" cx="16" cy="20" rx="8" ry="5"/>
+      <line class="pivot" x1="12" y1="20" x2="20" y2="20"/>
+      <line class="pivot" x1="16" y1="16" x2="16" y2="24"/>
+      <circle cx="16" cy="20" r="1.6" fill="#ffdf5d"/>
+    </symbol>
+    <symbol id="frame48" viewBox="0 0 48 48">
+      <rect class="frame" x="0.5" y="0.5" width="47" height="47"/>
+      <rect class="safe" x="5.5" y="4.5" width="37" height="39"/>
+      <ellipse class="footprint" cx="24" cy="32" rx="13" ry="7"/>
+      <line class="pivot" x1="19" y1="32" x2="29" y2="32"/>
+      <line class="pivot" x1="24" y1="27" x2="24" y2="37"/>
+      <circle cx="24" cy="32" r="2" fill="#ffdf5d"/>
+    </symbol>
+    <symbol id="door32x48" viewBox="0 0 32 48">
+      <rect class="frame" x="0.5" y="0.5" width="31" height="47"/>
+      <rect class="safe" x="4.5" y="3.5" width="23" height="40"/>
+      <ellipse class="footprint" cx="16" cy="40" rx="10" ry="5"/>
+      <line class="pivot" x1="11" y1="40" x2="21" y2="40"/>
+      <line class="pivot" x1="16" y1="35" x2="16" y2="45"/>
+      <circle cx="16" cy="40" r="1.8" fill="#ffdf5d"/>
+    </symbol>
+    <symbol id="gate64x48" viewBox="0 0 64 48">
+      <rect class="frame" x="0.5" y="0.5" width="63" height="47"/>
+      <rect class="safe" x="4.5" y="4.5" width="55" height="38"/>
+      <ellipse class="footprint" cx="32" cy="40" rx="24" ry="5"/>
+      <line class="pivot" x1="27" y1="40" x2="37" y2="40"/>
+      <line class="pivot" x1="32" y1="35" x2="32" y2="45"/>
+      <circle cx="32" cy="40" r="2" fill="#ffdf5d"/>
+    </symbol>
+  </defs>
+
+  <text class="title" x="24" y="30">Interactables, objects, and pickups template</text>
+  <text class="note" x="24" y="50">Transparent background. Yellow = origin/y-sort/pivot. Red ellipse = collision or footprint guide. Runtime pick radius may extend beyond frame.</text>
+
+  <text class="section" x="24" y="86">32x32 small objects and pickups</text>
+  <g transform="translate(24,104)">
+    <use href="#frame32" x="0" y="0"/>
+    <text class="label" x="0" y="48">readable_default</text>
+    <use href="#frame32" x="104" y="0"/>
+    <text class="label" x="104" y="48">container_closed</text>
+    <use href="#frame32" x="208" y="0"/>
+    <text class="label" x="208" y="48">container_open</text>
+    <use href="#frame32" x="312" y="0"/>
+    <text class="label" x="312" y="48">container_locked</text>
+    <use href="#frame32" x="416" y="0"/>
+    <text class="label" x="416" y="48">campfire_idle</text>
+    <use href="#frame32" x="520" y="0"/>
+    <text class="label" x="520" y="48">campfire_lit</text>
+    <use href="#frame32" x="624" y="0"/>
+    <text class="label" x="624" y="48">pickup_ground</text>
+    <use href="#frame32" x="728" y="0"/>
+    <text class="label" x="728" y="48">location_debug</text>
+  </g>
+
+  <text class="section" x="24" y="218">48x48 POI and service props</text>
+  <g transform="translate(24,238)">
+    <use href="#frame48" x="0" y="0"/>
+    <text class="label" x="0" y="66">job_board_default</text>
+    <use href="#frame48" x="124" y="0"/>
+    <text class="label" x="124" y="66">job_board_active</text>
+    <use href="#frame48" x="248" y="0"/>
+    <text class="label" x="248" y="66">forge_service</text>
+    <use href="#frame48" x="372" y="0"/>
+    <text class="label" x="372" y="66">forge_active</text>
+    <use href="#frame48" x="496" y="0"/>
+    <text class="label" x="496" y="66">hearth_idle</text>
+    <use href="#frame48" x="620" y="0"/>
+    <text class="label" x="620" y="66">hearth_lit</text>
+  </g>
+
+  <text class="section" x="24" y="372">Doors and gates</text>
+  <g transform="translate(24,394)">
+    <use href="#door32x48" x="0" y="0"/>
+    <text class="label" x="0" y="66">door_closed</text>
+    <use href="#door32x48" x="104" y="0"/>
+    <text class="label" x="104" y="66">door_open</text>
+    <use href="#door32x48" x="208" y="0"/>
+    <text class="label" x="208" y="66">door_locked</text>
+    <use href="#gate64x48" x="344" y="0"/>
+    <text class="label" x="344" y="66">gate_closed</text>
+    <use href="#gate64x48" x="488" y="0"/>
+    <text class="label" x="488" y="66">gate_open</text>
+    <use href="#gate64x48" x="632" y="0"/>
+    <text class="label" x="632" y="66">gate_locked</text>
+  </g>
+
+  <text class="note" x="24" y="590">Use for notices, caches, strongboxes, campfire, POIs, forge props, pickups, doors, and gates. Do not use for humanoids or paper-doll equipment.</text>
+</svg>

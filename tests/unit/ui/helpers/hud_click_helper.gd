@@ -8,6 +8,19 @@ static func click(control: Control, tree: SceneTree) -> void:
 	await mouse_up(control, tree)
 
 
+static func drag(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	_ensure_hud_root_contains(control)
+	await tree.process_frame
+	var local_start := control.size * 0.5
+	var local_end := local_start + offset
+	_gui_mouse_button(control, local_start, true)
+	await tree.process_frame
+	_gui_mouse_motion(control, local_end)
+	await tree.process_frame
+	_gui_mouse_button(control, local_end, false)
+	await tree.process_frame
+
+
 static func mouse_down(control: Control, tree: SceneTree) -> void:
 	_ensure_hud_root_contains(control)
 	await tree.process_frame
@@ -34,7 +47,10 @@ static func _move_to(control: Control, tree: SceneTree) -> void:
 
 
 static func _push_mouse_button(control: Control, pressed: bool) -> void:
-	var position := _center(control)
+	_push_mouse_button_at(_center(control), pressed)
+
+
+static func _push_mouse_button_at(position: Vector2, pressed: bool) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
@@ -42,6 +58,32 @@ static func _push_mouse_button(control: Control, pressed: bool) -> void:
 	event.position = position
 	event.global_position = position
 	Engine.get_main_loop().root.push_input(event, true)
+
+
+static func _push_mouse_motion(position: Vector2) -> void:
+	var event := InputEventMouseMotion.new()
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT
+	event.position = position
+	event.global_position = position
+	Engine.get_main_loop().root.push_input(event, true)
+
+
+static func _gui_mouse_button(control: Control, local_position: Vector2, pressed: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+	event.pressed = pressed
+	event.position = local_position
+	event.global_position = control.get_global_transform_with_canvas().origin + local_position
+	control._gui_input(event)
+
+
+static func _gui_mouse_motion(control: Control, local_position: Vector2) -> void:
+	var event := InputEventMouseMotion.new()
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT
+	event.position = local_position
+	event.global_position = control.get_global_transform_with_canvas().origin + local_position
+	control._gui_input(event)
 
 
 static func _center(control: Control) -> Vector2:

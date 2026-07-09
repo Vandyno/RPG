@@ -15,6 +15,9 @@ func _verify() -> void:
 	root.add_child(main)
 	await _settle(main)
 
+	if not await _enter_forge(main):
+		_fail("World click on Harrow's forge door did not enter the forge.")
+		return
 	_move_near(main, "npc_harrow_venn_world")
 	await _settle(main)
 	await _world_click_entity(main, "npc_harrow_venn_world")
@@ -33,6 +36,9 @@ func _verify() -> void:
 		return
 
 	await _close_content(main)
+	if not await _exit_forge(main):
+		_fail("World click on Harrow's forge exit did not return to town.")
+		return
 	_move_near(main, "poi_briarwatch_square")
 	await _settle(main)
 	await _world_click_entity(main, "poi_briarwatch_square")
@@ -86,6 +92,22 @@ func _move_near(main, entity_id: String) -> void:
 		return
 	main.player.set_world_position(entity.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
+
+
+func _enter_forge(main) -> bool:
+	_move_near(main, "object_harrow_forge_door")
+	await _settle(main)
+	await _world_click_entity(main, "object_harrow_forge_door")
+	await _settle(main)
+	return String(main.player.world_layer) == "interior:structure_briarwatch_harrow_forge"
+
+
+func _exit_forge(main) -> bool:
+	_move_near(main, "object_harrow_forge_exit")
+	await _settle(main)
+	await _world_click_entity(main, "object_harrow_forge_exit")
+	await _settle(main)
+	return String(main.player.world_layer) == "surface"
 
 
 func _world_click_entity(main, entity_id: String) -> void:

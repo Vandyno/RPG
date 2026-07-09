@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 class_name PlayerController
 extends Node2D
 
@@ -17,6 +18,7 @@ const MOVE_INPUT_THRESHOLD := 0.01
 
 var event_bus: EventBus
 var chunk_manager
+var world_layer := "surface"
 var global_tile := Vector2i.ZERO
 var move_speed := 220.0
 var blocked_message_cooldown := 0.0
@@ -34,6 +36,7 @@ var is_sneaking := false
 func setup(bus: EventBus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
 	event_bus = bus
 	chunk_manager = chunks
+	_apply_query_layer()
 	_ensure_humanoid_avatar()
 	set_global_tile(start_tile)
 
@@ -84,13 +87,24 @@ func set_world_position(world_position: Vector2) -> void:
 	queue_redraw()
 
 
+func set_world_layer(layer: String) -> void:
+	var next_layer := "surface" if layer.is_empty() else layer
+	if world_layer == next_layer:
+		_apply_query_layer()
+		return
+	world_layer = next_layer
+	_apply_query_layer()
+	if event_bus:
+		event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
+
+
 func get_save_data() -> Dictionary:
 	return {
 		"global_tile": [global_tile.x, global_tile.y],
 		"world_position": [position.x, position.y],
 		"chunk_coord":
 		[GridMath.tile_to_chunk(global_tile).x, GridMath.tile_to_chunk(global_tile).y],
-		"world_layer": "surface",
+		"world_layer": world_layer,
 		"stats": {},
 		"health": health,
 		"max_health": max_health,
@@ -100,6 +114,7 @@ func get_save_data() -> Dictionary:
 
 
 func load_save_data(data: Dictionary) -> void:
+	set_world_layer(String(data.get("world_layer", "surface")))
 	max_health = maxi(1, int(data.get("max_health", DEFAULT_MAX_HEALTH)))
 	set_health(int(data.get("health", max_health)))
 	max_mana = maxf(1.0, float(data.get("max_mana", DEFAULT_MAX_MANA)))
@@ -220,6 +235,11 @@ func set_equipped_items(equipped_by_slot: Dictionary, content: ContentDatabase =
 
 func _can_stand_at(world_position: Vector2) -> bool:
 	return WorldEntityMovement.can_stand_at(world_position, chunk_manager)
+
+
+func _apply_query_layer() -> void:
+	if chunk_manager and chunk_manager.has_method("set_layer"):
+		chunk_manager.set_layer(world_layer)
 
 
 func _post_blocked_message() -> void:
