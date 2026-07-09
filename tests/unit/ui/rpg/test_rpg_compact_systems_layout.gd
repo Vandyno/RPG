@@ -1,6 +1,7 @@
 extends GutTest
 
 const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
+const RpgTextFit = preload("res://scripts/ui/text/rpg_text_fit.gd")
 
 
 func test_compact_system_rows_wrap_long_player_text() -> void:
@@ -62,7 +63,7 @@ func test_compact_detail_title_wraps_instead_of_clipping() -> void:
 
 	assert_gt(lines.size(), 1)
 	for line in lines:
-		assert_lte(detail._line_width(line, font, 16), detail.size.x)
+		assert_lte(RpgTextFit.line_width(line, font, 16), detail.size.x)
 
 
 func test_detail_equipment_pane_has_section_header_and_tight_slots() -> void:
@@ -155,10 +156,10 @@ func test_compact_dialogue_choice_text_fits_available_width() -> void:
 	var button := RpgContentChoiceButton.new()
 	add_child_autofree(button)
 	var font := button.get_theme_default_font()
-	var fitted: String = button._fit_line("Craft, repair, and improve gear.", 94.0, font, 11)
+	var fitted := RpgTextFit.ellipsize("Craft, repair, and improve gear.", font, 11, 94.0)
 
 	assert_true(fitted.ends_with("..."))
-	assert_lte(button._line_width(fitted, font, 11), 94.0)
+	assert_lte(RpgTextFit.line_width(fitted, font, 11), 94.0)
 
 
 func test_content_identity_icon_matches_content_kind() -> void:
