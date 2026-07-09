@@ -154,8 +154,14 @@ func _missing_required_provider() -> String:
 func _parsed_save_file() -> LoadResult:
 	if not FileAccess.file_exists(save_path):
 		return _load_failure("missing_file", "No save file yet at %s." % save_path)
+	var file := FileAccess.open(save_path, FileAccess.READ)
+	if file == null:
+		return _load_failure(
+			"read_failed",
+			"Could not read save file %s: %s." % [save_path, error_string(FileAccess.get_open_error())]
+		)
 	var json := JSON.new()
-	var parse_error := json.parse(FileAccess.get_file_as_string(save_path))
+	var parse_error := json.parse(file.get_as_text())
 	if parse_error != OK:
 		return _load_failure(
 			"invalid_json",

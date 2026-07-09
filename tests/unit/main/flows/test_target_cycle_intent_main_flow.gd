@@ -14,7 +14,7 @@ func test_next_target_uses_facing_rank_in_crowded_spawn() -> void:
 	main.player.set_facing_direction(Vector2.RIGHT)
 	assert_eq(main._get_nearby_entity().get_entity_id(), "npc_harrow_venn_world")
 
-	main._handle_cycle_target_requested()
+	MainFlowInputHelper.cycle_target_action(main)
 
 	assert_eq(main.selected_target_id, "object_harrow_forge_exit")
 	assert_true(main.manual_target_locked)
@@ -36,7 +36,7 @@ func test_next_target_can_cycle_through_every_nearby_spawn_target() -> void:
 		var entity = main._get_nearby_entity()
 		assert_not_null(entity)
 		visited_ids[entity.get_entity_id()] = true
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 
 	for entity_id in expected_ids:
 		assert_true(visited_ids.has(entity_id), "Cycle missed %s" % entity_id)

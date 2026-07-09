@@ -2,6 +2,7 @@ class_name StructureManager
 extends Node
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
 const BLOCKED_TILE_KINDS := ["water", "stone_wall", "wood_wall"]
 
@@ -67,7 +68,7 @@ func get_structures_for_chunk(
 	chunk_coord: Vector2i, layer: String = "surface"
 ) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for structure in _array_field(structures_by_layer.get(layer, [])):
+	for structure in VariantFields.array(structures_by_layer.get(layer, [])):
 		var origin: Vector2i = structure.get("origin_tile", Vector2i.ZERO)
 		if GridMath.tile_to_chunk(origin) != chunk_coord:
 			continue
@@ -76,11 +77,11 @@ func get_structures_for_chunk(
 
 
 func get_anchor_tile(structure_id: String, anchor_id: String) -> Vector2i:
-	var structure := _dictionary_field(structures_by_id.get(structure_id, {}))
+	var structure := VariantFields.dictionary(structures_by_id.get(structure_id, {}))
 	if structure.is_empty():
 		return Vector2i.ZERO
-	var anchors := _dictionary_field(structure.get("anchors", {}))
-	var anchor := _vector2i_from_pair(anchors.get(anchor_id, []), Vector2i.ZERO)
+	var anchors := VariantFields.dictionary(structure.get("anchors", {}))
+	var anchor := VariantFields.vector2i_from_pair(anchors.get(anchor_id, []), Vector2i.ZERO)
 	var origin: Vector2i = structure.get("origin_tile", Vector2i.ZERO)
 	return origin + anchor
 
@@ -88,11 +89,11 @@ func get_anchor_tile(structure_id: String, anchor_id: String) -> Vector2i:
 func _resolved_structure(entry: Dictionary) -> Dictionary:
 	var structure_id := String(entry.get("id", ""))
 	var archetype_id := String(entry.get("archetype_id", ""))
-	var archetype := _dictionary_field(archetypes.get(archetype_id, {}))
+	var archetype := VariantFields.dictionary(archetypes.get(archetype_id, {}))
 	if structure_id.is_empty() or archetype.is_empty():
 		return {}
-	var origin := _vector2i_from_pair(entry.get("origin_tile", []), Vector2i.ZERO)
-	var size := _vector2i_from_pair(archetype.get("size", []), Vector2i.ZERO)
+	var origin := VariantFields.vector2i_from_pair(entry.get("origin_tile", []), Vector2i.ZERO)
+	var size := VariantFields.vector2i_from_pair(archetype.get("size", []), Vector2i.ZERO)
 	if size.x <= 0 or size.y <= 0:
 		return {}
 	var layer := String(entry.get("world_layer", "surface"))
@@ -108,19 +109,19 @@ func _resolved_structure(entry: Dictionary) -> Dictionary:
 		"bounds": Rect2i(origin, size),
 		"visual_style": String(archetype.get("visual_style", "")),
 		"seed": String(entry.get("seed", structure_id)),
-		"terrain_rows": _array_field(archetype.get("terrain_rows", [])),
-		"tile_kinds": _dictionary_field(archetype.get("tile_kinds", {})),
-		"anchors": _dictionary_field(archetype.get("anchors", {}))
+		"terrain_rows": VariantFields.array(archetype.get("terrain_rows", [])),
+		"tile_kinds": VariantFields.dictionary(archetype.get("tile_kinds", {})),
+		"anchors": VariantFields.dictionary(archetype.get("anchors", {}))
 	}
 
 
 func _index_structure_tiles(structure: Dictionary) -> void:
-	var rows := _array_field(structure.get("terrain_rows", []))
+	var rows := VariantFields.array(structure.get("terrain_rows", []))
 	if rows.is_empty():
 		return
 	var origin: Vector2i = structure.get("origin_tile", Vector2i.ZERO)
 	var layer := String(structure.get("world_layer", "surface"))
-	var tile_kinds := _dictionary_field(structure.get("tile_kinds", {}))
+	var tile_kinds := VariantFields.dictionary(structure.get("tile_kinds", {}))
 	for y in range(rows.size()):
 		var row := String(rows[y])
 		for x in range(row.length()):
@@ -145,29 +146,5 @@ func _structure_visual_data(structure: Dictionary) -> Dictionary:
 		"size": [size.x, size.y],
 		"visual_style": String(structure.get("visual_style", "")),
 		"seed": String(structure.get("seed", "")),
-		"anchors": _dictionary_field(structure.get("anchors", {})).duplicate(true)
+		"anchors": VariantFields.dictionary(structure.get("anchors", {})).duplicate(true)
 	}
-
-
-func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2i(int(value[0]), int(value[1]))
-
-
-func _array_field(value: Variant) -> Array:
-	if value is Array:
-		return value
-	return []
-
-
-func _dictionary_field(value: Variant) -> Dictionary:
-	if value is Dictionary:
-		return value
-	return {}
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

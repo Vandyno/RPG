@@ -3,6 +3,7 @@ extends Node
 
 const MIN_REPUTATION := -100
 const MAX_REPUTATION := 100
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
 var event_bus: EventBus
 var content: ContentDatabase
@@ -29,9 +30,9 @@ func change_reputation(faction_id: String, amount: int) -> bool:
 
 func get_reputation(faction_id: String) -> int:
 	var faction := _faction(faction_id)
-	var fallback := _int_value(faction.get("starting_reputation", 0), 0)
+	var fallback := VariantFields.int_value(faction.get("starting_reputation", 0), 0)
 	var stored: Variant = reputation_by_faction_id.get(faction_id, fallback)
-	return clampi(_int_value(stored, fallback), MIN_REPUTATION, MAX_REPUTATION)
+	return clampi(VariantFields.int_value(stored, fallback), MIN_REPUTATION, MAX_REPUTATION)
 
 
 func is_reputation_at_least(faction_id: String, threshold: int) -> bool:
@@ -65,11 +66,11 @@ func get_save_data() -> Dictionary:
 
 func load_save_data(data: Dictionary) -> void:
 	reputation_by_faction_id.clear()
-	var reputation := _dictionary_field(data.get("reputation", {}))
+	var reputation := VariantFields.dictionary(data.get("reputation", {}))
 	for faction_id in reputation:
 		var key := String(faction_id)
 		var value: Variant = reputation[faction_id]
-		if key.is_empty() or not _is_known_faction(key) or not _is_number(value):
+		if key.is_empty() or not _is_known_faction(key) or not VariantFields.is_number(value):
 			continue
 		var reputation_value := clampi(int(value), MIN_REPUTATION, MAX_REPUTATION)
 		if reputation_value != _starting_reputation(key):
@@ -89,7 +90,7 @@ func _known_faction_ids() -> Array[String]:
 
 func _starting_reputation(faction_id: String) -> int:
 	return clampi(
-		_int_value(_faction(faction_id).get("starting_reputation", 0), 0),
+		VariantFields.int_value(_faction(faction_id).get("starting_reputation", 0), 0),
 		MIN_REPUTATION,
 		MAX_REPUTATION
 	)
@@ -103,19 +104,3 @@ func _faction(faction_id: String) -> Dictionary:
 
 func _is_known_faction(faction_id: String) -> bool:
 	return not content or not _faction(faction_id).is_empty()
-
-
-func _dictionary_field(value: Variant) -> Dictionary:
-	if value is Dictionary:
-		return value
-	return {}
-
-
-func _int_value(value: Variant, fallback: int) -> int:
-	if not _is_number(value):
-		return fallback
-	return int(value)
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

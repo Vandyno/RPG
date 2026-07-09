@@ -4,16 +4,11 @@ const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 
-const PEOPLE_ORDER := [
-	"people_human",
-	"people_tanglekin",
-	"people_tuskfolk",
-	"people_mirefolk",
-	"people_ravenfolk",
-	"people_rootborn"
-]
 const DIRECTION_LABELS := CaptureSheetHelper.DIRECTION_LABELS
 const SIXTEEN_DIRECTIONS := CaptureSheetHelper.SIXTEEN_DIRECTIONS
+const DEFAULT_OUTPUT_DIR := "res://reports/idle_16dir"
+const DEFAULT_WIDTH := 980
+const DEFAULT_HEIGHT := 1500
 const IDLE_LOADOUTS := [
 	{"id": "unarmed", "title": "Unarmed", "equipment": {}},
 	{"id": "sword", "title": "Sword", "equipment": {"right_hand": "item_training_sword"}},
@@ -27,11 +22,11 @@ func _initialize() -> void:
 
 
 func _capture() -> void:
-	var args := OS.get_cmdline_user_args()
-	var output_dir := CaptureSheetHelper.string_arg(args, 0, "res://reports/idle_16dir")
-	var width := CaptureSheetHelper.positive_arg(args, 1, 980)
-	var height := CaptureSheetHelper.positive_arg(args, 2, 1500)
-	var people_filter := CaptureSheetHelper.string_arg(args, 3, "")
+	var config := capture_config(OS.get_cmdline_user_args())
+	var output_dir := String(config["output_dir"])
+	var width := int(config["width"])
+	var height := int(config["height"])
+	var people_filter := String(config["people_filter"])
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
@@ -48,7 +43,7 @@ func _capture() -> void:
 		return
 
 	var wrote_count := 0
-	for people_id in _filtered_people(people_filter):
+	for people_id in CaptureSheetHelper.filtered_people(people_filter):
 		var page := _build_sheet(content, people_id, width, height)
 		viewport.add_child(page)
 		var image: Image = await CaptureSheetHelper.capture_viewport_image(self, viewport)
@@ -56,7 +51,7 @@ func _capture() -> void:
 			printerr("Could not capture idle direction image. Run without --headless.")
 			quit(1)
 			return
-		var output_path := absolute_dir.path_join(_sheet_file_name(people_id))
+		var output_path := absolute_dir.path_join(sheet_file_name(people_id))
 		var error := CaptureSheetHelper.save_png_image(image, output_path)
 		viewport.remove_child(page)
 		page.queue_free()
@@ -70,24 +65,20 @@ func _capture() -> void:
 	quit()
 
 
-func _build_sheet(content: ContentDatabase, people_id: String, width: int, height: int) -> Control:
-	var page := Control.new()
-	page.size = Vector2(width, height)
-	var background := ColorRect.new()
-	background.color = Color(0.10, 0.12, 0.10)
-	background.size = page.size
-	page.add_child(background)
+static func capture_config(args: Array) -> Dictionary:
+	return CaptureSheetHelper.capture_config(
+		args, DEFAULT_OUTPUT_DIR, DEFAULT_WIDTH, DEFAULT_HEIGHT, ["people_filter"]
+	)
 
+
+func _build_sheet(content: ContentDatabase, people_id: String, width: int, height: int) -> Control:
+	var page := CaptureSheetHelper.create_page(width, height)
 	var title := (
-		"%s - 16-direction idle held-item reference" % _people_display_name(content, people_id)
+		"%s - 16-direction idle held-item reference"
+		% CaptureSheetHelper.people_display_name(content, people_id)
 	)
 	var note := "Rows are snapped avatar facings. Columns are resting loadouts."
-	CaptureSheetHelper.add_label(
-		page, title, Vector2(34, 22), Vector2(width - 68, 34), 24, Color(0.95, 0.91, 0.78)
-	)
-	CaptureSheetHelper.add_label(
-		page, note, Vector2(36, 58), Vector2(width - 72, 24), 13, Color(0.72, 0.72, 0.62)
-	)
+	CaptureSheetHelper.add_sheet_header(page, title, note, width)
 
 	var left := 88.0
 	var top := 112.0
@@ -99,7 +90,7 @@ func _build_sheet(content: ContentDatabase, people_id: String, width: int, heigh
 	var cell_height := (float(height) - top - bottom_padding) / float(rows)
 	CaptureSheetHelper.add_grid(page, left, top, cell_width, cell_height, columns, rows)
 	_add_column_labels(page, left, top, cell_width)
-	_add_row_labels(page, top, cell_height)
+	CaptureSheetHelper.add_direction_row_labels(page, top, cell_height)
 	_add_idle_avatars(page, content, people_id, left, top, cell_width, cell_height)
 	return page
 
@@ -140,7 +131,7 @@ func _profile_for_people(content: ContentDatabase, people_id: String) -> Diction
 	)
 
 
-func _add_column_labels(page: Control, left: float, top: float, cell_width: float) -> void:
+static func _add_column_labels(page: Control, left: float, top: float, cell_width: float) -> void:
 	for column in IDLE_LOADOUTS.size():
 		var loadout: Dictionary = IDLE_LOADOUTS[column]
 		CaptureSheetHelper.add_label(
@@ -154,37 +145,5 @@ func _add_column_labels(page: Control, left: float, top: float, cell_width: floa
 		)
 
 
-func _add_row_labels(page: Control, top: float, cell_height: float) -> void:
-	for row in DIRECTION_LABELS.size():
-		CaptureSheetHelper.add_label(
-			page,
-			"%02d %s" % [row, String(DIRECTION_LABELS[row])],
-			Vector2(18.0, top + float(row) * cell_height + cell_height * 0.36),
-			Vector2(62.0, 20.0),
-			11,
-			Color(0.79, 0.76, 0.63),
-			HORIZONTAL_ALIGNMENT_RIGHT
-		)
-
-
-func _filtered_people(people_filter: String) -> Array[String]:
-	var people: Array[String] = []
-	for people_id in PEOPLE_ORDER:
-		if (
-			people_filter.is_empty()
-			or people_id == people_filter
-			or people_id.ends_with(people_filter)
-		):
-			people.append(people_id)
-	return people
-
-
-func _sheet_file_name(people_id: String) -> String:
+static func sheet_file_name(people_id: String) -> String:
 	return "%s_idle_16dir.png" % people_id.replace("people_", "")
-
-
-func _people_display_name(content: ContentDatabase, people_id: String) -> String:
-	var people: Dictionary = content.get_people(people_id)
-	return String(people.get("display_name", people_id))
-
-

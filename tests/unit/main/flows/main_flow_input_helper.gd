@@ -21,8 +21,24 @@ static func target_entity(main, entity_id: String, tree: SceneTree, interact := 
 
 
 static func interact_action(main) -> void:
+	_action(main, "interact")
+
+
+static func cycle_target_action(main) -> void:
+	_action(main, "cycle_target")
+
+
+static func save_action(main) -> void:
+	_action(main, "save_game")
+
+
+static func load_action(main) -> void:
+	_action(main, "load_game")
+
+
+static func _action(main, action_id: String) -> void:
 	var event := InputEventAction.new()
-	event.action = "interact"
+	event.action = action_id
 	event.pressed = true
 	MainInputRouter.handle_event(main, event)
 

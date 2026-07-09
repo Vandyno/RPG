@@ -2,13 +2,14 @@ class_name ChunkRenderer
 extends Node2D
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
 var chunk_data: Dictionary
 
 
 func setup(data: Dictionary) -> void:
 	chunk_data = data
-	var coord := _vector2i_from_pair(data.get("chunk_coord", []), Vector2i.ZERO)
+	var coord := VariantFields.vector2i_from_pair(data.get("chunk_coord", []), Vector2i.ZERO)
 	position = GridMath.tile_to_world(GridMath.chunk_origin_tile(coord))
 	queue_redraw()
 
@@ -18,10 +19,10 @@ func _draw() -> void:
 		return
 	var layer := String(chunk_data.get("layer", "surface"))
 	var is_interior := _is_interior_layer(layer)
-	for tile_data in _array_field(chunk_data.get("tiles", [])):
+	for tile_data in VariantFields.array(chunk_data.get("tiles", [])):
 		if not tile_data is Dictionary:
 			continue
-		var tile_pair := _array_pair(tile_data.get("tile", []))
+		var tile_pair := VariantFields.numeric_pair(tile_data.get("tile", []))
 		if tile_pair.is_empty():
 			continue
 		var global_tile := Vector2i(int(tile_pair[0]), int(tile_pair[1]))
@@ -41,7 +42,7 @@ func _draw() -> void:
 		_draw_material_detail(kind, rect, global_tile)
 		var grid_alpha := 0.08 if is_interior else 0.13
 		draw_rect(rect, Color(0.06, 0.08, 0.07, grid_alpha), false, 1.0)
-	for structure in _array_field(chunk_data.get("structures", [])):
+	for structure in VariantFields.array(chunk_data.get("structures", [])):
 		if structure is Dictionary:
 			_draw_structure(structure)
 
@@ -211,11 +212,13 @@ func _draw_wood_detail(rect: Rect2, is_wall: bool) -> void:
 
 
 func _draw_structure(structure: Dictionary) -> void:
-	var origin := _vector2i_from_pair(structure.get("origin_tile", []), Vector2i.ZERO)
-	var size := _vector2i_from_pair(structure.get("size", []), Vector2i.ZERO)
+	var origin := VariantFields.vector2i_from_pair(structure.get("origin_tile", []), Vector2i.ZERO)
+	var size := VariantFields.vector2i_from_pair(structure.get("size", []), Vector2i.ZERO)
 	if size.x <= 0 or size.y <= 0:
 		return
-	var chunk_coord := _vector2i_from_pair(chunk_data.get("chunk_coord", []), Vector2i.ZERO)
+	var chunk_coord := VariantFields.vector2i_from_pair(
+		chunk_data.get("chunk_coord", []), Vector2i.ZERO
+	)
 	var local_tile := origin - GridMath.chunk_origin_tile(chunk_coord)
 	var rect := Rect2(
 		Vector2(local_tile.x * GridMath.TILE_SIZE, local_tile.y * GridMath.TILE_SIZE),
@@ -455,28 +458,3 @@ func _draw_town_hall_front(rect: Rect2) -> void:
 
 func _hash_detail(tile: Vector2i) -> int:
 	return absi((tile.x * 17 + tile.y * 31 + tile.x * tile.y * 7) % 10)
-
-
-func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
-	var pair := _array_pair(value)
-	if pair.is_empty():
-		return fallback
-	return Vector2i(int(pair[0]), int(pair[1]))
-
-
-func _array_pair(value: Variant) -> Array:
-	if not value is Array or value.size() < 2:
-		return []
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return []
-	return [value[0], value[1]]
-
-
-func _array_field(value: Variant) -> Array:
-	if value is Array:
-		return value
-	return []
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

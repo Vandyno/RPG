@@ -260,7 +260,7 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	if not target_action_button:
 		return
 	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	var targets := _array_field(state.get("nearby_targets", []))
+	var targets := VariantFields.array(state.get("nearby_targets", []))
 	var picker_visible := target_panel and target_panel.visible
 	target_action_button.text = TargetUiTextBuilder.action_button_text(
 		targets, compact, picker_visible
@@ -276,7 +276,7 @@ func _refresh_target_picker(state: Dictionary) -> void:
 	for child in target_list.get_children():
 		target_list.remove_child(child)
 		child.queue_free()
-	var targets := _array_field(state.get("nearby_targets", []))
+	var targets := VariantFields.array(state.get("nearby_targets", []))
 	if targets.is_empty():
 		var empty := _new_label(14)
 		empty.text = "No targets nearby."
@@ -351,9 +351,9 @@ func _refresh_context_actions(state: Dictionary) -> void:
 		context_action_panel.visible = false
 		return
 	var signal_id := "combat_action_selected"
-	var actions := _array_field(state.get("combat_actions", []))
+	var actions := VariantFields.array(state.get("combat_actions", []))
 	if state.has("context_actions"):
-		actions = _array_field(state.get("context_actions", []))
+		actions = VariantFields.array(state.get("context_actions", []))
 		signal_id = "context_action_selected"
 	visible_context_action_count = UiActionButtons.valid_action_count(actions)
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size

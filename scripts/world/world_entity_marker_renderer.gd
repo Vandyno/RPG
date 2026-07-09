@@ -1,6 +1,8 @@
 class_name WorldEntityMarkerRenderer
 extends RefCounted
 
+const TextUtil = preload("res://scripts/core/text_util.gd")
+
 const ACTION_HINT_FONT_SIZE := 11
 const ACTION_HINT_HEIGHT := 22.0
 const ACTION_HINT_MAX_CHARS := 22
@@ -14,11 +16,7 @@ const LARGE_MARKER_KINDS := ["container", "door", "poi", "rest"]
 
 
 static func ellipsized(value: String, max_chars: int) -> String:
-	if value.length() <= max_chars:
-		return value
-	if max_chars <= 1:
-		return value.substr(0, max_chars)
-	return "%s..." % value.substr(0, max_chars - 3)
+	return TextUtil.ellipsized(value, max_chars)
 
 
 static func draw_quest_marker(

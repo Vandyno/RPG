@@ -1,5 +1,7 @@
 extends GutTest
 
+const RpgTextFit = preload("res://scripts/ui/text/rpg_text_fit.gd")
+
 
 func test_choice_card_updates_render_state_and_hides_native_text() -> void:
 	var button := RpgContentChoiceButton.new()
@@ -22,7 +24,7 @@ func test_fit_line_keeps_text_when_width_is_available() -> void:
 	add_child_autofree(button)
 	var font := button.get_theme_default_font()
 
-	assert_eq(button._fit_line("Trade", 500.0, font, 12), "Trade")
+	assert_eq(RpgTextFit.ellipsize("Trade", font, 12, 500.0), "Trade")
 
 
 func test_fit_line_ellipsizes_without_exceeding_width() -> void:
@@ -31,16 +33,16 @@ func test_fit_line_ellipsizes_without_exceeding_width() -> void:
 	var font := button.get_theme_default_font()
 	var width := 74.0
 
-	var fitted := button._fit_line("Craft, repair, and improve gear.", width, font, 11)
+	var fitted := RpgTextFit.ellipsize("Craft, repair, and improve gear.", font, 11, width)
 
 	assert_true(fitted.ends_with("..."))
-	assert_lte(button._line_width(fitted, font, 11), width)
+	assert_lte(RpgTextFit.line_width(fitted, font, 11), width)
 
 
 func test_fit_line_returns_suffix_when_only_suffix_fits() -> void:
 	var button := RpgContentChoiceButton.new()
 	add_child_autofree(button)
 	var font := button.get_theme_default_font()
-	var suffix_width := button._line_width("...", font, 11)
+	var suffix_width := RpgTextFit.line_width("...", font, 11)
 
-	assert_eq(button._fit_line("Road Notice", suffix_width - 1.0, font, 11), "...")
+	assert_eq(RpgTextFit.ellipsize("Road Notice", font, 11, suffix_width - 1.0), "...")

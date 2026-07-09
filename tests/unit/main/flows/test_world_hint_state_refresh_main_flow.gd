@@ -2,6 +2,7 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 
 
 func test_container_world_hint_updates_after_opening() -> void:
@@ -13,7 +14,7 @@ func test_container_world_hint_updates_after_opening() -> void:
 	assert_not_null(cache)
 	assert_eq(cache.action_hint_text, "Open Roadside Cache")
 
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_true(cache.action_hint_visible)
 	assert_true(cache.action_hint_selected)
@@ -49,7 +50,7 @@ func _select_entity(main, entity_id: String) -> void:
 		if entity and entity.get_entity_id() == entity_id:
 			main._update_nearby()
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 

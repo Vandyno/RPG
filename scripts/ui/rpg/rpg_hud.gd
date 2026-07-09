@@ -26,6 +26,9 @@ const RpgStatusTextBuilder = preload("res://scripts/ui/text/rpg_status_text_buil
 const RpgSystemsCharacterPaneBuilder = preload(
 	"res://scripts/ui/systems/panes/rpg_systems_character_pane_builder.gd"
 )
+const RpgSystemsPanelPresenter = preload(
+	"res://scripts/ui/systems/panes/rpg_systems_panel_presenter.gd"
+)
 const RpgInventoryItemButton = preload(
 	"res://scripts/ui/controls/buttons/rpg_inventory_item_button.gd"
 )
@@ -93,6 +96,8 @@ func _apply_layout_for_size(viewport_size: Vector2) -> void:
 	if not status_panel:
 		return
 	super._apply_layout_for_size(viewport_size)
+
+
 func refresh() -> void:
 	super.refresh()
 	var state := _state_snapshot()
@@ -101,10 +106,14 @@ func refresh() -> void:
 	if not location_banner_label:
 		return
 	location_banner_label.text = _rpg_location_name(state)
+
+
 func toggle_debug() -> void:
 	visible_debug = false
 	if debug_panel:
 		debug_panel.visible = false
+
+
 func show_content_card(title: String, body: String, choices: Array = [], kind: String = "") -> void:
 	super.show_content_card(title, body, choices, kind)
 	var mode_request := RpgContentPanelBuilder.ApplyModeRequest.new()
@@ -118,19 +127,27 @@ func show_content_card(title: String, body: String, choices: Array = [], kind: S
 	var layout_size := applied_layout_size if applied_layout_size != Vector2.ZERO else root.size
 	_layout_content_panel(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	_sync_content_overlay_chrome()
+
+
 func hide_content_card() -> void:
 	super.hide_content_card()
 	_sync_content_overlay_chrome()
+
+
 func show_systems_panel(tab_id: String = "") -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.show_systems_panel(tab_id)
+
+
 func set_systems_tab(tab_id: String) -> void:
 	var normalized_tab := _normalize_systems_tab(tab_id)
 	if normalized_tab != systems_active_tab:
 		systems_active_category = _default_category_for_tab(normalized_tab)
 	super.set_systems_tab(tab_id)
+
+
 func _refresh_health_bar(state: Dictionary) -> void:
 	super._refresh_health_bar(state)
 	var fill := StyleBoxFlat.new()
@@ -142,6 +159,8 @@ func _refresh_health_bar(state: Dictionary) -> void:
 	fill.corner_radius_bottom_left = 3
 	fill.corner_radius_bottom_right = 3
 	health_bar.add_theme_stylebox_override("fill", fill)
+
+
 func _build_status_panel() -> void:
 	status_panel = _new_panel("StatusPanel")
 	status_panel.offset_left = 12
@@ -195,6 +214,8 @@ func _build_status_panel() -> void:
 	health_label.name = "HealthValue"
 	health_label.add_theme_color_override("font_color", Color(0.95, 0.84, 0.70))
 	stack.add_child(health_label)
+
+
 func _build_systems_panel() -> void:
 	systems_panel = _new_panel("SystemsPanel")
 	_apply_modal_panel_style(systems_panel)
@@ -213,6 +234,8 @@ func _build_systems_panel() -> void:
 	_build_systems_top_bar(outer)
 	_build_systems_body(outer)
 	_refresh_systems_tabs()
+
+
 func _build_systems_top_bar(parent: BoxContainer) -> void:
 	var top_bar := HBoxContainer.new()
 	top_bar.name = "SystemsTopBar"
@@ -240,6 +263,8 @@ func _build_systems_top_bar(parent: BoxContainer) -> void:
 	close.tooltip_text = "Close menu"
 	close.pressed.connect(hide_systems_panel)
 	top_bar.add_child(close)
+
+
 func _build_systems_body(parent: BoxContainer) -> void:
 	systems_main_row = HBoxContainer.new()
 	systems_main_row.name = "SystemsMainRow"
@@ -341,7 +366,9 @@ func _build_systems_detail_panel() -> void:
 	for slot_id in systems_spell_slot_buttons:
 		var spell_slot := systems_spell_slot_buttons[slot_id] as Button
 		if spell_slot:
-			spell_slot.pressed.connect(Callable(self, "_on_spell_slot_pressed").bind(String(slot_id)))
+			spell_slot.pressed.connect(
+				Callable(self, "_on_spell_slot_pressed").bind(String(slot_id))
+			)
 
 
 func _build_systems_character_panel() -> void:
@@ -359,6 +386,8 @@ func _build_systems_character_panel() -> void:
 	for slot in (systems_character_nodes.get("equipment_slots", {}) as Dictionary).values():
 		if slot is RpgEquipmentSlot:
 			slot.item_dropped.connect(_on_equipment_slot_item_dropped)
+
+
 func _build_location_banner() -> void:
 	location_banner_panel = _new_panel("LocationBanner")
 	location_banner_panel.anchor_left = 0.5
@@ -373,6 +402,8 @@ func _build_location_banner() -> void:
 	location_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	location_banner_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_add_margin(location_banner_panel, location_banner_label, 8)
+
+
 func _build_top_nav() -> void:
 	top_nav_panel = _new_panel("TopNavPanel")
 	top_nav_panel.anchor_left = 1.0
@@ -388,6 +419,7 @@ func _build_top_nav() -> void:
 	_add_nav_button("Journal", "journal", func() -> void: show_systems_panel("journal"))
 	_add_nav_button("Menu", "menu", toggle_systems)
 
+
 func _add_nav_button(text: String, icon: String, callback: Callable) -> void:
 	var button := RpgIconButton.new()
 	button.text = text
@@ -397,10 +429,14 @@ func _add_nav_button(text: String, icon: String, callback: Callable) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(callback)
 	top_nav_buttons.add_child(button)
+
+
 func _build_target_panel() -> void:
 	target_panel = null
 	target_scroll = null
 	target_list = null
+
+
 func _build_context_action_panel() -> void:
 	var nodes := RpgContextActionPanelBuilder.build(
 		RpgContextActionPanelBuilder.BuildContext.new(
@@ -412,6 +448,8 @@ func _build_context_action_panel() -> void:
 	)
 	context_action_panel = nodes["panel"]
 	context_action_buttons = nodes["buttons"]
+
+
 func _build_touch_controls() -> void:
 	var move_context := RpgMovePadBuilder.BuildContext.new()
 	move_context.root = root
@@ -441,6 +479,8 @@ func _build_touch_controls() -> void:
 	target_action_button = utility_buttons["sneak"] as Button
 	target_action_button.toggle_mode = true
 	target_action_button.pressed.connect(Callable(self, "_press_target_control"))
+
+
 func _build_content_panel() -> void:
 	var nodes := RpgContentPanelBuilder.build(
 		RpgContentPanelBuilder.BuildContext.new(
@@ -473,6 +513,7 @@ func _build_content_panel() -> void:
 	content_body_label = nodes["body_label"]
 	content_choice_list = nodes["choice_list"]
 
+
 func _set_action_button_layout(compact: bool) -> void:
 	var request := RpgActionClusterBuilder.LayoutRequest.new()
 	request.cluster = action_buttons
@@ -480,6 +521,8 @@ func _set_action_button_layout(compact: bool) -> void:
 	request.compact = compact
 	request.primary_style = Callable(self, "_apply_primary_action_style")
 	RpgActionClusterBuilder.apply_layout(request)
+
+
 func _add_systems_tab(tab_id: String, text: String) -> void:
 	var button := RpgIconButton.new()
 	button.text = text
@@ -496,21 +539,11 @@ func _add_systems_tab(tab_id: String, text: String) -> void:
 		systems_tabs.add_child(button)
 	systems_tab_buttons[tab_id] = button
 
+
 func _refresh_systems_tabs() -> void:
-	for tab_id in systems_tab_buttons:
-		var button: Button = systems_tab_buttons[tab_id]
-		var active := String(tab_id) == systems_active_tab
-		button.button_pressed = active
-		button.add_theme_font_size_override("font_size", 15)
-		button.set_meta("nav_selected", active)
-		if button is RpgIconButton:
-			(button as RpgIconButton).setup_icon(String(tab_id), "left")
-			continue
-		button.add_theme_color_override(
-			"font_color",
-			Color(0.78, 1.0, 0.56) if active else Color(0.96, 0.90, 0.78)
-		)
-		button.queue_redraw()
+	RpgSystemsPanelPresenter.refresh_tabs(systems_tab_buttons, systems_active_tab)
+
+
 func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	super._set_overlay_panel_layout(viewport_size, compact)
 	if prompt_panel:
@@ -528,6 +561,8 @@ func _set_overlay_panel_layout(viewport_size: Vector2, compact: bool) -> void:
 	_layout_top_nav(viewport_size, compact)
 	_layout_location_banner(viewport_size, compact)
 	_layout_message_panel(viewport_size, compact)
+
+
 func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	var size := COMPACT_STATUS_PANEL_SIZE if compact else STATUS_PANEL_SIZE
 	status_panel.offset_left = HUD_MARGIN
@@ -541,6 +576,7 @@ func _set_status_panel_layout(_viewport_size: Vector2, compact: bool) -> void:
 	health_label.add_theme_font_size_override("font_size", 11 if compact else 13)
 	health_label.visible = true
 
+
 func _layout_message_panel(viewport_size: Vector2, compact: bool) -> void:
 	if not compact or not message_panel or not move_pad or not action_buttons:
 		return
@@ -551,7 +587,11 @@ func _layout_message_panel(viewport_size: Vector2, compact: bool) -> void:
 	message_panel.offset_bottom = -12.0
 	message_panel.offset_left = move_pad.offset_right + HUD_MARGIN
 	message_panel.offset_right = action_left - HUD_MARGIN
-	message_panel.visible = message_panel.offset_right - message_panel.offset_left >= MESSAGE_MIN_WIDTH
+	message_panel.visible = (
+		message_panel.offset_right - message_panel.offset_left >= MESSAGE_MIN_WIDTH
+	)
+
+
 func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	if not location_banner_panel:
 		return
@@ -571,6 +611,7 @@ func _layout_location_banner(viewport_size: Vector2, compact: bool) -> void:
 	location_banner_panel.offset_top = HUD_MARGIN
 	location_banner_panel.offset_bottom = HUD_MARGIN + height
 	location_banner_label.add_theme_font_size_override("font_size", 18 if compact else 24)
+
 
 func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 	if not top_nav_panel or not top_nav_buttons:
@@ -592,57 +633,31 @@ func _layout_top_nav(_viewport_size: Vector2, compact: bool) -> void:
 	top_nav_panel.offset_right = -HUD_MARGIN
 	top_nav_panel.offset_top = HUD_MARGIN
 	top_nav_panel.offset_bottom = HUD_MARGIN + height
-func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
-	if not systems_panel or not systems_frame:
-		return
-	systems_panel.anchor_left = 0.0
-	systems_panel.anchor_right = 1.0
-	systems_panel.anchor_top = 0.0
-	systems_panel.anchor_bottom = 1.0
-	systems_panel.offset_left = HUD_MARGIN
-	systems_panel.offset_top = HUD_MARGIN
-	systems_panel.offset_right = -HUD_MARGIN
-	systems_panel.offset_bottom = -HUD_MARGIN
-	_set_margin_constants(systems_frame, 8 if compact else 16)
 
-	if systems_main_row:
-		systems_main_row.add_theme_constant_override("separation", 6 if compact else 10)
-	if systems_left_panel:
-		systems_left_panel.custom_minimum_size = Vector2(112, 0) if compact else Vector2(176, 0)
-	if systems_detail_panel:
-		systems_detail_panel.visible = true
-		systems_detail_panel.custom_minimum_size = Vector2(184, 0) if compact else Vector2(220, 0)
-	var char_tab := ["inventory", "character"].has(systems_active_tab)
-	var show_character_panel := char_tab and not compact
-	if systems_spell_slot_panel:
-		systems_spell_slot_panel.visible = systems_active_tab == "spells"
-	if systems_detail_equipment_panel:
-		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
-		systems_detail_equipment_panel.custom_minimum_size = Vector2(0, 156 if compact else 176)
-		systems_detail_equipment_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	if systems_detail_label:
-		systems_detail_label.size_flags_vertical = (
-			Control.SIZE_SHRINK_BEGIN if systems_detail_equipment_panel.visible
-			else Control.SIZE_EXPAND_FILL
-		)
-	if systems_character_panel:
-		systems_character_panel.visible = show_character_panel
-		systems_character_panel.custom_minimum_size = Vector2(210, 0)
-	if systems_resources_label:
-		systems_resources_label.custom_minimum_size = Vector2(168, 40) if compact else Vector2(270, 48)
-		systems_resources_label.add_theme_font_size_override("font_size", 12 if compact else 17)
-	if systems_title_label:
-		systems_title_label.add_theme_font_size_override("font_size", 20 if compact else 26)
-	if systems_subtitle_label:
-		systems_subtitle_label.add_theme_font_size_override("font_size", 11 if compact else 15)
-	for button in systems_tab_buttons.values():
-		if button is Button:
-			button.custom_minimum_size = Vector2(92, 38) if compact else Vector2(150, 54)
-			button.add_theme_font_size_override("font_size", 11 if compact else 15)
-		if button is RpgIconButton:
-			(button as RpgIconButton).set_compact(compact)
-	if systems_item_list:
-		systems_item_list.add_theme_constant_override("separation", 6 if compact else 8)
+
+func _layout_systems_panel(_viewport_size: Vector2, compact: bool) -> void:
+	var request := RpgSystemsPanelPresenter.LayoutRequest.new()
+	request.panel = systems_panel
+	request.frame = systems_frame
+	request.main_row = systems_main_row
+	request.left_panel = systems_left_panel
+	request.detail_panel = systems_detail_panel
+	request.character_panel = systems_character_panel
+	request.detail_equipment_panel = systems_detail_equipment_panel
+	request.detail_label = systems_detail_label
+	request.spell_slot_panel = systems_spell_slot_panel
+	request.resources_label = systems_resources_label
+	request.title_label = systems_title_label
+	request.subtitle_label = systems_subtitle_label
+	request.item_list = systems_item_list
+	request.tab_buttons = systems_tab_buttons
+	request.active_tab = systems_active_tab
+	request.compact = compact
+	request.hud_margin = HUD_MARGIN
+	request.set_margin_constants = Callable(self, "_set_margin_constants")
+	RpgSystemsPanelPresenter.apply_layout(request)
+
+
 func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	var request := RpgContentPanelBuilder.LayoutRequest.new()
 	request.content_panel = content_panel
@@ -663,6 +678,8 @@ func _layout_content_panel(viewport_size: Vector2, compact: bool) -> void:
 	RpgContentPanelBuilder.apply_layout(request)
 	if content_portrait_label:
 		content_portrait_label.add_theme_font_size_override("font_size", 12 if compact else 20)
+
+
 func _rpg_location_name(state: Dictionary) -> String:
 	var current_location := String(state.get("current_location", ""))
 	if not current_location.is_empty():
@@ -673,22 +690,28 @@ func _rpg_location_name(state: Dictionary) -> String:
 	var first := locations.split(",", false)[0].strip_edges()
 	return "Briarwatch" if first == "Briarwatch Crossroads" else first
 
+
 func _refresh_player_status(state: Dictionary) -> void:
 	if not status_label or not health_label or not level_badge_label:
 		return
 	var progression_text := String(state.get("progression", "Level 1"))
 	var level := RpgSystemsTextBuilder.level_from_progression(progression_text)
 	level_badge_label.text = str(level)
-	status_label.text = "\n".join(RpgStatusTextBuilder.lines(
-		state, progression_text, applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	))
+	status_label.text = "\n".join(
+		RpgStatusTextBuilder.lines(
+			state, progression_text, applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
+		)
+	)
 	var health_text := "HP %d/%d" % [int(health_bar.value), int(health_bar.max_value)]
 	var mana := int(roundf(float(state.get("player_mana_value", 0.0))))
 	var max_mana := int(roundf(float(state.get("player_max_mana", 0.0))))
 	var mana_text := "MP %d/%d" % [mana, max_mana]
-	var separator := "\n" if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else "  "
+	var separator := (
+		"\n" if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else "  "
+	)
 	health_label.text = "%s%s%s" % [health_text, separator, mana_text]
 	_refresh_systems_chrome(state)
+
 
 func _refresh_target_action_button(state: Dictionary) -> void:
 	super._refresh_target_action_button(state)
@@ -702,16 +725,22 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 		"font_size", 12 if applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0 else 15
 	)
 
+
 func _press_target_control() -> void:
 	sneak_pressed.emit()
+
+
 func _refresh_systems_chrome(state: Dictionary) -> void:
 	if not systems_title_label:
 		return
 	systems_title_label.text = _rpg_location_name(state)
-	systems_subtitle_label.text = "%s - %s" % [
-		RpgSystemsTextBuilder.title(systems_active_tab),
-		RpgSystemsTextBuilder.subtitle(systems_active_tab)
-	]
+	systems_subtitle_label.text = (
+		"%s - %s"
+		% [
+			RpgSystemsTextBuilder.title(systems_active_tab),
+			RpgSystemsTextBuilder.subtitle(systems_active_tab)
+		]
+	)
 	systems_resources_label.text = RpgSystemsTextBuilder.resource_text(state)
 	if systems_detail_title_label:
 		systems_detail_title_label.text = _systems_detail_title()
@@ -729,7 +758,8 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 	detail_refresh.row_style = Callable(self, "_apply_row_button_style")
 	detail_refresh.compact = compact
 	RpgSystemsCharacterPaneBuilder.refresh(detail_refresh)
-	var spell_value: Variant = state.get("spell_slots", {})
+	var spells_tab := SystemsTabState.spells(state)
+	var spell_value: Variant = spells_tab.get("spell_slots", {})
 	var spell_slots: Dictionary = spell_value if spell_value is Dictionary else {}
 	var spell_refresh := RpgSpellSlotPanelBuilder.RefreshRequest.new()
 	spell_refresh.buttons = systems_spell_slot_buttons
@@ -747,9 +777,11 @@ func _refresh_systems_chrome(state: Dictionary) -> void:
 			systems_character_panel.visible = false
 		return
 	if systems_detail_equipment_panel:
-		var char_tab := ["inventory", "character"].has(systems_active_tab)
+		var char_tab := RpgSystemsPanelPresenter.is_character_tab(systems_active_tab)
 		var show_character_panel := char_tab and not compact
 		systems_detail_equipment_panel.visible = char_tab and not show_character_panel
+
+
 func _refresh_systems_rows(state: Dictionary) -> void:
 	if not systems_item_list:
 		return
@@ -772,11 +804,13 @@ func _refresh_systems_rows(state: Dictionary) -> void:
 
 func _refresh_transfer_rows(state: Dictionary, transfer: Dictionary) -> void:
 	_refresh_category_row(systems_active_tab)
-	var render_key := JSON.stringify({
-		"category": systems_active_category,
-		"compact": _is_compact_systems_layout(),
-		"transfer": transfer
-	})
+	var render_key := JSON.stringify(
+		{
+			"category": systems_active_category,
+			"compact": _is_compact_systems_layout(),
+			"transfer": transfer
+		}
+	)
 	if render_key == systems_transfer_render_key and systems_item_list.get_child_count() > 0:
 		_refresh_transfer_detail_text(transfer)
 		return
@@ -796,8 +830,8 @@ func _refresh_transfer_rows(state: Dictionary, transfer: Dictionary) -> void:
 func _refresh_transfer_detail_text(transfer: Dictionary) -> void:
 	var target: Dictionary = transfer.get("target", {})
 	if systems_detail_label:
-		systems_detail_label.text = "Move items between your inventory and %s." % String(
-			target.get("name", "container")
+		systems_detail_label.text = (
+			"Move items between your inventory and %s." % String(target.get("name", "container"))
 		)
 
 
@@ -876,6 +910,8 @@ func _systems_row_button(index: int) -> Button:
 	)
 	systems_item_list.add_child(button)
 	return button
+
+
 func _refresh_category_row(tab_id: String) -> void:
 	if not systems_category_row:
 		return
@@ -909,25 +945,34 @@ func _refresh_category_row(tab_id: String) -> void:
 		)
 	for index in range(labels.size(), systems_category_row.get_child_count()):
 		systems_category_row.get_child(index).visible = false
+
+
 func _select_systems_row(row_id: String) -> void:
 	if row_id.is_empty():
 		return
 	systems_selected_row_id = row_id
 	_refresh_systems_chrome(_state_snapshot())
+
+
 func _select_systems_category(category_id: String) -> void:
 	if category_id.is_empty():
 		return
 	systems_active_category = category_id
 	systems_selected_row_id = ""
 	_refresh_systems_chrome(_state_snapshot())
+
+
 func _on_equipment_slot_item_dropped(slot_id: String, item_id: String) -> void:
 	if item_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit(SystemsActionIds.equip_slot(item_id, slot_id))
+
+
 func _on_spell_slot_dropped(slot_id: String, spell_id: String) -> void:
 	if spell_id.is_empty() or slot_id.is_empty():
 		return
 	inventory_item_selected.emit(SystemsActionIds.assign_spell(spell_id, slot_id))
+
 
 func _on_spell_slot_pressed(slot_id: String) -> void:
 	if (
@@ -937,32 +982,24 @@ func _on_spell_slot_pressed(slot_id: String) -> void:
 	):
 		return
 	_on_spell_slot_dropped(slot_id, systems_selected_row_id.substr(6))
+
+
 func _category_id_for_label(label: String) -> String:
 	return "restoration" if label == "Restore" else label.to_lower()
 
+
 func _default_category_for_tab(tab_id: String) -> String:
-	return {
-		"inventory": "all",
-		"spells": "all",
-		"character": "overview",
-		"quests": "active",
-		"journal": "recent",
-		"trade": "stock"
-	}.get(tab_id, "all")
+	return RpgSystemsPanelPresenter.default_category_for_tab(tab_id)
+
 
 func _systems_detail_title() -> String:
-	return {
-		"inventory": "Item Details",
-		"spells": "Spell Details",
-		"character": "Character Details",
-		"quests": "Quest Details",
-		"journal": "Journal Details",
-		"trade": "Trade Details"
-	}.get(systems_active_tab, "Details")
+	return RpgSystemsPanelPresenter.detail_title(systems_active_tab)
+
 
 func _refresh_systems_actions(_state: Dictionary) -> void:
 	# RPG HUD renders systems rows through _refresh_systems_chrome.
 	pass
+
 
 func _refresh_content_choices(choices: Array) -> void:
 	if not content_choice_list:
@@ -978,6 +1015,7 @@ func _refresh_content_choices(choices: Array) -> void:
 	request.close_text = "Leave" if content_kind_label.text == "Dialogue" else "Close"
 	content_choice_list.visible = RpgContentChoiceBuilder.refresh(request)
 
+
 func _refresh_content_preview(choices: Array, kind: String) -> void:
 	if not content_preview_label:
 		return
@@ -986,15 +1024,18 @@ func _refresh_content_preview(choices: Array, kind: String) -> void:
 		content_preview_title_label.text = RpgContentChoiceBuilder.preview_title(choices, kind)
 	content_preview_label.text = (
 		RpgContentChoiceBuilder.preview_compact_text(choices, kind)
-		if compact else RpgContentChoiceBuilder.preview_text(choices, kind)
+		if compact
+		else RpgContentChoiceBuilder.preview_text(choices, kind)
 	)
 	if content_preview_reward_label:
 		content_preview_reward_label.text = (
 			RpgContentChoiceBuilder.preview_compact_rewards(choices)
-			if compact else RpgContentChoiceBuilder.preview_rewards(choices)
+			if compact
+			else RpgContentChoiceBuilder.preview_rewards(choices)
 		)
 	if content_preview_panel:
 		content_preview_panel.visible = not content_preview_label.text.is_empty()
+
 
 func _refresh_context_actions(state: Dictionary) -> void:
 	if not context_action_buttons:
@@ -1004,7 +1045,7 @@ func _refresh_context_actions(state: Dictionary) -> void:
 		context_action_panel.visible = false
 		return
 	var context_mode := true
-	var actions := _array_field(state.get("context_actions", []))
+	var actions := VariantFields.array(state.get("context_actions", []))
 	var request := RpgContextActionPanelBuilder.RefreshRequest.new()
 	request.container = context_action_buttons
 	request.actions = actions
@@ -1020,11 +1061,14 @@ func _refresh_context_actions(state: Dictionary) -> void:
 	_set_overlay_panel_layout(layout_size, layout_size.x < 980.0 or layout_size.y < 540.0)
 	context_action_panel.visible = visible_context_action_count > 0
 
+
 func _emit_quick_action(action_id: String, context_mode: bool) -> void:
 	if context_mode:
 		context_action_selected.emit(action_id)
 	else:
 		combat_action_selected.emit(action_id)
+
+
 func _sync_content_overlay_chrome() -> void:
 	var content_open := is_content_card_visible()
 	var overlay_open := content_open or is_target_picker_visible()
@@ -1035,6 +1079,7 @@ func _sync_content_overlay_chrome() -> void:
 	if message_panel and overlay_open:
 		message_panel.visible = false
 
+
 func _apply_panel_style(panel: Control) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.035, 0.032, 0.026, 0.88)
@@ -1042,6 +1087,7 @@ func _apply_panel_style(panel: Control) -> void:
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
+
 
 func _apply_modal_panel_style(panel: Control) -> void:
 	var style := StyleBoxFlat.new()
@@ -1051,10 +1097,12 @@ func _apply_modal_panel_style(panel: Control) -> void:
 	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
+
 func _new_button(text: String, min_size: Vector2) -> Button:
 	var button := super._new_button(text, min_size)
 	_apply_button_style(button)
 	return button
+
 
 func _apply_button_style(button: Button) -> void:
 	button.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
@@ -1062,6 +1110,7 @@ func _apply_button_style(button: Button) -> void:
 	button.add_theme_stylebox_override("hover", _button_style(Color(0.10, 0.13, 0.08, 0.96)))
 	button.add_theme_stylebox_override("pressed", _button_style(Color(0.16, 0.20, 0.10, 0.98)))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
 
 func _apply_row_button_style(button: Button, selected: bool) -> void:
 	var base := Color(0.045, 0.043, 0.036, 0.92)
@@ -1081,6 +1130,7 @@ func _apply_row_button_style(button: Button, selected: bool) -> void:
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
+
 func _apply_primary_action_style(button: Button) -> void:
 	var border := Color(0.92, 0.76, 0.42, 0.92)
 	button.add_theme_color_override("font_color", Color(1.0, 0.92, 0.74))
@@ -1095,8 +1145,10 @@ func _apply_primary_action_style(button: Button) -> void:
 	)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
+
 func _button_style(color: Color) -> StyleBoxFlat:
 	return _button_style_with_border(color, Color(0.72, 0.56, 0.32, 0.68))
+
 
 func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -1106,6 +1158,7 @@ func _button_style_with_border(color: Color, border_color: Color) -> StyleBoxFla
 	style.set_corner_radius_all(4)
 	return style
 
+
 func _apply_portrait_style(panel: Panel) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.11, 0.095, 0.075, 0.96)
@@ -1113,6 +1166,7 @@ func _apply_portrait_style(panel: Panel) -> void:
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(38)
 	panel.add_theme_stylebox_override("panel", style)
+
 
 func _apply_badge_style(label: Label) -> void:
 	var style := StyleBoxFlat.new()
@@ -1122,6 +1176,7 @@ func _apply_badge_style(label: Label) -> void:
 	style.set_corner_radius_all(13)
 	label.add_theme_stylebox_override("normal", style)
 	label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.78))
+
 
 func _set_margin_constants(margin: MarginContainer, value: int) -> void:
 	margin.add_theme_constant_override("margin_left", value)

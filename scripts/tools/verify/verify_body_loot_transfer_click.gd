@@ -5,13 +5,26 @@ const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 
+const VERIFY_SIZE := Vector2i(1152, 648)
+const TRANSFER_OFFSET := Vector2(-8.0, 0.0)
+const ROAD_THUG_ID := "npc_road_thug"
+const ROAD_THUG_BODY_ID := "body_npc_road_thug"
+const ROAD_CACHE_ID := "object_road_cache"
+const PEOPLE_TEST_ID := "npc_people_test_human"
+const PEOPLE_TEST_BODY_ID := "body_npc_people_test_human"
+const TAKE_BOW_BUTTON := "TransferTake_ItemHuntingBow"
+const PUT_BOW_BUTTON := "TransferPut_ItemHuntingBow"
+const TAKE_GOLD_BUTTON := "TransferTake_ItemGoldCoin"
+const PUT_GOLD_BUTTON := "TransferPut_ItemGoldCoin"
+const TAKE_SWORD_BUTTON := "TransferTake_ItemTrainingSword"
+
 
 func _initialize() -> void:
 	_verify.call_deferred()
 
 
 func _verify() -> void:
-	root.size = Vector2i(1152, 648)
+	root.size = VERIFY_SIZE
 	var main := Main.new()
 	root.add_child(main)
 	await _settle(main)
@@ -24,7 +37,7 @@ func _verify() -> void:
 	var body_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_bow := VerifyInputHelper.find_button(body_pane, "TransferTake_ItemHuntingBow")
+	var take_bow := VerifyInputHelper.find_button(body_pane, TAKE_BOW_BUTTON)
 	if not take_bow:
 		printerr("Hunting Bow transfer button missing.")
 		quit(1)
@@ -44,7 +57,7 @@ func _verify() -> void:
 	var pack_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferPlayerInventory", true, false
 	)
-	var put_bow := VerifyInputHelper.find_button(pack_pane, "TransferPut_ItemHuntingBow")
+	var put_bow := VerifyInputHelper.find_button(pack_pane, PUT_BOW_BUTTON)
 	if not put_bow:
 		printerr("Hunting Bow put-back button missing.")
 		quit(1)
@@ -68,7 +81,7 @@ func _verify() -> void:
 	var cache_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferTargetInventory", true, false
 	)
-	var take_gold := VerifyInputHelper.find_button(cache_pane, "TransferTake_ItemGoldCoin")
+	var take_gold := VerifyInputHelper.find_button(cache_pane, TAKE_GOLD_BUTTON)
 	if not take_gold:
 		printerr("Gold Coin take button missing.")
 		quit(1)
@@ -87,7 +100,7 @@ func _verify() -> void:
 	var cache_pack_pane: Node = main.hud.systems_item_list.find_child(
 		"TransferPlayerInventory", true, false
 	)
-	var put_gold := VerifyInputHelper.find_button(cache_pack_pane, "TransferPut_ItemGoldCoin")
+	var put_gold := VerifyInputHelper.find_button(cache_pack_pane, PUT_GOLD_BUTTON)
 	if not put_gold:
 		printerr("Gold Coin put-back button missing.")
 		quit(1)
@@ -112,7 +125,7 @@ func _verify() -> void:
 	)
 	var take_people_gold := VerifyInputHelper.find_button(
 		people_body_pane,
-		"TransferTake_ItemGoldCoin"
+		TAKE_GOLD_BUTTON
 	)
 	if not take_people_gold:
 		printerr("People body Gold Coin take button missing.")
@@ -134,7 +147,7 @@ func _verify() -> void:
 	)
 	var put_people_gold := VerifyInputHelper.find_button(
 		people_pack_pane,
-		"TransferPut_ItemGoldCoin"
+		PUT_GOLD_BUTTON
 	)
 	if not put_people_gold:
 		printerr("People body Gold Coin put button missing.")
@@ -156,7 +169,7 @@ func _verify() -> void:
 	)
 	var take_people_sword := VerifyInputHelper.find_button(
 		people_body_pane,
-		"TransferTake_ItemTrainingSword"
+		TAKE_SWORD_BUTTON
 	)
 	if not take_people_sword:
 		printerr("People body Training Sword take button missing.")
@@ -178,52 +191,49 @@ func _verify() -> void:
 
 
 func _open_body_transfer(main) -> void:
-	var enemy = main.entities.get_entity("npc_road_thug")
-	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	var enemy = main.entities.get_entity(ROAD_THUG_ID)
+	main.player.set_world_position(enemy.global_position + TRANSFER_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity("npc_road_thug"):
+		if not main.entities.get_entity(ROAD_THUG_ID):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-	var body = main.entities.get_entity("body_npc_road_thug")
-	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
-	main.player.set_facing_direction(Vector2.RIGHT)
-	main.selected_target_id = body.get_entity_id()
-	main.manual_target_locked = true
-	main._update_nearby()
-	main._handle_interact_requested()
-	main.hud._apply_layout_for_size(Vector2(root.size))
-	main.hud.set_systems_tab("inventory")
+	_open_transfer_target(main, main.entities.get_entity(ROAD_THUG_BODY_ID), root.size)
 
 
 func _open_cache_transfer(main) -> void:
-	var cache = main.entities.get_entity("object_road_cache")
-	main.player.set_world_position(cache.global_position + Vector2(-8.0, 0.0))
-	main.player.set_facing_direction(Vector2.RIGHT)
-	main.selected_target_id = cache.get_entity_id()
-	main.manual_target_locked = true
-	main._update_nearby()
-	main._handle_interact_requested()
-	main.hud._apply_layout_for_size(Vector2(root.size))
-	main.hud.set_systems_tab("inventory")
+	_open_transfer_target(main, main.entities.get_entity(ROAD_CACHE_ID), root.size)
 
 
 func _open_people_body_transfer(main) -> void:
-	var enemy = main.entities.get_entity("npc_people_test_human")
-	main.player.set_world_position(enemy.global_position + Vector2(-8.0, 0.0))
+	var enemy = main.entities.get_entity(PEOPLE_TEST_ID)
+	main.player.set_world_position(enemy.global_position + TRANSFER_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity("npc_people_test_human"):
+		if not main.entities.get_entity(PEOPLE_TEST_ID):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-	var body = main.entities.get_entity("body_npc_people_test_human")
-	main.player.set_world_position(body.global_position + Vector2(-8.0, 0.0))
+	_open_transfer_target(main, main.entities.get_entity(PEOPLE_TEST_BODY_ID), root.size)
+
+
+static func expected_transfer_button_names() -> Array[String]:
+	return [
+		TAKE_BOW_BUTTON,
+		PUT_BOW_BUTTON,
+		TAKE_GOLD_BUTTON,
+		PUT_GOLD_BUTTON,
+		TAKE_SWORD_BUTTON
+	]
+
+
+static func _open_transfer_target(main, entity, viewport_size: Vector2i) -> void:
+	main.player.set_world_position(entity.global_position + TRANSFER_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
-	main.selected_target_id = body.get_entity_id()
+	main.selected_target_id = entity.get_entity_id()
 	main.manual_target_locked = true
 	main._update_nearby()
 	main._handle_interact_requested()
-	main.hud._apply_layout_for_size(Vector2(root.size))
+	main.hud._apply_layout_for_size(Vector2(viewport_size))
 	main.hud.set_systems_tab("inventory")
 
 

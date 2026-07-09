@@ -99,19 +99,23 @@ static func _discover_or_visit(entity, world_state, apply_effect: Callable, even
 	if not location_id.is_empty() and world_state:
 		discovered = world_state.discover_location(location_id)
 	if discovered:
-		_apply_effects(entity.data.get("effects_on_discover", []), apply_effect)
+		var effects_failed := _apply_effects(entity.data.get("effects_on_discover", []), apply_effect)
+		if effects_failed and event_bus:
+			event_bus.post_message("Some place effects could not be applied.")
 		if event_bus:
 			event_bus.post_message("Discovered %s." % entity.get_display_name())
 	elif event_bus:
 		event_bus.post_message("Visited %s." % entity.get_display_name())
 
 
-static func _apply_effects(effects_value: Variant, apply_effect: Callable) -> void:
+static func _apply_effects(effects_value: Variant, apply_effect: Callable) -> bool:
 	if not apply_effect.is_valid():
-		return
+		return not _array_field(effects_value).is_empty()
+	var failed := false
 	for effect in _array_field(effects_value):
 		if effect is Dictionary:
-			apply_effect.call(effect)
+			failed = not bool(apply_effect.call(effect)) or failed
+	return failed
 
 
 static func _available_actions(entity, condition_evaluator) -> Array[Dictionary]:

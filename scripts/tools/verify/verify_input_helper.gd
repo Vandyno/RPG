@@ -26,6 +26,20 @@ static func settle_main(tree: SceneTree, main, root_size: Vector2i) -> void:
 	await tree.process_frame
 
 
+static func world_click_entity(tree: SceneTree, main, entity_id: String) -> bool:
+	var entity = main.entities.get_entity(entity_id)
+	if not entity:
+		return false
+	var world_position: Vector2 = entity.global_position
+	main.player.set_world_position(world_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	await settle_main(tree, main, tree.root.size)
+	var screen_position: Vector2 = main.get_viewport().get_canvas_transform() * world_position
+	await push_motion(tree, main.get_viewport(), screen_position)
+	await _push_unhandled_click(tree, main, screen_position)
+	return true
+
+
 static func push_click(tree: SceneTree, viewport: Viewport, position: Vector2) -> void:
 	var press := InputEventMouseButton.new()
 	press.button_index = MOUSE_BUTTON_LEFT
@@ -90,3 +104,51 @@ static func find_button(parent: Node, button_name: String) -> Button:
 		if descendant:
 			return descendant
 	return null
+
+
+static func button_containing(parent: Node, text: String) -> Button:
+	if not parent:
+		return null
+	for child in parent.get_children():
+		if child is Button and child.visible and String(child.text).contains(text):
+			return child
+		var descendant := button_containing(child, text)
+		if descendant:
+			return descendant
+	return null
+
+
+static func button_with_action_prefix(parent: Node, action_prefix: String) -> Button:
+	if not parent:
+		return null
+	for child in parent.get_children():
+		if (
+			child is Button
+			and child.visible
+			and String(child.get_meta("action_id", "")).begins_with(action_prefix)
+		):
+			return child
+		var descendant := button_with_action_prefix(child, action_prefix)
+		if descendant:
+			return descendant
+	return null
+
+
+static func _push_unhandled_click(tree: SceneTree, main, screen_position: Vector2) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.pressed = true
+	press.position = screen_position
+	press.global_position = screen_position
+	main._unhandled_input(press)
+	await tree.process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.button_mask = 0
+	release.pressed = false
+	release.position = screen_position
+	release.global_position = screen_position
+	main._unhandled_input(release)
+	await tree.process_frame

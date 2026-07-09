@@ -1,22 +1,48 @@
 class_name RpgSystemsRowData
 extends RefCounted
 
+const ARMOUR_EQUIPMENT_SLOTS := [
+	"left_hand",
+	"chest",
+	"head",
+	"legs",
+	"gloves",
+	"boots",
+	"back",
+	"necklace",
+	"ring_1",
+	"ring_2"
+]
+const ROW_CATEGORY_TERMS := {
+	"training": ["training", "progression"],
+	"gear": ["gear", "equipment"],
+	"effects": ["effect", "status"],
+	"factions": ["faction", "reputation"],
+	"time": ["time", "wait", "day"],
+	"recent": ["recent", "log", "wait", "save", "load"],
+	"system": ["system", "save", "load"]
+}
+
 
 static func category_filtered_rows(
 	rows_data: Array[Dictionary], category: String
 ) -> Array[Dictionary]:
-	var passthrough := ["all", "overview", "active", "known"]
+	return category_filtered_rows_by_terms(
+		rows_data, category, ["all", "overview", "active", "known"], ROW_CATEGORY_TERMS
+	)
+
+
+static func category_filtered_rows_by_terms(
+	rows_data: Array[Dictionary],
+	category: String,
+	passthrough: Array[String],
+	category_terms: Dictionary
+) -> Array[Dictionary]:
 	if category.is_empty() or passthrough.has(category):
 		return rows_data
 	var filtered: Array[Dictionary] = []
 	for row in rows_data:
-		var row_text := "%s %s %s %s" % [
-			String(row.get("id", "")),
-			String(row.get("title", "")),
-			String(row.get("subtitle", "")),
-			String(row.get("meta", ""))
-		]
-		if row_matches_category(row_text.to_lower(), category):
+		if row_matches_category_terms(row_search_text(row), category, category_terms):
 			filtered.append(row)
 	if not filtered.is_empty():
 		return filtered
@@ -24,32 +50,27 @@ static func category_filtered_rows(
 
 
 static func row_matches_category(row_text: String, category: String) -> bool:
-	match category:
-		"training":
-			return row_text.contains("training") or row_text.contains("progression")
-		"gear":
-			return row_text.contains("gear") or row_text.contains("equipment")
-		"effects":
-			return row_text.contains("effect") or row_text.contains("status")
-		"factions":
-			return row_text.contains("faction") or row_text.contains("reputation")
-		"time":
-			return row_text.contains("time") or row_text.contains("wait") or row_text.contains("day")
-		"recent":
-			return (
-				row_text.contains("recent")
-				or row_text.contains("log")
-				or row_text.contains("wait")
-				or row_text.contains("save")
-				or row_text.contains("load")
-			)
-		"system":
-			return (
-				row_text.contains("system")
-				or row_text.contains("save")
-				or row_text.contains("load")
-			)
+	return row_matches_category_terms(row_text, category, ROW_CATEGORY_TERMS)
+
+
+static func row_matches_category_terms(
+	row_text: String, category: String, category_terms: Dictionary
+) -> bool:
+	if category_terms.has(category):
+		for term in category_terms[category]:
+			if row_text.contains(String(term)):
+				return true
+		return false
 	return row_text.contains(category)
+
+
+static func row_search_text(row: Dictionary) -> String:
+	return ("%s %s %s %s" % [
+		String(row.get("id", "")),
+		String(row.get("title", "")),
+		String(row.get("subtitle", "")),
+		String(row.get("meta", ""))
+	]).to_lower()
 
 
 static func empty_category_row(category: String) -> Dictionary:
@@ -101,6 +122,33 @@ static func format_float(value: float) -> String:
 	if is_equal_approx(value, roundf(value)):
 		return str(int(roundf(value)))
 	return "%.1f" % value
+
+
+static func inventory_category(item: Dictionary) -> String:
+	var item_type := String(item.get("type", "")).to_lower()
+	var slot := String(item.get("equipment_slot", "")).to_lower()
+	var tags := lower_array(item.get("tags", []))
+	if item_type == "weapon" or slot == "right_hand" or tags.has("weapon"):
+		return "weapons"
+	if ["armor", "armour", "shield"].has(item_type) or ARMOUR_EQUIPMENT_SLOTS.has(slot):
+		return "armour"
+	if tags.has("armor") or tags.has("armour") or tags.has("shield"):
+		return "armour"
+	if item_type == "ingredient" or tags.has("ingredient"):
+		return "ingredients"
+	if item_type == "quest_item" or tags.has("quest"):
+		return "quest"
+	return "misc"
+
+
+static func inventory_category_label(category: String) -> String:
+	return {
+		"weapons": "Weapons",
+		"armour": "Armour",
+		"ingredients": "Ingredients",
+		"quest": "Quest",
+		"misc": "Misc"
+	}.get(category, "Inventory")
 
 
 static func lower_array(value: Variant) -> Array[String]:

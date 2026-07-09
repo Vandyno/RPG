@@ -4,13 +4,21 @@ extends SceneTree
 const Main = preload("res://scripts/main/main.gd")
 const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 
+const VERIFY_SIZE := Vector2i(1152, 648)
+const NEXT_PEOPLE_BUTTON := "CreatorNextPeopleButton"
+const NEXT_VARIANT_BUTTON := "CreatorNextVariantButton"
+const NEXT_GEAR_BUTTON := "CreatorNextGearButton"
+const APPLY_BUTTON := "CreatorApplyButton"
+const CLOSE_BUTTON := "CreatorCloseButton"
+const EXPECTED_NEXT_PEOPLE_ID := "people_tanglekin"
+
 
 func _initialize() -> void:
 	_verify.call_deferred()
 
 
 func _verify() -> void:
-	root.size = Vector2i(1152, 648)
+	root.size = VERIFY_SIZE
 	var main := Main.new()
 	root.add_child(main)
 	await VerifyInputHelper.settle_main(self, main, root.size)
@@ -22,17 +30,17 @@ func _verify() -> void:
 
 	var next_people := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
-		"CreatorNextPeopleButton"
+		NEXT_PEOPLE_BUTTON
 	)
 	if not next_people:
 		return _fail("Creator next-people button missing.")
 	await VerifyInputHelper.real_click_button(self, root, next_people)
-	if main.debug_character_creator.get_current_people_id() != "people_tanglekin":
+	if main.debug_character_creator.get_current_people_id() != EXPECTED_NEXT_PEOPLE_ID:
 		return _fail("Creator next-people real click did not cycle to Tanglekin.")
 
 	var next_variant := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
-		"CreatorNextVariantButton"
+		NEXT_VARIANT_BUTTON
 	)
 	if not next_variant:
 		return _fail("Creator next-variant button missing.")
@@ -42,7 +50,7 @@ func _verify() -> void:
 
 	var next_gear := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
-		"CreatorNextGearButton"
+		NEXT_GEAR_BUTTON
 	)
 	if not next_gear:
 		return _fail("Creator next-gear button missing.")
@@ -52,19 +60,19 @@ func _verify() -> void:
 
 	var apply := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
-		"CreatorApplyButton"
+		APPLY_BUTTON
 	)
 	if not apply:
 		return _fail("Creator apply button missing.")
 	await VerifyInputHelper.real_click_button(self, root, apply)
-	if main.player.humanoid_profile.get("people_id") != "people_tanglekin":
+	if main.player.humanoid_profile.get("people_id") != EXPECTED_NEXT_PEOPLE_ID:
 		return _fail("Creator apply real click did not update player appearance.")
-	if Dictionary(main.player.humanoid_profile.get("appearance", {})).get("visual_model_id", "") == "":
+	if not applied_profile_has_visual_model(main.player.humanoid_profile):
 		return _fail("Creator apply did not keep a visual model id.")
 
 	var close := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
-		"CreatorCloseButton"
+		CLOSE_BUTTON
 	)
 	if not close:
 		return _fail("Creator close button missing.")
@@ -80,3 +88,21 @@ func _fail(message: String) -> bool:
 	printerr(message)
 	quit(1)
 	return false
+
+
+static func required_button_names() -> Array[String]:
+	return [
+		NEXT_PEOPLE_BUTTON,
+		NEXT_VARIANT_BUTTON,
+		NEXT_GEAR_BUTTON,
+		APPLY_BUTTON,
+		CLOSE_BUTTON
+	]
+
+
+static func applied_profile_has_visual_model(profile: Dictionary) -> bool:
+	var appearance_value: Variant = profile.get("appearance", {})
+	if not appearance_value is Dictionary:
+		return false
+	var appearance: Dictionary = appearance_value
+	return not String(appearance.get("visual_model_id", "")).is_empty()

@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const MainWorldGuidance = preload("res://scripts/main/ui/main_world_guidance.gd")
 
 
@@ -13,7 +14,7 @@ func test_nearby_spawn_hints_stay_sparse_around_selected_target() -> void:
 	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()
 	campfire = main.entities.get_entity("object_roadside_campfire")
-	main._handle_target_selected("object_roadside_campfire")
+	assert_true(MainInputRouter.target_entity(main, "object_roadside_campfire"))
 	main._update_nearby()
 
 	var visible_hint_count := 0
@@ -34,12 +35,16 @@ func test_nearby_spawn_hints_do_not_overlap_selected_hint() -> void:
 	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()
 	campfire = main.entities.get_entity("object_roadside_campfire")
-	main._handle_target_selected("object_roadside_campfire")
+	assert_true(MainInputRouter.target_entity(main, "object_roadside_campfire"))
 	main._update_nearby()
 
-	var selected_rect: Rect2 = MainWorldGuidance._hint_rect(
-		campfire.global_position, campfire.action_hint_text, campfire.action_hint_offset_y
-	).grow(MainWorldGuidance.ACTION_HINT_MARGIN)
+	var selected_rect: Rect2 = (
+		MainWorldGuidance
+		. _hint_rect(
+			campfire.global_position, campfire.action_hint_text, campfire.action_hint_offset_y
+		)
+		. grow(MainWorldGuidance.ACTION_HINT_MARGIN)
+	)
 	for entity in main.entities.entities_by_id.values():
 		if entity == campfire or not entity.action_hint_visible:
 			continue
@@ -61,7 +66,7 @@ func test_unselected_spawn_hints_do_not_compete_with_player_ring() -> void:
 	main.player.set_world_position(campfire.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()
 	campfire = main.entities.get_entity("object_roadside_campfire")
-	main._handle_target_selected("object_roadside_campfire")
+	assert_true(MainInputRouter.target_entity(main, "object_roadside_campfire"))
 	main._update_nearby()
 
 	var player_rect: Rect2 = MainWorldGuidance._player_clearance_rect(main.player.global_position)
@@ -92,8 +97,6 @@ func test_compact_selected_world_hint_names_target_without_repeating_action() ->
 		"Rest Bridge Campfire"
 	)
 	assert_eq(
-		MainWorldGuidance._hint_text_for_width(
-			"Inspect", "Ancient Boundary Stone", true, 640.0
-		),
+		MainWorldGuidance._hint_text_for_width("Inspect", "Ancient Boundary Stone", true, 640.0),
 		"Inspect"
 	)

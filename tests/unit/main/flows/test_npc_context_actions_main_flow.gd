@@ -13,7 +13,9 @@ func test_effectful_npc_choice_can_be_used_from_context_action() -> void:
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	assert_true(await MainFlowInputHelper.target_entity(main, "npc_harrow_venn_world", get_tree()))
 	assert_eq(main.get_debug_state()["primary_action"], "Talk")
-	var accept := MainFlowInputHelper.button_containing(main.hud.content_choice_list, "I'll find it.")
+	var accept := MainFlowInputHelper.button_containing(
+		main.hud.content_choice_list, "I'll find it."
+	)
 	assert_not_null(accept)
 
 	await MainFlowInputHelper.click(accept, get_tree())
@@ -31,17 +33,19 @@ func test_effectful_npc_line_promotes_to_primary_without_redundant_context_actio
 
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "npc_harrow_venn_world")
-	_button_containing(main.hud.context_action_buttons, "I'll find it.").pressed.emit()
+	await MainFlowInputHelper.click(
+		_button_containing(main.hud.context_action_buttons, "I'll find it."), get_tree()
+	)
 	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 	_select_entity(main, "pickup_old_toolbox")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "npc_harrow_venn_world")
 
 	var turn_in_button := _button_containing(main.hud.context_action_buttons, "Turn In")
 	assert_null(turn_in_button)
 	assert_eq(main.get_debug_state()["primary_action"], "Turn In")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "completed")
 	assert_false(main.inventory.has_item("item_old_toolbox"))
@@ -58,10 +62,12 @@ func test_world_hint_promotes_ready_npc_turn_in_action() -> void:
 
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "npc_harrow_venn_world")
-	_button_containing(main.hud.context_action_buttons, "I'll find it.").pressed.emit()
+	await MainFlowInputHelper.click(
+		_button_containing(main.hud.context_action_buttons, "I'll find it."), get_tree()
+	)
 	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 	_select_entity(main, "pickup_old_toolbox")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "npc_harrow_venn_world")
 	main._update_nearby()
@@ -83,9 +89,7 @@ func test_npc_trade_is_reached_through_dialogue_choice() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	assert_true(
-		await MainFlowInputHelper.target_entity(main, "npc_maera_pike_world", get_tree())
-	)
+	assert_true(await MainFlowInputHelper.target_entity(main, "npc_maera_pike_world", get_tree()))
 	assert_eq(main.get_debug_state()["target_detail"], "Road peddler, Marches of Velcor +0, trader")
 	assert_false(main.get_debug_state()["target_detail"].contains("quest inactive"))
 	assert_eq(main.get_debug_state()["primary_action"], "Talk")
@@ -114,8 +118,7 @@ func test_trade_feedback_reports_price_and_remaining_gold() -> void:
 
 	assert_true(await MainFlowInputHelper.target_entity(main, "npc_maera_pike_world", get_tree()))
 	await MainFlowInputHelper.click(
-		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "Trade"),
-		get_tree()
+		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "Trade"), get_tree()
 	)
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(main.hud.systems_action_list, "Buy Roadside Draught"),
@@ -127,11 +130,12 @@ func test_trade_feedback_reports_price_and_remaining_gold() -> void:
 	assert_true(main.hud.log_label.text.contains("Bought Roadside Draught. Spent 8g. Gold: 0."))
 
 	await MainFlowInputHelper.click(
-		MainFlowInputHelper.button_containing(main.hud.systems_category_row, "Sell"),
-		get_tree()
+		MainFlowInputHelper.button_containing(main.hud.systems_category_row, "Sell"), get_tree()
 	)
 	await MainFlowInputHelper.click(
-		MainFlowInputHelper.button_containing(main.hud.systems_action_list, "Sell Roadside Draught"),
+		MainFlowInputHelper.button_containing(
+			main.hud.systems_action_list, "Sell Roadside Draught"
+		),
 		get_tree()
 	)
 
@@ -184,7 +188,7 @@ func _select_entity(main, entity_id: String) -> void:
 		if entity and entity.get_entity_id() == entity_id:
 			main._update_nearby()
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 

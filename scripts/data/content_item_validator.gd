@@ -95,12 +95,8 @@ static func _validate_shops(content: ContentDatabase, errors: Array[String]) -> 
 		Schema.validate_keyed_id(shop, String(shop_id), "Shop", errors)
 		if String(shop.get("name", "")).is_empty():
 			errors.append("Shop %s is missing name." % shop_id)
-		Schema.validate_optional_bounded_number(
-			shop, "open_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
-		)
-		Schema.validate_optional_bounded_number(
-			shop, "close_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
-		)
+		Schema.validate_optional_hour(shop, "open_hour", "Shop %s" % shop_id, errors)
+		Schema.validate_optional_hour(shop, "close_hour", "Shop %s" % shop_id, errors)
 		var stock_value: Variant = shop.get("stock", [])
 		var stock: Array = Schema.array_field(stock_value)
 		if not stock_value is Array or stock.is_empty():

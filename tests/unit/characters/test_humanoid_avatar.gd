@@ -10,6 +10,9 @@ const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_i
 const HumanoidPeopleFeatureDrawer = preload(
 	"res://scripts/characters/humanoid_people_feature_drawer.gd"
 )
+const HumanoidSpeciesFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_species_feature_drawer.gd"
+)
 
 
 class ContentStub:
@@ -408,9 +411,9 @@ func test_avatar_tanglekin_side_muzzle_is_rounded_and_mirrored() -> void:
 	avatar.setup({"people_id": "people_tanglekin"})
 
 	avatar.set_facing_direction(Vector2.RIGHT)
-	var east_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+	var east_rect := HumanoidSpeciesFeatureDrawer.tanglekin_side_muzzle_rect(avatar, 1.0)
 	avatar.set_facing_direction(Vector2.LEFT)
-	var west_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+	var west_rect := HumanoidSpeciesFeatureDrawer.tanglekin_side_muzzle_rect(avatar, 1.0)
 
 	assert_gt(east_rect.size.x, east_rect.size.y)
 	assert_gt(east_rect.get_center().x, 0.0)
@@ -445,7 +448,7 @@ func test_avatar_tuskfolk_side_tusk_stays_mounted_to_face() -> void:
 	avatar.setup({"people_id": "people_tuskfolk"})
 
 	avatar.set_facing_direction(Vector2.RIGHT)
-	var points := avatar._tuskfolk_side_tusk_points(1.0, 9.2)
+	var points := HumanoidSpeciesFeatureDrawer.tuskfolk_side_tusk_points(avatar, 1.0, 9.2)
 	var base_top: Vector2 = points[0]
 	var tip: Vector2 = points[1]
 	var base_bottom: Vector2 = points[2]
@@ -732,8 +735,7 @@ func test_held_item_grips_match_hand_anchors_in_all_sixteen_directions() -> void
 						anchors[hand_id],
 						ItemVisual2D.grip_position(model, grip_id),
 						Vector2.ONE * 0.001,
-						"%s %s %s bucket %d"
-						% [handedness, item_id, grip_id, bucket_index]
+						"%s %s %s bucket %d" % [handedness, item_id, grip_id, bucket_index]
 					)
 
 

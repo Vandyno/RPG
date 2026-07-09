@@ -130,8 +130,8 @@ class AimCombatContext:
 		else:
 			effect.free()
 
-	func apply_effect(effect: Dictionary, refresh: bool = false) -> void:
-		_apply_effect.call(effect, refresh)
+	func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
+		return _apply_effect.is_valid() and bool(_apply_effect.call(effect, emit_feedback))
 
 	func refresh_hud() -> void:
 		_refresh_hud.call()
@@ -139,10 +139,6 @@ class AimCombatContext:
 	func _dictionary_property(source, property_name: String) -> Dictionary:
 		var value: Variant = source.get(property_name)
 		return value if value is Dictionary else {}
-
-
-static func context(main) -> SystemsActionContext:
-	return systems_context(main)
 
 
 static func systems_context(main) -> SystemsActionContext:
@@ -158,36 +154,36 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> Dictionary:
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
-		"equip":
+		SystemsActionIds.ACTION_EQUIP:
 			_handle_equip_item(ctx, target_id)
-		"equip_slot":
+		SystemsActionIds.ACTION_EQUIP_SLOT:
 			_handle_equip_item_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
-		"swap_mainhand":
+		SystemsActionIds.ACTION_SWAP_MAINHAND:
 			_handle_swap_mainhand_weapon(ctx)
-		"unequip":
+		SystemsActionIds.ACTION_UNEQUIP:
 			_handle_unequip_slot(ctx, target_id)
-		"train":
+		SystemsActionIds.ACTION_TRAIN:
 			_handle_train_stat(ctx, target_id)
-		"buy":
+		SystemsActionIds.ACTION_BUY:
 			_handle_buy_item(ctx, target_id)
-		"sell":
+		SystemsActionIds.ACTION_SELL:
 			_handle_sell_item(ctx, target_id)
-		"wait":
+		SystemsActionIds.ACTION_WAIT:
 			_handle_wait_action(ctx, target_id.to_int())
-		"target":
+		SystemsActionIds.ACTION_TARGET:
 			return {"intent": "target_entity", "entity_id": target_id}
-		"save":
+		SystemsActionIds.ACTION_SAVE:
 			ctx._save_requested.call()
-		"load":
+		SystemsActionIds.ACTION_LOAD:
 			ctx._load_requested.call()
-		"ui":
+		SystemsActionIds.ACTION_UI:
 			if target_id == "back":
 				ctx.hide_systems_panel()
-		"assign_spell":
+		SystemsActionIds.ACTION_ASSIGN_SPELL:
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
-		"take":
+		SystemsActionIds.ACTION_TAKE:
 			MainInventoryTransfer.take_item(ctx.inventory_transfer_context, target_id)
-		"put":
+		SystemsActionIds.ACTION_PUT:
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		_:
 			_use_inventory_item(ctx, target_id)
@@ -200,35 +196,42 @@ static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vect
 	if direction.length() > MIN_AIM_DIRECTION and ctx.player.has_method("set_facing_direction"):
 		ctx.player.set_facing_direction(aim_direction)
 	if attack_action:
-		var attack := DirectionalAttack.weapon_attack(ctx.content, ctx.equipment)
-		if _is_projectile_attack(attack):
-			var charge_ratio := _consume_projectile_charge_ratio(ctx, action_id, attack)
-			_perform_weapon_attack(ctx, aim_direction, charge_ratio)
-			ctx.refresh_hud()
-			return
-		if _consume_held_weapon_release(ctx, action_id):
-			ctx.refresh_hud()
-			return
-		_perform_weapon_attack(ctx, aim_direction)
-		ctx.refresh_hud()
+		_handle_weapon_aim_release(ctx, action_id, aim_direction)
 		return
+	_handle_spell_aim_release(ctx, action_id, aim_direction)
+
+
+static func _handle_weapon_aim_release(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2
+) -> void:
+	var attack := DirectionalAttack.weapon_attack(ctx.content, ctx.equipment)
+	if _is_projectile_attack(attack):
+		var charge_ratio := _consume_projectile_charge_ratio(ctx, action_id, attack)
+		_perform_weapon_attack(ctx, aim_direction, charge_ratio)
+	elif _consume_held_weapon_release(ctx, action_id):
+		pass
+	else:
+		_perform_weapon_attack(ctx, aim_direction)
+	ctx.refresh_hud()
+
+
+static func _handle_spell_aim_release(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2
+) -> void:
 	var spell_id: String = ctx.spells.get_assigned_spell(action_id) if ctx.spells else ""
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
 	if spell.is_empty():
 		ctx.event_bus.post_message("%s is empty." % action_id.replace("_", " "))
 	elif bool(spell.get("channel", false)):
-		pass
+		ctx.refresh_hud()
+		return
 	else:
 		var spell_name := String(spell.get("name", spell_id))
 		var spell_attack := DirectionalAttack.spell_attack(spell)
 		var spell_query := {
-			"origin": ctx.player.global_position,
-			"direction": aim_direction,
-			"attack": spell_attack
+			"origin": ctx.player.global_position, "direction": aim_direction, "attack": spell_attack
 		}
-		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), spell_query
-		)
+		var targets := DirectionalAttack.targets_in_shape(_combat_candidates(ctx), spell_query)
 		var damage := maxi(1, int(spell_attack.get("damage", spell.get("mana_cost", 1))))
 		if targets.is_empty():
 			ctx.event_bus.post_message("%s missed." % spell_name)
@@ -246,6 +249,12 @@ static func handle_aim_held(
 	if action_id == "attack" or action_id == "primary":
 		_handle_held_weapon_attack(ctx, action_id, aim_direction, delta)
 		return
+	_handle_held_spell_aim(ctx, action_id, aim_direction, delta)
+
+
+static func _handle_held_spell_aim(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, delta: float
+) -> void:
 	var spell_id: String = ctx.spells.get_assigned_spell(action_id) if ctx.spells else ""
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
 	if spell.is_empty() or not bool(spell.get("channel", false)):
@@ -274,9 +283,7 @@ static func handle_aim_held(
 		var channel_query := {
 			"origin": ctx.player.global_position, "direction": aim_direction, "attack": attack
 		}
-		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), channel_query
-		)
+		var targets := DirectionalAttack.targets_in_shape(_combat_candidates(ctx), channel_query)
 		_damage_targets(ctx, targets, 1, spell_name)
 	ctx.channeled_spell_damage_bank[action_id] = bank
 	ctx.refresh_hud()
@@ -514,65 +521,17 @@ static func _defeat_actor(ctx: AimCombatContext, entity, result: Dictionary) -> 
 	var defeat_effects := []
 	if entity and entity.data is Dictionary:
 		defeat_effects = entity.data.get("effects_on_defeat", [])
-	_create_body_for_defeated_humanoid(ctx, entity)
+	if ctx.entities.has_method("create_body_for_defeated_actor"):
+		ctx.entities.create_body_for_defeated_actor(entity)
 	ctx.combat.clear_entity(entity.get_entity_id())
 	ctx.entities.remove_entity(entity.get_entity_id())
 	ctx.event_bus.post_message("Defeated %s." % result.get("name", "hostile actor"))
-	for effect in defeat_effects:
-		if effect is Dictionary:
-			ctx.apply_effect(effect, false)
+	var effects_failed := _apply_effects(defeat_effects, ctx, false)
+	if effects_failed:
+		ctx.event_bus.post_message("Some rewards could not be applied.")
 	var reward_text: String = ctx.effect_runner.describe_effects(defeat_effects)
-	if not reward_text.is_empty():
+	if not reward_text.is_empty() and not effects_failed:
 		ctx.event_bus.post_message("Rewards: %s." % reward_text)
-
-
-static func _create_body_for_defeated_humanoid(
-	ctx: AimCombatContext, entity: WorldEntity
-) -> void:
-	if not entity or not (entity.data is Dictionary):
-		return
-	var profile: Dictionary = ActorRules.profile(entity.data)
-	if profile.is_empty():
-		return
-	if not ctx.entities.has_method("add_runtime_entity"):
-		return
-	var owner_id := ActorRules.inventory_owner_id(entity.data)
-	var equipment_owner_id := ActorRules.equipment_owner_id(entity.data)
-	if owner_id.is_empty():
-		return
-	_seed_body_inventory(ctx, owner_id, entity.data)
-	var body_profile := profile.duplicate(true)
-	body_profile["state"] = ActorRules.STATE_DEAD_BODY
-	var entity_id: String = entity.get_entity_id()
-	var body_id: String = "body_%s" % entity_id
-	var body_entry := {
-		"id": body_id,
-		"name": "%s Body" % entity.get_display_name(),
-		"kind": "body",
-		"global_tile": [entity.global_tile.x, entity.global_tile.y],
-		"interaction_radius": 128,
-		"character_id": String(profile.get("character_id", "")),
-		"character_profile_id": String(entity.data.get("character_profile_id", "")),
-		"character_profile": body_profile,
-		"inventory_owner_id": owner_id,
-		"equipment_owner_id": equipment_owner_id,
-		"equipped_items": _dictionary_field(entity.data.get("equipped_items", {})),
-		"collapsed_pose_id": "pose_fallen_side"
-	}
-	ctx.entities.add_runtime_entity(body_entry)
-
-
-static func _seed_body_inventory(ctx: AimCombatContext, owner_id: String, data: Dictionary) -> void:
-	for entry in _array_field(data.get("inventory", [])):
-		if not entry is Dictionary:
-			continue
-		var item_id := String(entry.get("item_id", ""))
-		var count := _positive_int_value(entry.get("count", 1), 1)
-		ctx.inventory.add_item_to_owner(owner_id, item_id, count)
-	for item_id_value in _dictionary_field(data.get("equipped_items", {})).values():
-		var item_id := String(item_id_value)
-		if not item_id.is_empty():
-			ctx.inventory.add_item_to_owner(owner_id, item_id, 1)
 
 
 static func _spawn_effect(
@@ -670,6 +629,16 @@ static func _dictionary_field(value: Variant) -> Dictionary:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+static func _apply_effects(
+	effects_value: Variant, ctx: AimCombatContext, emit_feedback: bool
+) -> bool:
+	var failed := false
+	for effect in _array_field(effects_value):
+		if effect is Dictionary:
+			failed = not ctx.apply_effect(effect, emit_feedback) or failed
+	return failed
 
 
 static func _positive_int_value(value: Variant, fallback: int) -> int:

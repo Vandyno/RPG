@@ -169,12 +169,7 @@ static func held_item_draw_slot_for_side(avatar, side: float) -> String:
 
 
 static func held_item_draw_side(avatar, slot_id: String) -> float:
-	var visual_id: String = avatar._equipment_layer_id(slot_id)
-	if visual_id == "placeholder_bow":
-		return -avatar._dominant_hand_side()
-	if visual_uses_dominant_weapon_side(visual_id):
-		return avatar._dominant_hand_side()
-	return slot_side(slot_id)
+	return item_side_for_slot(avatar, slot_id)
 
 
 static func item_side_for_slot(avatar, slot_id: String) -> float:

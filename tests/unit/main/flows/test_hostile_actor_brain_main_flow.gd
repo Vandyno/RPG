@@ -89,6 +89,27 @@ func test_hostile_actor_brain_attacks_with_equipped_weapon_shape() -> void:
 	assert_true(main.hud.log_label.text.contains("hits you with Training Sword for 5"))
 
 
+func test_hostile_weapon_hit_defeats_and_recovers_player() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.set_process(false)
+	_place_player_by_actor(main, "npc_people_test_human", Vector2(40.0, 0.0))
+	_keep_only_brain(main, "npc_people_test_human")
+	var defeat_sources: Array[String] = []
+	main.event_bus.player_defeated.connect(
+		func(source: String) -> void: defeat_sources.append(source)
+	)
+	main.player.set_health(2)
+
+	HostileActorBrain.update(main, 0.1)
+
+	assert_eq(defeat_sources, ["Human Test Hostile Actor"])
+	assert_eq(main.player.health, main.player.max_health)
+	assert_eq(main.player.global_tile, Vector2i.ZERO)
+	assert_true(main.hud.log_label.text.contains("Human Test Hostile Actor"))
+	assert_true(main.hud.health_label.text.contains("HP 100/100"))
+
+
 func test_ravenfolk_test_actor_can_cast_fire_spell() -> void:
 	var main := Main.new()
 	add_child_autofree(main)

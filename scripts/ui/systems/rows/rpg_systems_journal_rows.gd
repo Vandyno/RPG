@@ -2,6 +2,7 @@ class_name RpgSystemsJournalRows
 extends RefCounted
 
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 
 static func category_labels() -> Array:
@@ -35,7 +36,7 @@ static func _journal_rows(state: Dictionary, message_log: Array[String]) -> Arra
 		},
 		{
 			"id": "journal_wait",
-			"action_id": "wait:1",
+			"action_id": SystemsActionIds.wait_hours(1),
 			"title": "Wait 1h",
 			"subtitle": "Pass one hour.",
 			"meta": "Time",

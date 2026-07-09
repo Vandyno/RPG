@@ -103,9 +103,10 @@ class MainStub:
 	var refreshed := 0
 	var updated_nearby := 0
 	var talked_to = null
+	var effect_result := true
 
-	func apply_effect(_effect: Dictionary) -> void:
-		pass
+	func apply_effect(_effect: Dictionary) -> bool:
+		return effect_result
 
 	func _get_nearby_entity():
 		return nearby_entity
@@ -158,6 +159,20 @@ func test_handle_routes_dialogue_choice_and_unknown_actions() -> void:
 	assert_eq(main.dialogues.applied_choices[0].get("id", ""), "choice_reward")
 	assert_eq(main.event_bus.messages, ["Reward taken.", "Unknown action."])
 	assert_true(main.active_content_choices.is_empty())
+	assert_eq(main.updated_nearby, 1)
+
+
+func test_handle_reports_failed_dialogue_line_effect() -> void:
+	var main := MainStub.new()
+	main.effect_result = false
+	var ctx := MainContextActions.handle_context(main)
+
+	MainContextActions.handle(ctx, "line:line_reward")
+
+	assert_eq(
+		main.event_bus.messages,
+		["Some dialogue effects could not be applied.", "Done."]
+	)
 	assert_eq(main.updated_nearby, 1)
 
 

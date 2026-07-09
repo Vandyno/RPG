@@ -44,13 +44,13 @@ func load_save_data(data: Dictionary) -> void:
 	flags.clear()
 	var loaded_flags := _dictionary_field(data.get("flags", {}))
 	for flag_id in loaded_flags:
-		var key := String(flag_id)
+		var key := _string_key(flag_id)
 		var value: Variant = loaded_flags[flag_id]
 		if not key.is_empty() and value is bool:
 			flags[key] = value
 	discovered_locations.clear()
 	for location_id in _array_field(data.get("discovered_locations", [])):
-		var key := String(location_id)
+		var key := _string_key(location_id)
 		if not key.is_empty():
 			discovered_locations[key] = true
 
@@ -65,3 +65,9 @@ func _array_field(value: Variant) -> Array:
 	if value is Array:
 		return value
 	return []
+
+
+func _string_key(value: Variant) -> String:
+	if value is String or value is StringName:
+		return String(value)
+	return ""

@@ -24,17 +24,23 @@ func test_spawn_town_places_existing_content_in_logical_groups() -> void:
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "pickup_old_toolbox")), "road")
 	assert_true(main.chunks.is_walkable(_tile(main, "pickup_river_mint")))
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "npc_road_thug")), "road")
+	var road_thug = main.entities.get_entity("npc_road_thug")
+	assert_gt(
+		road_thug.global_position.distance_to(main.player.global_position),
+		float(road_thug.data.get("aggro_radius", 0.0)),
+		"Road thug should not aggro the player at spawn."
+	)
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "npc_test_raider")), "road")
 	assert_eq(main.chunks.get_tile_kind(_tile(main, "object_road_cache")), "road")
 	assert_lte(
 		main.entities.get_entity("pickup_old_toolbox").global_position.distance_to(
-			main.entities.get_entity("npc_road_thug").global_position
+			road_thug.global_position
 		),
 		32.0
 	)
 	assert_lt(
 		main.entities.get_entity("pickup_old_toolbox").global_position.x,
-		main.entities.get_entity("npc_road_thug").global_position.x
+		road_thug.global_position.x
 	)
 	assert_true(MainFlowInputHelper.enter_forge_direct(main))
 	assert_eq(_tile(main, "npc_harrow_venn_world"), Vector2i(4, 5))
@@ -67,7 +73,10 @@ func test_spawn_town_interactables_have_reachable_approach_points() -> void:
 			continue
 		var stop_distance := 32.0
 		var path := MainPathfinder.approach_path_to(
-			main, main.player.global_position, entity.global_position, stop_distance
+			Callable(main.player, "_can_stand_at"),
+			main.player.global_position,
+			entity.global_position,
+			stop_distance
 		)
 		assert_false(path.is_empty(), "%s should be reachable from spawn." % entity_id)
 

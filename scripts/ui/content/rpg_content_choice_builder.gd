@@ -32,24 +32,19 @@ static func refresh(request: RefreshRequest) -> bool:
 		var button := _button(container, button_index, request.new_button)
 		var closes := _choice_closes(choice)
 		var subtitle := _subtitle(choice)
-		button.text = _button_text(choice, subtitle)
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.disabled = false
-		button.visible = true
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 46) if request.compact else Vector2(0, 44)
-		button.add_theme_font_size_override("font_size", 10 if request.compact else 13)
-		button.set_meta("choice_id", choice_id)
-		button.set_meta("content_close_choice", closes)
 		var recommended := _is_recommended(choice) and not closes
-		button.set_meta("choice_recommended", recommended)
-		request.row_style.call(button, recommended)
-		if button is RpgContentChoiceButton:
-			(button as RpgContentChoiceButton).set_choice_card(
-				_choice_icon(choice), text, subtitle, closes
-			)
-		_bind_button(button, request.owner, request.close_callback)
+		_setup_choice_row(
+			button,
+			request,
+			choice_id,
+			_button_text(choice, subtitle),
+			text,
+			subtitle,
+			closes,
+			recommended,
+			_choice_icon(choice),
+			HORIZONTAL_ALIGNMENT_LEFT
+		)
 		button_index += 1
 	if (
 		button_index > 0
@@ -57,23 +52,18 @@ static func refresh(request: RefreshRequest) -> bool:
 		and not _has_close_choice(request.choices)
 	):
 		var close := _button(container, button_index, request.new_button)
-		close.text = request.close_text
-		close.alignment = HORIZONTAL_ALIGNMENT_CENTER
-		close.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		close.disabled = false
-		close.visible = true
-		close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		close.custom_minimum_size = Vector2(0, 46) if request.compact else Vector2(0, 44)
-		close.add_theme_font_size_override("font_size", 10 if request.compact else 13)
-		close.set_meta("choice_id", "")
-		close.set_meta("content_close_choice", true)
-		close.set_meta("choice_recommended", false)
-		request.row_style.call(close, false)
-		if close is RpgContentChoiceButton:
-			(close as RpgContentChoiceButton).set_choice_card(
-				"close", request.close_text, "", true
-			)
-		_bind_button(close, request.owner, request.close_callback)
+		_setup_choice_row(
+			close,
+			request,
+			"",
+			request.close_text,
+			request.close_text,
+			"",
+			true,
+			false,
+			"close",
+			HORIZONTAL_ALIGNMENT_CENTER
+		)
 		button_index += 1
 	for index in range(button_index, container.get_child_count()):
 		container.get_child(index).visible = false
@@ -149,14 +139,40 @@ static func _button(container: VBoxContainer, index: int, new_button: Callable) 
 	button.custom_minimum_size = Vector2(0, 58)
 	var styled := new_button.call("", Vector2.ZERO) as Button
 	if styled:
-		button.add_theme_stylebox_override("normal", styled.get_theme_stylebox("normal"))
-		button.add_theme_stylebox_override("hover", styled.get_theme_stylebox("hover"))
-		button.add_theme_stylebox_override("pressed", styled.get_theme_stylebox("pressed"))
-		button.add_theme_stylebox_override("focus", styled.get_theme_stylebox("focus"))
+		RpgContentChoiceButton.copy_style_from(button, styled)
 		styled.free()
 	button.focus_mode = Control.FOCUS_NONE
 	container.add_child(button)
 	return button
+
+
+static func _setup_choice_row(
+	button: Button,
+	request: RefreshRequest,
+	choice_id: String,
+	button_text: String,
+	card_title: String,
+	subtitle: String,
+	closes: bool,
+	recommended: bool,
+	icon: String,
+	alignment: HorizontalAlignment
+) -> void:
+	button.text = button_text
+	button.alignment = alignment
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.disabled = false
+	button.visible = true
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size = Vector2(0, 46) if request.compact else Vector2(0, 44)
+	button.add_theme_font_size_override("font_size", 10 if request.compact else 13)
+	button.set_meta("choice_id", choice_id)
+	button.set_meta("content_close_choice", closes)
+	button.set_meta("choice_recommended", recommended)
+	request.row_style.call(button, recommended)
+	if button is RpgContentChoiceButton:
+		(button as RpgContentChoiceButton).set_choice_card(icon, card_title, subtitle, closes)
+	_bind_button(button, request.owner, request.close_callback)
 
 
 static func _bind_button(button: Button, owner: Object, close_callback: Callable) -> void:

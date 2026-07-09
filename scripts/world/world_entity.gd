@@ -6,6 +6,7 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const WorldEntityFallbackRenderer = preload("res://scripts/world/world_entity_fallback_renderer.gd")
 const WorldEntityMarkerRenderer = preload("res://scripts/world/world_entity_marker_renderer.gd")
 const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
@@ -36,7 +37,7 @@ func setup(entity_data: Dictionary, content = null) -> void:
 	if not data.has("_spawn_global_tile"):
 		data["_spawn_global_tile"] = [global_tile.x, global_tile.y]
 	facing_direction = _direction_from_data(data.get("facing_direction", [0, 1]))
-	position = _world_position_from_data(
+	position = VariantFields.vector2_from_pair(
 		data.get("world_position", []), _center_of_tile(global_tile)
 	)
 	global_tile = GridMath.world_to_tile(position)
@@ -231,7 +232,7 @@ func _action_hint_rect() -> Rect2:
 
 func _marker_pick_radius(requested_radius: float) -> float:
 	var authored_radius: Variant = data.get("pick_radius", null)
-	if _is_number(authored_radius) and float(authored_radius) > 0.0:
+	if VariantFields.is_number(authored_radius) and float(authored_radius) > 0.0:
 		return minf(requested_radius, float(authored_radius))
 	return WorldEntityMarkerRenderer.marker_pick_radius(get_kind(), requested_radius)
 
@@ -252,9 +253,9 @@ func get_pickup_item_visual_state() -> Dictionary:
 
 
 func _ground_item_direction() -> Vector2:
-	var value: Variant = data.get("item_direction", [])
-	if value is Array and value.size() >= 2 and _is_number(value[0]) and _is_number(value[1]):
-		var authored_direction := Vector2(float(value[0]), float(value[1]))
+	var pair := VariantFields.numeric_pair(data.get("item_direction", []))
+	if not pair.is_empty():
+		var authored_direction := Vector2(float(pair[0]), float(pair[1]))
 		if authored_direction.length() > 0.01:
 			return authored_direction.normalized()
 	var seed := String(data.get("id", data.get("item_id", "")))
@@ -264,13 +265,7 @@ func _ground_item_direction() -> Vector2:
 
 
 func _tile_from_data(value: Variant) -> Vector2i:
-	if not value is Array:
-		return Vector2i.ZERO
-	if value.size() < 2:
-		return Vector2i.ZERO
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return Vector2i.ZERO
-	return Vector2i(int(value[0]), int(value[1]))
+	return VariantFields.vector2i_from_pair(value, Vector2i.ZERO)
 
 
 func _try_move_step(motion: Vector2, chunk_manager = null) -> bool:
@@ -282,30 +277,14 @@ func _can_stand_at(world_position: Vector2, chunk_manager = null) -> bool:
 
 
 func _direction_from_data(value: Variant) -> Vector2:
-	if not value is Array or value.size() < 2:
-		return Vector2.DOWN
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return Vector2.DOWN
-	var direction := Vector2(float(value[0]), float(value[1]))
+	var direction := VariantFields.vector2_from_pair(value, Vector2.DOWN)
 	if direction.length() <= 0.01:
 		return Vector2.DOWN
 	return FacingBuckets.snap_direction(direction, Vector2.DOWN)
 
 
-func _world_position_from_data(value: Variant, fallback: Vector2) -> Vector2:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2(float(value[0]), float(value[1]))
-
-
 func _center_of_tile(tile: Vector2i) -> Vector2:
 	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float
 
 
 func _setup_humanoid_avatar(content = null) -> void:

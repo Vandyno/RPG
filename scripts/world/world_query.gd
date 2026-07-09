@@ -28,22 +28,19 @@ func get_current_layer() -> String:
 func get_chunk_data(chunk_coord: Vector2i, layer: String = "") -> Dictionary:
 	var resolved_layer := _resolved_layer(layer)
 	var tiles: Array[Dictionary] = []
-	var origin := GridMath.chunk_origin_tile(chunk_coord)
-	for y in range(GridMath.CHUNK_SIZE):
-		for x in range(GridMath.CHUNK_SIZE):
-			var tile := origin + Vector2i(x, y)
-			var explicit := (
-				structure_manager and structure_manager.has_tile_override(tile, resolved_layer)
-			)
-			var kind := get_tile_kind(tile, resolved_layer)
-			tiles.append(
-				{
-					"tile": [tile.x, tile.y],
-					"kind": kind,
-					"walkable": is_walkable(tile, resolved_layer),
-					"explicit": explicit
-				}
-			)
+	for tile in GridMath.chunk_tiles(chunk_coord):
+		var explicit := (
+			structure_manager and structure_manager.has_tile_override(tile, resolved_layer)
+		)
+		var kind := get_tile_kind(tile, resolved_layer)
+		tiles.append(
+			{
+				"tile": [tile.x, tile.y],
+				"kind": kind,
+				"walkable": is_walkable(tile, resolved_layer),
+				"explicit": explicit
+			}
+		)
 	var structures: Array[Dictionary] = []
 	if structure_manager:
 		structures = structure_manager.get_structures_for_chunk(chunk_coord, resolved_layer)

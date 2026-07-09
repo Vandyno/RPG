@@ -1,5 +1,7 @@
 extends GutTest
 
+const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
+
 
 func test_compact_system_rows_wrap_long_player_text() -> void:
 	var hud := _new_hud()
@@ -69,7 +71,9 @@ func test_detail_equipment_pane_has_section_header_and_tight_slots() -> void:
 	hud.show_systems_panel("inventory")
 
 	var title := hud.systems_detail_panel.find_child("SystemsDetailEquipmentTitle", true, false)
-	var right := hud.systems_detail_panel.find_child("EquipmentSlot_RightHand", true, false) as Button
+	var right := (
+		hud.systems_detail_panel.find_child("EquipmentSlot_RightHand", true, false) as Button
+	)
 	assert_not_null(title)
 	assert_eq((title as Label).text, "Equipment")
 	assert_not_null(right)
@@ -84,7 +88,7 @@ func test_spell_categories_use_compact_readable_labels() -> void:
 
 	var restore := _button_containing(hud.systems_category_row, "Restore")
 	assert_not_null(restore)
-	restore.pressed.emit()
+	await HudClickHelper.click(restore, get_tree())
 	assert_eq(hud.systems_active_category, "restoration")
 	assert_null(_button_containing(hud.systems_category_row, "Restoration"))
 
@@ -151,7 +155,7 @@ func test_compact_dialogue_choice_text_fits_available_width() -> void:
 	var button := RpgContentChoiceButton.new()
 	add_child_autofree(button)
 	var font := button.get_theme_default_font()
-	var fitted := button._fit_line("Craft, repair, and improve gear.", 94.0, font, 11)
+	var fitted: String = button._fit_line("Craft, repair, and improve gear.", 94.0, font, 11)
 
 	assert_true(fitted.ends_with("..."))
 	assert_lte(button._line_width(fitted, font, 11), 94.0)
@@ -159,9 +163,10 @@ func test_compact_dialogue_choice_text_fits_available_width() -> void:
 
 func test_content_identity_icon_matches_content_kind() -> void:
 	var hud := _new_hud()
-	var art := hud.content_portrait_panel.find_child(
-		"ContentPortraitSilhouette", true, false
-	) as RpgPortraitSilhouette
+	var art := (
+		hud.content_portrait_panel.find_child("ContentPortraitSilhouette", true, false)
+		as RpgPortraitSilhouette
+	)
 	assert_not_null(art)
 	hud.show_content_card("Harrow Venn", "Hello.", [], "dialogue")
 	assert_eq(art.identity_kind, "person")
@@ -201,7 +206,7 @@ func test_sneak_control_replaces_player_facing_target_picker() -> void:
 
 	assert_not_null(sneak)
 	assert_null(utility_stack.find_child("TargetButton", true, false))
-	sneak.pressed.emit()
+	await HudClickHelper.click(sneak, get_tree())
 	assert_false(hud.is_target_picker_visible())
 
 
@@ -278,7 +283,7 @@ func test_quest_routes_use_player_facing_distance_text() -> void:
 
 	var routes := _button_containing(hud.systems_category_row, "Routes") as Button
 	assert_not_null(routes)
-	routes.pressed.emit()
+	await HudClickHelper.click(routes, get_tree())
 	var route_row := _button_containing(hud.systems_item_list, "Missing Tools") as Button
 	assert_not_null(route_row)
 	assert_true(route_row.text.contains("5 tiles east to Harrow Venn"))

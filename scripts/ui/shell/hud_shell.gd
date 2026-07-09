@@ -23,6 +23,7 @@ const UiActionButtons = preload("res://scripts/ui/shell/ui_action_buttons.gd")
 const ButtonTextFormatter = preload("res://scripts/ui/text/button_text_formatter.gd")
 const ContentCardPresenter = preload("res://scripts/ui/shell/content_card_presenter.gd")
 const HudLayoutMetrics = preload("res://scripts/ui/shell/hud_layout_metrics.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const HudTextBuilder = preload("res://scripts/ui/text/hud_text_builder.gd")
 const MESSAGE_MIN_WIDTH := 160.0
 const MOVE_PAD_SIZE := Vector2(166, 160)
@@ -376,9 +377,9 @@ func _build_content_panel() -> void:
 
 
 func _refresh_health_bar(state: Dictionary) -> void:
-	var max_health := maxi(1, _non_negative_int_field(state, "player_max_health", 1))
+	var max_health := maxi(1, VariantFields.non_negative_int_field(state, "player_max_health", 1))
 	var health := clampi(
-		_non_negative_int_field(state, "player_health_value", max_health), 0, max_health
+		VariantFields.non_negative_int_field(state, "player_health_value", max_health), 0, max_health
 	)
 	health_bar.max_value = max_health
 	health_bar.value = health
@@ -632,7 +633,7 @@ func _refresh_target_action_button(state: Dictionary) -> void:
 	if not target_action_button:
 		return
 	var compact := applied_layout_size.x < 980.0 or applied_layout_size.y < 540.0
-	var targets := _array_field(state.get("nearby_targets", []))
+	var targets := VariantFields.array(state.get("nearby_targets", []))
 	var picker_visible := target_panel and target_panel.visible
 	var suffix := ""
 	if not targets.is_empty():
@@ -771,23 +772,8 @@ func _on_message_posted(text: String) -> void:
 	refresh()
 
 
-func _array_field(value: Variant) -> Array:
-	return value if value is Array else []
-
-
 func _normalize_systems_tab(tab_id: String) -> String:
 	return {"map": "journal", "world": "journal", "log": "journal"}.get(tab_id, tab_id)
-
-
-func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	var value: Variant = source.get(field_id, fallback)
-	if not _is_number(value):
-		return maxi(0, fallback)
-	return maxi(0, int(value))
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float
 
 
 func _required_hook(hook_name: String) -> void:

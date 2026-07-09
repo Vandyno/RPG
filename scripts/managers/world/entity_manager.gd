@@ -78,6 +78,16 @@ func add_runtime_entity(entry: Dictionary) -> WorldEntity:
 	return entities_by_id.get(entity_id) as WorldEntity
 
 
+func create_body_for_defeated_actor(entity) -> WorldEntity:
+	if not entity or not (entity.data is Dictionary):
+		return null
+	var body_entry := _defeated_actor_body_entry(entity)
+	if body_entry.is_empty():
+		return null
+	_seed_body_inventory(ActorRules.inventory_owner_id(entity.data), entity.data)
+	return add_runtime_entity(body_entry)
+
+
 func remove_entity(entity_id: String) -> void:
 	var entity = entities_by_id.get(entity_id)
 	if not entity:
@@ -426,6 +436,45 @@ func _entry_with_profile(entry: Dictionary) -> Dictionary:
 	return next_entry
 
 
+func _defeated_actor_body_entry(entity) -> Dictionary:
+	var profile: Dictionary = ActorRules.profile(entity.data)
+	var owner_id := ActorRules.inventory_owner_id(entity.data)
+	if profile.is_empty() or owner_id.is_empty():
+		return {}
+	var body_profile := profile.duplicate(true)
+	body_profile["state"] = ActorRules.STATE_DEAD_BODY
+	var entity_id: String = entity.get_entity_id()
+	return {
+		"id": "body_%s" % entity_id,
+		"name": "%s Body" % entity.get_display_name(),
+		"kind": "body",
+		"global_tile": [entity.global_tile.x, entity.global_tile.y],
+		"interaction_radius": 128,
+		"character_id": String(profile.get("character_id", "")),
+		"character_profile_id": String(entity.data.get("character_profile_id", "")),
+		"character_profile": body_profile,
+		"inventory_owner_id": owner_id,
+		"equipment_owner_id": ActorRules.equipment_owner_id(entity.data),
+		"equipped_items": _dictionary_field(entity.data.get("equipped_items", {})),
+		"collapsed_pose_id": "pose_fallen_side"
+	}
+
+
+func _seed_body_inventory(owner_id: String, data: Dictionary) -> void:
+	if owner_id.is_empty() or not inventory:
+		return
+	for entry in _array_field(data.get("inventory", [])):
+		if not entry is Dictionary:
+			continue
+		var item_id := String(entry.get("item_id", ""))
+		var count := _positive_int_value(entry.get("count", 1), 1)
+		inventory.add_item_to_owner(owner_id, item_id, count)
+	for item_id_value in _dictionary_field(data.get("equipped_items", {})).values():
+		var item_id := String(item_id_value)
+		if not item_id.is_empty():
+			inventory.add_item_to_owner(owner_id, item_id, 1)
+
+
 func _entry_with_filtered_equipment(entry: Dictionary) -> Dictionary:
 	var equipped := _filtered_equipped_items(entry)
 	if equipped == _dictionary_field(entry.get("equipped_items", {})):
@@ -578,5 +627,15 @@ func _is_number(value: Variant) -> bool:
 	return value is int or value is float
 
 
+func _array_field(value: Variant) -> Array:
+	return value if value is Array else []
+
+
 func _dictionary_field(value: Variant) -> Dictionary:
 	return value.duplicate(true) if value is Dictionary else {}
+
+
+func _positive_int_value(value: Variant, fallback: int) -> int:
+	if not (value is int or value is float):
+		return maxi(1, fallback)
+	return maxi(1, int(value))

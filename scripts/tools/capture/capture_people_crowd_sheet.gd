@@ -215,7 +215,7 @@ func _add_turnaround(page: Control, content: ContentDatabase) -> void:
 		var origin := Vector2(
 			left + float(index % 2) * cell_width, top + float(index / 2) * cell_height
 		)
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			origin,
@@ -239,7 +239,7 @@ func _add_turnaround(page: Control, content: ContentDatabase) -> void:
 				1.35,
 				entry["direction"]
 			)
-			_add_label(
+			CaptureSheetHelper.add_label(
 				page,
 				String(entry["label"]),
 				Vector2(x - 42.0, origin.y + 108.0),
@@ -259,7 +259,7 @@ func _add_sixteen_turnaround(page: Control, content: ContentDatabase) -> void:
 		var people_id := String(PEOPLE_ORDER[row])
 		var definition := content.get_people(people_id)
 		var variants: Array = content.get_people_visual_model(people_id).get("variants", [])
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			Vector2(24.0, top + row * row_height + 26.0),
@@ -276,7 +276,7 @@ func _add_sixteen_turnaround(page: Control, content: ContentDatabase) -> void:
 			var direction: Vector2 = SIXTEEN_DIRECTIONS[column]
 			_add_avatar(page, content, people_id, variant, Vector2(x, y), avatar_scale, direction)
 			if row == 0:
-				_add_label(
+				CaptureSheetHelper.add_label(
 					page,
 					"%02d" % column,
 					Vector2(x - 16.0, top - 22.0),
@@ -300,7 +300,7 @@ func _add_people_sixteen_zoom(page: Control, content: ContentDatabase, people_id
 	var avatar_scale := minf(row_height / 98.0, col_width / 84.0) * 0.98
 	for column in SIXTEEN_DIRECTIONS.size():
 		var x := left + float(column) * col_width
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			"%02d" % column,
 			Vector2(x - 20.0, top - 28.0),
@@ -311,7 +311,7 @@ func _add_people_sixteen_zoom(page: Control, content: ContentDatabase, people_id
 	for row in variants.size():
 		var variant: Dictionary = variants[row]
 		var y := top + float(row) * row_height + row_height * 0.55
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(variant.get("display_name", variant.get("id", ""))),
 			Vector2(24.0, y - 16.0),
@@ -347,7 +347,7 @@ func _add_people_sixteen_detail(
 	var avatar_scale := minf(row_height / 126.0, col_width / 86.0) * 1.25
 	for column in SIXTEEN_DIRECTIONS.size():
 		var x := left + float(column) * col_width
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			"%02d" % column,
 			Vector2(x - 22.0, top - 34.0),
@@ -358,7 +358,7 @@ func _add_people_sixteen_detail(
 	for row in visible_count:
 		var variant: Dictionary = variants[variant_start + row]
 		var y := top + float(row) * row_height + row_height * 0.55
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(variant.get("display_name", variant.get("id", ""))),
 			Vector2(24.0, y - 24.0),
@@ -381,7 +381,7 @@ func _add_people_families(page: Control, content: ContentDatabase) -> void:
 		var people_id := String(PEOPLE_ORDER[index])
 		var definition := content.get_people(people_id)
 		var origin := Vector2(left + float(index % 2) * cell_width, top + float(index / 2) * cell_height)
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			origin,
@@ -394,7 +394,7 @@ func _add_people_families(page: Control, content: ContentDatabase) -> void:
 			var variant: Dictionary = variants[variant_index]
 			var x := origin.x + 166.0 + float(variant_index) * 130.0
 			_add_avatar(page, content, people_id, variant, Vector2(x, origin.y + 88.0), 1.45, Vector2.DOWN)
-			_add_label(
+			CaptureSheetHelper.add_label(
 				page,
 				String(variant.get("display_name", "")),
 				Vector2(x - 54.0, origin.y + 112.0),
@@ -415,7 +415,7 @@ func _add_labeled_grid(
 	for row in PEOPLE_ORDER.size():
 		var people_id := String(PEOPLE_ORDER[row])
 		var definition := content.get_people(people_id)
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			Vector2(34, top + row * row_height + 30),
@@ -432,7 +432,7 @@ func _add_labeled_grid(
 			var x := left + offset * col_width
 			var y := top + row * row_height
 			_add_avatar(page, content, people_id, variant, Vector2(x + 46, y + 50), 1.0, Vector2.DOWN)
-			_add_label(
+			CaptureSheetHelper.add_label(
 				page,
 				String(variant.get("display_name", "")),
 				Vector2(x, y + 66),
@@ -450,7 +450,7 @@ func _add_small_rows(page: Control, content: ContentDatabase, height: int) -> vo
 	for row in PEOPLE_ORDER.size():
 		var people_id := String(PEOPLE_ORDER[row])
 		var definition := content.get_people(people_id)
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			Vector2(34, top + row * row_height + 36),
@@ -495,7 +495,7 @@ func _add_population_stress(page: Control, content: ContentDatabase, height: int
 		var people_id := String(PEOPLE_ORDER[row])
 		var definition := content.get_people(people_id)
 		var variants: Array = content.get_people_visual_model(people_id).get("variants", [])
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(definition.get("display_name", people_id)),
 			Vector2(34, top + row * row_height + 26.0),
@@ -607,21 +607,12 @@ func _equipment_for_population_index(row: int, column: int) -> Dictionary:
 
 
 func _add_header(page: Control, title: String, note: String) -> void:
-	_add_label(page, title, Vector2(34, 26), Vector2(900, 34), 24, Color(0.08, 0.07, 0.06))
-	_add_label(page, note, Vector2(36, 64), Vector2(1050, 24), 12, Color(0.28, 0.25, 0.22))
-
-
-func _add_label(
-	parent: Control, text: String, position: Vector2, size: Vector2, font_size: int, color: Color
-) -> void:
-	var label := Label.new()
-	label.position = position
-	label.size = size
-	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	parent.add_child(label)
+	CaptureSheetHelper.add_label(
+		page, title, Vector2(34, 26), Vector2(900, 34), 24, Color(0.08, 0.07, 0.06)
+	)
+	CaptureSheetHelper.add_label(
+		page, note, Vector2(36, 64), Vector2(1050, 24), 12, Color(0.28, 0.25, 0.22)
+	)
 
 
 func _round_label(output_dir: String) -> String:

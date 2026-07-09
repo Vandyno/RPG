@@ -314,7 +314,14 @@ func _load_json(path: String) -> Variant:
 	if not FileAccess.file_exists(path):
 		_record_load_error("Missing content file: %s" % path)
 		return null
-	var raw := FileAccess.get_file_as_string(path)
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		_record_load_error(
+			"Could not read content file %s: %s"
+			% [path, error_string(FileAccess.get_open_error())]
+		)
+		return null
+	var raw := file.get_as_text()
 	var parser := JSON.new()
 	var error := parser.parse(raw)
 	if error != OK:

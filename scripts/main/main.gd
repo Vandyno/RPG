@@ -5,6 +5,7 @@ const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator
 const EventBusScript = preload("res://scripts/core/event_bus.gd")
 const EffectRunnerScript = preload("res://scripts/core/effect_runner.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const ContentDatabaseScript = preload("res://scripts/data/content_database.gd")
 const WorldStateManagerScript = preload("res://scripts/managers/world/world_state_manager.gd")
 const InventoryManagerScript = preload("res://scripts/managers/actors/inventory_manager.gd")
@@ -40,6 +41,7 @@ const MainWorldGuidance = preload("res://scripts/main/ui/main_world_guidance.gd"
 const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
+const MainObjectInteractions = preload("res://scripts/main/actions/main_object_interactions.gd")
 const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framing.gd")
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
@@ -95,21 +97,39 @@ var active_transfer_access_mode := ""
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
 var held_weapon_attack_elapsed: Dictionary = {}
+
+
 func _ready() -> void:
 	if _bootstrap():
 		event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	MainInputRouter.handle_event(MainInputRouter.context(self), event)
+
+
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
 	_update_location_discoveries()
 	_update_nearby()
+
+
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
+
+
+func clear_target_state() -> void:
+	selected_target_id = ""
+	target_cycle_index = 0
+	manual_target_locked = false
+
+
 func get_hud_state() -> Dictionary:
 	return MainHudState.build(_hud_context())
+
+
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
 
@@ -118,36 +138,35 @@ func _hud_context() -> MainHudState.HudContext:
 	var nearby := _get_nearby_entity()
 	var auto_target = entities.get_entity(auto_interact_target_id)
 	var nearby_targets := _ranked_nearby_entities()
+	var nearby_target_rows := hud_queries.nearby_targets_data(
+		nearby_targets, selected_target_id, player.global_position
+	)
 	return MainHudState.HudContext.new(
-		{
-			"active_transfer_name": active_transfer_name,
-			"active_transfer_owner_id": active_transfer_owner_id,
-			"auto_interact_target_id": auto_interact_target_id,
-			"auto_move_active": auto_move_active,
-			"chunks": chunks,
-			"condition_evaluator": condition_evaluator,
-			"content": content,
-			"context_actions_context": _action_list_context(),
-			"current_location_name": _current_location_name(),
-			"entities": entities,
-			"equipment": equipment,
-			"factions": factions,
-			"hud_queries": hud_queries,
-			"inventory": inventory,
-			"nearby": nearby,
-			"nearby_targets": hud_queries.nearby_targets_data(
-				nearby_targets, selected_target_id, player.global_position
-			),
-			"player": player,
-			"primary_action": _primary_action_text(nearby, auto_target),
-			"progression": progression,
-			"quests": quests,
-			"shop_id": hud_queries.shop_id_for_entity(nearby),
-			"spells": spells,
-			"statuses": statuses,
-			"time": time,
-			"world_state": world_state
-		}
+		MainHudState.HudDataSources.new(
+			content,
+			entities,
+			inventory,
+			equipment,
+			spells,
+			progression,
+			quests,
+			statuses,
+			factions,
+			time
+		),
+		MainHudState.HudUiServices.new(hud_queries, _action_list_context(), world_state),
+		MainHudState.HudSnapshot.new(
+			active_transfer_name,
+			active_transfer_owner_id,
+			auto_interact_target_id,
+			auto_move_active,
+			_current_location_name(),
+			nearby,
+			nearby_target_rows,
+			player,
+			_primary_action_text(nearby, auto_target),
+			hud_queries.shop_id_for_entity(nearby)
+		)
 	)
 
 
@@ -162,15 +181,7 @@ func _current_location_name() -> String:
 
 
 func _action_list_context() -> MainContextActions.ActionListContext:
-	return MainContextActions.ActionListContext.new(
-		{
-			"condition_evaluator": condition_evaluator,
-			"content": content,
-			"dialogues": dialogues,
-			"player": player,
-			"world_state": world_state
-		}
-	)
+	return MainContextActions.action_list_context(self)
 
 
 func _preferred_primary_context_action_for(entity) -> Dictionary:
@@ -182,9 +193,33 @@ func _handle_target_entity_intent(entity_id: String) -> void:
 
 
 func _bootstrap() -> bool:
+	_bootstrap_event_bus()
+	if not _bootstrap_content():
+		set_process(false)
+		return false
+	_bootstrap_core_managers()
+	_bootstrap_content_services()
+	_bootstrap_world_runtime()
+	_bootstrap_actor_runtime()
+	_bootstrap_player()
+	_bootstrap_hud_queries()
+	_bootstrap_camera()
+	_bootstrap_save_manager()
+	_bootstrap_hud()
+	_bootstrap_debug_character_creator()
+	_bootstrap_runtime_signals()
+	streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	return true
+
+
+func _bootstrap_event_bus() -> void:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
 	add_child(event_bus)
+
+
+func _bootstrap_content() -> bool:
 	content = _create_content_database()
 	content.name = "ContentDatabase"
 	add_child(content)
@@ -193,15 +228,17 @@ func _bootstrap() -> bool:
 		_report_content_bootstrap_errors(
 			content_load_errors, "Content failed to load. Check content file errors."
 		)
-		set_process(false)
 		return false
 	var content_validation_errors: Array[String] = content.validate_all()
 	if not content_validation_errors.is_empty():
 		_report_content_bootstrap_errors(
 			content_validation_errors, "Content failed validation. Check content file errors."
 		)
-		set_process(false)
 		return false
+	return true
+
+
+func _bootstrap_core_managers() -> void:
 	world_state = WorldStateManagerScript.new()
 	world_state.name = "WorldStateManager"
 	add_child(world_state)
@@ -233,6 +270,8 @@ func _bootstrap() -> bool:
 	add_child(time)
 	time.setup(event_bus)
 
+
+func _bootstrap_content_services() -> void:
 	effect_runner = EffectRunnerScript.new()
 	effect_runner.setup(
 		EffectRunnerScript.Dependencies.new(
@@ -275,6 +314,8 @@ func _bootstrap() -> bool:
 	add_child(dialogues)
 	dialogues.setup(content, condition_evaluator, effect_runner)
 
+
+func _bootstrap_world_runtime() -> void:
 	chunks = ChunkManagerScript.new()
 	chunks.name = "ChunkManager"
 	add_child(chunks)
@@ -293,6 +334,8 @@ func _bootstrap() -> bool:
 	add_child(streamer)
 	streamer.setup(event_bus, world_query)
 
+
+func _bootstrap_actor_runtime() -> void:
 	entities = EntityManagerScript.new()
 	entities.name = "EntityManager"
 	add_child(entities)
@@ -318,6 +361,8 @@ func _bootstrap() -> bool:
 	add_child(combat)
 	combat.setup(event_bus, equipment, progression, statuses)
 
+
+func _bootstrap_player() -> void:
 	player = PlayerControllerScript.new()
 	player.name = "Player"
 	add_child(player)
@@ -329,6 +374,8 @@ func _bootstrap() -> bool:
 			player.set_equipped_items(equipped_by_slot, content)
 	)
 
+
+func _bootstrap_hud_queries() -> void:
 	hud_queries = MainHudQueries.new()
 	hud_queries.setup(
 		MainHudQueries.Dependencies.new(
@@ -349,6 +396,8 @@ func _bootstrap() -> bool:
 		)
 	)
 
+
+func _bootstrap_camera() -> void:
 	camera = Camera2D.new()
 	camera.name = "Camera2D"
 	camera.zoom = Vector2(2.0, 2.0)
@@ -357,15 +406,23 @@ func _bootstrap() -> bool:
 	camera.position_smoothing_speed = 8.0
 	add_child(camera)
 
+
+func _bootstrap_save_manager() -> void:
 	save_manager = SaveManagerScript.new()
 	save_manager.name = "SaveManager"
 	add_child(save_manager)
 	save_manager.setup(event_bus, MainSaveProviders.build(self))
 
+
+func _bootstrap_hud() -> void:
 	hud = RpgHudScript.new()
 	hud.name = "RpgHud"
 	add_child(hud)
 	hud.setup(event_bus, Callable(self, "get_hud_state"))
+	_bootstrap_hud_signals()
+
+
+func _bootstrap_hud_signals() -> void:
 	hud.interact_pressed.connect(_handle_interact_requested)
 	hud.cycle_target_pressed.connect(_handle_cycle_target_requested)
 	hud.target_selected.connect(_handle_target_selected)
@@ -375,7 +432,9 @@ func _bootstrap() -> bool:
 	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
-			MainSystemsActions.handle_aim(MainSystemsActions.aim_context(self), action_id, direction)
+			MainSystemsActions.handle_aim(
+				MainSystemsActions.aim_context(self), action_id, direction
+			)
 	)
 	hud.aim_action_held.connect(
 		func(action_id: String, direction: Vector2, delta: float) -> void:
@@ -391,6 +450,8 @@ func _bootstrap() -> bool:
 	hud.systems_panel_closed.connect(_handle_systems_panel_closed)
 	hud.systems_tab_changed.connect(_handle_systems_tab_changed)
 
+
+func _bootstrap_debug_character_creator() -> void:
 	debug_character_creator = DebugCharacterCreatorScript.new()
 	debug_character_creator.name = "DebugCharacterCreator"
 	add_child(debug_character_creator)
@@ -398,16 +459,19 @@ func _bootstrap() -> bool:
 	debug_character_creator.appearance_applied.connect(
 		func(profile: Dictionary) -> void:
 			event_bus.post_message(
-				"Applied %s appearance." % content.get_people(String(profile.get("people_id", ""))).get(
-					"display_name", String(profile.get("people_id", ""))
+				(
+					"Applied %s appearance."
+					% content.get_people(String(profile.get("people_id", ""))).get(
+						"display_name", String(profile.get("people_id", ""))
+					)
 				)
 			)
 			_refresh_hud()
 	)
+
+
+func _bootstrap_runtime_signals() -> void:
 	event_bus.player_tile_changed.connect(_on_player_tile_changed)
-	streamer.update_center(player.global_tile, player.world_layer)
-	_sync_camera_to_player()
-	return true
 
 
 func _create_content_database() -> ContentDatabase:
@@ -424,14 +488,12 @@ func _report_content_bootstrap_errors(errors: Array[String], summary: String) ->
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
 	streamer.update_center(global_tile, player.world_layer if player else "surface")
 
+
 func _sync_camera_to_player() -> void:
 	if not camera or not player:
 		return
 	camera.global_position = MainCameraFraming.position_for_player(
-		player.global_position,
-		_camera_focus_position(),
-		get_viewport_rect().size,
-		camera.zoom
+		player.global_position, _camera_focus_position(), get_viewport_rect().size, camera.zoom
 	)
 	camera.reset_smoothing()
 
@@ -466,8 +528,8 @@ func _update_location_discoveries() -> void:
 		player.global_position, _max_location_discovery_radius(), "location"
 	):
 		var location_id := String(entity.data.get("location_id", ""))
-		var radius := _positive_float_field(
-			entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+		var radius := VariantFields.positive_float_field_at_least(
+			entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
 		)
 		if player.global_position.distance_to(entity.global_position) > radius:
 			continue
@@ -481,8 +543,8 @@ func _max_location_discovery_radius() -> float:
 		if String(entry.get("kind", "")) == "location":
 			radius = maxf(
 				radius,
-				_positive_float_field(
-					entry, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+				VariantFields.positive_float_field_at_least(
+					entry, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
 				)
 			)
 	return radius
@@ -535,7 +597,10 @@ func _handle_cycle_target_requested() -> void:
 		event_bus.post_message("No alternate target nearby.")
 		return
 	selected_target_id = InteractionTargetSelector.next_id(
-		nearby_entities, selected_target_id, target_cycle_index, player.global_position,
+		nearby_entities,
+		selected_target_id,
+		target_cycle_index,
+		player.global_position,
 		player.get_facing_direction()
 	)
 	target_cycle_index = _index_of_target_id(nearby_entities, selected_target_id)
@@ -649,15 +714,15 @@ func _interact_entity(entity: WorldEntity) -> void:
 		return
 	match entity.get_kind():
 		"readable":
-			_interact_readable(entity)
+			MainObjectInteractions.interact_readable(MainObjectInteractions.context(self), entity)
 		"pickup":
-			_interact_pickup(entity)
+			MainObjectInteractions.interact_pickup(MainObjectInteractions.context(self), entity)
 		"container":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"body":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"door":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"poi":
 			PoiInteraction.interact(
 				PoiInteraction.InteractionContext.new(
@@ -673,96 +738,9 @@ func _interact_entity(entity: WorldEntity) -> void:
 		"npc":
 			_interact_npc(entity)
 		"rest":
-			_interact_rest(entity)
+			MainObjectInteractions.interact_rest(MainObjectInteractions.context(self), entity)
 		_:
 			event_bus.post_message("You inspect %s." % entity.get_display_name())
-
-
-func _interact_readable(entity: WorldEntity) -> void:
-	var readable_id := String(entity.data.get("readable_id", ""))
-	var readable: Dictionary = readables.read_readable(readable_id)
-	if readable.is_empty():
-		event_bus.post_message("The writing is too weathered to read.")
-		return
-	var title := String(readable.get("title", "Readable"))
-	var body := String(readable.get("body", ""))
-	active_content_choices.clear()
-	if hud:
-		hud.show_content_card(title, body, [], "readable")
-	event_bus.post_message("Read %s." % title)
-
-
-func _interact_pickup(entity: WorldEntity) -> void:
-	var item_id := String(entity.data.get("item_id", ""))
-	var count := _positive_int_field(entity.data, "count", 1)
-	var pickup_effects := _array_field(entity.data.get("effects_on_pickup", []))
-	if not inventory.add_item(item_id, count):
-		event_bus.post_message("Could not pick up %s." % entity.get_display_name())
-		return
-	entities.remove_entity(entity.get_entity_id())
-	var item: Dictionary = content.get_item(item_id)
-	event_bus.post_message("Picked up %s." % String(item.get("name", item_id)))
-	for effect in pickup_effects:
-		if effect is Dictionary:
-			apply_effect(effect)
-	_update_nearby()
-
-
-func _interact_container(entity: WorldEntity) -> void:
-	var entity_id: String = entity.get_entity_id()
-	var locked_text := ObjectInteractionRules.access_locked_text(entity.data, condition_evaluator)
-	if not locked_text.is_empty():
-		event_bus.post_message(locked_text)
-		return
-	if ["container", "body"].has(entity.get_kind()):
-		MainInventoryTransfer.open(MainInventoryTransfer.context(self), entity)
-		return
-	if entity.get_kind() == "door" and not _portal_data(entity).is_empty():
-		_interact_portal(entity)
-		return
-	var layer := _entity_layer(entity)
-	if chunks.is_object_opened(entity_id, entity.global_tile, layer):
-		event_bus.post_message("%s is already open." % entity.get_display_name())
-		return
-	var opened := false
-	for effect in _array_field(entity.data.get("effects_on_open", [])):
-		if effect is Dictionary and apply_effect(effect):
-			opened = true
-	chunks.mark_object_opened(entity_id, entity.global_tile, layer)
-	if opened:
-		event_bus.post_message("Opened %s." % entity.get_display_name())
-	else:
-		event_bus.post_message("%s is empty." % entity.get_display_name())
-	_update_nearby()
-
-
-func _interact_portal(entity: WorldEntity) -> void:
-	var portal := _portal_data(entity)
-	var display_name := entity.get_display_name()
-	var message := String(portal.get("message", "Moved through %s." % display_name))
-	var target_layer := String(portal.get("target_layer", "surface"))
-	var target_tile := _vector2i_from_pair(portal.get("target_tile", []), player.global_tile)
-	if world_query and not world_query.is_walkable(target_tile, target_layer):
-		event_bus.post_message("The way through is blocked.")
-		return
-	_clear_active_transfer(false)
-	selected_target_id = ""
-	target_cycle_index = 0
-	manual_target_locked = false
-	if hud:
-		hud.hide_target_picker()
-	player.set_world_layer(target_layer)
-	player.set_global_tile(target_tile)
-	var facing := _vector2_from_pair(portal.get("target_facing", []), Vector2.ZERO)
-	if facing.length() > 0.01:
-		player.set_facing_direction(facing)
-	if world_query:
-		world_query.set_layer(player.world_layer)
-	if streamer:
-		streamer.update_center(player.global_tile, player.world_layer)
-	_sync_camera_to_player()
-	event_bus.post_message(message)
-	_update_nearby()
 
 
 func _interact_npc(entity: WorldEntity) -> void:
@@ -775,7 +753,13 @@ func _interact_npc(entity: WorldEntity) -> void:
 		event_bus.post_message("%s has nothing to say." % entity.get_display_name())
 		return
 	_show_dialogue_line(result)
+	if bool(result.get("effects_failed", false)):
+		event_bus.post_message("Some dialogue effects could not be applied.")
 	_update_nearby()
+
+
+func _interact_portal(entity: WorldEntity) -> void:
+	MainObjectInteractions.interact_portal(MainObjectInteractions.context(self), entity)
 
 
 func _handle_context_action_selected(action_id: String) -> void:
@@ -787,9 +771,9 @@ func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
 		"Hit %s for %d. %d/%d HP remains. Took %d."
 		% [
 			result.get("name", "enemy"),
-			_non_negative_int_value(result.get("damage", 0), 0),
-			_non_negative_int_value(result.get("health", 0), 0),
-			_positive_int_value(result.get("max_health", 1), 1),
+			VariantFields.non_negative_int(result.get("damage", 0), 0),
+			VariantFields.non_negative_int(result.get("health", 0), 0),
+			VariantFields.positive_int(result.get("max_health", 1), 1),
 			counter_damage
 		]
 	)
@@ -806,28 +790,6 @@ func _handle_player_defeated(source_name: String) -> void:
 	selected_target_id = ""
 	manual_target_locked = false
 	event_bus.post_message("You fall to %s, then recover at the bridge campfire." % source_name)
-
-
-func _interact_rest(entity: WorldEntity) -> void:
-	var before: int = player.health
-	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
-	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
-	player.heal(heal_amount)
-	var time_summary := "now"
-	if time:
-		time.advance_hours(rest_hours)
-		time_summary = time.get_summary()
-	if player.health == before:
-		event_bus.post_message(
-			"%s is warm. You rest until %s." % [entity.get_display_name(), time_summary]
-		)
-		return
-	event_bus.post_message(
-		(
-			"Rested at %s until %s. Health %d/%d."
-			% [entity.get_display_name(), time_summary, player.health, player.max_health]
-		)
-	)
 
 
 func _show_dialogue_line(line: Dictionary) -> void:
@@ -852,6 +814,8 @@ func _handle_content_choice_selected(choice_id: String) -> void:
 	var choice: Dictionary = active_content_choices[choice_id]
 	active_content_choices.clear()
 	var result: Dictionary = dialogues.apply_choice(choice)
+	if bool(result.get("effects_failed", false)):
+		event_bus.post_message("Some dialogue effects could not be applied.")
 	var open_shop_id := String(result.get("open_shop_id", ""))
 	if not open_shop_id.is_empty():
 		if hud:
@@ -892,7 +856,7 @@ func _handle_systems_action_result(result: Dictionary) -> void:
 
 func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
 	var choices: Array[Dictionary] = []
-	for choice in _array_field(line.get("choices", [])):
+	for choice in VariantFields.array(line.get("choices", [])):
 		if choice is Dictionary:
 			choices.append(choice)
 	return choices
@@ -917,13 +881,16 @@ func _get_nearby_entity() -> WorldEntity:
 func _get_nearby_entities() -> Array:
 	return entities.get_interactables_world(player.global_position)
 
+
 func _ranked_nearby_entities() -> Array:
 	return InteractionTargetSelector.ranked_targets(
 		_get_nearby_entities(), player.global_position, player.get_facing_direction()
 	)
 
+
 func _current_shop_id() -> String:
 	return _shop_id_for_entity(_get_nearby_entity())
+
 
 func _shop_id_for_entity(entity: WorldEntity) -> String:
 	return hud_queries.shop_id_for_entity(entity)
@@ -936,9 +903,7 @@ func _primary_action_text(nearby, auto_target) -> String:
 	if not preferred.is_empty():
 		return String(preferred.get("text", "Interact"))
 	if nearby and ["container", "door"].has(nearby.get_kind()):
-		return ObjectInteractionRules.access_action_text(
-			nearby, chunks, condition_evaluator
-		)
+		return ObjectInteractionRules.access_action_text(nearby, chunks, condition_evaluator)
 	if nearby and nearby.get_kind() == "poi":
 		return PoiInteraction.primary_action_text(nearby)
 	return PrimaryActionTextBuilder.for_kind(nearby.get_kind()) if nearby else "Explore"
@@ -952,70 +917,7 @@ func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:
 			return index
 	return -1
 
-func _array_field(value: Variant) -> Array:
-	return value if value is Array else []
-
-
-func _portal_data(entity: WorldEntity) -> Dictionary:
-	if not entity or not (entity.data is Dictionary):
-		return {}
-	var portal: Variant = entity.data.get("portal", {})
-	return portal if portal is Dictionary else {}
-
-
-func _entity_layer(entity: WorldEntity) -> String:
-	if not entity or not (entity.data is Dictionary):
-		return "surface"
-	var layer := String(entity.data.get("world_layer", "surface"))
-	return "surface" if layer.is_empty() else layer
-
-
-func _vector2i_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2i(int(value[0]), int(value[1]))
-
-
-func _vector2_from_pair(value: Variant, fallback: Vector2) -> Vector2:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2(float(value[0]), float(value[1]))
-
-
-func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	return _positive_int_value(source.get(field_id, fallback), fallback)
-
-func _positive_int_value(value: Variant, fallback: int) -> int:
-	if not _is_number(value):
-		return maxi(1, fallback)
-	return maxi(1, int(value))
-
-
-func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	return _non_negative_int_value(source.get(field_id, fallback), fallback)
-
-
-func _non_negative_int_value(value: Variant, fallback: int) -> int:
-	if not _is_number(value):
-		return maxi(0, fallback)
-	return maxi(0, int(value))
-
-
-func _positive_float_field(source: Dictionary, field_id: String, fallback: float) -> float:
-	var value: Variant = source.get(field_id, fallback)
-	if not _is_number(value):
-		return maxf(1.0, fallback)
-	return maxf(1.0, float(value))
-
 
 func _refresh_hud() -> void:
 	if hud:
 		hud.refresh()
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

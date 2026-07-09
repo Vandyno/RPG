@@ -77,8 +77,8 @@ static func _validate_factions(content: ContentDatabase, errors: Array[String]) 
 			errors.append("Faction %s is missing name." % faction_id)
 		if String(faction.get("description", "")).is_empty():
 			errors.append("Faction %s is missing description." % faction_id)
-		Schema.validate_optional_bounded_number(
-			faction, "starting_reputation", "Faction %s" % faction_id, -100.0, 100.0, errors
+		Schema.validate_optional_reputation(
+			faction, "starting_reputation", "Faction %s" % faction_id, errors
 		)
 
 

@@ -265,8 +265,9 @@ class AimMainStub:
 	func _refresh_hud() -> void:
 		calls.append("refresh")
 
-	func apply_effect(_effect: Dictionary, _refresh: bool = true) -> void:
+	func apply_effect(_effect: Dictionary, _emit_feedback: bool = true) -> bool:
 		calls.append("effect")
+		return true
 
 	func add_child(effect: Node) -> void:
 		var effect_record := {

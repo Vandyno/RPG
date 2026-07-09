@@ -1,6 +1,8 @@
 class_name ObjectInteractionRules
 extends RefCounted
 
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
+
 
 static func container_detail(entity, chunk_manager, condition_evaluator) -> String:
 	return access_detail(entity, chunk_manager, condition_evaluator, "Container")
@@ -44,20 +46,15 @@ static func is_access_locked(data: Dictionary, condition_evaluator) -> bool:
 	return not condition_evaluator or not condition_evaluator.evaluate_all(conditions)
 
 
-static func _entity_layer(entity) -> String:
-	if not entity or not (entity.data is Dictionary):
-		return "surface"
-	var layer := String(entity.data.get("world_layer", "surface"))
-	return "surface" if layer.is_empty() else layer
-
-
 static func _is_object_opened(chunk_manager, entity) -> bool:
 	if not chunk_manager or not chunk_manager.has_method("is_object_opened"):
 		return false
 	var arg_count := _method_argument_count(chunk_manager, "is_object_opened")
 	if arg_count >= 3:
 		return bool(
-			chunk_manager.is_object_opened(entity.get_entity_id(), entity.global_tile, _entity_layer(entity))
+			chunk_manager.is_object_opened(
+				entity.get_entity_id(), entity.global_tile, VariantFields.entity_layer(entity)
+			)
 		)
 	return bool(chunk_manager.is_object_opened(entity.get_entity_id(), entity.global_tile))
 

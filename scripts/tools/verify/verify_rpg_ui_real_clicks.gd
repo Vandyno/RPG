@@ -42,7 +42,7 @@ func _verify() -> void:
 
 
 func _verify_top_nav(main) -> bool:
-	var quests := _button_containing(main.hud.top_nav_buttons, "Quests")
+	var quests := VerifyInputHelper.button_containing(main.hud.top_nav_buttons, "Quests")
 	if not quests:
 		return _fail("Quests top-nav button missing.")
 	await _click(quests)
@@ -65,21 +65,21 @@ func _verify_inventory_categories_and_item_rows(main) -> bool:
 	main.hud.show_systems_panel("inventory")
 	await _settle(main)
 
-	var weapons := _button_containing(main.hud.systems_category_row, "Weapons")
+	var weapons := VerifyInputHelper.button_containing(main.hud.systems_category_row, "Weapons")
 	if not weapons:
 		return _fail("Weapons category button missing.")
 	await _click(weapons)
 	if main.hud.systems_active_category != "weapons":
 		return _fail("Weapons category real click did not select weapons.")
 
-	var hatchet := _button_containing(main.hud.systems_item_list, "Road Hatchet")
+	var hatchet := VerifyInputHelper.button_containing(main.hud.systems_item_list, "Road Hatchet")
 	if not hatchet:
 		return _fail("Road Hatchet inventory row missing.")
 	await _click(hatchet)
 	if main.equipment.get_equipped_item("right_hand") != "item_road_hatchet":
 		return _fail("Road Hatchet real click did not equip right hand.")
 
-	var all := _button_containing(main.hud.systems_category_row, "All")
+	var all := VerifyInputHelper.button_containing(main.hud.systems_category_row, "All")
 	if not all:
 		return _fail("All category button missing.")
 	await _click(all)
@@ -88,7 +88,9 @@ func _verify_inventory_categories_and_item_rows(main) -> bool:
 
 	var before_count: int = main.inventory.get_count("item_roadside_draught")
 	var before_health: int = main.player.health
-	var draught := _button_containing(main.hud.systems_item_list, "Roadside Draught")
+	var draught := VerifyInputHelper.button_containing(
+		main.hud.systems_item_list, "Roadside Draught"
+	)
 	if not draught:
 		return _fail("Roadside Draught inventory row missing.")
 	await _click(draught)
@@ -109,7 +111,7 @@ func _verify_shop_rows(main) -> bool:
 	main.hud.show_systems_panel("trade")
 	await _settle(main)
 
-	var buy := _button_containing(main.hud.systems_item_list, "Roadside Draught")
+	var buy := VerifyInputHelper.button_containing(main.hud.systems_item_list, "Roadside Draught")
 	if not buy:
 		return _fail("Trade buy row missing.")
 	var before_gold: int = main.inventory.get_count("item_gold_coin")
@@ -120,11 +122,11 @@ func _verify_shop_rows(main) -> bool:
 	if main.inventory.get_count("item_gold_coin") >= before_gold:
 		return _fail("Trade buy row real click did not spend gold.")
 
-	var sell_category := _button_containing(main.hud.systems_category_row, "Sell")
+	var sell_category := VerifyInputHelper.button_containing(main.hud.systems_category_row, "Sell")
 	if not sell_category:
 		return _fail("Trade Sell category missing.")
 	await _click(sell_category)
-	var sell := _button_containing(main.hud.systems_item_list, "Roadside Draught")
+	var sell := VerifyInputHelper.button_containing(main.hud.systems_item_list, "Roadside Draught")
 	if not sell:
 		return _fail("Trade sell row missing.")
 	before_gold = main.inventory.get_count("item_gold_coin")
@@ -147,7 +149,7 @@ func _verify_content_choice_rows(main) -> bool:
 	_select_entity(main, "npc_harrow_venn_world")
 	main._handle_interact_requested()
 	await _settle(main)
-	var accept := _button_containing(main.hud.content_choice_list, "I'll find it.")
+	var accept := VerifyInputHelper.button_containing(main.hud.content_choice_list, "I'll find it.")
 	if not accept:
 		return _fail("Harrow dialogue accept choice missing.")
 	await _click(accept)
@@ -161,7 +163,9 @@ func _verify_content_choice_rows(main) -> bool:
 	_select_entity(main, "poi_briarwatch_square")
 	main._handle_interact_requested()
 	await _settle(main)
-	var job := _button_containing(main.hud.content_choice_list, "Take Road Patrol Job")
+	var job := VerifyInputHelper.button_containing(
+		main.hud.content_choice_list, "Take Road Patrol Job"
+	)
 	if not job:
 		return _fail("Job-board take choice missing.")
 	await _click(job)
@@ -176,7 +180,9 @@ func _verify_system_action_rows(main) -> bool:
 
 	main.hud.show_systems_panel("quests")
 	await _settle(main)
-	var target := _button_with_action_prefix(main.hud.systems_action_list, "target:")
+	var target := VerifyInputHelper.button_with_action_prefix(
+		main.hud.systems_action_list, "target:"
+	)
 	if not target:
 		return _fail("Quest target systems row missing.")
 	await _reveal_systems_button(main, target)
@@ -184,7 +190,7 @@ func _verify_system_action_rows(main) -> bool:
 	main.player.set_health(42)
 	main.hud.show_systems_panel("journal")
 	await _settle(main)
-	var save := _button_containing(main.hud.systems_action_list, "Save Game")
+	var save := VerifyInputHelper.button_containing(main.hud.systems_action_list, "Save Game")
 	if not save:
 		return _fail("Save Game systems row missing.")
 	await _reveal_systems_button(main, save)
@@ -200,7 +206,7 @@ func _verify_system_action_rows(main) -> bool:
 	main.player.set_health(5)
 	main.hud.show_systems_panel("journal")
 	await _settle(main)
-	var load := _button_containing(main.hud.systems_action_list, "Load Game")
+	var load := VerifyInputHelper.button_containing(main.hud.systems_action_list, "Load Game")
 	if not load:
 		return _fail("Load Game systems row missing.")
 	await _reveal_systems_button(main, load)
@@ -209,8 +215,10 @@ func _verify_system_action_rows(main) -> bool:
 		return _fail("Load Game real click did not close systems panel.")
 	if main.player.health != saved_health:
 		return _fail(
-			"Load Game real click did not restore saved player health. Expected %d, got %d."
-			% [saved_health, main.player.health]
+			(
+				"Load Game real click did not restore saved player health. Expected %d, got %d."
+				% [saved_health, main.player.health]
+			)
 		)
 	main.quests.quests.clear()
 	main.selected_target_id = ""
@@ -224,7 +232,9 @@ func _verify_system_action_rows(main) -> bool:
 func _verify_context_action_rows(main) -> bool:
 	main.hud.hide_systems_panel()
 	main.hud.hide_content_card()
-	main.inventory.add_item("item_gold_coin", max(0, 2 - main.inventory.get_count("item_gold_coin")))
+	main.inventory.add_item(
+		"item_gold_coin", max(0, 2 - main.inventory.get_count("item_gold_coin"))
+	)
 	if not main.inventory.has_item("item_road_hatchet"):
 		main.inventory.add_item("item_road_hatchet", 1)
 	if not await _ensure_forge(main):
@@ -232,7 +242,9 @@ func _verify_context_action_rows(main) -> bool:
 	_select_entity(main, "poi_harrow_forge")
 	await _settle(main)
 
-	var sharpen := _button_containing(main.hud.context_action_buttons, "Sharpen Road Hatchet")
+	var sharpen := VerifyInputHelper.button_containing(
+		main.hud.context_action_buttons, "Sharpen Road Hatchet"
+	)
 	if not sharpen:
 		return _fail("Forge service context row missing.")
 	var before_gold: int = main.inventory.get_count("item_gold_coin")
@@ -252,7 +264,9 @@ func _verify_pickpocket_context_row(main) -> bool:
 	_select_entity(main, "npc_harrow_venn_world")
 	main.player.set_sneaking(true)
 	await _settle(main)
-	var pickpocket := _button_containing(main.hud.context_action_buttons, "Pickpocket")
+	var pickpocket := VerifyInputHelper.button_containing(
+		main.hud.context_action_buttons, "Pickpocket"
+	)
 	if not pickpocket:
 		return _fail("Pickpocket context row missing.")
 	await _click(pickpocket)
@@ -301,7 +315,7 @@ func _ensure_forge(main) -> bool:
 		return true
 	if not await _ensure_surface(main):
 		return false
-	await _world_click_entity(main, "object_harrow_forge_door")
+	await VerifyInputHelper.world_click_entity(self, main, "object_harrow_forge_door")
 	await _settle(main)
 	return String(main.player.world_layer) == HARROW_FORGE_LAYER
 
@@ -309,44 +323,9 @@ func _ensure_forge(main) -> bool:
 func _ensure_surface(main) -> bool:
 	if String(main.player.world_layer) == "surface":
 		return true
-	await _world_click_entity(main, "object_harrow_forge_exit")
+	await VerifyInputHelper.world_click_entity(self, main, "object_harrow_forge_exit")
 	await _settle(main)
 	return String(main.player.world_layer) == "surface"
-
-
-func _world_click_entity(main, entity_id: String) -> bool:
-	var entity = main.entities.get_entity(entity_id)
-	if not entity:
-		return false
-	var world_position: Vector2 = entity.global_position
-	main.player.set_world_position(world_position + Vector2(-8.0, 0.0))
-	main.player.set_facing_direction(Vector2.RIGHT)
-	await _settle(main)
-	var screen_position: Vector2 = main.get_viewport().get_canvas_transform() * world_position
-	var motion := InputEventMouseMotion.new()
-	motion.position = screen_position
-	motion.global_position = screen_position
-	main._unhandled_input(motion)
-	await process_frame
-
-	var press := InputEventMouseButton.new()
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.button_mask = MOUSE_BUTTON_MASK_LEFT
-	press.pressed = true
-	press.position = screen_position
-	press.global_position = screen_position
-	main._unhandled_input(press)
-	await process_frame
-
-	var release := InputEventMouseButton.new()
-	release.button_index = MOUSE_BUTTON_LEFT
-	release.button_mask = 0
-	release.pressed = false
-	release.position = screen_position
-	release.global_position = screen_position
-	main._unhandled_input(release)
-	await process_frame
-	return true
 
 
 func _click(button: Button) -> void:
@@ -363,34 +342,6 @@ func _reveal_systems_button(main, button: Button) -> void:
 
 func _settle(main) -> void:
 	await VerifyInputHelper.settle_main(self, main, root.size)
-
-
-func _button_containing(parent: Node, text: String) -> Button:
-	if not parent:
-		return null
-	for child in parent.get_children():
-		if child is Button and child.visible and String(child.text).contains(text):
-			return child
-		var descendant := _button_containing(child, text)
-		if descendant:
-			return descendant
-	return null
-
-
-func _button_with_action_prefix(parent: Node, action_prefix: String) -> Button:
-	if not parent:
-		return null
-	for child in parent.get_children():
-		if (
-			child is Button
-			and child.visible
-			and String(child.get_meta("action_id", "")).begins_with(action_prefix)
-		):
-			return child
-		var descendant := _button_with_action_prefix(child, action_prefix)
-		if descendant:
-			return descendant
-	return null
 
 
 func _fail(message: String) -> bool:

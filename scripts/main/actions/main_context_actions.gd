@@ -13,12 +13,12 @@ class ActionListContext:
 	var player
 	var world_state
 
-	func _init(values: Dictionary) -> void:
-		condition_evaluator = values.get("condition_evaluator")
-		content = values.get("content")
-		dialogues = values.get("dialogues")
-		player = values.get("player")
-		world_state = values.get("world_state")
+	func _init(main) -> void:
+		condition_evaluator = main.condition_evaluator
+		content = main.content
+		dialogues = main.dialogues
+		player = main.player
+		world_state = main.world_state
 
 
 class ActionHandleContext:
@@ -55,21 +55,11 @@ static func context(main) -> ActionHandleContext:
 
 
 static func action_list_context(main) -> ActionListContext:
-	return ActionListContext.new(_action_list_values(main))
+	return ActionListContext.new(main)
 
 
 static func handle_context(main) -> ActionHandleContext:
 	return ActionHandleContext.new(main)
-
-
-static func _action_list_values(main) -> Dictionary:
-	return {
-		"condition_evaluator": main.condition_evaluator,
-		"content": main.content,
-		"dialogues": main.dialogues,
-		"player": main.player,
-		"world_state": main.world_state
-	}
 
 
 static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
@@ -266,6 +256,8 @@ static func _apply_choice_action(ctx: ActionHandleContext, action: Dictionary) -
 		ctx.hud.hide_content_card()
 	var result: Dictionary = ctx.dialogues.apply_choice(action)
 	var response := String(result.get("response", ""))
+	if bool(result.get("effects_failed", false)):
+		ctx.event_bus.post_message("Some dialogue effects could not be applied.")
 	if response.is_empty():
 		ctx.event_bus.post_message(String(result.get("text", "Done.")))
 	else:
@@ -277,9 +269,9 @@ static func _apply_line_action(ctx: ActionHandleContext, line: Dictionary) -> vo
 	ctx.active_content_choices.clear()
 	if ctx.hud:
 		ctx.hud.hide_content_card()
-	for effect in _array_field(line.get("effects", [])):
-		if effect is Dictionary:
-			ctx._apply_effect.call(effect)
+	var effects_failed := _apply_effects(_array_field(line.get("effects", [])), ctx._apply_effect)
+	if effects_failed:
+		ctx.event_bus.post_message("Some dialogue effects could not be applied.")
 	var response := String(line.get("text", "Done."))
 	if not response.is_empty():
 		ctx.event_bus.post_message(response)
@@ -389,3 +381,13 @@ static func _poi_should_offer_inspect(ctx: ActionListContext, entity) -> bool:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+static func _apply_effects(effects: Array, apply_effect: Callable) -> bool:
+	if not apply_effect.is_valid():
+		return not effects.is_empty()
+	var failed := false
+	for effect in effects:
+		if effect is Dictionary:
+			failed = not bool(apply_effect.call(effect)) or failed
+	return failed

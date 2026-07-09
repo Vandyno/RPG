@@ -2,6 +2,7 @@ extends GutTest
 
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
 
 class ActorStub:
@@ -55,7 +56,7 @@ func test_cooldowns_and_path_fields_sanitize_malformed_runtime_data() -> void:
 	assert_eq(float(data["_brain_spell_effect_cooldown"]), 0.0)
 	assert_eq(HostileActorBrain._current_path(data), [Vector2(1, 2)])
 	assert_eq(
-		HostileActorBrain._vector2_from_pair(data["_brain_path_destination"], Vector2(7, 8)),
+		VariantFields.vector2_from_pair(data["_brain_path_destination"], Vector2(7, 8)),
 		Vector2(7, 8)
 	)
 

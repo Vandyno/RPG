@@ -13,6 +13,7 @@ const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd"
 
 var _hud_state_override := {}
 
+
 func test_main_uses_player_facing_rpg_hud() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -45,6 +46,7 @@ func test_main_uses_player_facing_rpg_hud() -> void:
 			hatchet_action_has_item_id = true
 	assert_true(hatchet_action_has_item_id)
 
+
 func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -53,10 +55,7 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_true(hud.location_banner_panel.visible)
 	assert_eq(hud.location_banner_label.text, "Briarwatch")
 	assert_true(hud.top_nav_panel.visible)
-	assert_eq(
-		_button_texts(hud.top_nav_buttons),
-		["Quests", "Journal", "Menu"]
-	)
+	assert_eq(_button_texts(hud.top_nav_buttons), ["Quests", "Journal", "Menu"])
 	assert_true(hud.status_label.text.contains("Adventurer"))
 	assert_true(hud.status_label.text.contains("Level 2"))
 	assert_false(hud.status_label.text.contains("Quest:"))
@@ -78,6 +77,7 @@ func test_rpg_hud_adds_mockup_style_navigation_without_debug_prompt() -> void:
 	assert_false(banner_rect.intersects(nav_rect), "Location should not cover nav.")
 	assert_false(nav_rect.intersects(message_rect), "Top nav should not cover messages.")
 
+
 func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -94,6 +94,7 @@ func test_rpg_hud_top_nav_controls_real_systems_panel() -> void:
 	await _press_nav(hud, "Menu")
 	assert_true(hud.is_systems_panel_visible())
 
+
 func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -109,7 +110,10 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_true(hud.systems_spell_slot_panel.visible)
 	assert_false(hud.systems_detail_equipment_panel.visible)
 	assert_eq(
-		(hud.systems_spell_slot_panel.find_child("SystemsSpellSlotTitle", true, false) as Label).text,
+		(
+			(hud.systems_spell_slot_panel.find_child("SystemsSpellSlotTitle", true, false) as Label)
+			. text
+		),
 		"Ability Slots"
 	)
 	var fire := _button_containing(hud.systems_item_list, "Fire Blast")
@@ -119,6 +123,7 @@ func test_rpg_systems_menu_has_spells_between_inventory_and_character() -> void:
 	assert_true(hud.systems_detail_label.text.contains("Range: 6 tiles"))
 	assert_true(hud.systems_detail_label.text.contains("flamethrower"))
 	assert_true(hud.systems_detail_label.text.contains("Assigned slot:"))
+
 
 func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> void:
 	var hud := _new_hud()
@@ -149,6 +154,8 @@ func test_rpg_spell_drag_drop_assigns_ability_slot_and_updates_hud_buttons() -> 
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).text.contains("II"))
 	assert_false((hud.ability_slot_buttons["ability_2"] as Button).text.contains("Empty"))
 	assert_true((hud.ability_slot_buttons["ability_2"] as Button).tooltip_text.contains("Empty"))
+
+
 func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -172,6 +179,7 @@ func test_rpg_hud_disables_player_facing_target_picker() -> void:
 	assert_true(hud.action_buttons.visible)
 	assert_true(hud.move_pad.visible)
 
+
 func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(640, 360))
@@ -184,19 +192,12 @@ func test_rpg_move_pad_is_joystick_style_and_routes_touch_vector() -> void:
 
 	var vectors: Array[Vector2] = []
 	hud.move_vector_changed.connect(func(direction: Vector2) -> void: vectors.append(direction))
-	var press := InputEventMouseButton.new()
-	press.pressed = true
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.position = Vector2(128, 128)
-	hud._on_move_pad_gui_input(press)
+	await HudClickHelper.drag_hold(hud.move_pad, hud.move_pad.size * 0.5, get_tree())
+
 	assert_eq(hud.get_touch_move_vector(), Vector2(1, 1).normalized())
 	assert_eq(vectors[0], Vector2(1, 1).normalized())
 
-	var release := InputEventMouseButton.new()
-	release.pressed = false
-	release.button_index = MOUSE_BUTTON_LEFT
-	release.position = Vector2(128, 128)
-	hud._on_move_pad_gui_input(release)
+	await HudClickHelper.mouse_up(hud.move_pad, get_tree())
 	assert_eq(hud.get_touch_move_vector(), Vector2.ZERO)
 	assert_eq(vectors[-1], Vector2.ZERO)
 
@@ -216,14 +217,8 @@ func test_rpg_action_cluster_uses_player_facing_commands_and_routes_actions() ->
 	assert_not_null(ability)
 	assert_eq(ability.get_meta("action_kind"), "ability_1")
 	assert_eq(ability.get_meta("action_shape"), "aim_joystick_ability")
-	assert_gt(
-		hud.primary_action_button.custom_minimum_size.x,
-		ability.custom_minimum_size.x
-	)
-	assert_gt(
-		hud.primary_action_button.custom_minimum_size.y,
-		ability.custom_minimum_size.y
-	)
+	assert_gt(hud.primary_action_button.custom_minimum_size.x, ability.custom_minimum_size.x)
+	assert_gt(hud.primary_action_button.custom_minimum_size.y, ability.custom_minimum_size.y)
 	assert_gt(hud.primary_action_button.position.x, ability.position.x)
 
 	var interact_events := []
@@ -342,6 +337,7 @@ func test_rpg_quick_actions_use_player_facing_strip_and_route_actions() -> void:
 	assert_false(hud.context_action_panel.visible)
 	assert_null(_button_containing(hud.context_action_buttons, "Guard"))
 
+
 func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() -> void:
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
@@ -378,12 +374,12 @@ func test_rpg_content_panel_uses_bottom_dialogue_structure_and_routes_choices() 
 	assert_true(hud.content_portrait_panel.visible)
 	assert_eq(hud.content_portrait_label.text, "")
 	assert_true(hud.content_preview_panel.visible)
-	var preview_title := hud.content_preview_panel.find_child(
-		"ContentPreviewTitle", true, false
-	) as Label
-	var preview_rewards := hud.content_preview_panel.find_child(
-		"ContentPreviewRewards", true, false
-	) as Label
+	var preview_title := (
+		hud.content_preview_panel.find_child("ContentPreviewTitle", true, false) as Label
+	)
+	var preview_rewards := (
+		hud.content_preview_panel.find_child("ContentPreviewRewards", true, false) as Label
+	)
 	assert_not_null(preview_title)
 	assert_not_null(preview_rewards)
 	assert_eq(preview_title.text, "Quest: Missing Tools")
@@ -422,12 +418,7 @@ func test_rpg_content_panel_uses_readable_mode_without_empty_choice_lane() -> vo
 	var hud := _new_hud()
 	hud._apply_layout_for_size(Vector2(1152, 648))
 
-	hud.show_content_card(
-		"Road Notice",
-		"Boundary stones are not to be moved.",
-		[],
-		"readable"
-	)
+	hud.show_content_card("Road Notice", "Boundary stones are not to be moved.", [], "readable")
 
 	assert_true(hud.is_content_card_visible())
 	assert_eq(hud.content_kind_label.text, "Readable")
@@ -461,9 +452,10 @@ func test_rpg_systems_menu_uses_full_screen_player_facing_structure() -> void:
 	assert_true(hud.systems_resources_label.text.contains("D1, 16:00"))
 	assert_true(hud.systems_resources_label.text.contains("Gold"))
 	assert_true(hud.systems_resources_label.text.contains("Carry"))
-	assert_eq(_button_texts(hud.systems_nav), [
-		"Inventory", "Spells", "Character", "Quests", "Journal", "Trade"
-	])
+	assert_eq(
+		_button_texts(hud.systems_nav),
+		["Inventory", "Spells", "Character", "Quests", "Journal", "Trade"]
+	)
 	assert_false(hud.systems_body_label.visible)
 	assert_eq(
 		_button_texts(hud.systems_category_row),
@@ -640,9 +632,9 @@ func test_transfer_rows_emit_after_completed_click() -> void:
 
 	var emitted: Array[String] = []
 	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
-	var take_gold := hud.systems_item_list.find_child(
-		"TransferTake_ItemGoldCoin", true, false
-	) as Button
+	var take_gold := (
+		hud.systems_item_list.find_child("TransferTake_ItemGoldCoin", true, false) as Button
+	)
 	assert_not_null(take_gold)
 
 	await HudClickHelper.mouse_down(take_gold, get_tree())
@@ -659,9 +651,10 @@ func test_rpg_systems_menu_shows_right_character_pane_on_wide_desktop() -> void:
 
 	assert_true(hud.systems_character_panel.visible)
 	assert_false(hud.systems_detail_equipment_panel.visible)
-	var right_hand := hud.systems_character_panel.find_child(
-		"EquipmentSlot_RightHand", true, false
-	) as RpgEquipmentSlot
+	var right_hand := (
+		hud.systems_character_panel.find_child("EquipmentSlot_RightHand", true, false)
+		as RpgEquipmentSlot
+	)
 	assert_not_null(right_hand)
 	assert_true(right_hand.text.contains("Road Hatchet"))
 
@@ -673,18 +666,18 @@ func test_rpg_equipment_slots_accept_dropped_items_and_route_equip_action() -> v
 
 	var emitted: Array[String] = []
 	hud.inventory_item_selected.connect(func(action_id: String) -> void: emitted.append(action_id))
-	var right_hand := hud.systems_character_panel.find_child(
-		"EquipmentSlot_RightHand", true, false
-	) as RpgEquipmentSlot
-	var left_hand := hud.systems_character_panel.find_child(
-		"EquipmentSlot_LeftHand", true, false
-	) as RpgEquipmentSlot
+	var right_hand := (
+		hud.systems_character_panel.find_child("EquipmentSlot_RightHand", true, false)
+		as RpgEquipmentSlot
+	)
+	var left_hand := (
+		hud.systems_character_panel.find_child("EquipmentSlot_LeftHand", true, false)
+		as RpgEquipmentSlot
+	)
 	assert_not_null(right_hand)
 	assert_not_null(left_hand)
 	var hatchet_drag := {
-		"type": "inventory_item",
-		"item_id": "item_road_hatchet",
-		"equipment_slot": "right_hand"
+		"type": "inventory_item", "item_id": "item_road_hatchet", "equipment_slot": "right_hand"
 	}
 
 	assert_true(right_hand._can_drop_data(Vector2.ZERO, hatchet_drag))
@@ -895,11 +888,7 @@ func _sample_state() -> Dictionary:
 			"head": {"label": "Head", "item_id": "", "item_name": ""},
 			"left_hand": {"label": "Left Hand", "item_id": "", "item_name": ""},
 			"right_hand":
-			{
-				"label": "Right Hand",
-				"item_id": "item_road_hatchet",
-				"item_name": "Road Hatchet"
-			},
+			{"label": "Right Hand", "item_id": "item_road_hatchet", "item_name": "Road Hatchet"},
 			"chest": {"label": "Chest", "item_id": "", "item_name": ""},
 			"legs": {"label": "Legs", "item_id": "", "item_name": ""},
 			"gloves": {"label": "Gloves", "item_id": "", "item_name": ""},
@@ -993,7 +982,8 @@ func _sample_state() -> Dictionary:
 			}
 		],
 		"quest_directions": "The Missing Tools: E 5.0t Harrow Venn",
-		"quest_target_actions": [{"id": "target:npc_harrow_venn_world", "text": "Target Harrow Venn"}]
+		"quest_target_actions":
+		[{"id": "target:npc_harrow_venn_world", "text": "Target Harrow Venn"}]
 	}
 
 
@@ -1025,6 +1015,7 @@ func _button_containing(parent: Node, text: String) -> Button:
 		if nested != null:
 			return nested
 	return null
+
 
 func _visible_button_rects(parent: Node) -> Array[Rect2]:
 	var rects: Array[Rect2] = []

@@ -21,6 +21,15 @@ static func chunk_origin_tile(chunk_coord: Vector2i) -> Vector2i:
 	return chunk_coord * CHUNK_SIZE
 
 
+static func chunk_tiles(chunk_coord: Vector2i) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	var origin := chunk_origin_tile(chunk_coord)
+	for y in range(CHUNK_SIZE):
+		for x in range(CHUNK_SIZE):
+			tiles.append(origin + Vector2i(x, y))
+	return tiles
+
+
 static func chunk_key(chunk_coord: Vector2i, layer: String = "surface") -> String:
 	return "%s:%d:%d" % [layer, chunk_coord.x, chunk_coord.y]
 

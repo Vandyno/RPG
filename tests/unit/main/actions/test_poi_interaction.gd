@@ -62,9 +62,11 @@ class ConditionEvaluatorStub:
 
 class EffectSink:
 	var effects: Array[Dictionary] = []
+	var result := true
 
-	func apply_effect(effect: Dictionary) -> void:
+	func apply_effect(effect: Dictionary) -> bool:
 		effects.append(effect)
+		return result
 
 
 func test_detail_and_primary_action_text_follow_poi_shape() -> void:
@@ -112,6 +114,30 @@ func test_interact_discovers_once_applies_effects_and_opens_shop_tab() -> void:
 	assert_eq(hud.shown_system_tab, "trade")
 	assert_eq(effects.effects, [{"type": "set_flag", "flag": "visited_market"}])
 	assert_eq(event_bus.messages, ["Discovered Maera's Stall.", "Visited Maera's Stall."])
+
+
+func test_interact_reports_failed_discovery_effect() -> void:
+	var entity := EntityStub.new(
+		{
+			"location_id": "loc_market",
+			"effects_on_discover": [{"type": "set_flag", "flag": "visited_market"}]
+		},
+		"Maera's Stall"
+	)
+	var world_state := WorldStateStub.new()
+	var effects := EffectSink.new()
+	effects.result = false
+	var event_bus := EventBusStub.new()
+	var context := PoiInteraction.InteractionContext.new(
+		entity, world_state, HudStub.new(), Callable(effects, "apply_effect"), event_bus, {}
+	)
+
+	PoiInteraction.interact(context)
+
+	assert_eq(
+		event_bus.messages,
+		["Some place effects could not be applied.", "Discovered Maera's Stall."]
+	)
 
 
 func test_inspect_shows_filtered_content_actions_and_records_choices() -> void:

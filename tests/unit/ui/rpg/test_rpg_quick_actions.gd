@@ -2,6 +2,7 @@ extends GutTest
 
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const RpgHud = preload("res://scripts/ui/rpg/rpg_hud.gd")
+const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
 const RpgContentChoiceButton = preload(
 	"res://scripts/ui/controls/buttons/rpg_content_choice_button.gd"
 )
@@ -40,7 +41,7 @@ func test_quick_actions_use_player_facing_icon_cards_and_route() -> void:
 	assert_eq(dialogue.choice_icon, "dialogue")
 	assert_eq(forge.choice_icon, "service")
 	assert_eq(trade.choice_icon, "trade")
-	dialogue.pressed.emit()
+	await HudClickHelper.click(dialogue, get_tree())
 	assert_eq(context_actions, ["dialogue:accept"])
 
 

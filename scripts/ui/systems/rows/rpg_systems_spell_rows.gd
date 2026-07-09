@@ -2,6 +2,7 @@ class_name RpgSystemsSpellRows
 extends RefCounted
 
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 
 
 static func category_labels() -> Array:
@@ -9,8 +10,9 @@ static func category_labels() -> Array:
 
 
 static func rows(state: Dictionary, category: String) -> Array[Dictionary]:
+	var tab := SystemsTabState.spells(state)
 	var rows_data: Array[Dictionary] = []
-	for spell in RpgSystemsRowData.array_field(state.get("spells", [])):
+	for spell in RpgSystemsRowData.array_field(tab.get("spells", [])):
 		if not spell is Dictionary:
 			continue
 		var school := String(spell.get("school", "Utility"))

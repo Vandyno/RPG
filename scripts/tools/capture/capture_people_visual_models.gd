@@ -4,6 +4,9 @@ const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
+const DEFAULT_OUTPUT_DIR := "res://reports/people_iterations_v7"
+const DEFAULT_WIDTH := 1152
+const DEFAULT_HEIGHT := 648
 const PEOPLE_ORDER := [
 	"people_human",
 	"people_tanglekin",
@@ -69,10 +72,10 @@ func _initialize() -> void:
 
 
 func _capture() -> void:
-	var args := OS.get_cmdline_user_args()
-	var output_dir := CaptureSheetHelper.string_arg(args, 0, "res://reports/people_iterations_v7")
-	var width := CaptureSheetHelper.positive_arg(args, 1, 1152)
-	var height := CaptureSheetHelper.positive_arg(args, 2, 648)
+	var config := capture_config(OS.get_cmdline_user_args())
+	var output_dir := String(config["output_dir"])
+	var width := int(config["width"])
+	var height := int(config["height"])
 	root.size = Vector2i(width, height)
 
 	var content := ContentDatabase.new()
@@ -94,7 +97,7 @@ func _capture() -> void:
 		await process_frame
 
 		var image := root.get_texture().get_image()
-		var output_path := output_dir.path_join("round_%02d.png" % [round_index + 1])
+		var output_path := round_output_path(output_dir, round_index)
 		var error := image.save_png(output_path)
 		root.remove_child(page)
 		page.queue_free()
@@ -107,6 +110,18 @@ func _capture() -> void:
 	quit()
 
 
+static func capture_config(args: Array) -> Dictionary:
+	return {
+		"output_dir": CaptureSheetHelper.string_arg(args, 0, DEFAULT_OUTPUT_DIR),
+		"width": CaptureSheetHelper.positive_arg(args, 1, DEFAULT_WIDTH),
+		"height": CaptureSheetHelper.positive_arg(args, 2, DEFAULT_HEIGHT)
+	}
+
+
+static func round_output_path(output_dir: String, round_index: int) -> String:
+	return output_dir.path_join("round_%02d.png" % [round_index + 1])
+
+
 func _build_round(content: ContentDatabase, round: Dictionary, width: int, height: int) -> Control:
 	var page := Control.new()
 	page.size = Vector2(width, height)
@@ -116,7 +131,7 @@ func _build_round(content: ContentDatabase, round: Dictionary, width: int, heigh
 	bg.size = page.size
 	page.add_child(bg)
 
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		String(round["title"]),
 		Vector2(44, 28),
@@ -124,7 +139,7 @@ func _build_round(content: ContentDatabase, round: Dictionary, width: int, heigh
 		24,
 		Color(0.08, 0.07, 0.06)
 	)
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		String(round["note"]),
 		Vector2(48, 68),
@@ -132,7 +147,7 @@ func _build_round(content: ContentDatabase, round: Dictionary, width: int, heigh
 		12,
 		Color(0.28, 0.25, 0.22)
 	)
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		"Godot capture from live ContentDatabase + HumanoidAvatar2D with role accents.",
 		Vector2(48, 94),
@@ -167,8 +182,9 @@ func _add_card(
 	var definition := content.get_people(people_id)
 	var model := content.get_people_visual_model(people_id)
 	var variants: Array = model.get("variants", [])
-	var chosen_index := mini(variant_index, variants.size() - 1)
-	var variant: Dictionary = variants[chosen_index]
+	var variant := chosen_variant(variants, variant_index)
+	if variant.is_empty():
+		return
 	var profile := content.get_people_visual_variant_profile(
 		people_id, String(variant.get("id", "")), "preview_%s" % people_id
 	)
@@ -181,7 +197,7 @@ func _add_card(
 	card.color = Color(0.99, 0.98, 0.94)
 	page.add_child(card)
 
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		String(definition.get("display_name", people_id)),
 		position + Vector2(16, 14),
@@ -189,7 +205,7 @@ func _add_card(
 		18,
 		Color(0.08, 0.07, 0.06)
 	)
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		"%s / %s" % [String(variant.get("id", "")), String(variant.get("palette_id", ""))],
 		position + Vector2(16, 45),
@@ -212,7 +228,7 @@ func _add_card(
 		float(proportions.get("waist_width", 1.0)),
 		float(proportions.get("head_size", 1.0))
 	]
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		prop_text,
 		position + Vector2(142, 78),
@@ -220,7 +236,7 @@ func _add_card(
 		6,
 		Color(0.08, 0.07, 0.06)
 	)
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		"Variant: %s" % String(variant.get("display_name", "")),
 		position + Vector2(142, 101),
@@ -228,7 +244,7 @@ func _add_card(
 		8,
 		Color(0.10, 0.08, 0.06)
 	)
-	_add_label(
+	CaptureSheetHelper.add_label(
 		page,
 		"Features:",
 		position + Vector2(142, 126),
@@ -236,10 +252,10 @@ func _add_card(
 		7,
 		Color(0.30, 0.26, 0.22)
 	)
-	var feature_text := _feature_text(variant.get("feature_ids", []))
-	_add_label(
+	var features_label := feature_text(variant.get("feature_ids", []))
+	CaptureSheetHelper.add_label(
 		page,
-		feature_text,
+		features_label,
 		position + Vector2(142, 144),
 		Vector2(178, 44),
 		6,
@@ -248,7 +264,7 @@ func _add_card(
 
 	var notes: Array = definition.get("visual_notes", [])
 	if not notes.is_empty():
-		_add_label(
+		CaptureSheetHelper.add_label(
 			page,
 			String(notes[0]),
 			position + Vector2(16, 194),
@@ -258,20 +274,14 @@ func _add_card(
 		)
 
 
-func _add_label(
-	parent: Control, text: String, position: Vector2, size: Vector2, font_size: int, color: Color
-) -> void:
-	var label := Label.new()
-	label.position = position
-	label.size = size
-	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	parent.add_child(label)
+static func chosen_variant(variants: Array, variant_index: int) -> Dictionary:
+	if variants.is_empty():
+		return {}
+	var value: Variant = variants[clampi(variant_index, 0, variants.size() - 1)]
+	return value if value is Dictionary else {}
 
 
-func _feature_text(value: Variant) -> String:
+static func feature_text(value: Variant) -> String:
 	if not value is Array or value.is_empty():
 		return "none"
 	var parts: Array[String] = []

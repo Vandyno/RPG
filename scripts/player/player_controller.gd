@@ -6,6 +6,7 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
 
 const COLLISION_RADIUS := WorldEntityMovement.COLLISION_RADIUS
@@ -119,13 +120,13 @@ func load_save_data(data: Dictionary) -> void:
 	set_health(int(data.get("health", max_health)))
 	max_mana = maxf(1.0, float(data.get("max_mana", DEFAULT_MAX_MANA)))
 	set_mana(float(data.get("mana", max_mana)))
-	var world_position := _numeric_pair(data.get("world_position", []))
+	var world_position := VariantFields.numeric_pair(data.get("world_position", []))
 	if not world_position.is_empty():
 		var loaded_position := Vector2(float(world_position[0]), float(world_position[1]))
 		if _can_stand_at(loaded_position):
 			set_world_position(loaded_position)
 			return
-	var tile_array := _numeric_pair(data.get("global_tile", [0, 0]))
+	var tile_array := VariantFields.numeric_pair(data.get("global_tile", [0, 0]))
 	if tile_array.is_empty():
 		tile_array = [0, 0]
 	var loaded_tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
@@ -250,20 +251,8 @@ func _post_blocked_message() -> void:
 		event_bus.post_message("The path is blocked.")
 
 
-func _numeric_pair(value: Variant) -> Array:
-	if not value is Array or value.size() < 2:
-		return []
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return []
-	return [value[0], value[1]]
-
-
 func _center_of_tile(tile: Vector2i) -> Vector2:
 	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float
 
 
 func _ensure_humanoid_avatar() -> void:

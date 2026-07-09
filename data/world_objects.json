@@ -390,6 +390,7 @@
     "max_health": 12,
     "damage_taken_per_hit": 6,
     "attack_damage": 4,
+    "aggro_radius": 64,
     "effects_on_defeat": [
       {
         "type": "set_flag",

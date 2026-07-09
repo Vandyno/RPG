@@ -10,14 +10,9 @@ func test_town_hall_job_board_shows_place_card() -> void:
 	add_child_autofree(main)
 
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
-	assert_eq(
-		main.get_debug_state()["target_detail"],
-		"Town Hall: jobs, notices, and town records"
-	)
+	assert_eq(main.get_debug_state()["target_detail"], "Town Hall: jobs, notices, and town records")
 	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 
 	assert_eq(main.hud.content_kind_label.text, "Place")
@@ -43,18 +38,14 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
 	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 	assert_true(main.hud.content_body_label.text.contains("official notices"))
 	main.hud.hide_content_card()
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
 	var job_button := MainFlowInputHelper.button_containing(
 		main.hud.context_action_buttons, "Take Road Patrol Job"
@@ -85,7 +76,7 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 
 	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	_select_entity(main, "poi_harrow_forge")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	assert_eq(main.hud.content_kind_label.text, "Place")
 	assert_true(main.hud.content_body_label.text.contains("repair, crafting, upgrade"))
 	assert_null(_button_containing(main.hud.content_choice_list, "Sharpen Road Hatchet"))
@@ -93,11 +84,11 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 
 	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 	_select_entity(main, "pickup_road_hatchet")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	_select_entity(main, "object_road_cache")
-	main._handle_interact_requested()
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main._handle_inventory_item_selected("take:item_gold_coin")
+	MainFlowInputHelper.interact_action(main)
+	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
+	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
 	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
@@ -109,7 +100,7 @@ func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -
 		main.hud.context_action_buttons, "Sharpen Road Hatchet"
 	)
 	assert_true(sharpen_context_button == null or not sharpen_context_button.visible)
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
 	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
@@ -122,11 +113,11 @@ func test_forge_service_can_be_used_from_context_action_when_requirements_are_me
 	add_child_autofree(main)
 
 	_select_entity(main, "pickup_road_hatchet")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	_select_entity(main, "object_road_cache")
-	main._handle_interact_requested()
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main._handle_inventory_item_selected("take:item_gold_coin")
+	MainFlowInputHelper.interact_action(main)
+	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
+	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
 	main.hud.hide_systems_panel()
 	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
 
@@ -137,7 +128,7 @@ func test_forge_service_can_be_used_from_context_action_when_requirements_are_me
 	)
 	assert_not_null(sharpen_button)
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
-	sharpen_button.pressed.emit()
+	await MainFlowInputHelper.click(sharpen_button, get_tree())
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
 	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
@@ -150,10 +141,10 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	add_child_autofree(main)
 
 	_select_entity(main, "poi_briarwatch_square")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	var take_job_button := _button_containing(main.hud.content_choice_list, "Take Road Patrol Job")
 	assert_not_null(take_job_button)
-	take_job_button.pressed.emit()
+	await MainFlowInputHelper.click(take_job_button, get_tree())
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
 	assert_eq(main.hud.content_kind_label.text, "Result")
@@ -164,12 +155,12 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 
 	_select_entity(main, "poi_briarwatch_square")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	var report_button := _button_containing(
 		main.hud.content_choice_list, "Report Road Patrol Complete"
 	)
 	assert_not_null(report_button)
-	report_button.pressed.emit()
+	await MainFlowInputHelper.click(report_button, get_tree())
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "completed")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 11)
@@ -192,7 +183,7 @@ func _select_entity(main, entity_id: String) -> void:
 		if entity and entity.get_entity_id() == entity_id:
 			main._update_nearby()
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 
@@ -220,3 +211,9 @@ func _button_containing(container: Node, text: String) -> Button:
 		if child is Button and child.text.contains(text):
 			return child
 	return null
+
+
+func _press_transfer_button_by_name(main, button_name: String) -> void:
+	var button := main.hud.systems_item_list.find_child(button_name, true, false) as Button
+	assert_not_null(button)
+	await MainFlowInputHelper.click(button, get_tree())

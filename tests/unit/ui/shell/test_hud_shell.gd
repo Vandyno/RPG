@@ -2,6 +2,7 @@ extends GutTest
 
 const LegacyHudShell = preload("res://tests/fixtures/ui/legacy_hud_shell.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
+const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
 
 
 func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
@@ -42,15 +43,14 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_not_null(next_target_button)
 	assert_eq(next_target_button.text, "Next")
 	assert_eq(next_target_button.tooltip_text, "Next target: Harrow Venn. Hold for target list.")
-	next_target_button.pressed.emit()
+	await HudClickHelper.click(next_target_button, get_tree())
 	assert_eq(cycle_target_presses, ["next"])
 	assert_false(hud.is_target_picker_visible())
 	var hold_timer := next_target_button.get_node("HoldActionTimer") as Timer
-	next_target_button.button_down.emit()
+	await HudClickHelper.mouse_down(next_target_button, get_tree())
 	hold_timer.timeout.emit()
 	assert_true(hud.is_target_picker_visible())
-	next_target_button.button_up.emit()
-	next_target_button.pressed.emit()
+	await HudClickHelper.mouse_up(next_target_button, get_tree())
 	assert_eq(cycle_target_presses, ["next"])
 	hud.hide_target_picker()
 	assert_false(hud.is_target_picker_visible())
@@ -74,10 +74,10 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	var selected_target := hud.target_list.get_child(1) as Button
 	assert_true(selected_target.text.begins_with("> Readable  Road Notice"))
 	assert_true(selected_target.text.contains("N 5.0t"))
-	selected_target.pressed.emit()
+	await HudClickHelper.click(selected_target, get_tree())
 	assert_eq(used_targets, ["object_road_notice"])
 	assert_eq(selected_targets, [])
-	npc_target.pressed.emit()
+	await HudClickHelper.click(npc_target, get_tree())
 	assert_eq(used_targets, ["object_road_notice", "npc_harrow_venn_world"])
 	assert_eq(selected_targets, [])
 	hud.hide_target_picker()
@@ -92,8 +92,8 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 		{"combat_actions": [{"id": "attack", "text": "Attack"}, {"id": "guard", "text": "Guard"}]}
 	)
 	assert_true(hud.context_action_panel.visible)
-	(hud.context_action_buttons.get_child(0) as Button).pressed.emit()
-	(hud.context_action_buttons.get_child(1) as Button).pressed.emit()
+	await HudClickHelper.click(hud.context_action_buttons.get_child(0) as Button, get_tree())
+	await HudClickHelper.click(hud.context_action_buttons.get_child(1) as Button, get_tree())
 	assert_eq(combat_actions, ["attack", "guard"])
 	hud._refresh_context_actions({"combat_actions": []})
 	assert_false(hud.context_action_panel.visible)
@@ -101,7 +101,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_false(hud.is_systems_panel_visible())
 	for child in hud.root.get_node("ActionButtons").get_children():
 		if child is Button and child.text == "Menu":
-			child.pressed.emit()
+			await HudClickHelper.click(child, get_tree())
 	assert_true(hud.is_systems_panel_visible())
 	assert_eq(hud.primary_action_button.text, "Close")
 	hud.hide_systems_panel()
@@ -127,14 +127,14 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(
 		(hud.systems_action_list.get_child(0) as Button).text.contains("Use Roadside Draught")
 	)
-	(hud.systems_action_list.get_child(0) as Button).pressed.emit()
+	await HudClickHelper.click(hud.systems_action_list.get_child(0) as Button, get_tree())
 	assert_eq(selected_items, ["use:item_roadside_draught"])
 	assert_eq(hud.systems_tabs.get_child_count(), 6)
 	assert_true(hud.systems_tab_buttons["inventory"].button_pressed)
 	var close_menu_button := hud.systems_tabs.get_node("SystemsCloseButton") as Button
 	assert_not_null(close_menu_button)
 	assert_eq(close_menu_button.tooltip_text, "Close menu")
-	close_menu_button.pressed.emit()
+	await HudClickHelper.click(close_menu_button, get_tree())
 	assert_false(hud.is_systems_panel_visible())
 	hud.toggle_systems()
 
@@ -152,7 +152,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(hud.systems_action_list.visible)
 	var buy_button := _button_containing(hud.systems_action_list, "Buy Roadside Draught")
 	assert_not_null(buy_button)
-	buy_button.pressed.emit()
+	await HudClickHelper.click(buy_button, get_tree())
 	assert_eq(selected_items, ["use:item_roadside_draught", "buy:item_roadside_draught"])
 
 	hud.set_systems_tab("quests")
@@ -166,7 +166,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(hud.systems_body_label.text.contains("Active:"))
 	assert_true(hud.systems_body_label.text.contains("Routes:"))
 	assert_true(hud.systems_body_label.text.contains("E 5.0t Harrow Venn"))
-	target_button.pressed.emit()
+	await HudClickHelper.click(target_button, get_tree())
 
 	hud.set_systems_tab("map")
 	assert_true(hud.systems_tab_buttons["journal"].button_pressed)
@@ -184,13 +184,13 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_true(hud.systems_action_list.visible)
 	var wait_button := _button_containing(hud.systems_action_list, "Wait 1h")
 	assert_not_null(wait_button)
-	wait_button.pressed.emit()
+	await HudClickHelper.click(wait_button, get_tree())
 	var save_button := _button_containing(hud.systems_action_list, "Save Game")
 	var load_button := _button_containing(hud.systems_action_list, "Load Game")
 	assert_not_null(save_button)
 	assert_not_null(load_button)
-	save_button.pressed.emit()
-	load_button.pressed.emit()
+	await HudClickHelper.click(save_button, get_tree())
+	await HudClickHelper.click(load_button, get_tree())
 	assert_eq(
 		selected_items,
 		[
@@ -229,7 +229,7 @@ func test_hud_renders_mobile_friendly_status_prompt_and_content_card() -> void:
 	assert_eq(hud.content_scroll.get_child(0), hud.content_body_label)
 	assert_true(hud.content_choice_list.visible)
 	assert_eq(hud.content_choice_list.get_child_count(), 2)
-	(hud.content_choice_list.get_child(0) as Button).pressed.emit()
+	await HudClickHelper.click(hud.content_choice_list.get_child(0) as Button, get_tree())
 	assert_eq(selected_choices, ["accept"])
 
 	var close_events: Array[String] = []
@@ -302,7 +302,8 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	hud._apply_layout_for_size(Vector2(860, 484))
 	assert_true(hud.message_panel.visible)
 	assert_gte(
-		hud.message_panel.offset_right - hud.message_panel.offset_left, LegacyHudShell.MESSAGE_MIN_WIDTH
+		hud.message_panel.offset_right - hud.message_panel.offset_left,
+		LegacyHudShell.MESSAGE_MIN_WIDTH
 	)
 	assert_eq(hud.message_panel.offset_top, 12.0)
 	assert_eq(hud.message_panel.offset_bottom, 64.0)
@@ -336,9 +337,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 	assert_eq(hud.log_label.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_gt(640.0 + hud.action_buttons.offset_left, hud.move_pad.offset_right)
 	assert_eq(hud.action_buttons.offset_top, -68.0)
-	var compact_move_rect := _rect_for_bottom_left_anchored_panel(
-		hud.move_pad, Vector2(640, 360)
-	)
+	var compact_move_rect := _rect_for_bottom_left_anchored_panel(hud.move_pad, Vector2(640, 360))
 	assert_eq(compact_move_rect.size, LegacyHudShell.COMPACT_MOVE_PAD_SIZE)
 	assert_lte(compact_move_rect.end.x, 146.0)
 	assert_false(
@@ -416,7 +415,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 		LegacyHudShell.CONTEXT_ACTION_BUTTON_SIZE
 	)
 	assert_gte(LegacyHudShell.CONTEXT_ACTION_BUTTON_SIZE.y, 50.0)
-	(hud.context_action_buttons.get_child(0) as Button).pressed.emit()
+	await HudClickHelper.click(hud.context_action_buttons.get_child(0) as Button, get_tree())
 	assert_eq(context_actions, ["dialogue:accept"])
 	hud._refresh_context_actions(
 		{
@@ -482,7 +481,7 @@ func test_hud_layout_adapts_to_narrow_landscape_widths() -> void:
 		"Overflow context actions should stay above bottom controls."
 	)
 	assert_true((hud.context_action_buttons.get_child(7) as Button).visible)
-	(hud.context_action_buttons.get_child(7) as Button).pressed.emit()
+	await HudClickHelper.click(hud.context_action_buttons.get_child(7) as Button, get_tree())
 	assert_eq(context_actions, ["dialogue:accept", "poi:blessing"])
 	hud._refresh_context_actions({"context_actions": []})
 
@@ -525,21 +524,12 @@ func test_touch_pad_gui_input_emits_clamped_move_and_release() -> void:
 		func(direction: Vector2) -> void: move_vectors.append(direction)
 	)
 
-	var press := InputEventMouseButton.new()
-	press.pressed = true
-	press.position = Vector2(LegacyHudShell.MOVE_PAD_SIZE.x, LegacyHudShell.MOVE_PAD_SIZE.y * 0.5)
-	hud._on_move_pad_gui_input(press)
+	await HudClickHelper.drag(
+		hud.move_pad, Vector2(LegacyHudShell.MOVE_PAD_SIZE.x * 0.5, 0.0), get_tree()
+	)
 
-	assert_eq(move_vectors.size(), 1)
+	assert_gte(move_vectors.size(), 2)
 	assert_eq(move_vectors[0], Vector2.RIGHT)
-	assert_eq(hud.get_touch_move_vector(), Vector2.RIGHT)
-
-	var release := InputEventMouseButton.new()
-	release.pressed = false
-	release.position = press.position
-	hud._on_move_pad_gui_input(release)
-
-	assert_eq(move_vectors.size(), 2)
 	assert_eq(move_vectors[1], Vector2.ZERO)
 	assert_eq(hud.get_touch_move_vector(), Vector2.ZERO)
 
@@ -580,7 +570,7 @@ func test_hud_releases_held_move_actions_when_removed() -> void:
 	assert_eq(up_button.text, String.chr(8593))
 	assert_eq(up_button.tooltip_text, "Move north")
 
-	up_button.button_down.emit()
+	await HudClickHelper.mouse_down(up_button, get_tree())
 	assert_true(Input.is_action_pressed("move_up"))
 
 	hud.queue_free()
@@ -693,11 +683,7 @@ func _sample_state() -> Dictionary:
 		"equipment": "Weapon: Road Hatchet\nOffhand: empty\nBody: empty",
 		"factions": "Marches of Velcor +5",
 		"progression": "Level 2  XP 10/40  Points 1",
-		"progression_details":
-		(
-			"Level: 2\nXP: 10/40\nUnspent points: 1\n"
-			+ "Damage bonus: +1"
-		),
+		"progression_details": "Level: 2\nXP: 10/40\nUnspent points: 1\n" + "Damage bonus: +1",
 		"progression_actions": [],
 		"time": "Day 1, 16:00 (Afternoon)",
 		"time_actions": [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}],

@@ -34,15 +34,15 @@ func _resolve_dialogue(
 		var conditions := _array_field(line.get("conditions", []))
 		if condition_evaluator and not condition_evaluator.evaluate_all(conditions):
 			continue
+		var effects_failed := false
 		if apply_line_effects:
-			for effect in _array_field(line.get("effects", [])):
-				if effect is Dictionary and effect_runner:
-					effect_runner.apply(effect)
+			effects_failed = _apply_effects(_array_field(line.get("effects", [])))
 		return {
 			"speaker": String(line.get("speaker", fallback_speaker)),
 			"text": String(line.get("text", "")),
 			"line_id": String(line.get("id", "")),
 			"effects": _array_field(line.get("effects", [])).duplicate(true),
+			"effects_failed": effects_failed,
 			"choices": _available_choices(line)
 		}
 	return {}
@@ -51,15 +51,22 @@ func _resolve_dialogue(
 func apply_choice(choice: Dictionary) -> Dictionary:
 	if choice.is_empty():
 		return {}
-	for effect in _array_field(choice.get("effects", [])):
-		if effect is Dictionary and effect_runner:
-			effect_runner.apply(effect)
+	var effects_failed := _apply_effects(_array_field(choice.get("effects", [])))
 	return {
 		"choice_id": String(choice.get("id", "")),
 		"text": String(choice.get("text", "")),
 		"response": String(choice.get("response", "")),
-		"open_shop_id": String(choice.get("open_shop_id", ""))
+		"open_shop_id": String(choice.get("open_shop_id", "")),
+		"effects_failed": effects_failed
 	}
+
+
+func _apply_effects(effects: Array) -> bool:
+	var failed := false
+	for effect in effects:
+		if effect is Dictionary:
+			failed = not effect_runner or not effect_runner.apply(effect) or failed
+	return failed
 
 
 func _available_choices(line: Dictionary) -> Array[Dictionary]:
