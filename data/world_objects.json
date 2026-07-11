@@ -3,7 +3,8 @@
     "id": "object_road_notice",
     "name": "Road Notice",
     "kind": "readable",
-    "global_tile": [2, 6],
+    "world_layer": "interior:structure_briarwatch_town_hall",
+    "global_tile": [2, 2],
     "interaction_radius": 128,
     "readable_id": "readable_briarwatch_notice"
   },
@@ -66,10 +67,6 @@
       {
         "item_id": "item_gold_coin",
         "count": 2
-      },
-      {
-        "item_id": "item_roadside_draught",
-        "count": 1
       }
     ]
   },
@@ -79,10 +76,11 @@
     "kind": "poi",
     "poi_type": "Town Hall",
     "summary": "jobs, notices, and town records",
-    "global_tile": [4, 5],
+    "global_tile": [7, 7],
     "interaction_radius": 128,
+    "visual_style": "sign",
     "prefer_primary_action": false,
-    "description": "The job board is mounted inside Briarwatch's town hall, close enough to the square for travelers to find it but sheltered where official notices, patrol work, and town records belong.",
+    "description": "The town hall job board stands beside the front door, where travelers can find official notices and current work without tramping through the clerk's office.",
     "actions": [
       {
         "id": "take_road_patrol",
@@ -143,47 +141,33 @@
     ]
   },
   {
-    "id": "poi_harrow_forge",
-    "name": "Harrow's Forge",
-    "kind": "poi",
-    "poi_type": "Forge",
-    "summary": "repair and craft hook",
-    "world_layer": "interior:structure_briarwatch_harrow_forge",
-    "global_tile": [3, 5],
+    "id": "object_briarwatch_town_hall_door",
+    "name": "Briarwatch Town Hall Door",
+    "kind": "door",
+    "global_tile": [5, 7],
     "interaction_radius": 96,
-    "location_id": "location_harrow_forge",
-    "description": "The forge workbench is staged for repair, crafting, upgrade, and blacksmith quest actions.",
-    "actions": [
-      {
-        "id": "sharpen_road_hatchet",
-        "text": "Sharpen Road Hatchet (2g)",
-        "conditions": [
-          {
-            "type": "has_item",
-            "item_id": "item_road_hatchet",
-            "count": 1
-          },
-          {
-            "type": "has_item",
-            "item_id": "item_gold_coin",
-            "count": 2
-          }
-        ],
-        "effects": [
-          {
-            "type": "remove_item",
-            "item_id": "item_gold_coin",
-            "count": 2
-          },
-          {
-            "type": "apply_status",
-            "status_id": "status_road_focus",
-            "charges": 3
-          }
-        ],
-        "response": "Harrow's wheel bites sparks from the hatchet edge. Your next strikes feel cleaner."
-      }
-    ]
+    "pick_radius": 12,
+    "portal": {
+      "target_layer": "interior:structure_briarwatch_town_hall",
+      "target_tile": [5, 6],
+      "target_facing": [0, -1],
+      "message": "Entered Briarwatch Town Hall."
+    }
+  },
+  {
+    "id": "object_briarwatch_town_hall_exit",
+    "name": "Town Hall Door",
+    "kind": "door",
+    "world_layer": "interior:structure_briarwatch_town_hall",
+    "global_tile": [5, 7],
+    "interaction_radius": 96,
+    "pick_radius": 12,
+    "portal": {
+      "target_layer": "surface",
+      "target_tile": [5, 8],
+      "target_facing": [0, 1],
+      "message": "Stepped back into Briarwatch."
+    }
   },
   {
     "id": "object_harrow_forge_door",
@@ -215,23 +199,6 @@
     }
   },
   {
-    "id": "poi_harrow_forge_hearth",
-    "name": "Forge Hearth",
-    "kind": "poi",
-    "world_layer": "interior:structure_briarwatch_harrow_forge",
-    "global_tile": [8, 3],
-    "interaction_radius": 96,
-    "location_id": "location_harrow_forge",
-    "description": "A stone-backed forge burns inside Harrow's workshop, with tools close enough for future smithing and repair actions.",
-    "actions": [
-      {
-        "id": "inspect_forge_hearth",
-        "text": "Inspect Hearth",
-        "response": "The hearth throws a steady heat across the room. The smithing tools are staged for future crafting work."
-      }
-    ]
-  },
-  {
     "id": "pickup_old_toolbox",
     "name": "Old Toolbox",
     "kind": "pickup",
@@ -246,23 +213,6 @@
         "stage": "found_toolbox"
       }
     ]
-  },
-  {
-    "id": "pickup_roadside_draught",
-    "name": "Roadside Draught",
-    "kind": "pickup",
-    "global_tile": [2, -5],
-    "item_id": "item_roadside_draught",
-    "count": 1
-  },
-  {
-    "id": "pickup_river_mint",
-    "name": "River Mint",
-    "kind": "pickup",
-    "global_tile": [2, -6],
-    "interaction_radius": 96,
-    "item_id": "item_river_mint",
-    "count": 2
   },
   {
     "id": "pickup_road_hatchet",
@@ -324,29 +274,11 @@
     ]
   },
   {
-    "id": "object_warden_cache",
-    "name": "Warden's Cache",
-    "kind": "container",
-    "global_tile": [3, 5],
-    "conditions": [
-      {
-        "type": "read_readable",
-        "readable_id": "readable_briarwatch_notice"
-      }
-    ],
-    "effects_on_open": [
-      {
-        "type": "add_item",
-        "item_id": "item_gold_coin",
-        "count": 1
-      }
-    ]
-  },
-  {
     "id": "object_sealed_strongbox",
-    "name": "Sealed Strongbox",
+    "name": "Warden's Strongbox",
     "kind": "container",
-    "global_tile": [3, 6],
+    "world_layer": "interior:structure_briarwatch_town_hall",
+    "global_tile": [9, 5],
     "interaction_radius": 128,
     "open_conditions": [
       {
@@ -359,7 +291,7 @@
       {
         "type": "add_item",
         "item_id": "item_gold_coin",
-        "count": 4
+        "count": 5
       }
     ]
   },
@@ -487,7 +419,7 @@
   },
   {
     "id": "npc_people_test_tanglekin",
-    "name": "Tanglekin Test Hostile Actor",
+    "name": "Leatherclad Tanglekin Raider",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -503,6 +435,11 @@
     "inventory_owner_id": "char_people_test_tanglekin",
     "equipment_owner_id": "char_people_test_tanglekin",
     "equipped_items": {
+      "head": "item_leather_cap",
+      "chest": "item_leather_cuirass",
+      "legs": "item_leather_leggings",
+      "gloves": "item_leather_gloves",
+      "boots": "item_leather_boots",
       "right_hand": "item_training_sword"
     },
     "inventory": [
@@ -547,7 +484,7 @@
   },
   {
     "id": "npc_people_test_mirefolk",
-    "name": "Mirefolk Test Hostile Actor",
+    "name": "Ironclad Mirefolk Raider",
     "kind": "npc",
     "actor_category": "humanoid",
     "hostility": "hostile",
@@ -563,6 +500,11 @@
     "inventory_owner_id": "char_people_test_mirefolk",
     "equipment_owner_id": "char_people_test_mirefolk",
     "equipped_items": {
+      "head": "item_iron_helm",
+      "chest": "item_iron_cuirass",
+      "legs": "item_iron_leggings",
+      "gloves": "item_iron_gauntlets",
+      "boots": "item_iron_boots",
       "right_hand": "item_training_sword"
     },
     "inventory": [
@@ -642,57 +584,6 @@
     "max_health": 6,
     "damage_taken_per_hit": 6,
     "attack_damage": 1
-  },
-  {
-    "id": "object_north_gate",
-    "name": "North Gate",
-    "kind": "door",
-    "global_tile": [3, -8],
-    "interaction_radius": 176,
-    "open_conditions": [
-      {
-        "type": "read_readable",
-        "readable_id": "readable_briarwatch_notice"
-      }
-    ],
-    "locked_text": "The north gate chain is marked with the warden's notice seal.",
-    "effects_on_open": [
-      {
-        "type": "set_flag",
-        "flag_id": "flag_north_gate_opened",
-        "value": true
-      },
-      {
-        "type": "advance_time",
-        "minutes": 15
-      }
-    ]
-  },
-  {
-    "id": "object_training_gate",
-    "name": "Training Gate",
-    "kind": "door",
-    "global_tile": [3, 8],
-    "interaction_radius": 176,
-    "open_conditions": [
-      {
-        "type": "has_item",
-        "item_id": "item_training_sword",
-        "count": 1
-      }
-    ],
-    "locked_text": "The training gate's lever is notched for a training sword.",
-    "effects_on_open": [
-      {
-        "type": "set_flag",
-        "flag_id": "flag_training_gate_opened",
-        "value": true
-      },
-      {
-        "type": "advance_time",
-        "minutes": 5
-      }
-    ]
   },
   {
     "id": "object_roadside_campfire",

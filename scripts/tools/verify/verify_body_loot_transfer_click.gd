@@ -28,6 +28,10 @@ func _verify() -> void:
 	var main := Main.new()
 	root.add_child(main)
 	await _settle(main)
+	if not await VerifyInputHelper.start_new_game(self, root, main):
+		printerr("New Game real click did not begin play.")
+		quit(1)
+		return
 	main.inventory.add_item("item_hunting_bow", 1)
 	main.inventory.add_item("item_training_sword", 1)
 

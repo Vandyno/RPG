@@ -106,6 +106,22 @@ static func exit_forge_direct(main) -> bool:
 	return main.player.world_layer == "surface"
 
 
+static func enter_town_hall_direct(main) -> bool:
+	var door = main.entities.get_entity("object_briarwatch_town_hall_door")
+	if not door:
+		return main.player.world_layer == "interior:structure_briarwatch_town_hall"
+	main._interact_portal(door)
+	return main.player.world_layer == "interior:structure_briarwatch_town_hall"
+
+
+static func exit_town_hall_direct(main) -> bool:
+	var door = main.entities.get_entity("object_briarwatch_town_hall_exit")
+	if not door:
+		return main.player.world_layer == "surface"
+	main._interact_portal(door)
+	return main.player.world_layer == "surface"
+
+
 static func settle(main, tree: SceneTree) -> void:
 	if main.hud:
 		main.hud._apply_layout_for_size(Vector2(1152, 648))

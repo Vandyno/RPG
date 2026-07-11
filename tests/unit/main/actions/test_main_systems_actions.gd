@@ -47,6 +47,14 @@ func test_handle_routes_target_action_through_main_intent() -> void:
 	assert_eq(main.calls, [])
 
 
+func test_handle_routes_appearance_action_to_main() -> void:
+	var main := AssignSpellMainStub.new()
+
+	MainSystemsActions.handle(MainSystemsActions.systems_context(main), "ui:appearance")
+
+	assert_eq(main.calls, ["appearance"])
+
+
 func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
@@ -204,6 +212,9 @@ class AssignSpellMainStub:
 
 	func _refresh_hud() -> void:
 		calls.append("refresh")
+
+	func open_character_appearance() -> void:
+		calls.append("appearance")
 
 class AssignSpellContentStub:
 	extends RefCounted

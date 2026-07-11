@@ -195,12 +195,24 @@ func _draw() -> void:
 	if action_hint_visible:
 		_draw_action_hint()
 	if highlighted:
-		draw_circle(Vector2.ZERO, 15.0, Color(1.0, 0.88, 0.32, 0.28))
-		draw_circle(Vector2.ZERO, 15.0, Color(1.0, 0.88, 0.32), false, 2.0)
+		var highlight := PackedVector2Array(
+			[
+				Vector2(-13.0, 0.0),
+				Vector2(0.0, -8.0),
+				Vector2(13.0, 0.0),
+				Vector2(0.0, 8.0),
+				Vector2(-13.0, 0.0)
+			]
+		)
+		draw_polyline(highlight, Color(1.0, 0.88, 0.32, 0.92), 1.5)
 	if humanoid_avatar:
 		return
 	WorldEntityFallbackRenderer.draw_entity(
-		self, get_kind(), is_combat_target(), get_pickup_item_visual_state()
+		self,
+		get_kind(),
+		is_combat_target(),
+		get_pickup_item_visual_state(),
+		String(data.get("visual_style", ""))
 	)
 
 

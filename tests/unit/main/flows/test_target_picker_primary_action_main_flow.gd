@@ -18,6 +18,7 @@ func test_rpg_target_picker_is_disabled() -> void:
 func test_sneak_button_does_not_select_or_use_targets() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	var notice = main.entities.get_entity("object_road_notice")
 	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()

@@ -759,7 +759,7 @@ Expected status effect data:
 {
   "active": [
     {
-      "status_id": "status_road_focus",
+      "status_id": "status_example",
       "charges": 2
     }
   ]
@@ -912,8 +912,8 @@ These shapes are early targets and may evolve.
   "close_hour": 18,
   "stock": [
     {
-      "item_id": "item_roadside_draught",
-      "price": 8
+      "item_id": "item_traveler_buckler",
+      "price": 18
     }
   ]
 }

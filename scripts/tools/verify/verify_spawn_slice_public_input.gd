@@ -28,6 +28,9 @@ func _verify() -> void:
 	var main := Main.new()
 	root.add_child(main)
 	await _settle(main)
+	if not await VerifyInputHelper.start_new_game(self, root, main):
+		_fail("New Game real click did not begin play.")
+		return
 
 	if not await _enter_forge(main):
 		_fail("World click on Harrow's forge door did not enter the forge.")

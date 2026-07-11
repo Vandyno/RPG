@@ -66,13 +66,8 @@ static func _validate_item_avatar_visual(
 	elif not EquipmentSlots.accepts(avatar_slot, String(item.get("equipment_slot", ""))):
 		errors.append("Item %s avatar_visual avatar_slot does not match equipment_slot." % item_id)
 	var layer_id := String(visual.get("visual_layer_id", ""))
-	var accepted_placeholder := bool(visual.get("accepted_placeholder", false))
 	if layer_id.is_empty():
 		errors.append("Item %s avatar_visual is missing visual_layer_id." % item_id)
-	if not accepted_placeholder and String(visual.get("paperdoll_sprite_id", "")).is_empty():
-		errors.append(
-			"Item %s avatar_visual needs paperdoll_sprite_id or accepted_placeholder." % item_id
-		)
 
 
 static func _validate_readables(content: ContentDatabase, errors: Array[String]) -> void:

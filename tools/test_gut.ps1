@@ -44,9 +44,22 @@ try {
       "-gexit",
       "-gjunit_xml_file", "res://reports/gut_results_$($suite.Name).xml"
     )
-    & $godot @args
-    if ($LASTEXITCODE -ne 0) {
-      exit $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $suiteOutput = @(& $godot @args 2>&1)
+    $suiteExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    $suiteOutput | ForEach-Object { Write-Output ([string]$_) }
+    if ($suiteExitCode -ne 0) {
+      exit $suiteExitCode
+    }
+    $suiteText = $suiteOutput -join "`n"
+    if (
+      $suiteText -match "SCRIPT ERROR: Parse Error:" -or
+      $suiteText -match "ERROR: Failed to load script"
+    ) {
+      Write-Error "GUT suite '$($suite.Name)' could not load every test script."
+      exit 1
     }
   }
 

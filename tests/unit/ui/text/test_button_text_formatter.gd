@@ -29,7 +29,7 @@ func test_compact_primary_action_label_names_short_action_targets() -> void:
 		"Rest\nCampfire"
 	)
 	assert_eq(
-		ButtonTextFormatter.compact_primary_action_label("Open", "Sealed Strongbox"),
+		ButtonTextFormatter.compact_primary_action_label("Open", "Warden's Strongbox"),
 		"Open\nStrongbox"
 	)
 
@@ -51,5 +51,5 @@ func test_compact_primary_action_label_keeps_wrapped_long_actions() -> void:
 
 func test_compact_target_label_prefers_last_word_or_ellipsis() -> void:
 	assert_eq(ButtonTextFormatter.compact_target_label("Harrow Venn"), "Harrow Venn")
-	assert_eq(ButtonTextFormatter.compact_target_label("Old Sealed Strongbox"), "Strongbox")
+	assert_eq(ButtonTextFormatter.compact_target_label("Old Warden's Strongbox"), "Strongbox")
 	assert_eq(ButtonTextFormatter.compact_target_label("UnbrokenLongTargetName"), "UnbrokenLo...")

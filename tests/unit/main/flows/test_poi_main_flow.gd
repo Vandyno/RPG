@@ -70,72 +70,6 @@ func test_maera_stall_terminal_is_not_spawned() -> void:
 	assert_null(main.entities.get_entity("poi_maera_stall"))
 
 
-func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-
-	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
-	_select_entity(main, "poi_harrow_forge")
-	MainFlowInputHelper.interact_action(main)
-	assert_eq(main.hud.content_kind_label.text, "Place")
-	assert_true(main.hud.content_body_label.text.contains("repair, crafting, upgrade"))
-	assert_null(_button_containing(main.hud.content_choice_list, "Sharpen Road Hatchet"))
-	main.hud.hide_content_card()
-
-	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
-	_select_entity(main, "pickup_road_hatchet")
-	MainFlowInputHelper.interact_action(main)
-	_select_entity(main, "object_road_cache")
-	MainFlowInputHelper.interact_action(main)
-	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	main.hud.hide_systems_panel()
-	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
-
-	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
-	_select_entity(main, "poi_harrow_forge")
-	assert_eq(main.get_debug_state()["primary_action"], "Sharpen Road Hatchet (2g)")
-	assert_not_null(_button_containing(main.hud.context_action_buttons, "Inspect"))
-	var sharpen_context_button := _button_containing(
-		main.hud.context_action_buttons, "Sharpen Road Hatchet"
-	)
-	assert_true(sharpen_context_button == null or not sharpen_context_button.visible)
-	MainFlowInputHelper.interact_action(main)
-
-	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
-	assert_false(main.hud.is_content_card_visible())
-	assert_true(main.hud.log_label.text.contains("hatchet edge"))
-
-
-func test_forge_service_can_be_used_from_context_action_when_requirements_are_met() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-
-	_select_entity(main, "pickup_road_hatchet")
-	MainFlowInputHelper.interact_action(main)
-	_select_entity(main, "object_road_cache")
-	MainFlowInputHelper.interact_action(main)
-	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	main.hud.hide_systems_panel()
-	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
-
-	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
-	_select_entity(main, "poi_harrow_forge")
-	var sharpen_button := _button_containing(
-		main.hud.context_action_buttons, "Sharpen Road Hatchet"
-	)
-	assert_not_null(sharpen_button)
-	assert_eq(main.get_debug_state()["primary_action"], "Use")
-	await MainFlowInputHelper.click(sharpen_button, get_tree())
-
-	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
-	assert_false(main.hud.is_content_card_visible())
-	assert_true(main.hud.log_label.text.contains("hatchet edge"))
-
-
 func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
@@ -211,9 +145,3 @@ func _button_containing(container: Node, text: String) -> Button:
 		if child is Button and child.text.contains(text):
 			return child
 	return null
-
-
-func _press_transfer_button_by_name(main, button_name: String) -> void:
-	var button := main.hud.systems_item_list.find_child(button_name, true, false) as Button
-	assert_not_null(button)
-	await MainFlowInputHelper.click(button, get_tree())

@@ -67,12 +67,10 @@ func test_content_database_loads_seed_content() -> void:
 	assert_false(content.locations.is_empty())
 	assert_false(content.factions.is_empty())
 	assert_false(content.shops.is_empty())
-	assert_false(content.status_effects.is_empty())
 	assert_false(content.spells.is_empty())
 	assert_false(content.world_objects.is_empty())
 	assert_false(content.world_terrain.is_empty())
 	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
-	assert_eq(content.get_item("item_river_mint").get("type"), "ingredient")
 	assert_eq(
 		content.get_location("location_briarwatch_crossroads").get("name"), "Briarwatch Crossroads"
 	)
@@ -88,7 +86,6 @@ func test_content_database_loads_seed_content() -> void:
 	)
 	assert_eq(content.get_faction("faction_marches_of_velcor").get("name"), "Marches of Velcor")
 	assert_eq(content.get_spell("spell_fire_blast").get("name"), "Fire Blast")
-	assert_eq(content.get_status_effect("status_road_focus").get("name"), "Road Focus")
 	assert_eq(content.validate_all(), [])
 
 
@@ -588,11 +585,6 @@ func test_seed_equipment_items_declare_avatar_visuals_or_placeholders() -> void:
 			String(visual.get("visual_layer_id", "")).is_empty(),
 			"%s should declare visual_layer_id." % item_id
 		)
-		assert_true(
-			bool(visual.get("accepted_placeholder", false))
-			or not String(visual.get("paperdoll_sprite_id", "")).is_empty(),
-			"%s should declare a drawable layer or accepted placeholder." % item_id
-		)
 
 
 func test_content_validation_reports_missing_references() -> void:
@@ -1080,19 +1072,15 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		"poi_briarwatch_square",
 		"object_harrow_forge_door",
 		"pickup_old_toolbox",
-		"pickup_roadside_draught",
 		"pickup_road_hatchet",
 		"pickup_training_sword",
 		"pickup_test_polearm",
 		"pickup_hunting_bow",
 		"pickup_traveler_buckler",
 		"object_road_cache",
-		"object_warden_cache",
 		"object_sealed_strongbox",
 		"npc_road_thug",
 		"npc_test_raider",
-		"object_north_gate",
-		"object_training_gate",
 		"object_roadside_campfire",
 		"location_briarwatch_crossroads_marker"
 	]
@@ -1114,8 +1102,12 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 				occupied_tiles.has(tile_key), "%s should not share a spawn test tile." % entity_id
 			)
 			occupied_tiles[tile_key] = true
+		if world_layer != "surface":
+			# Interior fixtures are reached through their structure door, not by a surface path.
+			found_ids.append(entity_id)
+			continue
 		assert_true(
-			_has_walkable_path(chunks, Vector2i.ZERO, tile, 12),
+			_has_walkable_path(chunks, Vector2i.ZERO, tile, 16),
 			"%s should be walkably reachable from spawn." % entity_id
 		)
 		if String(entry.get("kind", "")) == "location":

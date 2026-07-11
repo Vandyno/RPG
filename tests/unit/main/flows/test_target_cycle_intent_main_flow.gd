@@ -24,6 +24,7 @@ func test_next_target_uses_facing_rank_in_crowded_spawn() -> void:
 func test_next_target_can_cycle_through_every_nearby_spawn_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	var strongbox = main.entities.get_entity("object_sealed_strongbox")
 	main.player.set_world_position(strongbox.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()

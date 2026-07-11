@@ -44,6 +44,11 @@ const ROOTBORN_GROWTH_TINTS := [
 ]
 
 
+static func _face_id(appearance: Dictionary, field_id: String, fallback: String) -> String:
+	var value := String(appearance.get(field_id, "")).strip_edges()
+	return value if not value.is_empty() else fallback
+
+
 static func draw_layer(
 	avatar,
 	people_id: String,
@@ -64,6 +69,39 @@ static func draw_layer(
 	return false
 
 
+static func draw_headgear_face_overlay(
+	canvas: HumanoidAvatar2D,
+	people_id: String,
+	skin: Color,
+	proportions: Dictionary,
+	_feature_ids: Array[String],
+	appearance: Dictionary
+) -> void:
+	if people_id != PEOPLE_MIREFOLK or canvas._back_turn_amount() > 0.55:
+		return
+	var head_size := canvas._proportion(proportions, "head_size")
+	var head_offset := canvas._head_turn_offset()
+	var side_turn := canvas._side_turn_amount()
+	var side := canvas._face_side()
+	var eye_id := _face_id(appearance, "eye_id", "eyes_mirefolk_high")
+	var brow_id := _face_id(appearance, "brow_id", "brows_mirefolk_none")
+	var nose_id := _face_id(appearance, "nose_id", "nose_mirefolk_slits")
+	var mouth_id := _face_id(appearance, "mouth_id", "mouth_mirefolk_wide")
+	_draw_mirefolk_eyes(
+		canvas,
+		head_size,
+		head_offset,
+		side_turn,
+		side,
+		true,
+		eye_id.ends_with("_high"),
+		Color(0.90, 0.88, 0.62)
+	)
+	_draw_mirefolk_brow(canvas, head_size, head_offset, skin, brow_id)
+	_draw_mirefolk_nose(canvas, head_size, head_offset, side_turn, skin, nose_id)
+	_draw_mirefolk_mouth(canvas, head_size, head_offset, skin, mouth_id)
+
+
 static func feature_ids_for_layer(
 	source_ids: Array[String], people_id: String, layer_id: String
 ) -> Array[String]:
@@ -81,7 +119,8 @@ static func _draw_tanglekin_layer(
 		_draw_tanglekin_back_feature(avatar, skin, proportions, feature_ids)
 		return true
 	if layer_id == LAYER_FRONT:
-		_draw_tanglekin_feature(avatar, skin, proportions, feature_ids)
+		var appearance: Dictionary = avatar.profile.get("appearance", {})
+		_draw_tanglekin_feature(avatar, skin, proportions, feature_ids, appearance)
 		return true
 	return false
 
@@ -158,7 +197,10 @@ static func _draw_tanglekin_back_feature(
 	var middle_y := 8.8 + front_turn * 1.0 - back_turn * 3.0
 	var curl_y := 6.1 - front_turn * 0.5 - back_turn * 1.1
 	var tip_y := 2.8 - front_turn * 0.6 + back_turn * 2.2
-	var side_reach := lerpf(4.6, 10.8, side_turn)
+	var visible_turn := maxf(side_turn, back_turn * 0.78)
+	var side_reach := lerpf(1.4, 10.2, visible_turn)
+	if back_turn > 0.55 and side_turn < 0.18:
+		tail_side *= 0.38
 	var back_lift := lerpf(0.0, 2.2, back_turn)
 	var root := canvas._body_point(-canvas._facing_forward().x * 0.9, root_y)
 	var middle := canvas._body_point(tail_side * side_reach * 0.58, middle_y)
@@ -179,7 +221,11 @@ static func _draw_tanglekin_back_feature(
 
 
 static func _draw_tanglekin_feature(
-	canvas: HumanoidAvatar2D, skin: Color, proportions: Dictionary, feature_ids: Array[String]
+	canvas: HumanoidAvatar2D,
+	skin: Color,
+	proportions: Dictionary,
+	feature_ids: Array[String],
+	appearance: Dictionary = {}
 ) -> void:
 	var head_size := canvas._proportion(proportions, "head_size")
 	var head_offset := canvas._head_turn_offset()
@@ -188,17 +234,23 @@ static func _draw_tanglekin_feature(
 	var front_visible := back_turn < 0.55
 	var side := canvas._face_side()
 	var fur_shadow := skin.darkened(0.30)
+	var eye_id := _face_id(appearance, "eye_id", "eyes_tanglekin_amber")
+	var brow_id := _face_id(appearance, "brow_id", "brows_tanglekin_tufted")
+	var nose_id := _face_id(appearance, "nose_id", "nose_tanglekin_muzzle_round")
+	var mouth_id := _face_id(appearance, "mouth_id", "mouth_tanglekin_short")
+	var mark_id := _face_id(appearance, "facial_mark_id", "")
 	if feature_ids.has("feature_tanglekin_grasping_hands"):
 		_draw_tanglekin_grasping_hands(canvas, skin, proportions, fur_shadow)
 	if front_visible:
 		_draw_tanglekin_front_or_side_ears(canvas, skin, head_size, head_offset, side_turn, side)
 		if feature_ids.has("feature_tanglekin_muzzle"):
 			_draw_tanglekin_muzzle(
-				canvas, skin, head_size, head_offset, side_turn, side, fur_shadow
+				canvas, skin, head_size, head_offset, side_turn, side, fur_shadow,
+				eye_id, nose_id, mouth_id, mark_id
 			)
 	elif back_turn > 0.55:
 		_draw_tanglekin_rear_ears(canvas, skin, head_size, head_offset, side_turn)
-	_draw_tanglekin_brow(canvas, feature_ids, head_size, head_offset, fur_shadow, front_visible)
+	_draw_tanglekin_brow(canvas, brow_id, head_size, head_offset, fur_shadow, front_visible)
 
 
 static func _draw_tanglekin_grasping_hands(
@@ -206,20 +258,30 @@ static func _draw_tanglekin_grasping_hands(
 ) -> void:
 	var hand_size := canvas._proportion(proportions, "hand_size")
 	var foot_size := canvas._proportion(proportions, "foot_size")
+	var hands_covered := canvas.equipped_visuals.has("gloves")
+	var feet_covered := canvas.equipped_visuals.has("boots")
 	for limb_side in [-1.0, 1.0]:
 		var hand := canvas._hand_anchor(limb_side, proportions) + canvas._hand_sway(limb_side)
 		var foot := canvas._foot_anchor(limb_side, proportions) + canvas._stride_offset(limb_side)
-		canvas.draw_circle(hand, 2.9 * hand_size, OUTLINE)
-		canvas.draw_circle(hand, 2.1 * hand_size, skin.lightened(0.07))
-		canvas.draw_circle(hand + Vector2(limb_side * 1.0, -0.4), 0.62 * hand_size, fur_shadow)
-		canvas.draw_circle(foot + Vector2(0.0, 0.8), 2.7 * foot_size, OUTLINE)
-		canvas.draw_circle(foot + Vector2(0.0, 0.8), 1.9 * foot_size, skin.darkened(0.03))
-		canvas.draw_line(
-			foot + Vector2(-limb_side * 1.7, -0.4),
-			foot + Vector2(limb_side * 1.8, 0.5),
-			fur_shadow,
-			0.65
-		)
+		if not hands_covered:
+			canvas.draw_circle(hand, 2.9 * hand_size, OUTLINE)
+			canvas.draw_circle(hand, 2.1 * hand_size, skin.lightened(0.07))
+			canvas.draw_circle(hand + Vector2(limb_side * 1.0, -0.4), 0.62 * hand_size, fur_shadow)
+			canvas.draw_line(
+				hand + Vector2(-limb_side * 0.55, 0.55),
+				hand + Vector2(limb_side * 1.20, 1.20),
+				fur_shadow,
+				0.44
+			)
+		if not feet_covered:
+			canvas.draw_circle(foot + Vector2(0.0, 0.8), 2.7 * foot_size, OUTLINE)
+			canvas.draw_circle(foot + Vector2(0.0, 0.8), 1.9 * foot_size, skin.darkened(0.03))
+			canvas.draw_line(
+				foot + Vector2(-limb_side * 1.7, -0.4),
+				foot + Vector2(limb_side * 1.8, 0.5),
+				fur_shadow,
+				0.65
+			)
 
 
 static func _draw_tanglekin_front_or_side_ears(
@@ -258,56 +320,57 @@ static func _draw_tanglekin_muzzle(
 	head_offset: Vector2,
 	side_turn: float,
 	side: float,
-	fur_shadow: Color
+	fur_shadow: Color,
+	eye_id: String,
+	nose_id: String,
+	mouth_id: String,
+	mark_id: String
 ) -> void:
 	var muzzle_color := skin.lightened(0.13)
 	var eye_color := Color(0.035, 0.027, 0.018)
+	if eye_id.ends_with("_amber"):
+		eye_color = Color(0.78, 0.53, 0.16)
+	var long_muzzle := nose_id.ends_with("_long")
+	var muzzle_width := 9.0 if long_muzzle else 7.6
+	var eye_spacing := 3.1 if long_muzzle else 2.6
 	if side_turn < 0.58:
 		canvas._draw_outlined_oval(
 			Rect2(
-				head_offset + Vector2(-3.8 * head_size, -12.3),
-				Vector2(7.6 * head_size, 4.3 * head_size)
+				head_offset + Vector2(-muzzle_width * 0.5 * head_size, -12.3),
+				Vector2(muzzle_width * head_size, 4.3 * head_size)
 			),
 			muzzle_color,
 			OUTLINE,
 			0.55
 		)
 		canvas.draw_circle(
-			head_offset + Vector2(-2.6 * head_size, -14.8), 0.75 * head_size, eye_color
+			head_offset + Vector2(-eye_spacing * head_size, -14.8), 0.75 * head_size, eye_color
 		)
 		canvas.draw_circle(
-			head_offset + Vector2(2.6 * head_size, -14.8), 0.75 * head_size, eye_color
+			head_offset + Vector2(eye_spacing * head_size, -14.8), 0.75 * head_size, eye_color
 		)
-		canvas.draw_line(
-			head_offset + Vector2(-1.8 * head_size, -10.1),
-			head_offset + Vector2(1.9 * head_size, -10.0),
-			fur_shadow,
-			0.75
-		)
+		_draw_tanglekin_mouth(canvas, head_offset, head_size, fur_shadow, mouth_id)
+		_draw_tanglekin_face_mark(canvas, head_offset, head_size, fur_shadow, mark_id)
 		return
 	canvas._draw_outlined_oval(
-		tanglekin_side_muzzle_rect(canvas, head_size), muzzle_color, OUTLINE, 0.55
+		_tanglekin_side_muzzle_rect_for_face(canvas, head_size, long_muzzle), muzzle_color, OUTLINE, 0.55
 	)
 	canvas.draw_circle(
 		head_offset + Vector2(side * 2.0 * head_size, -14.8), 0.78 * head_size, eye_color
 	)
-	canvas.draw_line(
-		head_offset + Vector2(side * 2.0 * head_size, -10.5),
-		head_offset + Vector2(side * 3.3 * head_size, -10.6),
-		fur_shadow,
-		0.65
-	)
+	_draw_tanglekin_side_mouth(canvas, head_offset, head_size, side, fur_shadow, mouth_id)
+	_draw_tanglekin_face_mark(canvas, head_offset, head_size, fur_shadow, mark_id)
 
 
 static func _draw_tanglekin_brow(
 	canvas: HumanoidAvatar2D,
-	feature_ids: Array[String],
+	brow_id: String,
 	head_size: float,
 	head_offset: Vector2,
 	fur_shadow: Color,
 	front_visible: bool
 ) -> void:
-	if feature_ids.has("feature_tanglekin_brow_tuft"):
+	if brow_id.ends_with("_tufted"):
 		for tuft_index in 3:
 			var offset := float(tuft_index - 1)
 			canvas.draw_line(
@@ -325,6 +388,65 @@ static func _draw_tanglekin_brow(
 		)
 
 
+static func _tanglekin_side_muzzle_rect_for_face(
+	canvas: HumanoidAvatar2D, head_size: float, long_muzzle: bool
+) -> Rect2:
+	var rect := tanglekin_side_muzzle_rect(canvas, head_size)
+	if long_muzzle:
+		rect.size.x *= 1.22
+	return rect
+
+
+static func _draw_tanglekin_mouth(
+	canvas: HumanoidAvatar2D,
+	head_offset: Vector2,
+	head_size: float,
+	fur_shadow: Color,
+	mouth_id: String
+) -> void:
+	var start := head_offset + Vector2(-1.8 * head_size, -10.1)
+	var end := head_offset + Vector2(1.9 * head_size, -10.0)
+	if mouth_id.ends_with("_grin"):
+		canvas.draw_line(start, head_offset + Vector2(0.0, -9.55), fur_shadow, 0.75)
+		canvas.draw_line(head_offset + Vector2(0.0, -9.55), end, fur_shadow, 0.75)
+		return
+	canvas.draw_line(start, end, fur_shadow, 0.75)
+
+
+static func _draw_tanglekin_side_mouth(
+	canvas: HumanoidAvatar2D,
+	head_offset: Vector2,
+	head_size: float,
+	side: float,
+	fur_shadow: Color,
+	mouth_id: String
+) -> void:
+	var start := head_offset + Vector2(side * 2.0 * head_size, -10.5)
+	var end := head_offset + Vector2(side * 3.3 * head_size, -10.6)
+	if mouth_id.ends_with("_grin"):
+		end.y -= 0.45
+	canvas.draw_line(start, end, fur_shadow, 0.65)
+
+
+static func _draw_tanglekin_face_mark(
+	canvas: HumanoidAvatar2D,
+	head_offset: Vector2,
+	head_size: float,
+	color: Color,
+	mark_id: String
+) -> void:
+	if mark_id.ends_with("_cheeks"):
+		for side in [-1.0, 1.0]:
+			canvas.draw_circle(head_offset + Vector2(side * 4.6 * head_size, -12.8), 0.46, color)
+	elif mark_id.ends_with("_brow"):
+		canvas.draw_line(
+			head_offset + Vector2(-2.4 * head_size, -17.7),
+			head_offset + Vector2(2.4 * head_size, -17.7),
+			color,
+			0.55
+		)
+
+
 static func _draw_tuskfolk_feature(
 	canvas: HumanoidAvatar2D,
 	skin: Color,
@@ -338,7 +460,6 @@ static func _draw_tuskfolk_feature(
 	var back_turn := canvas._back_turn_amount()
 	var front_visible := back_turn < 0.55
 	var shoulder_width := 18.0 * canvas._proportion(proportions, "shoulder_width")
-	var waist_width := 14.0 * canvas._proportion(proportions, "waist_width")
 	var tusk_color := Color(0.86, 0.78, 0.58)
 	var tusk_length := 9.2 if feature_ids.has("feature_tusks_broad") else 7.0
 	var variant_key := String(appearance.get("visual_model_id", ""))
@@ -347,57 +468,17 @@ static func _draw_tuskfolk_feature(
 	var variant_index := StableHash.index(variant_key, TUSKFOLK_CLAN_TINTS.size())
 	var clan_color: Color = skin.darkened(0.12).lerp(TUSKFOLK_CLAN_TINTS[variant_index], 0.56)
 	var ring_color := Color(0.58, 0.43, 0.22).lerp(clan_color.lightened(0.12), 0.24)
-	_draw_tuskfolk_torso(canvas, skin, waist_width, back_turn, clan_color, ring_color)
 	_draw_tuskfolk_head_shape(canvas, skin, head_size, head_offset, front_visible)
-	if front_visible and feature_ids.has("feature_tuskfolk_clan_marks"):
+	if (
+		front_visible
+		and feature_ids.has("feature_tuskfolk_clan_marks")
+		and not canvas.equipped_visuals.has("chest")
+	):
 		_draw_tuskfolk_clan_marks(canvas, shoulder_width, clan_color)
 	if front_visible:
 		_draw_tuskfolk_tusks(
 			canvas, head_size, head_offset, side_turn, tusk_length, tusk_color, ring_color
 		)
-
-
-static func _draw_tuskfolk_torso(
-	canvas: HumanoidAvatar2D,
-	skin: Color,
-	waist_width: float,
-	back_turn: float,
-	clan_color: Color,
-	ring_color: Color
-) -> void:
-	canvas._draw_shape(
-		canvas._body_polygon(
-			[
-				Vector2(-waist_width * 0.38, 2.0),
-				Vector2(waist_width * 0.38, 2.0),
-				Vector2(waist_width * 0.44, 7.6),
-				Vector2(waist_width * 0.18, 10.4),
-				Vector2(-waist_width * 0.18, 10.4),
-				Vector2(-waist_width * 0.44, 7.6)
-			]
-		),
-		skin.darkened(0.08 + back_turn * 0.03),
-		Color(0.0, 0.0, 0.0, 0.0),
-		0.0
-	)
-	canvas.draw_line(
-		canvas._body_point(-waist_width * 0.34, 6.2),
-		canvas._body_point(waist_width * 0.34, 6.0),
-		skin.darkened(0.24),
-		0.75
-	)
-	canvas.draw_line(
-		canvas._body_point(-waist_width * 0.42, 2.6),
-		canvas._body_point(waist_width * 0.42, 2.8),
-		clan_color.darkened(0.08),
-		1.2
-	)
-	canvas.draw_rect(
-		Rect2(canvas._body_point(0.0, 1.1) - Vector2(1.5, 0.0), Vector2(3.0, 3.2)),
-		ring_color.darkened(0.08)
-	)
-
-
 static func _draw_tuskfolk_head_shape(
 	canvas: HumanoidAvatar2D,
 	skin: Color,
@@ -535,27 +616,15 @@ static func _draw_mirefolk_feature(
 	var pattern_color: Color = MIREFOLK_PATTERN_TINTS[variant_index].lerp(
 		skin.lightened(0.12), 0.42
 	)
-	var throat_color := skin.lightened(0.18).lerp(pattern_color.lightened(0.16), 0.26)
-	var torso_x := canvas._body_turn_x()
 	var back_turn := canvas._back_turn_amount()
 	var side_turn := canvas._side_turn_amount()
 	var front_visible := back_turn < 0.55
 	var side := canvas._face_side()
-	var belly_width := 7.6 * canvas._proportion(proportions, "torso_width")
-	var belly_side_width := belly_width * lerpf(1.0, 0.58, side_turn)
-	var belly_height := lerpf(12.2, 9.2, back_turn)
-	if front_visible:
-		_draw_mirefolk_belly(
-			canvas,
-			skin,
-			belly_width,
-			belly_side_width,
-			belly_height,
-			back_turn,
-			variant_index,
-			throat_color,
-			pattern_color
-		)
+	var eye_id := _face_id(appearance, "eye_id", "eyes_mirefolk_high")
+	var brow_id := _face_id(appearance, "brow_id", "brows_mirefolk_none")
+	var nose_id := _face_id(appearance, "nose_id", "nose_mirefolk_slits")
+	var mouth_id := _face_id(appearance, "mouth_id", "mouth_mirefolk_wide")
+	var mark_id := _face_id(appearance, "facial_mark_id", "")
 	if feature_ids.has("feature_mirefolk_webbed_hands"):
 		_draw_mirefolk_webbing(canvas, skin, proportions, pattern_color)
 	_draw_mirefolk_eyes(
@@ -565,101 +634,64 @@ static func _draw_mirefolk_feature(
 		side_turn,
 		side,
 		front_visible,
-		feature_ids.has("feature_mirefolk_high_eyes"),
+		eye_id.ends_with("_high"),
 		eye_color
 	)
-	if front_visible and feature_ids.has("feature_mirefolk_reed_marks"):
+	if front_visible and mark_id.ends_with("_reed"):
+		_draw_mirefolk_reed_marks(
+			canvas, head_size, head_offset, side_turn, variant_index, pattern_color
+		)
+	elif front_visible and mark_id.ends_with("_spots"):
+		_draw_mirefolk_face_spots(canvas, head_size, head_offset, pattern_color)
+	elif front_visible and mark_id.is_empty() and feature_ids.has("feature_mirefolk_reed_marks"):
 		_draw_mirefolk_reed_marks(
 			canvas, head_size, head_offset, side_turn, variant_index, pattern_color
 		)
 	if front_visible:
-		_draw_mirefolk_mouth(canvas, head_size, head_offset, skin)
+		_draw_mirefolk_brow(canvas, head_size, head_offset, skin, brow_id)
+		_draw_mirefolk_nose(canvas, head_size, head_offset, side_turn, skin, nose_id)
+		_draw_mirefolk_mouth(canvas, head_size, head_offset, skin, mouth_id)
 	else:
 		_draw_mirefolk_back_spots(canvas, variant_index, pattern_color)
-
-
-static func _draw_mirefolk_belly(
-	canvas: HumanoidAvatar2D,
-	skin: Color,
-	belly_width: float,
-	belly_side_width: float,
-	belly_height: float,
-	back_turn: float,
-	variant_index: int,
-	throat_color: Color,
-	pattern_color: Color
-) -> void:
-	canvas._draw_shape(
-		canvas._body_polygon(
-			[
-				Vector2(-belly_side_width * 0.48, -6.9),
-				Vector2(belly_side_width * 0.48, -6.9),
-				Vector2(belly_side_width * 0.42, -6.9 + belly_height * 0.58),
-				Vector2(0.0, -6.9 + belly_height),
-				Vector2(-belly_side_width * 0.42, -6.9 + belly_height * 0.58)
-			]
-		),
-		throat_color.darkened(back_turn * 0.10),
-		Color(0.0, 0.0, 0.0, 0.0),
-		0.0
-	)
-	canvas.draw_line(
-		canvas._body_point(-belly_width * 0.25, -5.2),
-		canvas._body_point(belly_width * 0.25, -4.2),
-		skin.darkened(0.18),
-		0.55
-	)
-	var spot_count := 2 + variant_index % 3
-	for spot_index in spot_count:
-		var offset_x := -belly_width * 0.24 + float(spot_index) * belly_width * 0.18
-		var offset_y := -3.6 + float((spot_index + variant_index) % 3) * 2.3
-		canvas.draw_circle(
-			canvas._body_point(offset_x, offset_y),
-			0.45 + 0.10 * float(spot_index % 2),
-			pattern_color.darkened(0.18)
-		)
-	if variant_index % 2 == 1:
-		canvas.draw_line(
-			canvas._body_point(-belly_width * 0.36, -1.2),
-			canvas._body_point(belly_width * 0.30, 1.1),
-			pattern_color.darkened(0.10),
-			0.55
-		)
 
 
 static func _draw_mirefolk_webbing(
 	canvas: HumanoidAvatar2D, skin: Color, proportions: Dictionary, pattern_color: Color
 ) -> void:
 	var web_color := skin.lightened(0.22).lerp(pattern_color.lightened(0.08), 0.28)
+	var hands_covered := canvas.equipped_visuals.has("gloves")
+	var feet_covered := canvas.equipped_visuals.has("boots")
 	for limb_side in [-1.0, 1.0]:
 		var hand := canvas._hand_anchor(limb_side, proportions) + canvas._hand_sway(limb_side)
-		canvas._draw_shape(
-			PackedVector2Array(
-				[
-					hand + Vector2(-2.6 * limb_side, -1.5),
-					hand + Vector2(2.8 * limb_side, -0.8),
-					hand + Vector2(2.0 * limb_side, 2.6),
-					hand + Vector2(-1.8 * limb_side, 2.0)
-				]
-			),
-			web_color,
-			OUTLINE,
-			0.45
-		)
+		if not hands_covered:
+			canvas._draw_shape(
+				PackedVector2Array(
+					[
+						hand + Vector2(-2.6 * limb_side, -1.5),
+						hand + Vector2(2.8 * limb_side, -0.8),
+						hand + Vector2(2.0 * limb_side, 2.6),
+						hand + Vector2(-1.8 * limb_side, 2.0)
+					]
+				),
+				web_color,
+				OUTLINE,
+				0.45
+			)
 		var foot := canvas._foot_anchor(limb_side, proportions) + canvas._stride_offset(limb_side)
-		canvas._draw_shape(
-			PackedVector2Array(
-				[
-					foot + Vector2(-2.4 * limb_side, 1.2),
-					foot + Vector2(2.8 * limb_side, 1.0),
-					foot + Vector2(3.0 * limb_side, 3.4),
-					foot + Vector2(-2.0 * limb_side, 3.2)
-				]
-			),
-			web_color.darkened(0.05),
-			OUTLINE,
-			0.35
-		)
+		if not feet_covered:
+			canvas._draw_shape(
+				PackedVector2Array(
+					[
+						foot + Vector2(-2.4 * limb_side, 1.2),
+						foot + Vector2(2.8 * limb_side, 1.0),
+						foot + Vector2(3.0 * limb_side, 3.4),
+						foot + Vector2(-2.0 * limb_side, 3.2)
+					]
+				),
+				web_color.darkened(0.05),
+				OUTLINE,
+				0.35
+			)
 
 
 static func _draw_mirefolk_eyes(
@@ -690,31 +722,24 @@ static func _draw_mirefolk_high_eyes(
 	eye_color: Color
 ) -> void:
 	if not front_visible:
-		canvas.draw_circle(
-			head_offset + Vector2(-4.8 * head_size, -18.1),
-			0.75 * head_size,
-			eye_color.darkened(0.22)
-		)
-		canvas.draw_circle(
-			head_offset + Vector2(4.8 * head_size, -18.1),
-			0.75 * head_size,
-			eye_color.darkened(0.22)
-		)
-	elif side_turn > 0.70:
+		# Eyes do not belong on a rear-facing Mirefolk head. Back spots and the
+		# head silhouette already carry the rear read.
+		return
+	if side_turn > 0.70:
 		var near_eye := head_offset + Vector2(side * 4.5 * head_size, -18.0)
 		var far_eye := head_offset + Vector2(-side * 2.5 * head_size, -18.5)
-		canvas.draw_circle(far_eye, 1.4 * head_size, eye_color.darkened(0.18))
-		canvas.draw_circle(near_eye, 2.85 * head_size, eye_color)
-		canvas.draw_circle(near_eye, 1.0 * head_size, OUTLINE)
+		canvas.draw_circle(far_eye, 0.42 * head_size, eye_color.darkened(0.18))
+		canvas.draw_circle(near_eye, 1.28 * head_size, eye_color)
+		canvas.draw_circle(near_eye, 0.46 * head_size, OUTLINE)
 	else:
 		canvas.draw_circle(
-			head_offset + Vector2(-4.8 * head_size, -18.1), 2.8 * head_size, eye_color
+			head_offset + Vector2(-4.8 * head_size, -18.1), 1.18 * head_size, eye_color
 		)
 		canvas.draw_circle(
-			head_offset + Vector2(4.8 * head_size, -18.1), 2.8 * head_size, eye_color
+			head_offset + Vector2(4.8 * head_size, -18.1), 1.18 * head_size, eye_color
 		)
-		canvas.draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
-		canvas.draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 1.0 * head_size, OUTLINE)
+		canvas.draw_circle(head_offset + Vector2(-4.8 * head_size, -18.1), 0.44 * head_size, OUTLINE)
+		canvas.draw_circle(head_offset + Vector2(4.8 * head_size, -18.1), 0.44 * head_size, OUTLINE)
 
 
 static func _draw_mirefolk_low_eyes(
@@ -774,15 +799,74 @@ static func _draw_mirefolk_reed_marks(
 		)
 
 
-static func _draw_mirefolk_mouth(
-	canvas: HumanoidAvatar2D, head_size: float, head_offset: Vector2, skin: Color
+static func _draw_mirefolk_brow(
+	canvas: HumanoidAvatar2D,
+	head_size: float,
+	head_offset: Vector2,
+	skin: Color,
+	brow_id: String
 ) -> void:
+	if not brow_id.ends_with("_ridge"):
+		return
 	canvas.draw_line(
-		head_offset + Vector2(-5.3 * head_size, -11.0),
-		head_offset + Vector2(5.3 * head_size, -10.8),
+		head_offset + Vector2(-4.6 * head_size, -19.8),
+		head_offset + Vector2(4.6 * head_size, -19.7),
+		skin.darkened(0.32),
+		0.55
+	)
+
+
+static func _draw_mirefolk_nose(
+	canvas: HumanoidAvatar2D,
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	skin: Color,
+	nose_id: String
+) -> void:
+	if not nose_id.ends_with("_slits"):
+		return
+	var nose_color := skin.darkened(0.32)
+	canvas.draw_line(
+		head_offset + Vector2(-1.4 * head_size, -13.0),
+		head_offset + Vector2(-1.2 * head_size, -11.8),
+		nose_color,
+		0.55
+	)
+	if side_turn < 0.70:
+		canvas.draw_line(
+			head_offset + Vector2(1.4 * head_size, -13.0),
+			head_offset + Vector2(1.2 * head_size, -11.8),
+			nose_color,
+			0.55
+		)
+
+
+static func _draw_mirefolk_mouth(
+	canvas: HumanoidAvatar2D,
+	head_size: float,
+	head_offset: Vector2,
+	skin: Color,
+	mouth_id: String
+) -> void:
+	var width := 3.0 if mouth_id.ends_with("_short") else 5.3
+	canvas.draw_line(
+		head_offset + Vector2(-width * head_size, -11.0),
+		head_offset + Vector2(width * head_size, -10.8),
 		skin.darkened(0.22),
 		0.9
 	)
+
+
+static func _draw_mirefolk_face_spots(
+	canvas: HumanoidAvatar2D, head_size: float, head_offset: Vector2, pattern_color: Color
+) -> void:
+	for side in [-1.0, 1.0]:
+		canvas.draw_circle(
+			head_offset + Vector2(side * 5.0 * head_size, -13.3),
+			0.55,
+			pattern_color.darkened(0.26)
+		)
 
 
 static func _draw_mirefolk_back_spots(
@@ -822,8 +906,10 @@ static func _draw_rootborn_feature(
 	var torso_width := 15.0 * canvas._proportion(proportions, "torso_width")
 	var waist_width := 14.0 * canvas._proportion(proportions, "waist_width")
 	var bark_line := root_color.darkened(0.12).lerp(growth_tint.darkened(0.20), 0.18)
-	_draw_rootborn_body_growth(canvas, torso_width, waist_width, variant_index, bark_line, lichen)
-	_draw_rootborn_roots(canvas, proportions, root_color)
+	if not canvas.equipped_visuals.has("chest"):
+		_draw_rootborn_body_growth(canvas, torso_width, waist_width, variant_index, bark_line, lichen)
+	if not canvas.equipped_visuals.has("boots"):
+		_draw_rootborn_roots(canvas, proportions, root_color)
 	if feature_ids.has("feature_rootborn_branch_crown"):
 		_draw_rootborn_branch_crown(
 			canvas,
@@ -852,7 +938,8 @@ static func _draw_rootborn_feature(
 			root_color,
 			lichen,
 			front_visible,
-			side_turn
+			side_turn,
+			not canvas.equipped_visuals.has("chest")
 		)
 
 
@@ -931,8 +1018,8 @@ static func _draw_rootborn_branch_crown(
 	lichen: Color
 ) -> void:
 	var branch_color := skin.darkened(0.42)
-	var left_lift := 23.0 + float(variant_index % 3) * 0.7
-	var right_lift := 23.4 + float((variant_index + 1) % 3) * 0.7
+	var left_lift := 21.0 + float(variant_index % 3) * 0.55
+	var right_lift := 21.4 + float((variant_index + 1) % 3) * 0.55
 	var near_scale := 1.0 + side_turn * 0.10
 	var far_scale := 1.0 - side_turn * 0.28
 	var left_scale := far_scale if side > 0.0 else near_scale
@@ -947,10 +1034,10 @@ static func _draw_rootborn_branch_crown(
 		head_offset + Vector2(crown_shift + 2.9 * head_size * right_scale, -right_lift * head_size)
 	)
 	var left_branch := (
-		head_offset + Vector2(crown_shift - 5.1 * head_size * left_scale, -23.6 * head_size)
+		head_offset + Vector2(crown_shift - 4.4 * head_size * left_scale, -22.0 * head_size)
 	)
 	var right_branch := (
-		head_offset + Vector2(crown_shift + 4.6 * head_size * right_scale, -24.1 * head_size)
+		head_offset + Vector2(crown_shift + 4.0 * head_size * right_scale, -22.4 * head_size)
 	)
 	canvas.draw_line(left_base, left_tip, branch_color, 1.05)
 	canvas.draw_line(right_base, right_tip, branch_color, 1.05)
@@ -968,8 +1055,8 @@ static func _draw_rootborn_branch_crown(
 	)
 	canvas.draw_circle(left_tip, 0.9, leaf)
 	canvas.draw_circle(right_tip, 0.9, leaf)
-	canvas.draw_circle(left_branch + Vector2(0.0, -0.1), 0.7, leaf)
-	canvas.draw_circle(right_branch + Vector2(0.0, -0.1), 0.7, leaf)
+	canvas.draw_circle(left_branch + Vector2(0.0, -0.1), 0.58, leaf)
+	canvas.draw_circle(right_branch + Vector2(0.0, -0.1), 0.58, leaf)
 	if variant_index % 2 == 0:
 		canvas.draw_circle(head_offset + Vector2(crown_shift, -22.2 * head_size), 0.65, lichen)
 
@@ -986,24 +1073,24 @@ static func _draw_rootborn_leaf_crown(
 ) -> void:
 	canvas.draw_line(
 		head_offset + Vector2(side * side_turn * 0.8, -18.0),
-		head_offset + Vector2(side * side_turn * 1.5, -24.8 * head_size),
+		head_offset + Vector2(side * side_turn * 1.5, -23.7 * head_size),
 		skin.darkened(0.36),
 		1.25
 	)
 	var leaf_spread := lerpf(1.0, 0.62, side_turn)
 	var left_leaf_tip := (
 		head_offset
-		+ Vector2((-5.8 * leaf_spread + side_turn * side) * head_size, -25.0 * head_size)
+		+ Vector2((-5.1 * leaf_spread + side_turn * side) * head_size, -23.9 * head_size)
 	)
 	var left_leaf_inner := (
 		head_offset
-		+ Vector2((-2.0 * leaf_spread + side_turn * side) * head_size, -23.2 * head_size)
+		+ Vector2((-1.8 * leaf_spread + side_turn * side) * head_size, -22.7 * head_size)
 	)
 	var right_leaf_tip := (
-		head_offset + Vector2((5.8 * leaf_spread + side_turn * side) * head_size, -25.0 * head_size)
+		head_offset + Vector2((5.1 * leaf_spread + side_turn * side) * head_size, -23.9 * head_size)
 	)
 	var right_leaf_inner := (
-		head_offset + Vector2((2.0 * leaf_spread + side_turn * side) * head_size, -23.2 * head_size)
+		head_offset + Vector2((1.8 * leaf_spread + side_turn * side) * head_size, -22.7 * head_size)
 	)
 	canvas._draw_shape(
 		PackedVector2Array([head_offset + Vector2(-1.0, -20.2), left_leaf_tip, left_leaf_inner]),
@@ -1017,13 +1104,13 @@ static func _draw_rootborn_leaf_crown(
 		OUTLINE,
 		0.8
 	)
-	if variant_index > 1:
+	if variant_index > 3:
 		canvas._draw_shape(
 			PackedVector2Array(
 				[
 					head_offset + Vector2(0.0, -20.8),
-					head_offset + Vector2(1.3 * head_size, -25.8 * head_size),
-					head_offset + Vector2(-1.3 * head_size, -23.4 * head_size)
+					head_offset + Vector2(1.1 * head_size, -24.4 * head_size),
+					head_offset + Vector2(-1.1 * head_size, -22.9 * head_size)
 				]
 			),
 			leaf.lightened(0.08),
@@ -1042,7 +1129,8 @@ static func _draw_rootborn_bark_marks(
 	root_color: Color,
 	lichen: Color,
 	front_visible: bool,
-	side_turn: float
+	side_turn: float,
+	show_body_marks: bool
 ) -> void:
 	if front_visible:
 		canvas.draw_line(
@@ -1058,6 +1146,8 @@ static func _draw_rootborn_bark_marks(
 				skin.darkened(0.32),
 				0.75
 			)
+	if not show_body_marks:
+		return
 	canvas.draw_line(
 		canvas._body_point(-torso_width * 0.24, -5.5),
 		canvas._body_point(-torso_width * 0.04, 5.8),

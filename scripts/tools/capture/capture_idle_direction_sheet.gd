@@ -11,7 +11,33 @@ const DEFAULT_WIDTH := 980
 const DEFAULT_HEIGHT := 1500
 const IDLE_LOADOUTS := [
 	{"id": "unarmed", "title": "Unarmed", "equipment": {}},
+	{
+		"id": "leather", "title": "Leather Set",
+		"equipment": {
+			"head": "item_leather_cap",
+			"chest": "item_leather_cuirass",
+			"legs": "item_leather_leggings",
+			"gloves": "item_leather_gloves",
+			"boots": "item_leather_boots"
+		}
+	},
+	{
+		"id": "iron", "title": "Iron Set",
+		"equipment": {
+			"head": "item_iron_helm",
+			"chest": "item_iron_cuirass",
+			"legs": "item_iron_leggings",
+			"gloves": "item_iron_gauntlets",
+			"boots": "item_iron_boots"
+		}
+	},
+	{"id": "hatchet", "title": "Hatchet", "equipment": {"right_hand": "item_road_hatchet"}},
 	{"id": "sword", "title": "Sword", "equipment": {"right_hand": "item_training_sword"}},
+	{
+		"id": "sword_buckler",
+		"title": "Sword + Buckler",
+		"equipment": {"left_hand": "item_traveler_buckler", "right_hand": "item_training_sword"}
+	},
 	{"id": "polearm", "title": "Polearm", "equipment": {"right_hand": "item_test_polearm"}},
 	{"id": "bow", "title": "Bow", "equipment": {"right_hand": "item_hunting_bow"}}
 ]

@@ -103,6 +103,9 @@ Should migrate:
 Recommended final sprite contract:
 
 - Use `64x64` actor frame space.
+- Runtime PNG inputs are horizontal `1024x64` strips: one logical piece across
+  all 16 directions. Use separate left/right hand and foot strips; the combined
+  rows in the large body template are composition guides only.
 - Origin/feet at `(32, 40)` or equivalent imported offset so world origin remains feet center.
 - Direction rows or columns must use the 16-bucket order above.
 - Primary art should be body-part layers, not baked full-character sprites.
@@ -180,16 +183,11 @@ Collision/pick footprint:
 | ID | Kind | Current visual | Collision/pick footprint | Drop-in? | Migrate? | Recommended final contract |
 |---|---|---|---|---|---|---|
 | `object_road_notice` | readable | beige `12x16` rect | default pick `40 px`; interaction from data `128` capped by caller | Yes after sprite node exists | Yes | `32x32` notice/sign icon, `default` |
-| `poi_briarwatch_square` | poi | tiny house/board shape approx `22x20` | large pick `46 px` | No | Yes | Dedicated job board prop, `48x48`, `default/active` |
-| `poi_harrow_forge` | poi | tiny house shape approx `22x20` | large pick `46 px` | No | Yes | Workbench/forge service prop, `48x48` |
-| `poi_harrow_forge_hearth` | poi | tiny house shape approx `22x20` | large pick `46 px` | No | Yes | Hearth prop, `48x48`, `idle/lit` |
+| `poi_briarwatch_square` | poi | freestanding job-board sign | large pick `46 px` | Yes | Yes | Dedicated sign-only job board prop, `32x48`, `default/active`; stands beside the town-hall door |
 | `object_harrow_forge_door` | door | brown `8x18` rect | authored pick `12 px`; door interaction min `48 px` | Yes after sprite node exists | Yes | `32x48`, origin at threshold, `closed/open/locked` |
 | `object_harrow_forge_exit` | door | brown `8x18` rect | authored pick `12 px`; door interaction min `48 px` | Yes after sprite node exists | Yes | `32x48`, origin at threshold, `closed/open/locked` |
-| `object_north_gate` | door | brown `8x18` rect | door interaction min `48 px` | No | Yes | Gate sprite or tile prop, `64x48`, `closed/open/locked` |
-| `object_training_gate` | door | brown `8x18` rect | door interaction min `48 px` | No | Yes | Gate sprite or tile prop, `64x48`, `closed/open/locked` |
 | `object_road_cache` | container | chest rect `14x10` plus band | large pick `46 px` | Yes after sprite node exists | Yes | `32x32`, `closed/open` |
-| `object_warden_cache` | container | chest rect `14x10` plus band | large pick `46 px` | Yes after sprite node exists | Yes | `32x32`, `closed/open` |
-| `object_sealed_strongbox` | container | chest rect `14x10` plus band | large pick `46 px` | Yes after sprite node exists | Yes | `32x32`, `closed/open/locked` |
+| `object_sealed_strongbox` | container | chest rect `14x10` plus band | large pick `46 px` | Yes after sprite node exists | Yes | Warden's Strongbox, `32x32`, `closed/open/locked` |
 | `object_roadside_campfire` | rest | circle ember plus ground line approx `12x13` | large pick `46 px` | Yes after sprite node exists | Yes | `32x32`, `idle/lit`, origin at fire base |
 | `location_briarwatch_crossroads_marker` | location | blue diamond `16x16` | non-interactive by manager; discovery radius `96` | Yes after sprite node exists | Maybe | Map/debug marker or invisible trigger; avoid final visible marker unless design wants it |
 
@@ -198,8 +196,6 @@ Collision/pick footprint:
 | ID | Item | Current visual | Frame/bounds | Collision/pick footprint | Drop-in? | Recommended final contract |
 |---|---|---|---|---|---|---|
 | `pickup_old_toolbox` | `item_old_toolbox` | generic gold `10x10` rect | procedural | default pick `40 px` | Yes after sprite node exists | `32x32` ground item or toolbox prop |
-| `pickup_roadside_draught` | `item_roadside_draught` | generic gold `10x10` rect | procedural | default pick `40 px` | Yes after sprite node exists | `32x32` potion bottle icon/ground sprite |
-| `pickup_river_mint` | `item_river_mint` | generic gold `10x10` rect | procedural | default pick `40 px` | Yes after sprite node exists | `32x32` herb bundle |
 | `pickup_road_hatchet` | `item_road_hatchet` | procedural `placeholder_hatchet` | about `22x13`, rotated by seeded direction | default pick `40 px` | No | Use weapon ground sprite in `32x32`; same item also needs hand layer |
 | `pickup_training_sword` | `item_training_sword` | procedural `placeholder_sword` | about `30x12`, rotated by seeded direction | default pick `40 px` | No | Use weapon ground sprite in `32x32`; same item also needs hand layer |
 | `pickup_test_polearm` | `item_test_polearm` | procedural `placeholder_polearm` | about `66x8`, rotated by seeded direction | default pick `40 px`; visual can exceed pick | No | Use larger `64x32` or `64x64` ground sprite, origin at grip/center |
@@ -275,7 +271,7 @@ Current frame size/full image size:
 - Forge exterior: `6x3` tiles = `96x48`, but drawing extends upward/outside rect with roof/chimney.
 - Forge interior: `12x9` tiles = `192x144`.
 - Shop front: `5x5` tiles = `80x80`.
-- Town hall front: `5x4` tiles = `80x64`.
+- Town hall exterior: `6x4` tiles = `96x64`; its usable interior is a separate `12x9` tile room.
 
 hframes/vframes or SpriteFrames: N/A.
 
@@ -301,8 +297,9 @@ Collision footprint:
 |---|---|---|---|---|
 | `structure_briarwatch_harrow_forge` | `forge_exterior` | No | Yes | Redesign as tile composition plus facade overlay; keep `6x3` footprint |
 | `structure_briarwatch_harrow_forge_interior` | `forge_interior` | No | Yes | Use floor/wall tiles plus props: hearth, anvil, bench, rack, storage |
-| `structure_briarwatch_maera_shop` | `shop_front` | No | Yes | Redesign before art; current shop is only facade hint |
-| `structure_briarwatch_town_hall` | `town_hall_front` | No | Yes | Redesign before art; board/door should be separate interactable props |
+| `structure_briarwatch_maera_shop` | `shop_front` | No | Yes | Maera's working exterior trade stall |
+| `structure_briarwatch_town_hall` | `town_hall_exterior` | No | Yes | Surface facade only; door and sign are separate props, with notices and strongbox inside `structure_briarwatch_town_hall_interior` |
+| `structure_briarwatch_town_hall_interior` | `town_hall_interior` | No | Yes | Use floor/wall tiles plus desk, record shelf, notice board, rug, and cabinet |
 
 ## Item Icon and Equipment Visual Contract
 
@@ -355,8 +352,6 @@ Collision footprint:
 |---|---|---|---|---|
 | `item_gold_coin` | no world/icon art, text only | Yes after icon map exists | Yes | `32x32` icon, optional small ground sparkle/coin stack |
 | `item_old_toolbox` | generic pickup rect | Yes after icon map exists | Yes | `32x32` icon and `32x32` ground sprite |
-| `item_roadside_draught` | generic pickup rect | Yes after icon map exists | Yes | `32x32` potion icon and ground sprite |
-| `item_river_mint` | generic pickup rect | Yes after icon map exists | Yes | `32x32` herb icon and ground sprite |
 | `placeholder_hatchet` / `item_road_hatchet` | procedural hand/ground hatchet | No | Yes | hand layer with grip pivot; `32x32` icon; `32x32` ground sprite |
 | `placeholder_sword` / `item_training_sword` | procedural hand/ground sword | No | Yes | hand layer with grip pivot; `32x32` icon; `32x32` ground sprite |
 | `placeholder_polearm` / `item_test_polearm` | procedural long weapon | No | Yes | hand layer with front/rear grip pivots; `64x64` held frame; `64x32` ground |
@@ -381,7 +376,7 @@ Collision footprint:
 ### 1. Assets safe to replace directly
 
 - Terrain tiles: `grass`, `water`, `bridge`, `stone_wall`, `wood_wall`, `wood_floor`, `hill`, `road`, interior void.
-- Simple static pickups with no held/avatar layer yet: `item_gold_coin`, `item_old_toolbox`, `item_roadside_draught`, `item_river_mint`.
+- Simple static pickups with no held/avatar layer yet: `item_gold_coin`, `item_old_toolbox`.
 - Small static object visuals once a sprite node/path exists: `object_road_notice`, caches/strongboxes, campfire.
 - UI/system icons can stay procedural; replace only if a UI skin pass needs them.
 

@@ -8,12 +8,14 @@ const DEFAULT_OUTPUT_DIR := "res://reports/world_structure_mockup"
 const DEFAULT_WIDTH := 1152
 const DEFAULT_HEIGHT := 648
 const FORGE_DOOR_ID := "object_harrow_forge_door"
+const TOWN_HALL_DOOR_ID := "object_briarwatch_town_hall_door"
 
 
 func _initialize() -> void:
 	_capture.call_deferred()
 
 
+# gdlint:disable=max-returns
 func _capture() -> void:
 	var config := capture_config(OS.get_cmdline_user_args())
 	var output_dir := String(config["output_dir"])
@@ -32,11 +34,42 @@ func _capture() -> void:
 	viewport.add_child(main)
 	await process_frame
 	await process_frame
+	main.begin_new_game()
+	main.debug_character_creator.apply_to_player()
+	await process_frame
 
 	prepare_surface_overview(main)
 	await _settle(main)
 	if not await _save_viewport_image(viewport, output_dir.path_join("surface_overview.png")):
 		return
+	prepare_outside_gate_armour(main)
+	await _settle(main, false)
+	if not await _save_viewport_image(viewport, output_dir.path_join("outside_gate_armour.png")):
+		return
+	main.set_process(true)
+
+	var town_hall_door = main.entities.get_entity(TOWN_HALL_DOOR_ID)
+	if not town_hall_door:
+		printerr("Could not find Briarwatch town hall door.")
+		quit(1)
+		return
+	prepare_town_hall_entrance(main, town_hall_door)
+	await _settle(main)
+	if not await _save_viewport_image(viewport, output_dir.path_join("town_hall_entrance.png")):
+		return
+
+	main._interact_portal(town_hall_door)
+	await _settle(main)
+	if not await _save_viewport_image(viewport, output_dir.path_join("town_hall_interior.png")):
+		return
+
+	var town_hall_exit = main.entities.get_entity("object_briarwatch_town_hall_exit")
+	if not town_hall_exit:
+		printerr("Could not find Briarwatch town hall exit.")
+		quit(1)
+		return
+	main._interact_portal(town_hall_exit)
+	await _settle(main)
 
 	var door = main.entities.get_entity(FORGE_DOOR_ID)
 	if not door:
@@ -55,6 +88,7 @@ func _capture() -> void:
 
 	print("Wrote world structure captures to %s" % absolute_dir)
 	quit()
+# gdlint:enable=max-returns
 
 
 static func capture_config(args: Array) -> Dictionary:
@@ -69,6 +103,14 @@ static func prepare_surface_overview(main) -> void:
 	main._sync_camera_to_player()
 
 
+static func prepare_outside_gate_armour(main) -> void:
+	main.selected_target_id = ""
+	main.manual_target_locked = false
+	main.set_process(false)
+	main.camera.global_position = GridMath.tile_to_world(Vector2i(-18, 0))
+	main.camera.reset_smoothing()
+
+
 static func prepare_forge_entrance(main, door) -> void:
 	main.player.set_world_position(door.global_position + Vector2(-24.0, 18.0))
 	main.player.set_facing_direction((door.global_position - main.player.global_position).normalized())
@@ -78,8 +120,17 @@ static func prepare_forge_entrance(main, door) -> void:
 	main._sync_camera_to_player()
 
 
-func _settle(main) -> void:
-	if main and main.has_method("_sync_camera_to_player"):
+static func prepare_town_hall_entrance(main, door) -> void:
+	main.player.set_world_position(door.global_position + Vector2(-24.0, 18.0))
+	main.player.set_facing_direction((door.global_position - main.player.global_position).normalized())
+	main.selected_target_id = TOWN_HALL_DOOR_ID
+	main.manual_target_locked = true
+	main._update_nearby()
+	main._sync_camera_to_player()
+
+
+func _settle(main, sync_camera: bool = true) -> void:
+	if sync_camera and main and main.has_method("_sync_camera_to_player"):
 		main._sync_camera_to_player()
 	await process_frame
 	await process_frame

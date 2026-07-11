@@ -59,14 +59,54 @@
       "stall": [2, 3]
     }
   },
-  "archetype_briarwatch_town_hall_front": {
-    "id": "archetype_briarwatch_town_hall_front",
-    "name": "Briarwatch Town Hall Front",
+  "archetype_briarwatch_town_hall_exterior": {
+    "id": "archetype_briarwatch_town_hall_exterior",
+    "name": "Briarwatch Town Hall Exterior",
     "role": "surface_exterior",
-    "size": [5, 4],
-    "visual_style": "town_hall_front",
+    "size": [6, 4],
+    "terrain_rows": [
+      "wwwwww",
+      "wwwwww",
+      "wwwwww",
+      "wwwwdf"
+    ],
+    "tile_kinds": {
+      "w": "wood_wall",
+      "d": "wood_floor",
+      "f": "wood_floor"
+    },
+    "visual_style": "town_hall_exterior",
     "anchors": {
-      "notice_board": [3, 1]
+      "entry": [4, 3],
+      "job_board": [6, 3]
+    }
+  },
+  "archetype_briarwatch_town_hall_interior": {
+    "id": "archetype_briarwatch_town_hall_interior",
+    "name": "Briarwatch Town Hall Interior",
+    "role": "interior_room",
+    "size": [12, 9],
+    "terrain_rows": [
+      "wwwwwwwwwwww",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffdfffffw",
+      "wwwwwwwwwwww"
+    ],
+    "tile_kinds": {
+      "w": "wood_wall",
+      "f": "wood_floor",
+      "d": "wood_floor"
+    },
+    "visual_style": "town_hall_interior",
+    "anchors": {
+      "notice": [2, 2],
+      "strongbox": [9, 5],
+      "exit": [5, 7]
     }
   }
 }

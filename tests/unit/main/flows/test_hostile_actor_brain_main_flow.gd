@@ -198,7 +198,6 @@ func test_neutral_npc_defeat_creates_lootable_body() -> void:
 	assert_eq(body.data["equipment_owner_id"], "char_maera_pike")
 	assert_eq(body.data["character_profile"]["state"], "dead_body")
 	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_gold_coin"), 2)
-	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_roadside_draught"), 1)
 
 
 func test_hostile_actor_returns_home_after_leash_breaks() -> void:

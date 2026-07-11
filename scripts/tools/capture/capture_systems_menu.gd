@@ -62,8 +62,6 @@ static func seed_player_facing_menu_state(main) -> void:
 	main.inventory.add_item("item_old_toolbox", 1)
 	main.inventory.add_item("item_road_hatchet", 1)
 	main.inventory.add_item("item_traveler_buckler", 1)
-	main.inventory.add_item("item_river_mint", 2)
-	main.inventory.add_item("item_roadside_draught", 1)
 	main.inventory.add_item("item_gold_coin", 25)
 	if main.equipment:
 		main.equipment.equip_item_to_slot("item_road_hatchet", "right_hand")

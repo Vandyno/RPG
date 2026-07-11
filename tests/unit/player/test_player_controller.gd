@@ -204,6 +204,32 @@ func test_player_health_damage_heal_and_save_load() -> void:
 	assert_almost_eq(loaded.max_mana, 100.0, 0.001)
 
 
+func test_save_load_preserves_humanoid_appearance_profile() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+	player.set_humanoid_profile(
+		{
+			"character_id": "char_player",
+			"people_id": "people_mirefolk",
+			"appearance": {
+				"eye_id": "eyes_mirefolk_narrow",
+				"mouth_id": "mouth_mirefolk_short",
+				"visual_model_id": "people_mirefolk_default"
+			}
+		}
+	)
+
+	var loaded := PlayerController.new()
+	add_child_autofree(loaded)
+	loaded.setup(null, null, Vector2i.ZERO)
+	loaded.load_save_data(player.get_save_data())
+
+	assert_eq(loaded.humanoid_profile["people_id"], "people_mirefolk")
+	assert_eq(loaded.humanoid_profile["appearance"]["eye_id"], "eyes_mirefolk_narrow")
+	assert_eq(loaded.humanoid_profile["appearance"]["mouth_id"], "mouth_mirefolk_short")
+
+
 func test_load_malformed_world_position_falls_back_to_global_tile() -> void:
 	var player := PlayerController.new()
 	add_child_autofree(player)

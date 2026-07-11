@@ -93,12 +93,13 @@ static func context(main) -> TransferContext:
 static func open(ctx: TransferContext, entity: WorldEntity) -> void:
 	var entity_id: String = entity.get_entity_id()
 	var owner_id := _loot_owner_id(entity)
-	var was_open: bool = ctx.chunks.is_object_opened(entity_id, entity.global_tile)
+	var layer := String(entity.world_layer)
+	var was_open := _is_object_opened(ctx.chunks, entity_id, entity.global_tile, layer)
 	var opened: bool = was_open
 	if not was_open:
 		opened = _seed_loot_owner_from_open_effects(ctx, owner_id, entity.data)
 		opened = opened or _owner_has_items(ctx, owner_id)
-		ctx.chunks.mark_object_opened(entity_id, entity.global_tile)
+		_mark_object_opened(ctx.chunks, entity_id, entity.global_tile, layer)
 	ctx.set_transfer(
 		owner_id, entity.get_display_name(), _transfer_source_from_entity(entity, "object")
 	)
@@ -209,6 +210,30 @@ static func _seed_loot_owner_from_open_effects(
 		if ctx.apply_effect(effect):
 			opened = true
 	return opened
+
+
+static func _is_object_opened(chunks, entity_id: String, tile: Vector2i, layer: String) -> bool:
+	if not chunks:
+		return false
+	if _chunk_method_argument_count(chunks, "is_object_opened") >= 3:
+		return bool(chunks.is_object_opened(entity_id, tile, layer))
+	return bool(chunks.is_object_opened(entity_id, tile))
+
+
+static func _mark_object_opened(chunks, entity_id: String, tile: Vector2i, layer: String) -> void:
+	if not chunks:
+		return
+	if _chunk_method_argument_count(chunks, "mark_object_opened") >= 3:
+		chunks.mark_object_opened(entity_id, tile, layer)
+		return
+	chunks.mark_object_opened(entity_id, tile)
+
+
+static func _chunk_method_argument_count(chunks, method_name: String) -> int:
+	for method in chunks.get_method_list():
+		if String(method.get("name", "")) == method_name:
+			return method.get("args", []).size()
+	return 0
 
 
 static func _loot_owner_id(entity: WorldEntity) -> String:

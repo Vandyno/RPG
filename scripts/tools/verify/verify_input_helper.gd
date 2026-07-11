@@ -26,6 +26,21 @@ static func settle_main(tree: SceneTree, main, root_size: Vector2i) -> void:
 	await tree.process_frame
 
 
+static func start_new_game(tree: SceneTree, root: Node, main) -> bool:
+	if bool(main.get("game_started")):
+		return true
+	var new_game := find_button(root, "TitleNewGameButton")
+	if not new_game:
+		return false
+	await real_click_button(tree, root, new_game)
+	var apply := find_button(root, "CreatorApplyButton")
+	if not apply:
+		return false
+	await real_click_button(tree, root, apply)
+	await settle_main(tree, main, tree.root.size)
+	return bool(main.get("game_started"))
+
+
 static func world_click_entity(tree: SceneTree, main, entity_id: String) -> bool:
 	var entity = main.entities.get_entity(entity_id)
 	if not entity:

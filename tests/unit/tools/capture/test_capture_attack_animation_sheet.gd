@@ -39,8 +39,10 @@ func test_filtered_attacks_returns_all_specific_or_empty_match() -> void:
 	var bow_attacks := CaptureAttackAnimationSheet._filtered_attacks("bow")
 	var missing_attacks := CaptureAttackAnimationSheet._filtered_attacks("missing")
 
-	assert_eq(all_attacks.size(), 4)
+	assert_eq(all_attacks.size(), 6)
 	assert_eq(all_attacks[0]["id"], "punch")
+	assert_eq(all_attacks[1]["id"], "hatchet")
+	assert_eq(all_attacks[3]["id"], "sword_buckler")
 	assert_eq(all_attacks[-1]["id"], "bow")
 	assert_eq(bow_attacks, [{"id": "bow", "title": "Hunting Bow", "item_id": "item_hunting_bow"}])
 	assert_true(missing_attacks.is_empty())
@@ -61,6 +63,12 @@ func test_equipment_for_attack_assigns_right_hand_only_when_item_exists() -> voi
 	assert_eq(
 		CaptureAttackAnimationSheet._equipment_for_attack({"item_id": "item_training_sword"}),
 		{"right_hand": "item_training_sword"}
+	)
+	assert_eq(
+		CaptureAttackAnimationSheet._equipment_for_attack(
+			{"item_id": "item_training_sword", "offhand_item_id": "item_traveler_buckler"}
+		),
+		{"left_hand": "item_traveler_buckler", "right_hand": "item_training_sword"}
 	)
 
 

@@ -64,8 +64,8 @@ func test_effect_runner_applies_supported_effects() -> void:
 	assert_eq(factions.get_reputation("faction_road_bandits"), -5)
 	assert_true(runner.apply({"type": "add_experience", "amount": 10}))
 	assert_eq(progression.experience, 10)
-	assert_true(runner.apply({"type": "apply_status", "status_id": "status_road_focus"}))
-	assert_eq(statuses.get_remaining_charges("status_road_focus"), 2)
+	assert_true(runner.apply({"type": "apply_status", "status_id": "status_test_focus"}))
+	assert_eq(statuses.get_remaining_charges("status_test_focus"), 2)
 	assert_true(runner.apply({"type": "advance_time", "hours": 2, "minutes": 30}))
 	assert_eq(time.get_summary(), "Day 1, 10:30 (Morning)")
 
@@ -141,7 +141,7 @@ func test_effect_runner_rejects_unknown_or_invalid_effects() -> void:
 	assert_false(runner.apply({"type": "apply_status", "status_id": ""}))
 	assert_false(runner.apply({"type": "apply_status", "status_id": "missing_status"}))
 	assert_false(
-		runner.apply({"type": "apply_status", "status_id": "status_road_focus", "charges": "two"})
+		runner.apply({"type": "apply_status", "status_id": "status_test_focus", "charges": "two"})
 	)
 
 	assert_true(runner.apply({"type": "discover_location", "location_id": "location_test"}))
@@ -155,6 +155,9 @@ func _make_systems() -> Dictionary:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)
 	content.load_all()
+	content.status_effects = {
+		"status_test_focus": {"name": "Test Focus", "attack_charges": 2, "damage_bonus": 3}
+	}
 	var world_state := WorldStateManager.new()
 	add_child_autofree(world_state)
 	world_state.setup(bus)

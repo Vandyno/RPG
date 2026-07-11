@@ -108,40 +108,40 @@ func test_npc_trade_is_reached_through_dialogue_choice() -> void:
 	assert_eq(main.hud.get_systems_tab(), "trade")
 	assert_false(main.hud.is_content_card_visible())
 	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
-	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Roadside Draught"))
+	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Traveler Buckler"))
 
 
 func test_trade_feedback_reports_price_and_remaining_gold() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	assert_true(main.inventory.add_item("item_gold_coin", 8))
+	assert_true(main.inventory.add_item("item_gold_coin", 18))
 
 	assert_true(await MainFlowInputHelper.target_entity(main, "npc_maera_pike_world", get_tree()))
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "Trade"), get_tree()
 	)
 	await MainFlowInputHelper.click(
-		MainFlowInputHelper.button_containing(main.hud.systems_action_list, "Buy Roadside Draught"),
+		MainFlowInputHelper.button_containing(main.hud.systems_action_list, "Buy Traveler Buckler"),
 		get_tree()
 	)
 
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.inventory.get_count("item_roadside_draught"), 1)
-	assert_true(main.hud.log_label.text.contains("Bought Roadside Draught. Spent 8g. Gold: 0."))
+	assert_eq(main.inventory.get_count("item_traveler_buckler"), 1)
+	assert_true(main.hud.log_label.text.contains("Bought Traveler Buckler. Spent 18g. Gold: 0."))
 
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(main.hud.systems_category_row, "Sell"), get_tree()
 	)
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(
-			main.hud.systems_action_list, "Sell Roadside Draught"
+			main.hud.systems_action_list, "Sell Traveler Buckler"
 		),
 		get_tree()
 	)
 
-	assert_eq(main.inventory.get_count("item_gold_coin"), 6)
-	assert_eq(main.inventory.get_count("item_roadside_draught"), 0)
-	assert_true(main.hud.log_label.text.contains("Sold Roadside Draught. Gained 6g. Gold: 6."))
+	assert_eq(main.inventory.get_count("item_gold_coin"), 8)
+	assert_eq(main.inventory.get_count("item_traveler_buckler"), 0)
+	assert_true(main.hud.log_label.text.contains("Sold Traveler Buckler. Gained 8g. Gold: 8."))
 
 
 func test_real_aim_attack_harms_neutral_npc_and_removes_normal_interaction() -> void:

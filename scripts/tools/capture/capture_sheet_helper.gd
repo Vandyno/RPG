@@ -99,7 +99,8 @@ static func create_viewport(root: Window, width: int, height: int) -> SubViewpor
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(width, height)
 	viewport.disable_3d = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(viewport)
 	return viewport
 
@@ -131,6 +132,12 @@ static func capture_main_scene_png(
 ) -> bool:
 	var main = add_main_scene(root, main_script, width, height)
 	await wait_process_frames(tree, 2)
+	if main.has_method("begin_new_game"):
+		main.begin_new_game()
+		var creator = main.get("debug_character_creator")
+		if creator and creator.has_method("apply_to_player"):
+			creator.apply_to_player()
+		await wait_process_frames(tree, 1)
 	var prepare_result = prepare.callv([main, width, height] + prepare_args)
 	if prepare_result is bool and not bool(prepare_result):
 		if not prepare_error_message.is_empty():
@@ -192,13 +199,17 @@ static func content_load_errors(content) -> Array:
 
 
 static func capture_viewport_image(tree: SceneTree, viewport: SubViewport) -> Image:
-	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-	await tree.process_frame
-	await tree.process_frame
+	viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	for _frame in 2:
+		await tree.process_frame
+		await RenderingServer.frame_post_draw
 	var texture := viewport.get_texture()
 	if texture == null:
 		return null
-	return texture.get_image()
+	var image := texture.get_image()
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	return image
 
 
 static func save_png_image(image: Image, output_path: String) -> Error:

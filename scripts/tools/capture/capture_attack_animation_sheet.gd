@@ -14,7 +14,14 @@ const DEFAULT_HEIGHT := 1900
 const PROGRESS_STEPS := [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
 const ATTACK_SHEETS := [
 	{"id": "punch", "title": "Punch", "item_id": ""},
+	{"id": "hatchet", "title": "Road Hatchet", "item_id": "item_road_hatchet"},
 	{"id": "sword", "title": "Training Sword", "item_id": "item_training_sword"},
+	{
+		"id": "sword_buckler",
+		"title": "Training Sword + Buckler",
+		"item_id": "item_training_sword",
+		"offhand_item_id": "item_traveler_buckler"
+	},
 	{"id": "polearm", "title": "Test Polearm", "item_id": "item_test_polearm"},
 	{"id": "bow", "title": "Hunting Bow", "item_id": "item_hunting_bow"}
 ]
@@ -200,7 +207,11 @@ static func _equipment_for_attack(attack_data: Dictionary) -> Dictionary:
 	var item_id := String(attack_data.get("item_id", ""))
 	if item_id.is_empty():
 		return {}
-	return {"right_hand": item_id}
+	var equipment := {"right_hand": item_id}
+	var offhand_item_id := String(attack_data.get("offhand_item_id", ""))
+	if not offhand_item_id.is_empty():
+		equipment["left_hand"] = offhand_item_id
+	return equipment
 
 
 static func _add_column_labels(page: Control, left: float, top: float, cell_width: float) -> void:

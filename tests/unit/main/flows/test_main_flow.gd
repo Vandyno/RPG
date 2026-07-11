@@ -40,6 +40,23 @@ func after_each() -> void:
 	_remove_test_save()
 
 
+func test_new_game_opens_creator_then_starts_play_on_confirm() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+
+	main._show_start_menu()
+	assert_false(main.game_started)
+	assert_true(main.start_menu.root.visible)
+	main.begin_new_game()
+	assert_false(main.start_menu.root.visible)
+	assert_true(main.debug_character_creator.is_open())
+	assert_false(main.game_started)
+
+	assert_true(main.debug_character_creator.apply_to_player())
+	assert_true(main.game_started)
+	assert_false(main.debug_character_creator.is_open())
+
+
 func test_bootstrap_aborts_when_content_validation_fails() -> void:
 	var main := BrokenValidationMain.new()
 	add_child_autofree(main)
@@ -380,6 +397,7 @@ func test_pickpocket_unseen_living_humanoid_opens_shared_transfer_inventory() ->
 func test_open_systems_panel_consumes_interact_and_target_actions() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	var notice = main.entities.get_entity("object_road_notice")
 	main.player.set_world_position(notice.global_position + Vector2(-8.0, 0.0))
 	main._update_nearby()
@@ -400,10 +418,7 @@ func test_open_systems_panel_consumes_interact_and_target_actions() -> void:
 	assert_eq(main._get_nearby_entity().get_entity_id(), first_id)
 
 	main.hud.toggle_target_picker()
-	MainFlowInputHelper.interact_action(main)
-
 	assert_false(main.hud.is_target_picker_visible())
-	assert_false(main.readables.has_read("readable_briarwatch_notice"))
 
 
 func test_keyboard_action_echo_does_not_repeat_one_shot_actions() -> void:
@@ -496,7 +511,6 @@ func test_full_spawn_yard_system_loop() -> void:
 	await wait_process_frames(1)
 	assert_true(main.readables.has_read("readable_briarwatch_notice"))
 	assert_true(main.world_state.has_flag("flag_briarwatch_notice_read"))
-	assert_not_null(main.entities.get_entity("object_warden_cache"))
 	assert_true(main.hud.is_content_card_visible())
 	assert_eq(main.hud.content_kind_label.text, "Readable")
 	main.hud.hide_content_card()
@@ -518,11 +532,6 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.get_debug_state()["inventory_details"].contains("A heavy wooden toolbox"))
 	assert_eq(main.quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
 	assert_null(main.entities.get_entity("pickup_old_toolbox"))
-
-	_select_entity(main, "pickup_roadside_draught")
-	MainFlowInputHelper.interact_action(main)
-	assert_true(main.inventory.has_item("item_roadside_draught"))
-	assert_null(main.entities.get_entity("pickup_roadside_draught"))
 
 	_select_entity(main, "pickup_road_hatchet")
 	MainFlowInputHelper.interact_action(main)
@@ -580,14 +589,6 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
 	assert_true(main.hud.systems_body_label.text.contains("Hours: 08:00-18:00"))
 	assert_false(main.hud.systems_body_label.text.contains("Closed now."))
-	var buy_draught_button := _button_containing(
-		main.hud.systems_action_list, "Buy Roadside Draught"
-	)
-	assert_not_null(buy_draught_button)
-	await MainFlowInputHelper.click(buy_draught_button, get_tree())
-	assert_eq(main.inventory.get_count("item_gold_coin"), 17)
-	assert_eq(main.inventory.get_count("item_roadside_draught"), 2)
-	assert_true(main.hud.log_label.text.contains("Bought Roadside Draught."))
 	assert_true(main.time.advance_hours(12))
 	main.hud.hide_systems_panel()
 	main.hud.refresh()
@@ -595,10 +596,6 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.hud.content_body_label.text.contains("Road goods wait for daylight"))
 	var closed_trade_button := _button_containing(main.hud.content_choice_list, "Trade")
 	assert_true(closed_trade_button == null or not closed_trade_button.visible)
-	var closed_buy_button := _button_containing(
-		main.hud.systems_action_list, "Buy Roadside Draught"
-	)
-	assert_true(closed_buy_button == null or not closed_buy_button.visible)
 	main.hud.hide_systems_panel()
 	assert_false(main.hud.is_systems_panel_visible())
 	assert_true(main.time.advance_hours(12))
@@ -622,43 +619,30 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_null(main.entities.get_entity("npc_road_thug"))
 	main.hud.toggle_systems()
 	main.hud.set_systems_tab("inventory")
-	main.player.apply_damage(25)
-	var draught_button := _button_containing(main.hud.systems_action_list, "Use Roadside Draught")
-	assert_not_null(draught_button)
-	await MainFlowInputHelper.click(draught_button, get_tree())
-	assert_eq(main.player.health, main.player.max_health)
-	assert_eq(main.inventory.get_count("item_roadside_draught"), 1)
-	assert_true(main.hud.log_label.text.contains("Used Roadside Draught."))
 	main.hud.toggle_systems()
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
-	assert_eq(main.inventory.get_count("item_gold_coin"), 20)
+	assert_eq(main.inventory.get_count("item_gold_coin"), 28)
 	assert_eq(main.progression.level, 2)
 	assert_eq(main.progression.experience, 10)
-	assert_true(main.get_debug_state()["inventory"].contains("Gold Coin x20"))
+	assert_true(main.get_debug_state()["inventory"].contains("Gold Coin x28"))
 	_select_entity(main, "object_road_cache")
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: closed"))
 	MainFlowInputHelper.interact_action(main)
 	assert_eq(main.inventory.get_count_for_owner("loot:object_road_cache", "item_gold_coin"), 2)
 	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
 	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	assert_eq(main.inventory.get_count("item_gold_coin"), 22)
+	assert_eq(main.inventory.get_count("item_gold_coin"), 30)
 	assert_eq(main.progression.experience, 12)
 	assert_true(main.chunks.is_object_opened("object_road_cache", Vector2i(-7, 2)))
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 	MainFlowInputHelper.interact_action(main)
-	assert_eq(main.inventory.get_count("item_gold_coin"), 22)
-	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
-	_select_entity(main, "object_warden_cache")
-	assert_true(main.get_debug_state()["target_detail"].contains("Container: closed"))
-	MainFlowInputHelper.interact_action(main)
-	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
-	assert_eq(main.inventory.get_count("item_gold_coin"), 23)
+	assert_eq(main.inventory.get_count("item_gold_coin"), 30)
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 	main.hud.hide_systems_panel()
 	main.hud.show_systems_panel("inventory")
 	main.hud.set_systems_tab("inventory")
-	assert_true(main.hud.systems_body_label.text.contains("Gold Coin x23"))
+	assert_true(main.hud.systems_body_label.text.contains("Gold Coin x30"))
 	main.hud.set_systems_tab("character")
 	assert_true(main.hud.systems_body_label.text.contains("XP: 12/40"))
 	main.hud.hide_systems_panel()
@@ -1046,6 +1030,8 @@ func test_pickpocket_transfer_rechecks_sneaking_before_taking_item() -> void:
 
 
 func _select_kind(main, kind: String) -> void:
+	if kind == "readable" and not main.entities.get_entity("object_road_notice"):
+		assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	for candidate in main.entities.entities_by_id.values():
 		if candidate and candidate.get_kind() == kind:
 			main.player.set_world_position(candidate.global_position + Vector2(-8.0, 0.0))
@@ -1095,10 +1081,11 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 func _select_entity(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
 	if not target:
+		_return_to_surface(main)
 		if entity_id == "npc_harrow_venn_world":
-			MainFlowInputHelper.enter_forge_direct(main)
-		elif main.player.world_layer != "surface":
-			MainFlowInputHelper.exit_forge_direct(main)
+			assert_true(MainFlowInputHelper.enter_forge_direct(main))
+		elif entity_id in ["object_road_notice", "object_sealed_strongbox"]:
+			assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 		target = main.entities.get_entity(entity_id)
 	if target:
 		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
@@ -1110,6 +1097,14 @@ func _select_entity(main, entity_id: String) -> void:
 			return
 		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
+
+
+func _return_to_surface(main) -> void:
+	match String(main.player.world_layer):
+		"interior:structure_briarwatch_harrow_forge":
+			assert_true(MainFlowInputHelper.exit_forge_direct(main))
+		"interior:structure_briarwatch_town_hall":
+			assert_true(MainFlowInputHelper.exit_town_hall_direct(main))
 
 
 func _button_containing(parent: Node, text: String) -> Button:

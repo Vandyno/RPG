@@ -7,6 +7,8 @@ const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helpe
 const VERIFY_SIZE := Vector2i(1152, 648)
 const NEXT_PEOPLE_BUTTON := "CreatorNextPeopleButton"
 const NEXT_VARIANT_BUTTON := "CreatorNextVariantButton"
+const NEXT_EYES_BUTTON := "CreatorNextEyesButton"
+const NEXT_FACE_VALUE_BUTTON := "CreatorNextFaceValueButton"
 const NEXT_GEAR_BUTTON := "CreatorNextGearButton"
 const APPLY_BUTTON := "CreatorApplyButton"
 const CLOSE_BUTTON := "CreatorCloseButton"
@@ -22,11 +24,33 @@ func _verify() -> void:
 	var main := Main.new()
 	root.add_child(main)
 	await VerifyInputHelper.settle_main(self, main, root.size)
+	if not await VerifyInputHelper.start_new_game(self, root, main):
+		return _fail("New Game real click did not begin play.")
 
 	await VerifyInputHelper.push_key(self, root, KEY_P)
 	await VerifyInputHelper.settle_main(self, main, root.size)
 	if not main.debug_character_creator.is_open():
 		return _fail("P key did not open the debug character creator.")
+
+	var next_eyes := VerifyInputHelper.find_button(
+		main.debug_character_creator.root,
+		NEXT_EYES_BUTTON
+	)
+	if not next_eyes:
+		return _fail("Creator next-eyes button missing.")
+	await VerifyInputHelper.real_click_button(self, root, next_eyes)
+	if main.debug_character_creator.get_current_eye_id() != "eyes_human_soft":
+		return _fail("Creator next-eyes real click did not select soft eyes.")
+
+	var next_face_value := VerifyInputHelper.find_button(
+		main.debug_character_creator.root,
+		NEXT_FACE_VALUE_BUTTON
+	)
+	if not next_face_value:
+		return _fail("Creator next-face-value button missing.")
+	await VerifyInputHelper.real_click_button(self, root, next_face_value)
+	if main.debug_character_creator.get_current_face_value_id() != "brows_human_arched":
+		return _fail("Creator next-face-value real click did not select arched brows.")
 
 	var next_people := VerifyInputHelper.find_button(
 		main.debug_character_creator.root,
@@ -94,6 +118,8 @@ static func required_button_names() -> Array[String]:
 	return [
 		NEXT_PEOPLE_BUTTON,
 		NEXT_VARIANT_BUTTON,
+		NEXT_EYES_BUTTON,
+		NEXT_FACE_VALUE_BUTTON,
 		NEXT_GEAR_BUTTON,
 		APPLY_BUTTON,
 		CLOSE_BUTTON

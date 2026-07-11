@@ -12,9 +12,9 @@ func test_primary_action_button_wraps_long_action_text() -> void:
 	add_child_autofree(hud)
 	hud.setup(bus, Callable(self, "_long_action_state"))
 
-	assert_eq(hud.primary_action_button.text, "Sharpen Road\nHatchet (2g)")
-	assert_eq(hud.primary_action_button.tooltip_text, "Sharpen Road Hatchet (2g)")
-	assert_true(hud.prompt_label.text.begins_with("Sharpen Road Hatchet (2g)\nHarrow's Forge"))
+	assert_eq(hud.primary_action_button.text, "Examine Long\nWarden Notice")
+	assert_eq(hud.primary_action_button.tooltip_text, "Examine Long Warden Notice")
+	assert_true(hud.prompt_label.text.begins_with("Examine Long Warden Notice\nNotice Board"))
 
 
 func test_compact_primary_action_button_names_target_for_short_actions() -> void:
@@ -23,12 +23,12 @@ func test_compact_primary_action_button_names_target_for_short_actions() -> void
 		"Rest\nCampfire"
 	)
 	assert_eq(
-		ButtonTextFormatter.compact_primary_action_label("Open", "Sealed Strongbox"),
+		ButtonTextFormatter.compact_primary_action_label("Open", "Warden's Strongbox"),
 		"Open\nStrongbox"
 	)
 	assert_eq(
-		ButtonTextFormatter.compact_primary_action_label("Sharpen Road Hatchet (2g)", "Forge"),
-		"Sharpen Road\nHatchet (2g)"
+		ButtonTextFormatter.compact_primary_action_label("Examine Long Warden Notice", "Notice Board"),
+		"Examine Long\nWarden Notice"
 	)
 	assert_eq(ButtonTextFormatter.compact_primary_action_label("Stop", "Harrow Venn"), "Stop")
 
@@ -41,7 +41,7 @@ func _long_action_state() -> Dictionary:
 		"player_tile": "(0, 0)",
 		"terrain": "road",
 		"time": "Day 1, 08:00",
-		"nearby": "Harrow's Forge",
-		"primary_action": "Sharpen Road Hatchet (2g)",
-		"target_detail": "Forge: repair and craft hook"
+		"nearby": "Notice Board",
+		"primary_action": "Examine Long Warden Notice",
+		"target_detail": "Readable: Town notice"
 	}

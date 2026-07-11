@@ -13,6 +13,15 @@ const HumanoidRavenfolkFeatureDrawer = preload(
 )
 const HumanoidEquipmentDrawer = preload("res://scripts/characters/humanoid_equipment_drawer.gd")
 const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_item_drawer.gd")
+const HumanoidFacePartLibrary = preload(
+	"res://scripts/characters/humanoid_face_part_library.gd"
+)
+const HumanoidBodyFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_body_feature_drawer.gd"
+)
+const HumanoidSurfaceDetailDrawer = preload(
+	"res://scripts/characters/humanoid_surface_detail_drawer.gd"
+)
 const ItemVisual2D = preload("res://scripts/items/item_visual_2d.gd")
 
 const PALETTES := {
@@ -23,11 +32,11 @@ const PALETTES := {
 	"palette_human_deep_brown":
 	{"skin": Color(0.34, 0.22, 0.16), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
 	"palette_tanglekin_sun_ochre":
-	{"skin": Color(0.58, 0.47, 0.27), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
+	{"skin": Color(0.47, 0.37, 0.21), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
 	"palette_tanglekin_fur_brown":
-	{"skin": Color(0.43, 0.34, 0.21), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
+	{"skin": Color(0.34, 0.26, 0.16), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
 	"palette_tanglekin_dust_gold":
-	{"skin": Color(0.64, 0.54, 0.32), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
+	{"skin": Color(0.53, 0.43, 0.24), "shadow": Color(0.03, 0.025, 0.02, 0.35)},
 	"palette_tuskfolk_umber":
 	{"skin": Color(0.43, 0.30, 0.22), "shadow": Color(0.03, 0.025, 0.02, 0.38)},
 	"palette_tuskfolk_ash":
@@ -66,7 +75,15 @@ const EQUIPMENT_COLORS := {
 	"placeholder_buckler": Color(0.42, 0.30, 0.18),
 	"placeholder_smith_apron": Color(0.38, 0.24, 0.15),
 	"placeholder_leather_vest": Color(0.36, 0.24, 0.14),
+	"placeholder_iron_cuirass": Color(0.45, 0.47, 0.47),
 	"placeholder_leather_cap": Color(0.25, 0.18, 0.12),
+	"placeholder_leather_leggings": Color(0.29, 0.20, 0.12),
+	"placeholder_leather_gloves": Color(0.26, 0.18, 0.11),
+	"placeholder_leather_boots": Color(0.18, 0.12, 0.075),
+	"placeholder_iron_helm": Color(0.42, 0.44, 0.45),
+	"placeholder_iron_leggings": Color(0.38, 0.40, 0.41),
+	"placeholder_iron_gauntlets": Color(0.47, 0.49, 0.49),
+	"placeholder_iron_boots": Color(0.32, 0.34, 0.35),
 	"placeholder_trousers": Color(0.25, 0.22, 0.18),
 	"placeholder_gloves": Color(0.30, 0.22, 0.14),
 	"placeholder_boots": Color(0.18, 0.14, 0.10),
@@ -100,6 +117,7 @@ var attack_pose: Dictionary = {}
 func setup(
 	profile_data: Dictionary = {}, equipped_by_slot: Dictionary = {}, content = null
 ) -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	profile = HumanoidProfile.from_data(profile_data)
 	set_equipped_items(equipped_by_slot, content)
 
@@ -247,11 +265,11 @@ func get_debug_draw_layer_order() -> Array[String]:
 	order.append("body:torso")
 	if equipped_visuals.has("back") and _is_back_view():
 		order.append("equipment:back:front")
-	if equipped_visuals.has("chest"):
-		order.append("equipment:chest")
 	order.append_array(
 		HumanoidPeopleFeatureDrawer.debug_layer_entries(self, people_id, PEOPLE_FEATURE_LAYER_BODY)
 	)
+	if equipped_visuals.has("chest"):
+		order.append("equipment:chest")
 	_append_debug_hand_layer(order, PEOPLE_FEATURE_LAYER_FRONT, proportions)
 	order.append("body:head")
 	order.append_array(
@@ -331,15 +349,19 @@ func _draw() -> void:
 	HumanoidEquipmentDrawer.draw_leg_layer(self, proportions)
 	_draw_hand_layer(skin, proportions, PEOPLE_FEATURE_LAYER_BACK)
 	_draw_torso(skin, proportions)
+	HumanoidBodyFeatureDrawer.draw(self, skin, proportions)
+	HumanoidSurfaceDetailDrawer.draw(self, skin, proportions)
 	HumanoidEquipmentDrawer.draw_back_layer(self, proportions, PEOPLE_FEATURE_LAYER_FRONT)
-	HumanoidEquipmentDrawer.draw_chest_layer(self, proportions)
 	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_BODY)
+	HumanoidEquipmentDrawer.draw_chest_layer(self, proportions)
 	_draw_hand_layer(skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	_draw_head(skin, proportions)
 	HumanoidPeopleFeatureDrawer.draw_layer(self, skin, proportions, PEOPLE_FEATURE_LAYER_FRONT)
 	if HumanoidPeopleFeatureDrawer.should_draw_hair(people_id):
 		_draw_hair(hair_id, hair, proportions)
 	HumanoidEquipmentDrawer.draw_head_layer(self, proportions)
+	if equipped_visuals.has("head"):
+		HumanoidPeopleFeatureDrawer.draw_headgear_face_overlay(self, skin, proportions)
 	_draw_marking(String(appearance.get("marking_id", "")), skin, proportions)
 	if HumanoidPeopleFeatureDrawer.should_draw_generic_face(people_id):
 		_draw_face(proportions)
@@ -362,137 +384,68 @@ func _draw_feet(skin: Color, proportions: Dictionary) -> void:
 		boot_width,
 		boot_height,
 		-1.0,
-		skin.darkened(0.12)
+		skin
 	)
 	_draw_foot(
 		_foot_anchor(1.0, proportions) + _stride_offset(1.0),
 		boot_width,
 		boot_height,
 		1.0,
-		skin.darkened(0.12)
+		skin
 	)
 
 
 func _draw_waist(skin: Color, proportions: Dictionary) -> void:
 	var waist_width := 14.0 * _proportion(proportions, "waist_width")
-	var back_turn := _back_turn_amount()
-	var side_turn := _side_turn_amount()
 	var points := _body_polygon(
 		[
-			Vector2(-waist_width * 0.42, -1.0),
-			Vector2(waist_width * 0.42, -1.0),
-			Vector2(waist_width * 0.56, 7.0),
-			Vector2(waist_width * 0.22, 10.0),
-			Vector2(-waist_width * 0.22, 10.0),
-			Vector2(-waist_width * 0.56, 7.0)
+			Vector2(-waist_width * 0.36, -1.0),
+			Vector2(waist_width * 0.36, -1.0),
+			Vector2(waist_width * 0.45, 2.6),
+			Vector2(waist_width * 0.43, 5.9),
+			Vector2(waist_width * 0.29, 8.6),
+			Vector2(waist_width * 0.12, 10.0),
+			Vector2(-waist_width * 0.12, 10.0),
+			Vector2(-waist_width * 0.29, 8.6),
+			Vector2(-waist_width * 0.43, 5.9),
+			Vector2(-waist_width * 0.45, 2.6)
 		]
 	)
-	_draw_shape(points, skin.darkened(0.08), OUTLINE, 1.2)
-	if back_turn > 0.45:
-		draw_line(_body_point(0.0, 0.0), _body_point(0.0, 7.0), skin.darkened(0.30), 0.75)
-	elif side_turn > 0.55:
-		var side := _face_side()
-		draw_line(
-			_body_point(side * waist_width * 0.08, 0.1),
-			_body_point(side * waist_width * 0.12, 7.2),
-			skin.darkened(0.24),
-			0.7
-		)
-	else:
-		draw_line(_body_point(0.0, 0.0), _body_point(0.0, 7.0), skin.darkened(0.24), 0.65)
-		draw_line(
-			_body_point(-waist_width * 0.32, 2.0),
-			_body_point(waist_width * 0.32, 2.0),
-			skin.lightened(0.12),
-			0.8
-		)
+	# The hips are a live paper-doll piece, not clothing.  Keep the fill flat so
+	# its mechanical seam does not read as a belt, waistband, or apron edge.
+	draw_polygon(points, PackedColorArray([skin]))
+	# The open contour preserves the paper-doll seam at the waist while retaining
+	# a readable, rounded hip silhouette.
+	draw_polyline(PackedVector2Array(points.slice(1, points.size())), OUTLINE, 1.0)
+	draw_line(points[points.size() - 1], points[0], OUTLINE, 1.0)
 
 
 func _draw_torso(skin: Color, proportions: Dictionary) -> void:
 	var shoulder_width := 18.0 * _proportion(proportions, "shoulder_width")
 	var torso_width := 15.0 * _proportion(proportions, "torso_width")
-	var side_turn := _side_turn_amount()
-	var back_turn := _back_turn_amount()
-	var front_turn := _front_turn_amount()
 	var shoulder_roll := sin(_walk_phase()) * move_intensity
 	var shoulder_y := -7.2 + (0.35 * shoulder_roll)
 	var waist_y := 3.3 + (0.15 * shoulder_roll)
 	var torso_points := _body_polygon(
 		[
-			Vector2(-shoulder_width * 0.50, shoulder_y),
-			Vector2(-shoulder_width * 0.18, shoulder_y - 2.2),
-			Vector2(shoulder_width * 0.18, shoulder_y - 2.2),
-			Vector2(shoulder_width * 0.50, shoulder_y),
-			Vector2(torso_width * 0.34, waist_y),
-			Vector2(-torso_width * 0.34, waist_y)
+			Vector2(-shoulder_width * 0.44, shoulder_y),
+			Vector2(-shoulder_width * 0.24, shoulder_y - 0.65),
+			Vector2(shoulder_width * 0.24, shoulder_y - 0.65),
+			Vector2(shoulder_width * 0.44, shoulder_y),
+			Vector2(torso_width * 0.40, shoulder_y + 2.9),
+			Vector2(torso_width * 0.33, waist_y - 0.3),
+			Vector2(torso_width * 0.26, waist_y),
+			Vector2(-torso_width * 0.26, waist_y),
+			Vector2(-torso_width * 0.33, waist_y - 0.3),
+			Vector2(-torso_width * 0.40, shoulder_y + 2.9)
 		]
 	)
-	_draw_shape(torso_points, skin, OUTLINE, 1.25)
-
-	if back_turn > 0.45:
-		var back_plane := _body_polygon(
-			[
-				Vector2(-shoulder_width * 0.26, shoulder_y - 0.5),
-				Vector2(shoulder_width * 0.24, shoulder_y - 0.7),
-				Vector2(torso_width * 0.20, waist_y - 0.4),
-				Vector2(0.0, waist_y + 0.5),
-				Vector2(-torso_width * 0.20, waist_y - 0.4)
-			]
-		)
-		_draw_shape(back_plane, skin.darkened(0.06), Color(0.0, 0.0, 0.0, 0.0), 0.0)
-		draw_line(
-			_body_point(0.0, shoulder_y - 1.0),
-			_body_point(0.0, waist_y + 0.8),
-			skin.darkened(0.25),
-			0.85
-		)
-		return
-	if side_turn > 0.62:
-		var side := _face_side()
-		draw_line(
-			_body_point(side * torso_width * 0.07, shoulder_y - 1.0),
-			_body_point(side * torso_width * 0.09, waist_y + 0.4),
-			skin.lightened(0.10),
-			0.8
-		)
-		draw_line(
-			_body_point(-side * torso_width * 0.22, shoulder_y + 1.0),
-			_body_point(-side * torso_width * 0.16, waist_y),
-			COOL_SHADOW,
-			1.0
-		)
-		return
-	var chest_plane := _body_polygon(
-		[
-			Vector2(-shoulder_width * 0.30, shoulder_y - 0.7),
-			Vector2(0.0, shoulder_y - 1.5),
-			Vector2(shoulder_width * 0.30, shoulder_y - 0.7),
-			Vector2(torso_width * 0.22, waist_y - 0.5),
-			Vector2(0.0, waist_y + 0.6),
-			Vector2(-torso_width * 0.22, waist_y - 0.5)
-		]
-	)
-	_draw_shape(
-		chest_plane, skin.lightened(0.03 + front_turn * 0.02), Color(0.0, 0.0, 0.0, 0.0), 0.0
-	)
-	draw_line(
-		_body_point(0.0, shoulder_y - 0.8),
-		_body_point(0.0, waist_y + 0.5),
-		skin.darkened(0.18),
-		0.8
-	)
-	draw_line(
-		_body_point(-torso_width * 0.26, shoulder_y + 1.8),
-		_body_point(-torso_width * 0.18, waist_y),
-		skin.lightened(0.14),
-		0.9
-	)
-	draw_line(
-		_body_point(torso_width * 0.28, shoulder_y + 1.0),
-		_body_point(torso_width * 0.20, waist_y),
-		COOL_SHADOW,
-		1.2
-	)
+	# Keep the torso flat. Interior shading and a closed lower outline read as a
+	# tunic over the separately animated hips at actual gameplay scale.
+	draw_polygon(torso_points, PackedColorArray([skin]))
+	draw_polyline(PackedVector2Array(torso_points.slice(0, 7)), OUTLINE, 1.25)
+	draw_polyline(PackedVector2Array(torso_points.slice(7, torso_points.size())), OUTLINE, 1.25)
+	draw_line(torso_points[torso_points.size() - 1], torso_points[0], OUTLINE, 1.25)
 
 
 func _draw_hands(skin: Color, proportions: Dictionary) -> void:
@@ -513,8 +466,6 @@ func _draw_hand_with_equipment(side: float, skin: Color, proportions: Dictionary
 func _draw_head(skin: Color, proportions: Dictionary) -> void:
 	var head_radius := 7.0 * _proportion(proportions, "head_size")
 	var head_offset := _head_turn_offset()
-	var side_turn := _side_turn_amount()
-	var face_side := _face_side()
 	var head_points := PackedVector2Array(
 		[
 			head_offset + Vector2(-head_radius * 0.82, -13.4),
@@ -529,18 +480,6 @@ func _draw_head(skin: Color, proportions: Dictionary) -> void:
 		]
 	)
 	_draw_shape(head_points, skin, OUTLINE, 1.2)
-	draw_line(
-		head_offset + Vector2(-head_radius * 0.30, -18.5),
-		head_offset + Vector2(head_radius * 0.25, -18.7),
-		skin.lightened(0.16),
-		1.0
-	)
-	draw_line(
-		head_offset + Vector2(face_side * head_radius * lerpf(0.50, 0.42, side_turn), -14.0),
-		head_offset + Vector2(face_side * head_radius * lerpf(0.32, 0.24, side_turn), -10.2),
-		skin.darkened(0.16),
-		1.0
-	)
 
 
 func _draw_hair(hair_id: String, hair: Color, proportions: Dictionary) -> void:
@@ -630,6 +569,10 @@ func _draw_hair(hair_id: String, hair: Color, proportions: Dictionary) -> void:
 func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> void:
 	if not _should_draw_marking(marking_id):
 		return
+	if marking_id == "marking_chest_band" and equipped_visuals.has("chest"):
+		return
+	if marking_id == "marking_hand_wraps" and equipped_visuals.has("gloves"):
+		return
 	var head_size := _proportion(proportions, "head_size")
 	var mark_color := skin.darkened(0.36)
 	match marking_id:
@@ -648,20 +591,15 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 					mark_color
 				)
 		"marking_chest_band":
-			draw_line(_body_point(-5.4, -2.4), _body_point(5.4, -0.6), mark_color, 0.85)
+			# Kept under the existing ID for authored content compatibility.  It is a
+			# small sternum tattoo now, not a shirt-like horizontal band.
+			for mark_y in [-3.0, -1.4, 0.2]:
+				draw_circle(_body_point(0.0, mark_y), 0.52, mark_color)
 		"marking_hand_wraps":
-			draw_line(
-				_hand_anchor(-1.0, proportions),
-				_hand_anchor(-1.0, proportions) + Vector2(3.4, 0.8),
-				mark_color,
-				0.7
-			)
-			draw_line(
-				_hand_anchor(1.0, proportions),
-				_hand_anchor(1.0, proportions) + Vector2(-3.4, 0.8),
-				mark_color,
-				0.7
-			)
+			# Keep the authored variation without drawing literal bandages on a nude
+			# baseline.  Equipment remains the only source of gloves or wraps.
+			draw_circle(_hand_anchor(-1.0, proportions), 0.55, mark_color)
+			draw_circle(_hand_anchor(1.0, proportions), 0.55, mark_color)
 		"marking_leaf_specks":
 			var head_offset := _head_turn_offset()
 			for dot_index in 3:
@@ -682,20 +620,154 @@ func _draw_marking(marking_id: String, skin: Color, proportions: Dictionary) -> 
 func _draw_face(proportions: Dictionary) -> void:
 	if _back_turn_amount() > 0.55:
 		return
+	var eye_id := _face_part_id("eyes")
+	var brow_id := _face_part_id("brows")
+	var nose_id := _face_part_id("noses")
+	var mouth_id := _face_part_id("mouths")
+	var facial_mark_id := _face_part_id("facial_marks")
 	var head_size := _proportion(proportions, "head_size")
 	var side_turn := _side_turn_amount()
 	var features := _face_feature_positions(head_size)
-	var eye_color := Color(0.025, 0.020, 0.016)
+	var eye_color := _eye_color_for_id(eye_id)
 	var mouth_color := Color(0.16, 0.08, 0.045, 0.55)
 	if side_turn > 0.70:
-		draw_line(features["eye_a"], features["eye_b"], eye_color, 1.0 * head_size)
-		draw_line(features["mouth_a"], features["mouth_b"], mouth_color, 0.75)
+		_draw_eye_style(eye_id, features["eye_a"], features["eye_b"], head_size, eye_color)
+		_draw_brows(brow_id, features["eye_a"], features["eye_b"], head_size, eye_color)
+		_draw_nose(nose_id, features, head_size, eye_color, true)
+		_draw_mouth(mouth_id, features["mouth_a"], features["mouth_b"], head_size, mouth_color)
+		_draw_facial_mark(facial_mark_id, features, head_size, eye_color, true)
 		return
 
-	draw_line(features["left_eye_a"], features["left_eye_b"], eye_color, 1.0 * head_size)
+	_draw_eye_style(
+		eye_id, features["left_eye_a"], features["left_eye_b"], head_size, eye_color
+	)
+	_draw_brows(brow_id, features["left_eye_a"], features["left_eye_b"], head_size, eye_color)
 	if side_turn < 0.75:
-		draw_line(features["right_eye_a"], features["right_eye_b"], eye_color, 1.0 * head_size)
-	draw_line(features["mouth_a"], features["mouth_b"], mouth_color, 0.8)
+		_draw_eye_style(
+			eye_id, features["right_eye_a"], features["right_eye_b"], head_size, eye_color
+		)
+		_draw_brows(
+			brow_id, features["right_eye_a"], features["right_eye_b"], head_size, eye_color
+		)
+	_draw_nose(nose_id, features, head_size, eye_color, false)
+	_draw_mouth(mouth_id, features["mouth_a"], features["mouth_b"], head_size, mouth_color)
+	_draw_facial_mark(facial_mark_id, features, head_size, eye_color, false)
+
+
+func _draw_eye_style(
+	eye_id: String, start: Vector2, end: Vector2, head_size: float, color: Color
+) -> void:
+	var center := start.lerp(end, 0.5)
+	if eye_id.ends_with("_soft"):
+			draw_circle(center, 0.52 * head_size, color)
+	elif eye_id.ends_with("_sharp") or eye_id.ends_with("_narrow"):
+			draw_line(
+				start + Vector2(0.0, 0.34 * head_size),
+				end + Vector2(0.0, -0.34 * head_size),
+				color,
+				0.82 * head_size
+			)
+	elif eye_id.ends_with("_sleepy"):
+			draw_line(
+				start + Vector2(0.0, 0.24 * head_size),
+				end + Vector2(0.0, 0.24 * head_size),
+				color,
+				0.62 * head_size
+			)
+	else:
+		draw_circle(center, 0.70 * head_size, color)
+
+
+func _draw_brows(
+	brow_id: String, eye_start: Vector2, eye_end: Vector2, head_size: float, color: Color
+) -> void:
+	if brow_id.ends_with("_none"):
+		return
+	var lift := 1.45 * head_size
+	var start := eye_start + Vector2(0.0, -lift)
+	var end := eye_end + Vector2(0.0, -lift)
+	if brow_id.ends_with("_arched") or brow_id.ends_with("_leaf"):
+		var center := start.lerp(end, 0.5) + Vector2(0.0, -0.52 * head_size)
+		draw_polyline(PackedVector2Array([start, center, end]), color, 0.62 * head_size)
+		return
+	var width := 0.95 * head_size if brow_id.ends_with("_heavy") else 0.62 * head_size
+	draw_line(start, end, color, width)
+
+
+func _draw_nose(
+	nose_id: String, features: Dictionary, head_size: float, color: Color, side_view: bool
+) -> void:
+	var mouth_a: Vector2 = features["mouth_a"]
+	var mouth_b: Vector2 = features["mouth_b"]
+	var center := mouth_a.lerp(mouth_b, 0.5) + Vector2(0.0, -1.55 * head_size)
+	if side_view:
+		draw_line(center + Vector2(0.0, -0.32 * head_size), center, color, 0.56 * head_size)
+		return
+	if nose_id.ends_with("_broad") or nose_id.ends_with("_beak_short"):
+		draw_line(
+			center + Vector2(-0.72 * head_size, 0.0),
+			center + Vector2(0.72 * head_size, 0.0),
+			color,
+			0.52 * head_size
+		)
+	else:
+		draw_circle(center, 0.40 * head_size, color)
+
+
+func _draw_mouth(
+	mouth_id: String, start: Vector2, end: Vector2, head_size: float, color: Color
+) -> void:
+	if mouth_id.ends_with("_smile") or mouth_id.ends_with("_grin"):
+		var center := start.lerp(end, 0.5) + Vector2(0.0, 0.34 * head_size)
+		draw_polyline(PackedVector2Array([start, center, end]), color, 0.62)
+		return
+	if mouth_id.ends_with("_grim"):
+		draw_line(start, end, color, 1.0)
+		return
+	draw_line(start, end, color, 0.8)
+
+
+func _draw_facial_mark(
+	mark_id: String, features: Dictionary, head_size: float, color: Color, side_view: bool
+) -> void:
+	if mark_id.is_empty():
+		return
+	var eye: Vector2 = features["eye_a"] if side_view else features["left_eye_a"]
+	if mark_id.ends_with("_freckles"):
+		for offset in [-0.75, 0.0, 0.75]:
+			draw_circle(eye + Vector2(offset * head_size, 1.25 * head_size), 0.24 * head_size, color)
+	elif mark_id.ends_with("_scar"):
+		draw_line(
+			eye + Vector2(-0.60 * head_size, -0.80 * head_size),
+			eye + Vector2(0.55 * head_size, 1.35 * head_size),
+			color,
+			0.52
+		)
+	elif not side_view:
+		draw_circle(eye + Vector2(0.0, 1.35 * head_size), 0.34 * head_size, color)
+
+
+func _face_part_id(part_id: String) -> String:
+	var appearance: Dictionary = profile.get("appearance", {})
+	var field_by_part := {
+		"eyes": "eye_id",
+		"brows": "brow_id",
+		"noses": "nose_id",
+		"mouths": "mouth_id",
+		"facial_marks": "facial_mark_id"
+	}
+	var field_id := String(field_by_part.get(part_id, ""))
+	return HumanoidFacePartLibrary.resolve_id(
+		String(profile.get("people_id", "")), part_id, String(appearance.get(field_id, ""))
+	)
+
+
+func _eye_color_for_id(eye_id: String) -> Color:
+	if eye_id.ends_with("_amber") or eye_id.ends_with("_gold"):
+		return Color(0.86, 0.70, 0.28)
+	if eye_id.ends_with("_moss"):
+		return Color(0.52, 0.72, 0.34)
+	return Color(0.025, 0.020, 0.016)
 
 
 func _equipment_color(slot_id: String) -> Color:
@@ -790,12 +862,6 @@ func _draw_mitten(center: Vector2, radius: float, side: float, skin: Color) -> v
 		]
 	)
 	_draw_shape(points, skin, OUTLINE, 1.0)
-	draw_line(
-		center + Vector2(-radius * 0.15 * side, -radius * 0.30),
-		center + Vector2(radius * 0.35 * side, radius * 0.18),
-		skin.lightened(0.14),
-		0.7
-	)
 
 
 func _foot_anchor(side: float, proportions: Dictionary) -> Vector2:
@@ -906,6 +972,11 @@ func _hand_sides_for_layer(layer_id: String, proportions: Dictionary) -> Array:
 func _near_hand_sides(proportions: Dictionary) -> Array:
 	var forward := _facing_forward()
 	if forward.y > 0.45:
+		# A straight-on silhouette keeps both hands forward. At a front-diagonal
+		# angle, though, only the turning-side arm is in front of the torso; the
+		# far arm must stay beneath body and chest equipment.
+		if absf(forward.x) > 0.12:
+			return [_face_side()]
 		return [-1.0, 1.0]
 	if forward.y < -0.45:
 		return []

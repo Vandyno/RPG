@@ -3,6 +3,7 @@ extends GutTest
 const CaptureWorldStructureArea = preload(
 	"res://scripts/tools/capture/capture_world_structure_area.gd"
 )
+const GridMath = preload("res://scripts/core/grid_math.gd")
 
 
 class PlayerStub:
@@ -24,20 +25,35 @@ class PlayerStub:
 		facing_values.append(direction)
 
 
+class CameraStub:
+	extends RefCounted
+
+	var global_position := Vector2.ZERO
+	var reset_calls := 0
+
+	func reset_smoothing() -> void:
+		reset_calls += 1
+
+
 class MainStub:
 	extends RefCounted
 
 	var player := PlayerStub.new()
 	var selected_target_id := "old_target"
 	var manual_target_locked := true
+	var camera := CameraStub.new()
 	var sync_calls := 0
 	var update_nearby_calls := 0
+	var process_values: Array[bool] = []
 
 	func _sync_camera_to_player() -> void:
 		sync_calls += 1
 
 	func _update_nearby() -> void:
 		update_nearby_calls += 1
+
+	func set_process(value: bool) -> void:
+		process_values.append(value)
 
 
 class DoorStub:
@@ -73,6 +89,20 @@ func test_prepare_surface_overview_positions_player_and_clears_target() -> void:
 	assert_eq(main.sync_calls, 1)
 
 
+func test_prepare_outside_gate_armour_frames_the_two_equipped_raiders() -> void:
+	var main := MainStub.new()
+
+	CaptureWorldStructureArea.prepare_outside_gate_armour(main)
+
+	assert_true(main.player.global_tiles.is_empty())
+	assert_true(main.player.facing_values.is_empty())
+	assert_eq(main.selected_target_id, "")
+	assert_false(main.manual_target_locked)
+	assert_eq(main.process_values, [false])
+	assert_eq(main.camera.global_position, GridMath.tile_to_world(Vector2i(-18, 0)))
+	assert_eq(main.camera.reset_calls, 1)
+
+
 func test_prepare_forge_entrance_positions_player_targets_door_and_updates_nearby() -> void:
 	var main := MainStub.new()
 	var door := DoorStub.new()
@@ -82,6 +112,20 @@ func test_prepare_forge_entrance_positions_player_targets_door_and_updates_nearb
 	assert_eq(main.player.world_positions, [Vector2(76, 88)])
 	assert_true(main.player.facing_values[0].is_equal_approx(Vector2(24, -18).normalized()))
 	assert_eq(main.selected_target_id, CaptureWorldStructureArea.FORGE_DOOR_ID)
+	assert_true(main.manual_target_locked)
+	assert_eq(main.update_nearby_calls, 1)
+	assert_eq(main.sync_calls, 1)
+
+
+func test_prepare_town_hall_entrance_positions_player_targets_door_and_updates_nearby() -> void:
+	var main := MainStub.new()
+	var door := DoorStub.new()
+
+	CaptureWorldStructureArea.prepare_town_hall_entrance(main, door)
+
+	assert_eq(main.player.world_positions, [Vector2(76, 88)])
+	assert_true(main.player.facing_values[0].is_equal_approx(Vector2(24, -18).normalized()))
+	assert_eq(main.selected_target_id, CaptureWorldStructureArea.TOWN_HALL_DOOR_ID)
 	assert_true(main.manual_target_locked)
 	assert_eq(main.update_nearby_calls, 1)
 	assert_eq(main.sync_calls, 1)

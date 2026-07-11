@@ -149,6 +149,12 @@ static func draw_front(
 	var feather_color: Color = _feather_color(skin, appearance)
 	var feather_shadow: Color = feather_color.darkened(0.38)
 	var bone_color: Color = Color(0.74, 0.66, 0.42).lerp(feather_color.lightened(0.24), 0.18)
+	var eye_id := _face_id(appearance, "eye_id", "eyes_ravenfolk_gold")
+	var brow_id := _face_id(appearance, "brow_id", "brows_ravenfolk_none")
+	var nose_id := _face_id(appearance, "nose_id", "nose_ravenfolk_beak_short")
+	var mouth_id := _face_id(appearance, "mouth_id", "mouth_ravenfolk_beak")
+	var mark_id := _face_id(appearance, "facial_mark_id", "")
+	var eye_color := bone_color.lightened(0.38) if eye_id.ends_with("_pale") else bone_color
 	if feature_ids.has("feature_ravenfolk_head_crest"):
 		_draw_head_crest(
 			canvas,
@@ -161,10 +167,15 @@ static func draw_front(
 			feather_shadow
 		)
 	if front_visible:
-		_draw_brow(canvas, head_size, head_offset, side_turn, bone_color, feather_shadow)
+		_draw_brow(canvas, head_size, head_offset, side_turn, eye_color, feather_shadow, brow_id)
 		if feature_ids.has("feature_ravenfolk_beak"):
-			_draw_beak(canvas, head_size, head_offset, side_turn, side, bone_color)
-	if feature_ids.has("feature_ravenfolk_quill_marks") and front_visible:
+			_draw_beak(canvas, head_size, head_offset, side_turn, side, bone_color, nose_id, mouth_id)
+	if front_visible and mark_id.ends_with("_cheek"):
+		_draw_cheek_marks(canvas, head_size, head_offset, feather_shadow)
+	if front_visible and (
+		mark_id.ends_with("_quills")
+		or (mark_id.is_empty() and feature_ids.has("feature_ravenfolk_quill_marks"))
+	):
 		var quill_color: Color = feather_shadow.darkened(0.10)
 		for mark_index in 3:
 			var x: float = -4.4 + mark_index * 4.4
@@ -199,9 +210,16 @@ static func _variant_index(appearance: Dictionary = {}) -> int:
 	return StableHash.index(variant_key, FEATHER_TINTS.size())
 
 
+static func _face_id(appearance: Dictionary, field_id: String, fallback: String) -> String:
+	var value := String(appearance.get(field_id, "")).strip_edges()
+	return value if not value.is_empty() else fallback
+
+
 static func _feather_color(skin: Color, appearance: Dictionary = {}) -> Color:
 	var feather_tint: Color = FEATHER_TINTS[_variant_index(appearance)]
-	return skin.darkened(0.08).lerp(feather_tint, 0.46)
+	# Ravenfolk must stay dark, but a near-black fill disappears into common cave,
+	# forest, and nighttime ground.  Keep a small neutral lift for readable form.
+	return skin.lightened(0.13).lerp(feather_tint.lightened(0.08), 0.42)
 
 
 static func _draw_head_crest(
@@ -254,8 +272,9 @@ static func _draw_brow(
 	head_size: float,
 	head_offset: Vector2,
 	side_turn: float,
-	bone_color: Color,
-	feather_shadow: Color
+	eye_color: Color,
+	feather_shadow: Color,
+	brow_id: String
 ) -> void:
 	var brow := PackedVector2Array(
 		[
@@ -267,27 +286,51 @@ static func _draw_brow(
 		]
 	)
 	canvas._draw_shape(brow, feather_shadow, Color(0.0, 0.0, 0.0, 0.0), 0.0)
+	if brow_id.ends_with("_quill"):
+		canvas.draw_line(
+			head_offset + Vector2(-3.8 * head_size, -17.9),
+			head_offset + Vector2(-1.5 * head_size, -19.0),
+			feather_shadow.lightened(0.22),
+			0.45
+		)
+		canvas.draw_line(
+			head_offset + Vector2(1.5 * head_size, -19.0),
+			head_offset + Vector2(3.8 * head_size, -17.9),
+			feather_shadow.lightened(0.22),
+			0.45
+		)
 	if side_turn >= 0.70:
-		canvas.draw_circle(near_eye_point(canvas, head_size), 0.85 * head_size, bone_color)
+		canvas.draw_circle(near_eye_point(canvas, head_size), 0.85 * head_size, eye_color)
 	else:
 		canvas.draw_circle(
-			head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, bone_color
+			head_offset + Vector2(-1.8 * head_size, -14.4), 0.85 * head_size, eye_color
 		)
 		canvas.draw_circle(
-			head_offset + Vector2(1.8 * head_size, -14.4), 0.72 * head_size, bone_color
+			head_offset + Vector2(1.8 * head_size, -14.4), 0.72 * head_size, eye_color
 		)
 
 
 static func _draw_beak(
-	canvas, head_size: float, head_offset: Vector2, side_turn: float, side: float, bone_color: Color
+	canvas,
+	head_size: float,
+	head_offset: Vector2,
+	side_turn: float,
+	side: float,
+	bone_color: Color,
+	nose_id: String,
+	mouth_id: String
 ) -> void:
+	var long_beak := nose_id.ends_with("_long")
+	var hooked_beak := mouth_id.ends_with("_hooked")
+	var tip_y := -6.2 if hooked_beak else -7.0
+	var tip_x := 2.7 if long_beak else 1.9
 	if side_turn < 0.45:
 		canvas._draw_shape(
 			PackedVector2Array(
 				[
 					head_offset + Vector2(-1.9 * head_size, -12.8),
-					head_offset + Vector2(1.9 * head_size, -12.8),
-					head_offset + Vector2(0.0, -7.0)
+					head_offset + Vector2(tip_x * head_size, -12.8),
+					head_offset + Vector2(0.0, tip_y)
 				]
 			),
 			bone_color.darkened(0.06),
@@ -296,17 +339,32 @@ static func _draw_beak(
 		)
 		canvas.draw_line(
 			head_offset + Vector2(0.0, -12.4),
-			head_offset + Vector2(0.0, -7.4),
+			head_offset + Vector2(0.0, tip_y - 0.4),
 			bone_color.lightened(0.22),
 			0.45
 		)
 		return
-	canvas._draw_shape(
-		side_beak_points(canvas, head_size), bone_color.darkened(0.06), OUTLINE, 0.62
-	)
+	var points := side_beak_points(canvas, head_size)
+	if long_beak:
+		points[1].x += side * 1.8 * head_size
+	if hooked_beak:
+		points[2].y += 1.1 * head_size
+	canvas._draw_shape(points, bone_color.darkened(0.06), OUTLINE, 0.62)
 	canvas.draw_line(
 		head_offset + Vector2(side * 1.0 * head_size, -12.6),
-		head_offset + Vector2(side * 4.3 * head_size, -11.7),
+		head_offset + Vector2(side * (4.3 + (1.6 if long_beak else 0.0)) * head_size, -11.7),
 		bone_color.lightened(0.24),
 		0.45
 	)
+
+
+static func _draw_cheek_marks(
+	canvas, head_size: float, head_offset: Vector2, feather_shadow: Color
+) -> void:
+	for side in [-1.0, 1.0]:
+		canvas.draw_line(
+			head_offset + Vector2(side * 4.6 * head_size, -13.5),
+			head_offset + Vector2(side * 3.3 * head_size, -11.7),
+			feather_shadow.lightened(0.18),
+			0.45
+		)

@@ -7,24 +7,24 @@ const RpgSystemsRowPresentation = preload(
 )
 
 
-func test_seed_ingredient_pickup_feeds_inventory_ingredient_tab() -> void:
+func test_seed_weapon_pickup_feeds_inventory_weapon_tab() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
-	var mint = main.entities.get_entity("pickup_river_mint")
-	assert_not_null(mint)
-	main.player.set_world_position(mint.global_position)
+	var hatchet = main.entities.get_entity("pickup_road_hatchet")
+	assert_not_null(hatchet)
+	main.player.set_world_position(hatchet.global_position)
 	main._update_nearby()
 
-	_select_entity(main, "pickup_river_mint")
+	_select_entity(main, "pickup_road_hatchet")
 	main._handle_interact_requested()
 
-	assert_eq(main.inventory.get_count("item_river_mint"), 2)
+	assert_eq(main.inventory.get_count("item_road_hatchet"), 1)
 	assert_true(
 		RpgSystemsRowPresentation.hidden_text(
-			RpgSystemsRowBuilder.rows(main.get_hud_state(), "inventory", [], "ingredients")
-		).contains("River Mint")
+			RpgSystemsRowBuilder.rows(main.get_hud_state(), "inventory", [], "weapons")
+		).contains("Road Hatchet")
 	)
-	assert_null(main.entities.get_entity("pickup_river_mint"))
+	assert_null(main.entities.get_entity("pickup_road_hatchet"))
 
 
 func _select_entity(main, entity_id: String) -> void:

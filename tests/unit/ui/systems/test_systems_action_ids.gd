@@ -12,6 +12,7 @@ func test_systems_action_ids_build_and_parse_slot_actions() -> void:
 		SystemsActionIds.parse(action_id),
 		{"action": "equip_slot", "target_id": "item_road_hatchet", "slot_id": "right_hand"}
 	)
+	assert_eq(SystemsActionIds.open_appearance(), "ui:appearance")
 
 
 func test_trade_sell_rows_filter_by_action_id() -> void:

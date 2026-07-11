@@ -362,10 +362,6 @@ Example:
     "close_hour": 18,
     "stock": [
       {
-        "item_id": "item_roadside_draught",
-        "price": 8
-      },
-      {
         "item_id": "item_traveler_buckler",
         "price": 18
       }
@@ -379,7 +375,7 @@ items should not be sellable, and equipped items remain protected from selling.
 If a shop has hours, the Trade tab should show the hours and hide buy/sell
 actions while the shop is closed.
 
-Good shop stock should support nearby gameplay tests: healing, equipment,
+Good shop stock should support nearby gameplay tests: equipment,
 currency flow, and basic buy/sell behavior should all be reachable near the
 current spawn while the systems are still being hardened. At least one early
 shop should also be testable after resting into a closed time window.
@@ -600,17 +596,8 @@ Level-ups grant skill points. Skill points are intentionally banked for now;
 there are no implemented trainable stats until the stat model is designed.
 
 Status effects are defined in `data/status_effects.json` and can be applied by
-any authored effect list:
-
-```json
-{
-  "type": "apply_status",
-  "status_id": "status_road_focus",
-  "charges": 2
-}
-```
-
-If `charges` is omitted, the status uses its authored `attack_charges`.
+authored effect lists when a concrete gameplay slice needs them. No status is
+currently authored for Briarwatch.
 
 Time can be advanced by authored effects:
 
@@ -983,6 +970,9 @@ A copper medallion showing a faceless saint with raised hands. The back is scrat
 
 Equipment items use normal item definitions plus an `equipment_slot`.
 
+Visible humanoid equipment uses `avatar_visual.visual_layer_id`, drawn by the
+shared procedural avatar renderer.
+
 Supported early slots:
 
 - `weapon`
@@ -1011,18 +1001,8 @@ Example:
 
 ## Status Effects
 
-Status effects live in `data/status_effects.json`. Current status definitions
-use attack charges, which are consumed when the player attacks.
-
-```json
-{
-  "id": "status_road_focus",
-  "name": "Road Focus",
-  "description": "A steadying rush that makes the next few strikes hit harder.",
-  "attack_charges": 2,
-  "damage_bonus": 3
-}
-```
+Status effects live in `data/status_effects.json`. The current Briarwatch slice
+does not author one yet.
 
 Consumables, readables, containers, doors, quest rewards, or dialogue choices can
 apply statuses through `apply_status`. Active statuses are shown in the HUD and
@@ -1085,9 +1065,6 @@ for simple costs:
   ]
 }
 ```
-
-For example, Harrow's Forge uses an action that requires `item_road_hatchet` and
-2 gold, removes the gold, and applies a short sharpening status.
 
 Service POIs can open a supported Systems tab directly. A market stall can link
 to a shop:
@@ -1154,7 +1131,7 @@ the conditions are not met:
 ```json
 {
   "id": "object_sealed_strongbox",
-  "name": "Sealed Strongbox",
+  "name": "Warden's Strongbox",
   "kind": "container",
   "global_tile": [7, 0],
   "interaction_radius": 128,
@@ -1169,7 +1146,7 @@ the conditions are not met:
     {
       "type": "add_item",
       "item_id": "item_gold_coin",
-      "count": 4
+      "count": 5
     }
   ]
 }
@@ -1182,8 +1159,8 @@ that should be data-driven:
 
 ```json
 {
-  "id": "object_warden_cache",
-  "name": "Warden's Cache",
+  "id": "object_aftermath_cache",
+  "name": "Aftermath Cache",
   "kind": "container",
   "global_tile": [5, 3],
   "conditions": [
@@ -1209,8 +1186,8 @@ with containers:
 
 ```json
 {
-  "id": "object_north_gate",
-  "name": "North Gate",
+  "id": "object_example_route_gate",
+  "name": "Route Gate",
   "kind": "door",
   "global_tile": [0, -7],
   "interaction_radius": 128,
@@ -1220,11 +1197,11 @@ with containers:
       "readable_id": "readable_briarwatch_notice"
     }
   ],
-  "locked_text": "The north gate chain is marked with the warden's notice seal.",
+  "locked_text": "The route gate chain is marked with the notice seal.",
   "effects_on_open": [
     {
       "type": "set_flag",
-      "flag_id": "flag_north_gate_opened",
+      "flag_id": "flag_example_route_gate_opened",
       "value": true
     },
     {
@@ -1240,8 +1217,8 @@ authored access without custom code:
 
 ```json
 {
-  "id": "object_training_gate",
-  "name": "Training Gate",
+  "id": "object_example_training_door",
+  "name": "Training Door",
   "kind": "door",
   "global_tile": [-7, 1],
   "interaction_radius": 128,
@@ -1252,11 +1229,11 @@ authored access without custom code:
       "count": 1
     }
   ],
-  "locked_text": "The training gate's lever is notched for a training sword.",
+  "locked_text": "The training door's lever is notched for a training sword.",
   "effects_on_open": [
     {
       "type": "set_flag",
-      "flag_id": "flag_training_gate_opened",
+      "flag_id": "flag_example_training_door_opened",
       "value": true
     }
   ]

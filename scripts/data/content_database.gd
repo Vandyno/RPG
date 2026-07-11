@@ -5,6 +5,9 @@ extends Node
 const HumanoidProfileResolver = preload("res://scripts/characters/humanoid_profile_resolver.gd")
 const ContentSchemaValidator = preload("res://scripts/data/content_schema_validator.gd")
 const ContentItemValidator = preload("res://scripts/data/content_item_validator.gd")
+const ContentHumanoidFaceValidator = preload(
+	"res://scripts/data/content_humanoid_face_validator.gd"
+)
 const ContentPeopleValidator = preload("res://scripts/data/content_people_validator.gd")
 const ContentQuestValidator = preload("res://scripts/data/content_quest_validator.gd")
 const ContentWorldValidator = preload("res://scripts/data/content_world_validator.gd")
@@ -16,6 +19,7 @@ var npcs: Dictionary = {}
 var character_profiles: Dictionary = {}
 var people: Dictionary = {}
 var people_visual_models: Dictionary = {}
+var humanoid_face_parts: Dictionary = {}
 var dialogues: Dictionary = {}
 var locations: Dictionary = {}
 var factions: Dictionary = {}
@@ -38,6 +42,7 @@ func load_all() -> Array[String]:
 	character_profiles = _load_dictionary("res://data/character_profiles.json")
 	people = _load_dictionary("res://data/people.json")
 	people_visual_models = _load_dictionary("res://data/people_visual_models.json")
+	humanoid_face_parts = _load_dictionary("res://data/humanoid_face_parts.json")
 	dialogues = _load_dictionary("res://data/dialogues.json")
 	locations = _load_dictionary("res://data/locations.json")
 	factions = _load_dictionary("res://data/factions.json")
@@ -133,6 +138,10 @@ func get_people_bonuses(people_id: String) -> Dictionary:
 
 func get_people_visual_model(people_id: String) -> Dictionary:
 	return _dictionary_copy(people_visual_models.get(people_id, {}))
+
+
+func get_humanoid_face_catalog() -> Dictionary:
+	return humanoid_face_parts.duplicate(true)
 
 
 func has_people_visual_model(people_id: String) -> bool:
@@ -278,6 +287,7 @@ func world_structure_entries() -> Array[Dictionary]:
 func validate_all() -> Array[String]:
 	var errors: Array[String] = []
 	ContentItemValidator.validate(self, errors)
+	ContentHumanoidFaceValidator.validate(self, errors)
 	ContentQuestValidator.validate(self, errors)
 	ContentPeopleValidator.validate(self, errors)
 	ContentWorldValidator.validate(self, errors)

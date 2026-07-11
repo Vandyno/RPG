@@ -1,9 +1,1 @@
-{
-  "status_road_focus": {
-    "id": "status_road_focus",
-    "name": "Road Focus",
-    "description": "A steadying rush that makes the next few strikes hit harder.",
-    "attack_charges": 2,
-    "damage_bonus": 3
-  }
-}
+{}

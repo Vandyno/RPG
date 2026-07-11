@@ -29,6 +29,7 @@ const EquipmentManagerScript = preload("res://scripts/managers/actors/equipment_
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const SaveManagerScript = preload("res://scripts/managers/persistence/save_manager.gd")
 const RpgHudScript = preload("res://scripts/ui/rpg/rpg_hud.gd")
+const GameStartMenuScript = preload("res://scripts/ui/start/game_start_menu.gd")
 const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const DebugCharacterCreatorScript = preload("res://scripts/ui/debug/debug_character_creator.gd")
 const InteractionTargetSelector = preload("res://scripts/main/input/interaction_target_selector.gd")
@@ -72,6 +73,8 @@ var save_manager: SaveManager
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
+var start_menu: GameStartMenu
+var game_started := false
 var camera: Camera2D
 var active_interaction_id := ""
 var target_cycle_index := 0
@@ -101,10 +104,16 @@ var held_weapon_attack_elapsed: Dictionary = {}
 
 func _ready() -> void:
 	if _bootstrap():
-		event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
+		if _running_unit_tests():
+			game_started = true
+			start_menu.hide_menu()
+		else:
+			_show_start_menu()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not game_started:
+		return
 	MainInputRouter.handle_event(MainInputRouter.context(self), event)
 
 
@@ -208,6 +217,7 @@ func _bootstrap() -> bool:
 	_bootstrap_hud()
 	_bootstrap_debug_character_creator()
 	_bootstrap_runtime_signals()
+	_bootstrap_start_menu()
 	streamer.update_center(player.global_tile, player.world_layer)
 	_sync_camera_to_player()
 	return true
@@ -468,6 +478,61 @@ func _bootstrap_debug_character_creator() -> void:
 			)
 			_refresh_hud()
 	)
+	debug_character_creator.creation_confirmed.connect(_on_new_character_confirmed)
+	debug_character_creator.creation_cancelled.connect(_show_start_menu)
+
+
+func _bootstrap_start_menu() -> void:
+	start_menu = GameStartMenuScript.new()
+	start_menu.name = "GameStartMenu"
+	add_child(start_menu)
+	start_menu.setup(FileAccess.file_exists(save_manager.save_path))
+	start_menu.new_game_pressed.connect(begin_new_game)
+	start_menu.continue_pressed.connect(continue_game)
+
+
+func begin_new_game() -> void:
+	if not debug_character_creator:
+		return
+	if start_menu:
+		start_menu.hide_menu()
+	debug_character_creator.begin_new_character()
+
+
+func continue_game() -> void:
+	var result := save_manager.load_game() if save_manager else null
+	if result == null or not result.ok:
+		if start_menu:
+			start_menu.set_status(
+				"Could not load that journey. Start a new one or check the save file."
+			)
+		return
+	game_started = true
+	if start_menu:
+		start_menu.hide_menu()
+	streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	event_bus.post_message("Welcome back to Briarwatch.")
+
+
+func _on_new_character_confirmed(_profile: Dictionary) -> void:
+	game_started = true
+	streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	event_bus.post_message("Briarwatch awaits. Read, talk, trade, take jobs, save, and load.")
+
+
+func _show_start_menu() -> void:
+	game_started = false
+	if start_menu:
+		start_menu.show_menu(FileAccess.file_exists(save_manager.save_path))
+
+
+func _running_unit_tests() -> bool:
+	for argument in OS.get_cmdline_args():
+		if String(argument).contains("gut_cmdln.gd"):
+			return true
+	return false
 
 
 func _bootstrap_runtime_signals() -> void:
@@ -658,6 +723,15 @@ func toggle_debug_character_creator() -> void:
 	if not debug_character_creator.is_open():
 		_close_open_overlay_panel(false)
 	debug_character_creator.toggle_open()
+
+
+func open_character_appearance() -> void:
+	if not debug_character_creator:
+		return
+	_close_open_overlay_panel(false)
+	if equipment:
+		debug_character_creator.set_public_preview_equipment(equipment.equipped_by_slot)
+	debug_character_creator.open_character_appearance()
 
 
 func _close_open_overlay_panel(consume_action: bool = true) -> bool:

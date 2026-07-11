@@ -110,11 +110,15 @@ func get_save_data() -> Dictionary:
 		"health": health,
 		"max_health": max_health,
 		"mana": mana,
-		"max_mana": max_mana
+		"max_mana": max_mana,
+		"humanoid_profile": humanoid_profile.duplicate(true)
 	}
 
 
 func load_save_data(data: Dictionary) -> void:
+	var saved_profile: Variant = data.get("humanoid_profile", {})
+	if saved_profile is Dictionary and not saved_profile.is_empty():
+		set_humanoid_profile(saved_profile)
 	set_world_layer(String(data.get("world_layer", "surface")))
 	max_health = maxi(1, int(data.get("max_health", DEFAULT_MAX_HEALTH)))
 	set_health(int(data.get("health", max_health)))

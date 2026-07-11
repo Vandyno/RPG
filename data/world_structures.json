@@ -26,9 +26,17 @@
   {
     "id": "structure_briarwatch_town_hall",
     "name": "Briarwatch Town Hall",
-    "archetype_id": "archetype_briarwatch_town_hall_front",
+    "archetype_id": "archetype_briarwatch_town_hall_exterior",
     "world_layer": "surface",
     "origin_tile": [1, 4],
     "seed": "briarwatch:town_hall:surface"
+  },
+  {
+    "id": "structure_briarwatch_town_hall_interior",
+    "name": "Briarwatch Town Hall",
+    "archetype_id": "archetype_briarwatch_town_hall_interior",
+    "world_layer": "interior:structure_briarwatch_town_hall",
+    "origin_tile": [0, 0],
+    "seed": "briarwatch:town_hall:interior"
   }
 ]

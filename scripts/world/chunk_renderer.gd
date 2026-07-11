@@ -79,6 +79,7 @@ func _color_for_kind(kind: String) -> Color:
 
 func _draw_material_detail(kind: String, rect: Rect2, global_tile: Vector2i) -> void:
 	var inset := rect.grow(-3.0)
+	var detail := _hash_detail(global_tile)
 	match kind:
 		"water":
 			_draw_water_detail(rect, global_tile)
@@ -92,23 +93,23 @@ func _draw_material_detail(kind: String, rect: Rect2, global_tile: Vector2i) -> 
 			_draw_wood_detail(rect, false)
 		"road":
 			draw_rect(inset, Color(0.65, 0.58, 0.43, 0.28), true)
-			if int(global_tile.x + global_tile.y) % 2 == 0:
+			if detail < 6:
 				draw_line(
-					rect.position + Vector2(3.0, 11.0),
-					rect.position + Vector2(13.0, 9.0),
+					rect.position + Vector2(2.5, 11.5 - float(detail % 3)),
+					rect.position + Vector2(13.5, 9.5 + float(detail % 2)),
 					Color(0.29, 0.24, 0.16, 0.20),
 					1.0
 				)
-		"grass":
-			if _hash_detail(global_tile) < 3:
-				draw_line(
-					rect.position + Vector2(5.0, 12.0),
-					rect.position + Vector2(8.0, 8.0),
-					Color(0.18, 0.35, 0.16, 0.36),
-					1.0
+			if detail in [1, 4, 7]:
+				draw_circle(
+					rect.position + Vector2(4.0 + float(detail), 4.0 + float(detail % 4)),
+					0.8,
+					Color(0.30, 0.27, 0.20, 0.34)
 				)
+		"grass":
+			_draw_grass_detail(rect, detail)
 		"forest":
-			draw_circle(rect.position + Vector2(8.0, 8.0), 4.5, Color(0.10, 0.24, 0.11, 0.38))
+			_draw_forest_detail(rect, detail)
 		"hill":
 			draw_line(
 				rect.position + Vector2(3.0, 11.0),
@@ -122,6 +123,37 @@ func _draw_material_detail(kind: String, rect: Rect2, global_tile: Vector2i) -> 
 				Color(0.19, 0.16, 0.11, 0.20),
 				1.0
 			)
+			if detail < 5:
+				draw_line(
+					rect.position + Vector2(3.0, 13.0),
+					rect.position + Vector2(12.0, 10.0),
+					Color(0.25, 0.22, 0.15, 0.20),
+					0.8
+				)
+
+
+func _draw_grass_detail(rect: Rect2, detail: int) -> void:
+	if detail > 6:
+		return
+	var base := rect.position + Vector2(3.5 + float(detail % 4) * 2.1, 12.8)
+	var blade := Color(0.14, 0.30, 0.13, 0.42)
+	draw_line(base, base + Vector2(1.5, -3.8), blade, 0.8)
+	draw_line(base + Vector2(1.2, 0.2), base + Vector2(3.1, -2.7), blade, 0.75)
+	if detail < 3:
+		draw_line(base + Vector2(-1.0, 0.4), base + Vector2(-1.8, -2.4), blade, 0.7)
+
+
+func _draw_forest_detail(rect: Rect2, detail: int) -> void:
+	var center := rect.get_center() + Vector2(float(detail % 3) - 1.0, float(detail % 2) - 0.5)
+	draw_circle(center + Vector2(0.0, 1.5), 5.5, Color(0.07, 0.17, 0.08, 0.34))
+	draw_circle(center + Vector2(-2.6, -1.6), 3.6, Color(0.10, 0.26, 0.12, 0.48))
+	draw_circle(center + Vector2(2.8, -0.9), 3.2, Color(0.13, 0.30, 0.14, 0.42))
+	draw_line(
+		center + Vector2(0.0, -0.5),
+		center + Vector2(0.0, 5.5),
+		Color(0.15, 0.10, 0.05, 0.46),
+		1.0
+	)
 
 
 func _draw_water_detail(rect: Rect2, global_tile: Vector2i) -> void:
@@ -231,8 +263,10 @@ func _draw_structure(structure: Dictionary) -> void:
 			_draw_forge_interior(rect)
 		"shop_front":
 			_draw_shop_front(rect)
-		"town_hall_front":
-			_draw_town_hall_front(rect)
+		"town_hall_exterior":
+			_draw_town_hall_exterior(rect)
+		"town_hall_interior":
+			_draw_town_hall_interior(rect)
 
 
 func _draw_forge_exterior(rect: Rect2) -> void:
@@ -400,9 +434,10 @@ func _draw_shop_front(rect: Rect2) -> void:
 	draw_rect(crate, Color(0.11, 0.06, 0.03), false, 1.0)
 
 
-func _draw_town_hall_front(rect: Rect2) -> void:
+func _draw_town_hall_exterior(rect: Rect2) -> void:
+	var tile := float(GridMath.TILE_SIZE)
 	draw_rect(rect.grow(3.0), Color(0.02, 0.018, 0.012, 0.22), true)
-	var body := Rect2(rect.position + Vector2(4.0, 17.0), Vector2(rect.size.x - 8.0, 45.0))
+	var body := Rect2(rect.position + Vector2(4.0, 18.0), Vector2(rect.size.x - 8.0, 43.0))
 	draw_rect(body, Color(0.45, 0.30, 0.15), true)
 	draw_rect(body, Color(0.09, 0.055, 0.03, 0.50), false, 1.0)
 	for x in [body.position.x + 12.0, body.position.x + body.size.x - 12.0]:
@@ -426,32 +461,68 @@ func _draw_town_hall_front(rect: Rect2) -> void:
 		Color(0.58, 0.31, 0.14, 0.25),
 		1.0
 	)
-	var door := Rect2(rect.position + Vector2(rect.size.x * 0.5 - 10.0, 42.0), Vector2(20.0, 20.0))
+	var door := Rect2(
+		rect.position + Vector2(tile * 4.0, 42.0), Vector2(tile, 20.0)
+	)
 	draw_rect(door, Color(0.12, 0.07, 0.035), true)
 	draw_line(
-		door.position + Vector2(10.0, 2.0),
-		door.position + Vector2(10.0, 18.0),
+		door.position + Vector2(8.0, 2.0),
+		door.position + Vector2(8.0, 18.0),
 		Color(0.44, 0.28, 0.11),
 		1.0
 	)
-	draw_circle(door.position + Vector2(7.0, 11.0), 1.2, Color(0.82, 0.62, 0.22))
-	draw_circle(door.position + Vector2(13.0, 11.0), 1.2, Color(0.82, 0.62, 0.22))
-	var step := Rect2(door.position + Vector2(-5.0, 18.0), Vector2(30.0, 8.0))
+	draw_circle(door.position + Vector2(5.0, 11.0), 1.2, Color(0.82, 0.62, 0.22))
+	var step := Rect2(door.position + Vector2(-5.0, 18.0), Vector2(26.0, 8.0))
 	draw_rect(step, Color(0.39, 0.38, 0.34), true)
 	draw_rect(step, Color(0.10, 0.10, 0.09, 0.40), false, 1.0)
-	var board := Rect2(rect.position + Vector2(rect.size.x - 26.0, 29.0), Vector2(18.0, 16.0))
-	draw_rect(board, Color(0.55, 0.43, 0.22), true)
-	draw_rect(board, Color(0.12, 0.08, 0.04), false, 1.0)
+
+
+func _draw_town_hall_interior(rect: Rect2) -> void:
+	var tile := float(GridMath.TILE_SIZE)
+	draw_rect(rect.grow(4.0), Color(0.0, 0.0, 0.0, 0.30), true)
+	draw_rect(rect.grow(-tile), Color(0.68, 0.43, 0.21, 0.08), true)
+	var exit := Rect2(rect.position + Vector2(tile * 5.0, tile * 7.0), Vector2(tile, tile))
+	draw_rect(exit.grow(-2.0), Color(0.08, 0.045, 0.025, 0.70), true)
+	draw_rect(exit.grow(-1.0), Color(0.92, 0.68, 0.25, 0.28), false, 1.0)
+	var clerk_desk := Rect2(rect.position + Vector2(tile * 4.0, tile * 2.0), Vector2(tile * 4.0, tile))
+	draw_rect(clerk_desk, Color(0.29, 0.17, 0.08), true)
+	draw_rect(clerk_desk, Color(0.09, 0.055, 0.025), false, 1.0)
 	draw_line(
-		board.position + Vector2(3.0, 5.0),
-		board.position + Vector2(15.0, 5.0),
-		Color(0.11, 0.07, 0.03),
+		clerk_desk.position + Vector2(8.0, 4.0),
+		clerk_desk.position + Vector2(clerk_desk.size.x - 8.0, 4.0),
+		Color(0.72, 0.59, 0.32, 0.50),
 		1.0
 	)
+	var record_shelf := Rect2(rect.position + Vector2(tile * 8.8, tile * 1.7), Vector2(18.0, 52.0))
+	draw_rect(record_shelf, Color(0.22, 0.13, 0.06), true)
+	draw_rect(record_shelf, Color(0.08, 0.045, 0.02), false, 1.0)
+	for y in [8.0, 20.0, 32.0, 44.0]:
+		draw_line(
+			record_shelf.position + Vector2(2.0, y),
+			record_shelf.position + Vector2(16.0, y),
+			Color(0.66, 0.51, 0.27, 0.55),
+			1.0
+		)
+	var notice_board := Rect2(rect.position + Vector2(tile * 1.5, tile * 1.8), Vector2(24.0, 20.0))
+	draw_rect(notice_board, Color(0.48, 0.34, 0.16), true)
+	draw_rect(notice_board, Color(0.12, 0.075, 0.035), false, 1.0)
+	for y in [5.0, 10.0, 15.0]:
+		draw_line(
+			notice_board.position + Vector2(4.0, y),
+			notice_board.position + Vector2(20.0, y),
+			Color(0.86, 0.76, 0.51, 0.75),
+			1.0
+		)
+	var rug := Rect2(rect.position + Vector2(tile * 3.0, tile * 4.6), Vector2(tile * 4.0, tile * 1.5))
+	draw_rect(rug, Color(0.37, 0.13, 0.10, 0.70), true)
+	draw_rect(rug.grow(-3.0), Color(0.70, 0.49, 0.22, 0.48), false, 1.0)
+	var cabinet := Rect2(rect.position + Vector2(tile * 8.3, tile * 5.0), Vector2(24.0, 18.0))
+	draw_rect(cabinet, Color(0.20, 0.12, 0.055), true)
+	draw_rect(cabinet, Color(0.08, 0.045, 0.02), false, 1.0)
 	draw_line(
-		board.position + Vector2(4.0, 10.0),
-		board.position + Vector2(13.0, 10.0),
-		Color(0.11, 0.07, 0.03),
+		cabinet.position + Vector2(12.0, 2.0),
+		cabinet.position + Vector2(12.0, 16.0),
+		Color(0.54, 0.34, 0.13),
 		1.0
 	)
 

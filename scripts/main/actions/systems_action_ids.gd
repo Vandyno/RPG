@@ -89,5 +89,9 @@ static func put_item(item_id: String) -> String:
 	return build(ACTION_PUT, item_id)
 
 
+static func open_appearance() -> String:
+	return build(ACTION_UI, "appearance")
+
+
 static func is_action(action_id: String, action: String) -> bool:
 	return String(parse(action_id).get("action", "")) == action

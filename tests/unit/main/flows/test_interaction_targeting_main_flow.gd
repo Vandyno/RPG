@@ -206,6 +206,7 @@ func test_next_target_closes_content_card_and_cycles_immediately() -> void:
 func test_selected_target_keeps_world_hint_in_crowded_spawn() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	var strongbox = main.entities.get_entity("object_sealed_strongbox")
 
 	assert_not_null(strongbox)
@@ -224,6 +225,7 @@ func test_selected_target_keeps_world_hint_in_crowded_spawn() -> void:
 func test_nearby_spawn_hints_stagger_without_moving_selected_target() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 	var strongbox = main.entities.get_entity("object_sealed_strongbox")
 
 	assert_not_null(strongbox)

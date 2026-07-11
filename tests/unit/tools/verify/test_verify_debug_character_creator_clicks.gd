@@ -13,6 +13,8 @@ func test_debug_creator_verifier_keeps_viewport_people_and_button_contract() -> 
 		[
 			"CreatorNextPeopleButton",
 			"CreatorNextVariantButton",
+			"CreatorNextEyesButton",
+			"CreatorNextFaceValueButton",
 			"CreatorNextGearButton",
 			"CreatorApplyButton",
 			"CreatorCloseButton",

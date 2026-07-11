@@ -27,6 +27,7 @@ class SystemsActionContext:
 	var time
 	var current_shop_id := ""
 	var _apply_effect: Callable
+	var _appearance_requested: Callable
 	var _load_requested: Callable
 	var _refresh_hud: Callable
 	var _save_requested: Callable
@@ -48,6 +49,7 @@ class SystemsActionContext:
 		if main.has_method("_current_shop_id"):
 			current_shop_id = String(main.call("_current_shop_id"))
 		_apply_effect = Callable(main, "apply_effect")
+		_appearance_requested = Callable(main, "open_character_appearance")
 		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
 		_save_requested = Callable(main, "_handle_save_requested")
@@ -73,6 +75,10 @@ class SystemsActionContext:
 			_update_nearby.call()
 		else:
 			refresh_hud()
+
+	func open_character_appearance() -> void:
+		if _appearance_requested.is_valid():
+			_appearance_requested.call()
 
 	func post_result(result: Dictionary) -> void:
 		post_message(String(result.get("message", "")))
@@ -179,6 +185,8 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> Dictionary:
 		SystemsActionIds.ACTION_UI:
 			if target_id == "back":
 				ctx.hide_systems_panel()
+			elif target_id == "appearance":
+				ctx.open_character_appearance()
 		SystemsActionIds.ACTION_ASSIGN_SPELL:
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
 		SystemsActionIds.ACTION_TAKE:

@@ -17,25 +17,37 @@ const PEOPLE_FEATURE_LAYER_FRONT := "front"
 static func draw_layer(avatar, skin: Color, proportions: Dictionary, layer_id: String) -> void:
 	var people_id := String(avatar.profile.get("people_id", ""))
 	var feature_ids := appearance_feature_ids(avatar.profile, people_id)
+	var procedural_feature_ids := feature_ids
 	if HumanoidSpeciesFeatureDrawer.draw_layer(
-		avatar, people_id, skin, proportions, feature_ids, layer_id
+		avatar, people_id, skin, proportions, procedural_feature_ids, layer_id
 	):
 		return
 	if people_id == "people_ravenfolk":
 		var appearance: Dictionary = avatar.profile.get("appearance", {})
 		if layer_id == PEOPLE_FEATURE_LAYER_BACK:
 			HumanoidRavenfolkFeatureDrawer.draw_back(
-				avatar, skin, proportions, feature_ids, appearance
+				avatar, skin, proportions, procedural_feature_ids, appearance
 			)
 		elif layer_id == PEOPLE_FEATURE_LAYER_BODY:
 			HumanoidRavenfolkFeatureDrawer.draw_body(
-				avatar, skin, proportions, feature_ids, appearance
+				avatar, skin, proportions, procedural_feature_ids, appearance
 			)
 		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
 			HumanoidRavenfolkFeatureDrawer.draw_front(
-				avatar, skin, proportions, feature_ids, appearance
+				avatar, skin, proportions, procedural_feature_ids, appearance
 			)
 		return
+
+
+static func draw_headgear_face_overlay(avatar, skin: Color, proportions: Dictionary) -> void:
+	var people_id := String(avatar.profile.get("people_id", ""))
+	if people_id != "people_mirefolk":
+		return
+	var feature_ids := appearance_feature_ids(avatar.profile, people_id)
+	var appearance: Dictionary = avatar.profile.get("appearance", {})
+	HumanoidSpeciesFeatureDrawer.draw_headgear_face_overlay(
+		avatar, people_id, skin, proportions, feature_ids, appearance
+	)
 
 
 static func debug_layer_entries(avatar, people_id: String, layer_id: String) -> Array[String]:
