@@ -1,0 +1,466 @@
+{
+  "northgate_east_home_runtime": {
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "home.personal",
+    "world_layer": "interior:structure_northgate_east_home_plot"
+  },
+  "northgate_far_east_home_runtime": {
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "home.personal",
+    "world_layer": "interior:structure_northgate_far_east_home_plot"
+  },
+  "northgate_farm_field_runtime": {
+    "activity_cycle_minutes": 30,
+    "activity_tiles": [
+      [
+        -3148,
+        -3843
+      ],
+      [
+        -3149,
+        -3843
+      ],
+      [
+        -3148,
+        -3844
+      ]
+    ],
+    "global_tile": [
+      -3148,
+      -3843
+    ],
+    "kind": "farm.field",
+    "world_layer": "surface"
+  },
+  "northgate_farm_meal_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        -3154,
+        -3855
+      ],
+      [
+        -3155,
+        -3855
+      ]
+    ],
+    "global_tile": [
+      -3154,
+      -3855
+    ],
+    "kind": "farm.meal",
+    "world_layer": "surface"
+  },
+  "northgate_farmer_home_runtime": {
+    "global_tile": [
+      -3282,
+      -3902
+    ],
+    "kind": "home.sleep",
+    "world_layer": "surface"
+  },
+  "northgate_guard_break_runtime": {
+    "global_tile": [
+      8,
+      5
+    ],
+    "kind": "guard.break",
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  "northgate_guard_gate_runtime": {
+    "global_tile": [
+      -3261,
+      -3992
+    ],
+    "kind": "guard.patrol",
+    "world_layer": "surface"
+  },
+  "northgate_guard_watch_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        8,
+        2
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      8,
+      2
+    ],
+    "kind": "guard.watch",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  "northgate_hall_break_runtime": {
+    "global_tile": [
+      9,
+      5
+    ],
+    "kind": "hall.break",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  "northgate_hall_clerk_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        4,
+        3
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "global_tile": [
+      4,
+      3
+    ],
+    "kind": "hall.desk",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  "northgate_hall_notice_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "global_tile": [
+      2,
+      2
+    ],
+    "kind": "hall.notice",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  "northgate_inn_break_runtime": {
+    "global_tile": [
+      15,
+      9
+    ],
+    "kind": "inn.break",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  "northgate_inn_service_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      2,
+      2
+    ],
+    "kind": "inn.bar",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  "northgate_inn_table_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        4,
+        2
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        10,
+        2
+      ]
+    ],
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "inn.table",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  "northgate_shop_counter_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      2,
+      2
+    ],
+    "kind": "shop.counter",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_shop_plot"
+  },
+  "northgate_shopkeeper_home_runtime": {
+    "global_tile": [
+      7,
+      2
+    ],
+    "kind": "home.sleep",
+    "world_layer": "interior:structure_northgate_west_home_plot"
+  },
+  "northgate_shrine_break_runtime": {
+    "global_tile": [
+      6,
+      5
+    ],
+    "kind": "shrine.break",
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  "northgate_shrine_service_runtime": {
+    "exclusive": true,
+    "global_tile": [
+      2,
+      2
+    ],
+    "kind": "shrine.service",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  "northgate_smith_anvil_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        3,
+        6
+      ]
+    ],
+    "global_tile": [
+      3,
+      5
+    ],
+    "kind": "smith.anvil",
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  "northgate_smith_break_runtime": {
+    "global_tile": [
+      10,
+      7
+    ],
+    "kind": "smith.break",
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  "northgate_smith_service_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      2,
+      2
+    ],
+    "kind": "smith.anvil",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  "northgate_south_home_runtime": {
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "home.personal",
+    "world_layer": "interior:structure_northgate_south_home_plot"
+  },
+  "northgate_southeast_home_runtime": {
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "home.personal",
+    "world_layer": "interior:structure_northgate_southeast_home_plot"
+  },
+  "northgate_square_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        -3272,
+        -3940
+      ],
+      [
+        -3270,
+        -3940
+      ],
+      [
+        -3268,
+        -3940
+      ],
+      [
+        -3270,
+        -3938
+      ]
+    ],
+    "global_tile": [
+      -3270,
+      -3940
+    ],
+    "kind": "town.square",
+    "world_layer": "surface"
+  },
+  "northgate_stable_break_runtime": {
+    "global_tile": [
+      6,
+      8
+    ],
+    "kind": "stable.break",
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  "northgate_stable_work_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      3,
+      4
+    ],
+    "kind": "stable.work",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  "northgate_store_break_runtime": {
+    "global_tile": [
+      9,
+      6
+    ],
+    "kind": "store.break",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  "northgate_store_counter_runtime": {
+    "activity_cycle_minutes": 60,
+    "activity_tiles": [
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "exclusive": true,
+    "global_tile": [
+      4,
+      2
+    ],
+    "kind": "store.counter",
+    "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  "northgate_store_ledger_runtime": {
+    "activity_cycle_minutes": 45,
+    "activity_tiles": [
+      [
+        3,
+        3
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "global_tile": [
+      3,
+      3
+    ],
+    "kind": "store.ledger",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  "northgate_west_home_runtime": {
+    "global_tile": [
+      6,
+      2
+    ],
+    "kind": "home.personal",
+    "world_layer": "interior:structure_northgate_west_home_plot"
+  }
+}

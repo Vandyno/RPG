@@ -11,6 +11,7 @@ const ContentHumanoidFaceValidator = preload(
 const ContentPeopleValidator = preload("res://scripts/data/content_people_validator.gd")
 const ContentQuestValidator = preload("res://scripts/data/content_quest_validator.gd")
 const ContentWorldValidator = preload("res://scripts/data/content_world_validator.gd")
+const ContentScheduleValidator = preload("res://scripts/data/content_schedule_validator.gd")
 
 var items: Dictionary = {}
 var readables: Dictionary = {}
@@ -24,6 +25,9 @@ var dialogues: Dictionary = {}
 var locations: Dictionary = {}
 var factions: Dictionary = {}
 var shops: Dictionary = {}
+var schedule_profiles: Dictionary = {}
+var schedule_bindings: Dictionary = {}
+var schedule_destinations: Dictionary = {}
 var status_effects: Dictionary = {}
 var spells: Dictionary = {}
 var world_objects: Array[Dictionary] = []
@@ -47,12 +51,56 @@ func load_all() -> Array[String]:
 	locations = _load_dictionary("res://data/locations.json")
 	factions = _load_dictionary("res://data/factions.json")
 	shops = _load_dictionary("res://data/shops.json")
+	schedule_profiles = _load_dictionary("res://data/schedule_profiles.json")
+	schedule_bindings = _load_dictionary("res://data/schedule_bindings.json")
+	schedule_destinations = _load_dictionary("res://data/schedule_destinations.json")
 	status_effects = _load_dictionary("res://data/status_effects.json")
 	spells = _load_dictionary("res://data/spells.json")
 	world_objects = _load_array("res://data/world_objects.json")
 	world_terrain = _load_dictionary("res://data/world_terrain.json")
 	structure_archetypes = _load_dictionary("res://data/structure_archetypes.json")
 	world_structures = _load_array("res://data/world_structures.json")
+	for runtime_dictionary in [
+		[items, "res://data/runtime/northgate_items.json"],
+		[readables, "res://data/runtime/northgate_readables.json"],
+		[quests, "res://data/runtime/northgate_quests.json"],
+		[npcs, "res://data/runtime/northgate_npcs.json"],
+		[character_profiles, "res://data/runtime/northgate_character_profiles.json"],
+		[dialogues, "res://data/runtime/northgate_dialogues.json"],
+		[shops, "res://data/runtime/northgate_shops.json"]
+	]:
+		_merge_runtime_dictionary(runtime_dictionary[0], _load_dictionary(runtime_dictionary[1]))
+	_merge_runtime_dictionary(
+		structure_archetypes,
+		_load_dictionary("res://data/runtime/northgate_structure_archetypes.json")
+	)
+	_merge_runtime_dictionary(
+		character_profiles,
+		_load_dictionary("res://data/runtime/northgate_schedule_character_profiles.json")
+	)
+	_merge_runtime_dictionary(
+		schedule_bindings,
+		_load_dictionary("res://data/runtime/northgate_schedule_bindings.json")
+	)
+	_merge_runtime_dictionary(
+		schedule_destinations,
+		_load_dictionary("res://data/runtime/northgate_schedule_destinations.json")
+	)
+	_merge_runtime_dictionary(
+		npcs,
+		_load_dictionary("res://data/runtime/northgate_schedule_npcs.json")
+	)
+	world_structures.append_array(
+		_load_array("res://data/runtime/northgate_structures.json")
+	)
+	world_objects.append_array(_load_array("res://data/runtime/northgate_objects.json"))
+	world_objects.append_array(_load_array("res://data/runtime/northgate_schedule_actors.json"))
+	var northgate_terrain := _load_dictionary("res://data/runtime/northgate_terrain.json")
+	if not world_terrain.has("areas") or not world_terrain["areas"] is Array:
+		world_terrain["areas"] = []
+	world_terrain["areas"].append_array(
+		ContentSchemaValidator.array_field(northgate_terrain.get("areas", []))
+	)
 	return load_errors.duplicate()
 
 
@@ -236,6 +284,28 @@ func shop_ids() -> Array[String]:
 	return _dictionary_keys(shops)
 
 
+func get_schedule_profile(profile_id: String) -> Dictionary:
+	return _dictionary_copy(schedule_profiles.get(profile_id, {}))
+
+
+func get_schedule_binding(binding_id: String) -> Dictionary:
+	return _dictionary_copy(schedule_bindings.get(binding_id, {}))
+
+
+func get_schedule_binding_for_npc(npc_id: String) -> Dictionary:
+	for binding_id in schedule_bindings:
+		var binding: Dictionary = schedule_bindings[binding_id]
+		if String(binding.get("npc_id", "")) == npc_id:
+			var result := binding.duplicate(true)
+			result["id"] = String(binding_id)
+			return result
+	return {}
+
+
+func get_schedule_destinations() -> Dictionary:
+	return schedule_destinations.duplicate(true)
+
+
 func get_status_effect(status_id: String) -> Dictionary:
 	return _dictionary_copy(status_effects.get(status_id, {}))
 
@@ -291,6 +361,7 @@ func validate_all() -> Array[String]:
 	ContentQuestValidator.validate(self, errors)
 	ContentPeopleValidator.validate(self, errors)
 	ContentWorldValidator.validate(self, errors)
+	ContentScheduleValidator.validate(self, errors)
 	return errors
 
 
@@ -350,6 +421,11 @@ func _record_load_error(message: String) -> void:
 
 func _dictionary_copy(value: Variant) -> Dictionary:
 	return ContentSchemaValidator.dictionary_field(value).duplicate(true)
+
+
+func _merge_runtime_dictionary(target: Dictionary, source: Dictionary) -> void:
+	for key in source:
+		target[String(key)] = source[key]
 
 
 func _dictionary_keys(source: Dictionary) -> Array[String]:

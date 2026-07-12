@@ -125,6 +125,10 @@ static func validate_effect(
 			if not content.has_status_effect(status_id):
 				errors.append("%s references missing status %s." % [owner, status_id])
 			validate_optional_positive_number(effect, "charges", "%s apply_status" % owner, errors)
+		"repair_equipment":
+			validate_required_positive_number(
+				effect, "cost", "%s repair_equipment" % owner, errors
+			)
 		_:
 			errors.append("%s has unsupported effect type %s." % [owner, effect_type])
 

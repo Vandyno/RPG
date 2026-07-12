@@ -1,0 +1,164 @@
+{
+  "schedule_shopkeeper_standard": {
+    "id": "schedule_shopkeeper_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "06:30", "activity": "wake", "destination": "home"},
+      {"id": "prepare", "start": "07:30", "activity": "work", "destination": "primary_workplace", "action_pool": ["sweep_shop", "arrange_stock", "count_coins"]},
+      {"id": "counter", "start": "08:00", "activity": "work", "destination": "primary_workplace", "service": true, "action_pool": ["serve_customer", "appraise_goods", "haggle"]},
+      {"id": "stock", "start": "18:00", "activity": "work", "destination": "primary_workplace", "action_pool": ["lock_shutters", "count_stock", "balance_ledger"]},
+      {"id": "relax", "start": "19:30", "activity": "relax", "destination_pool": "town_leisure", "action_pool": ["share_rumors", "drink", "play_dice"]},
+      {"id": "sleep", "start": "22:30", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 4
+  },
+  "schedule_farmer_standard": {
+    "id": "schedule_farmer_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "05:30", "activity": "wake", "destination": "home"},
+      {"id": "farm_morning", "start": "06:15", "activity": "work", "destination": "primary_workplace", "action_pool": ["hoe_rows", "check_livestock", "carry_hay"]},
+      {"id": "farm_meal", "start": "12:00", "activity": "eat", "destination": "workplace_break", "action_pool": ["eat_rations", "wash_up", "check_weather"]},
+      {"id": "farm_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace", "action_pool": ["repair_fence", "hoe_rows", "gather_harvest"]},
+      {"id": "relax", "start": "18:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "21:30", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 8,
+    "weather_overrides": {
+      "rain": [
+        {"block_id": "farm_morning", "destination": "home", "action": "sort seed indoors"},
+        {"block_id": "farm_afternoon", "destination": "home", "action": "mend tools by the hearth"}
+      ],
+      "storm": [
+        {"block_id": "farm_morning", "destination": "home", "action": "secure the farm before the storm"},
+        {"block_id": "farm_afternoon", "destination": "home", "action": "wait out the storm"}
+      ],
+      "snow": [
+        {"block_id": "farm_morning", "destination": "home", "action": "repair winter gear"},
+        {"block_id": "farm_afternoon", "destination": "home", "action": "stack firewood"}
+      ]
+    }
+  },
+  "schedule_innkeeper_standard": {
+    "id": "schedule_innkeeper_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "06:00", "activity": "wake", "destination": "home"},
+      {"id": "open", "start": "07:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "service", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "close", "start": "22:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "23:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 4
+  },
+  "schedule_smith_standard": {
+    "id": "schedule_smith_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "05:30", "activity": "wake", "destination": "home"},
+      {"id": "forge_morning", "start": "06:30", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "forge_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "close", "start": "19:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "22:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 5
+  },
+  "schedule_clerk_standard": {
+    "id": "schedule_clerk_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "07:00", "activity": "wake", "destination": "home"},
+      {"id": "office", "start": "08:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "office_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "errands", "start": "18:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "22:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 4
+  },
+  "schedule_storekeeper_standard": {
+    "id": "schedule_storekeeper_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "06:30", "activity": "wake", "destination": "home"},
+      {"id": "stock", "start": "07:30", "activity": "work", "destination": "primary_workplace"},
+      {"id": "counter", "start": "09:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "close", "start": "18:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "22:30", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 4
+  },
+  "schedule_stablehand_standard": {
+    "id": "schedule_stablehand_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "05:00", "activity": "wake", "destination": "home"},
+      {"id": "stable_morning", "start": "06:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "stable_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "close", "start": "19:30", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "22:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 5
+  },
+  "schedule_guard_standard": {
+    "id": "schedule_guard_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "04:30", "activity": "wake", "destination": "home"},
+      {"id": "watch_morning", "start": "05:30", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "watch_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "patrol", "start": "18:00", "activity": "work", "destination": "patrol", "action_pool": ["patrol_gate", "check_gate", "walk_watch"]},
+      {"id": "sleep", "start": "23:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 15,
+    "sandbox_radius_tiles": 6
+  },
+  "schedule_shrine_keeper_standard": {
+    "id": "schedule_shrine_keeper_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "06:00", "activity": "wake", "destination": "home"},
+      {"id": "service", "start": "07:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "workplace_break"},
+      {"id": "service_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "prayer", "start": "18:00", "activity": "relax", "destination": "primary_workplace"},
+      {"id": "sleep", "start": "22:00", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 4
+  },
+  "schedule_resident_standard": {
+    "id": "schedule_resident_standard",
+    "brain_id": "civilian_schedule",
+    "weekday_blocks": [
+      {"id": "wake", "start": "07:30", "activity": "wake", "destination": "home"},
+      {"id": "errand", "start": "09:00", "activity": "work", "destination": "primary_workplace"},
+      {"id": "meal", "start": "12:00", "activity": "eat", "destination": "home"},
+      {"id": "housework", "start": "13:00", "activity": "work", "destination": "home"},
+      {"id": "social", "start": "18:00", "activity": "relax", "destination_pool": "town_leisure"},
+      {"id": "sleep", "start": "22:30", "activity": "sleep", "destination": "home"}
+    ],
+    "tolerance_minutes": 20,
+    "sandbox_radius_tiles": 3,
+    "weekend_blocks": [
+      {"id": "weekend_wake", "start": "09:00", "activity": "wake", "destination": "home"},
+      {"id": "weekend_square", "start": "10:30", "activity": "relax", "destination": "primary_workplace", "action_pool": ["browse_market", "greet_neighbors", "watch_carts"]},
+      {"id": "weekend_meal", "start": "13:00", "activity": "eat", "destination": "home"},
+      {"id": "weekend_visit", "start": "15:00", "activity": "relax", "destination": "visit", "action_pool": ["share_news", "play_dice", "listen_to_music"]},
+      {"id": "weekend_evening", "start": "19:00", "activity": "relax", "destination_pool": "town_leisure", "action_pool": ["drink", "tell_stories", "watch_fire"]},
+      {"id": "weekend_sleep", "start": "23:30", "activity": "sleep", "destination": "home"}
+    ]
+  }
+}

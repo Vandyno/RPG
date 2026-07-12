@@ -1,0 +1,12 @@
+{
+  "npc_northgate_farmer": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_farmer",
+    "dialogue_id": "dialogue_northgate_resident",
+    "id": "npc_northgate_farmer",
+    "location": "northgate",
+    "name": "Northgate Farmer Proposal",
+    "role": "Farmer"
+  }
+}

@@ -10,6 +10,7 @@ var content: ContentDatabase
 var inventory: InventoryManager
 var equipment: EquipmentManager
 var time: TimeManager
+var schedule_manager
 
 
 func setup(
@@ -24,6 +25,10 @@ func setup(
 	inventory = inventory_manager
 	equipment = equipment_manager
 	time = time_manager
+
+
+func set_schedule_manager(manager) -> void:
+	schedule_manager = manager
 
 
 func buy_item(shop_id: String, item_id: String) -> bool:
@@ -181,6 +186,39 @@ func get_sellable_entries(shop_id: String) -> Array[Dictionary]:
 
 
 func is_shop_open(shop_id: String) -> bool:
+	var shop := _shop(shop_id)
+	if shop.is_empty() or not shop.has("open_hour") or not shop.has("close_hour") or not time:
+		return true
+	var service_id := String(shop.get("service_id", shop_id))
+	var open_minute := _hour_to_minute(shop.get("open_hour", 0))
+	var close_minute := _hour_to_minute(shop.get("close_hour", 0))
+	var current_minute: int = time.minute_of_day
+	if open_minute == close_minute:
+		return true
+	if open_minute < close_minute:
+		if not (current_minute >= open_minute and current_minute < close_minute):
+			return false
+	else:
+		if not (current_minute >= open_minute or current_minute < close_minute):
+			return false
+	if shop.has("worker_npc_id") and schedule_manager and not schedule_manager.is_service_available(service_id):
+		return false
+	return true
+
+
+func shop_unavailable_reason(shop_id: String) -> String:
+	var shop := _shop(shop_id)
+	if shop.is_empty():
+		return "Shop does not exist."
+	var service_id := String(shop.get("service_id", shop_id))
+	if shop.has("worker_npc_id") and schedule_manager and not schedule_manager.is_service_available(service_id):
+		return schedule_manager.service_unavailable_reason(service_id)
+	if not is_shop_open_by_hours(shop_id):
+		return "Shop is closed."
+	return ""
+
+
+func is_shop_open_by_hours(shop_id: String) -> bool:
 	var shop := _shop(shop_id)
 	if shop.is_empty() or not shop.has("open_hour") or not shop.has("close_hour") or not time:
 		return true

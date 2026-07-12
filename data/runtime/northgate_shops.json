@@ -1,0 +1,50 @@
+{
+  "shop_northgate_general": {
+    "close_hour": 18,
+    "id": "shop_northgate_general",
+    "name": "Northgate General Store",
+    "open_hour": 8,
+    "service_id": "service_northgate_general_shop",
+    "stock": [
+      {
+        "item_id": "item_traveler_buckler",
+        "price": 18
+      },
+      {
+        "item_id": "item_leather_cuirass",
+        "price": 35
+      },
+      {
+        "item_id": "item_leather_boots",
+        "price": 16
+      }
+    ],
+    "worker_npc_id": "npc_northgate_shopkeeper"
+  },
+  "shop_northgate_smith": {
+    "close_hour": 18,
+    "id": "shop_northgate_smith",
+    "name": "Northgate Smithy",
+    "open_hour": 7,
+    "service_id": "service_northgate_smith",
+    "stock": [
+      {
+        "item_id": "item_iron_cuirass",
+        "price": 70
+      },
+      {
+        "item_id": "item_iron_helm",
+        "price": 38
+      },
+      {
+        "item_id": "item_iron_gauntlets",
+        "price": 32
+      },
+      {
+        "item_id": "item_iron_boots",
+        "price": 34
+      }
+    ],
+    "worker_npc_id": "npc_northgate_smith"
+  }
+}

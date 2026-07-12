@@ -93,6 +93,20 @@ func test_combat_damage_defeat_and_save_load() -> void:
 	assert_eq(loaded.get_entity_health(enemy), 12)
 
 
+func test_combat_heals_wounded_actor_and_clears_full_health_override() -> void:
+	var combat := CombatManager.new()
+	add_child_autofree(combat)
+	combat.setup(null)
+	var enemy := EnemyStub.new()
+	combat.attack_entity(enemy)
+
+	assert_eq(combat.heal_entity(enemy, 3), 9)
+	assert_eq(combat.get_entity_health(enemy), 9)
+	assert_eq(combat.heal_entity(enemy, 99), 12)
+	assert_eq(combat.get_entity_health(enemy), 12)
+	assert_false(combat.health_by_entity_id.has("actor_test"))
+
+
 func test_combat_guard_reduces_counter_damage_without_blocking_defeat() -> void:
 	var combat := CombatManager.new()
 	add_child_autofree(combat)

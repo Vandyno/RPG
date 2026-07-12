@@ -76,6 +76,14 @@ func is_walkable(global_tile: Vector2i, layer: String = "") -> bool:
 	return not BLOCKED_TILE_KINDS.has(get_tile_kind(global_tile, resolved_layer))
 
 
+func is_walkable_for_layer(global_tile: Vector2i, layer: String = "surface") -> bool:
+	return is_walkable(global_tile, layer)
+
+
+func can_stand_at(world_position: Vector2, layer: String = "surface") -> bool:
+	return is_walkable(GridMath.world_to_tile(world_position), layer)
+
+
 func _resolved_layer(layer: String) -> String:
 	if layer.is_empty():
 		return current_layer

@@ -1,0 +1,16 @@
+{
+  "readable_northgate_road_notice": {
+    "author": "Northgate Reeve (proposal)",
+    "body": "Keep gate approaches clear. Record damaged carts and missing manifests with the hall clerk.",
+    "effects_on_read": [
+      {
+        "flag_id": "flag_northgate_notice_read",
+        "type": "set_flag",
+        "value": true
+      }
+    ],
+    "id": "readable_northgate_road_notice",
+    "title": "Northgate Road Notice",
+    "type": "notice"
+  }
+}

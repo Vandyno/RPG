@@ -1,0 +1,347 @@
+{
+  "char_northgate_apprentice": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:apprentice"
+    },
+    "character_id": "char_northgate_apprentice",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_apprentice",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_apprentice",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_apprentice",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_clerk": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:clerk"
+    },
+    "character_id": "char_northgate_clerk",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_clerk",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_clerk",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_clerk",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_guard_north": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:guard_north"
+    },
+    "character_id": "char_northgate_guard_north",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_guard_north",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_guard_north",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_guard_north",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_innkeeper": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:innkeeper"
+    },
+    "character_id": "char_northgate_innkeeper",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_innkeeper",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_innkeeper",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_innkeeper",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_reeve": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:reeve"
+    },
+    "character_id": "char_northgate_reeve",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_reeve",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_reeve",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_reeve",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_resident_01": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:resident_01"
+    },
+    "character_id": "char_northgate_resident_01",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_resident_01",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_resident_01",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_resident_01",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_resident_02": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:resident_02"
+    },
+    "character_id": "char_northgate_resident_02",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_resident_02",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_resident_02",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_resident_02",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_resident_03": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:resident_03"
+    },
+    "character_id": "char_northgate_resident_03",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_resident_03",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_resident_03",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_resident_03",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_resident_04": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:resident_04"
+    },
+    "character_id": "char_northgate_resident_04",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_resident_04",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_resident_04",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_resident_04",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_resident_05": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:resident_05"
+    },
+    "character_id": "char_northgate_resident_05",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_resident_05",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_resident_05",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_resident_05",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_shopkeeper": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:shopkeeper"
+    },
+    "character_id": "char_northgate_shopkeeper",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_shopkeeper",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_shopkeeper",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_shopkeeper",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_shrine_keeper": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:shrine_keeper"
+    },
+    "character_id": "char_northgate_shrine_keeper",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_shrine_keeper",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_shrine_keeper",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_shrine_keeper",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_smith": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:smith"
+    },
+    "character_id": "char_northgate_smith",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_smith",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_smith",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_smith",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_stablehand": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:stablehand"
+    },
+    "character_id": "char_northgate_stablehand",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_stablehand",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_stablehand",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_stablehand",
+    "state": "alive",
+    "stats": {
+
+    }
+  },
+  "char_northgate_storekeeper": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:storekeeper"
+    },
+    "character_id": "char_northgate_storekeeper",
+    "corpse_entity_id": "",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_storekeeper",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_storekeeper",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_storekeeper",
+    "state": "alive",
+    "stats": {
+
+    }
+  }
+}

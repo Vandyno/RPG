@@ -1540,3 +1540,65 @@ It should include:
 - one location or NPC response changed by quest completion
 
 The first content pack should prove that authored RPG content can be created without custom code for every object.
+## World Authoring Proposals
+
+Settlement iterations and player-facing verdicts must be appended to
+`docs/SETTLEMENT_AUTHORING_ITERATION_LOG.md`. A green validator or functional
+test suite may justify `functional_only`; it cannot justify `passable` without
+human review of the running settlement.
+
+A settlement plot is not a building footprint. Ordinary houses should use a
+compact, deliberately authored footprint inside the plot, leaving meaningful
+space for access, yards, work, drainage, planting, and visual separation.
+Harrow's `6x3` forge exterior is the current composition benchmark. Larger
+houses require an authored purpose; generators must not inflate walls to fill
+the available plot.
+
+Generated regions, settlements, POIs, NPC roles, services, and quest hooks are
+proposal data. They are not canon and are not runtime content merely because
+they validate.
+
+Proposal invariants:
+
+- `proposal_status` stays `proposal`;
+- `activation_status` stays `review_required`;
+- generated entities record atlas region, seed, template, and generator
+  version;
+- named atlas places and fixed routes are preserved rather than renamed or
+  moved;
+- review artifacts must include editable JSON, screenshots, validation, and a
+  short role/hook summary;
+- activation into `world_terrain.json`, `world_structures.json`,
+  `world_objects.json`, locations, NPCs, or quests is manual and separately
+  reviewed.
+
+Current proposal commands:
+
+```powershell
+godot --headless --path . --script res://scripts/tools/world/check_world_atlas.gd -- --require-approved
+godot --headless --path . --script res://scripts/tools/generate_world_region_proposal.gd
+godot --headless --path . --script res://scripts/tools/capture/capture_world_region_proposal.gd
+godot --headless --path . --script res://scripts/tools/generate_world_settlement_proposal.gd
+godot --headless --path . --script res://scripts/tools/capture/capture_world_settlement_proposal.gd
+```
+
+The checked-in v3 examples are Marches seed `1701` and Northgate seed `2701`.
+Marches remains review-gated. The user approved Northgate seed `2701` as the
+runtime layout basis; generated identities, lore, and other unapproved content
+inside that activation remain marked `canon_status: proposal`.
+
+Marches v2 uses multi-scale coherent terrain fields instead of large hash
+blocks. Every terrain cell records its settlement, route, or water influence;
+every minor POI records its biome and distance context. Road connectors join
+the nearest fixed-route segment and are limited to genuinely roadside POIs.
+Northgate v4 keeps its authored roles while using rasterized thick road paths,
+offset plots, irregular exterior terrain rows, and a non-rectangular palisade.
+
+Northgate runtime files live under `data/runtime/northgate_*.json` and are
+reproduced by `scripts/tools/world/activate_northgate_runtime.gd`. The activation
+owns its terrain overlay, structure archetypes and instances, portals, 68
+non-interactive furniture fixtures, provisional residents/profiles/dialogues,
+shops, readables, quest, schedules, and arrival routes. `ContentDatabase` merges
+these checked-in artifacts after base content. Do not hand-edit generated
+runtime JSON; change the approved proposal or activation mapping, regenerate,
+then run Northgate content and real-input tests.

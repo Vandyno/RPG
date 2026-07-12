@@ -50,3 +50,22 @@ func test_time_rejects_invalid_advances_and_sanitizes_save_data() -> void:
 	time.load_save_data({"day": 4, "minute_of_day": "late"})
 	assert_eq(time.day, 4)
 	assert_eq(time.get_time_label(), "23:59")
+
+
+func test_calendar_and_weather_are_deterministic_across_seasons() -> void:
+	var time := TimeManager.new()
+	add_child_autofree(time)
+
+	assert_eq(time.get_day_of_year(), 1)
+	assert_eq(time.get_season(), "spring")
+	assert_eq(time.get_season_day(), 1)
+	assert_eq(time.get_weather(), "clear")
+	time.advance_minutes(24 * 60)
+	assert_eq(time.day, 2)
+	assert_eq(time.get_season_day(), 2)
+	assert_eq(time.get_weather(), "rain")
+	time.advance_minutes(27 * 24 * 60)
+	assert_eq(time.day, 29)
+	assert_eq(time.get_season(), "summer")
+	assert_eq(time.get_season_day(), 1)
+	assert_eq(time.get_weather(), "clear")

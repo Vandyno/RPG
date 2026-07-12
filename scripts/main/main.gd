@@ -45,6 +45,8 @@ const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory
 const MainObjectInteractions = preload("res://scripts/main/actions/main_object_interactions.gd")
 const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framing.gd")
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
+const CivilianScheduleBrain = preload("res://scripts/main/runtime/civilian_schedule_brain.gd")
+const CivilianScheduleManagerScript = preload("res://scripts/managers/content/civilian_schedule_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -70,6 +72,7 @@ var equipment: EquipmentManager
 var spells: SpellManager
 var player: PlayerController
 var save_manager: SaveManager
+var civilian_schedules: CivilianScheduleManager
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
@@ -121,6 +124,7 @@ func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
+	CivilianScheduleBrain.update(civilian_schedules, delta)
 	_update_location_discoveries()
 	_update_nearby()
 
@@ -180,7 +184,17 @@ func _hud_context() -> MainHudState.HudContext:
 
 
 func _current_location_name() -> String:
-	if not player or player.world_layer == "surface":
+	if not player:
+		return ""
+	if player.world_layer == "surface" and entities:
+		for entity in entities.get_entities_world(
+			player.global_position, _max_location_discovery_radius(), "location"
+		):
+			var radius := VariantFields.positive_float_field_at_least(
+				entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
+			)
+			if player.global_position.distance_to(entity.global_position) <= radius:
+				return entity.get_display_name()
 		return ""
 	if player.world_layer.begins_with("interior:") and structures:
 		var structure_id := player.world_layer.trim_prefix("interior:")
@@ -355,6 +369,8 @@ func _bootstrap_actor_runtime() -> void:
 	equipment.name = "EquipmentManager"
 	add_child(equipment)
 	equipment.setup(event_bus, content, inventory)
+	if effect_runner:
+		effect_runner.set_equipment(equipment)
 
 	spells = SpellManager.new()
 	spells.name = "SpellManager"
@@ -371,6 +387,12 @@ func _bootstrap_actor_runtime() -> void:
 	add_child(combat)
 	combat.setup(event_bus, equipment, progression, statuses)
 
+	civilian_schedules = CivilianScheduleManagerScript.new()
+	civilian_schedules.name = "CivilianScheduleManager"
+	add_child(civilian_schedules)
+	civilian_schedules.setup(event_bus, content, time, entities, chunks, world_query, combat, quests)
+	shops.set_schedule_manager(civilian_schedules)
+
 
 func _bootstrap_player() -> void:
 	player = PlayerControllerScript.new()
@@ -378,6 +400,7 @@ func _bootstrap_player() -> void:
 	add_child(player)
 	player.setup(event_bus, world_query, Vector2i.ZERO)
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
+	civilian_schedules.set_player(player)
 	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
@@ -819,6 +842,12 @@ func _interact_entity(entity: WorldEntity) -> void:
 
 func _interact_npc(entity: WorldEntity) -> void:
 	var npc_id := String(entity.data.get("npc_id", ""))
+	if civilian_schedules:
+		var blocked_reason := civilian_schedules.dialogue_block_reason(npc_id)
+		if not blocked_reason.is_empty():
+			event_bus.post_message(blocked_reason)
+			_refresh_hud()
+			return
 	var npc: Dictionary = content.get_npc(npc_id)
 	var result: Dictionary = dialogues.resolve_dialogue(
 		String(npc.get("dialogue_id", "")), String(npc.get("name", entity.get_display_name()))

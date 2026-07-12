@@ -1,0 +1,86 @@
+{
+  "canon_status": "proposal",
+  "activation_status": "review_required",
+  "settlement_id": "northgate",
+  "profiles": {
+    "schedule_shopkeeper_standard": {
+      "id": "schedule_shopkeeper_standard",
+      "brain_id": "civilian_schedule",
+      "weekday_blocks": [
+        {"id": "wake", "start": "06:30", "activity": "wake", "destination": "home"},
+        {"id": "prepare", "start": "07:30", "activity": "work", "destination": "primary_workplace"},
+        {"id": "counter", "start": "08:00", "activity": "work", "destination": "primary_workplace", "service": true},
+        {"id": "stock", "start": "18:00", "activity": "work", "destination": "primary_workplace"},
+        {"id": "relax", "start": "19:30", "activity": "relax", "destination_pool": "town_leisure"},
+        {"id": "sleep", "start": "22:30", "activity": "sleep", "destination": "home"}
+      ]
+    },
+    "schedule_farmer_standard": {
+      "id": "schedule_farmer_standard",
+      "brain_id": "civilian_schedule",
+      "weekday_blocks": [
+        {"id": "wake", "start": "05:30", "activity": "wake", "destination": "home"},
+        {"id": "farm_morning", "start": "06:15", "activity": "work", "destination": "primary_workplace", "action_pool": ["hoe_rows", "check_livestock", "carry_hay"]},
+        {"id": "farm_meal", "start": "12:00", "activity": "eat", "destination": "workplace_break", "action_pool": ["eat_rations", "wash_up", "check_weather"]},
+        {"id": "farm_afternoon", "start": "13:00", "activity": "work", "destination": "primary_workplace", "action_pool": ["repair_fence", "hoe_rows", "gather_harvest"]},
+        {"id": "relax", "start": "18:00", "activity": "relax", "destination_pool": "town_leisure"},
+        {"id": "sleep", "start": "21:30", "activity": "sleep", "destination": "home"}
+      ],
+      "weather_overrides": {
+        "rain": [
+          {"block_id": "farm_morning", "destination": "home", "action": "sort seed indoors"},
+          {"block_id": "farm_afternoon", "destination": "home", "action": "mend tools by the hearth"}
+        ],
+        "storm": [
+          {"block_id": "farm_morning", "destination": "home", "action": "secure the farm before the storm"},
+          {"block_id": "farm_afternoon", "destination": "home", "action": "wait out the storm"}
+        ],
+        "snow": [
+          {"block_id": "farm_morning", "destination": "home", "action": "repair winter gear"},
+          {"block_id": "farm_afternoon", "destination": "home", "action": "stack firewood"}
+        ]
+      }
+    }
+  },
+  "destinations": {
+    "northgate_shopkeeper_home": {"id": "northgate_shopkeeper_home", "world_layer": "surface", "global_tile": [-3298, -3901], "kind": "home.sleep"},
+    "northgate_shop_counter": {"id": "northgate_shop_counter", "world_layer": "surface", "global_tile": [-3294, -3922], "kind": "shop.counter", "exclusive": true, "reservation_minutes": 75},
+    "northgate_farmer_home": {"id": "northgate_farmer_home", "world_layer": "surface", "global_tile": [-3282, -3902], "kind": "home.sleep"},
+    "northgate_farm_field": {"id": "northgate_farm_field", "world_layer": "surface", "global_tile": [-3148, -3843], "kind": "farm.field"},
+    "northgate_farm_meal": {"id": "northgate_farm_meal", "world_layer": "surface", "global_tile": [-3154, -3855], "kind": "farm.meal"},
+    "northgate_inn_bar": {"id": "northgate_inn_bar", "world_layer": "surface", "global_tile": [-3246, -3961], "kind": "inn.bar", "exclusive": true, "reservation_minutes": 90},
+    "northgate_square": {"id": "northgate_square", "world_layer": "surface", "global_tile": [-3270, -3940], "kind": "town.square"}
+  },
+  "bindings": {
+    "binding_northgate_shopkeeper_proposal": {
+      "npc_id": "npc_northgate_shopkeeper_proposal",
+      "schedule_id": "schedule_shopkeeper_standard",
+      "home_destination_id": "northgate_shopkeeper_home",
+      "work_destination_id": "northgate_shop_counter",
+      "leisure_destination_ids": ["northgate_inn_bar", "northgate_square"],
+      "service_ids": ["service_northgate_general_shop"],
+      "canon_status": "proposal"
+    },
+    "binding_northgate_farmer_proposal": {
+      "npc_id": "npc_northgate_farmer_proposal",
+      "schedule_id": "schedule_farmer_standard",
+      "home_destination_id": "northgate_farmer_home",
+      "work_destination_id": "northgate_farm_field",
+      "work_break_destination_id": "northgate_farm_meal",
+      "leisure_destination_ids": ["northgate_inn_bar", "northgate_square"],
+      "canon_status": "proposal"
+    }
+  },
+  "services": {
+    "service_northgate_general_shop": {
+      "worker_npc_id": "npc_northgate_shopkeeper_proposal",
+      "open_hour": 8,
+      "close_hour": 18,
+      "service_anchor_id": "northgate_shop_counter"
+    }
+  },
+  "actors": [
+    {"id": "northgate_shopkeeper_actor", "npc_id": "npc_northgate_shopkeeper_proposal", "brain_id": "civilian_schedule", "hostility": "neutral", "world_layer": "surface", "global_tile": [-3298, -3901], "move_speed": 160},
+    {"id": "northgate_farmer_actor", "npc_id": "npc_northgate_farmer_proposal", "brain_id": "civilian_schedule", "hostility": "neutral", "world_layer": "surface", "global_tile": [-3282, -3902], "move_speed": 220}
+  ]
+}

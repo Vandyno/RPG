@@ -1343,3 +1343,43 @@ Follow-up:
 
 - Expand terrain authoring when interiors, dungeons, or larger authored
   landmarks need more tile layers or object palettes.
+## Atlas-Constrained World Authoring
+
+World generation is an offline proposal workflow. It does not add hidden
+runtime randomness or write directly into active `world_*` content.
+
+- `data/world_atlas_proposal.json` owns reviewed continent geometry, named
+  anchors, fixed routes, terrain barriers, zones, and world scale.
+- `data/world_atlas_review.json` is the explicit approval gate. Region and
+  settlement generators refuse an incomplete, stale, rejected, or invalid
+  atlas review.
+- Region proposals use global-tile polygons and editable chunk-cell spans.
+  They preserve atlas constraints and record region ID, seed, template, and
+  generator version on generated terrain, roads, and POIs.
+- Region terrain uses deterministic multi-scale value fields plus explicit
+  settlement, fixed-route, water, and POI affinities. Minor-road connectors
+  attach to the closest point on a fixed-route segment and are distance-limited.
+- Hard separation between regions is atlas-owned geometry, never emergent
+  noise. Barrier paths or polygons block ordinary travel; reviewed passes,
+  bridges, ferries, or special routes define intended crossings.
+- Civilian schedule and brain groundwork is specified in
+  `docs/NPC_BRAIN_AND_SCHEDULE_PLAN.md`. `TimeManager` owns clock truth;
+  schedules select intent; activity packages execute it; movement and portal
+  traversal remain world-runtime concerns.
+- Settlement proposals use the existing surface and
+  `interior:<structure_id>` layer contract. Their proposal-local archetypes
+  match `StructureManager` terrain-row, tile-kind, anchor, and portal shapes.
+- Settlement streets may be authored as thick polylines rasterized identically
+  by generation validation and previews; exterior
+  terrain rows may contain empty cells for L-shaped/chamfered footprints, and
+  defenses may carry a boundary polygon in addition to validation bounds.
+- Proposal validators own geometry, collision, reachability, portal,
+  NPC-home, and service-slot checks before review.
+- Capture tools write previews, validation reports, and summaries. Promotion
+  into runtime content remains a separate manual review action.
+- Northgate seed `2701` is the first explicit promotion. Its reproducible
+  activation tool writes isolated `data/runtime/northgate_*` overlays that
+  `ContentDatabase` merges after base content. Furniture uses non-interactive
+  `fixture` entities so authored interiors render without polluting targeting.
+  Services, quest state, equipment condition, storage, player layer/position,
+  and civilian schedule state use existing manager save providers.

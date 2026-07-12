@@ -18,6 +18,7 @@ const REQUIRED_PROVIDERS := [
 	"combat",
 	"chunks"
 ]
+const OPTIONAL_PROVIDERS := ["civilian_schedules"]
 
 var event_bus: EventBus
 var providers: Dictionary = {}
@@ -88,6 +89,9 @@ func save_game() -> SaveResult:
 		"combat": providers["combat"].get_save_data(),
 		"chunks": providers["chunks"].get_save_data()
 	}
+	for provider_id in OPTIONAL_PROVIDERS:
+		if providers.has(provider_id):
+			data[provider_id] = providers[provider_id].get_save_data()
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if not file:
 		var open_error := FileAccess.get_open_error()
@@ -136,6 +140,9 @@ func load_game() -> LoadResult:
 	providers["readables"].load_save_data(parsed["readables"])
 	providers["combat"].load_save_data(parsed["combat"])
 	providers["chunks"].load_save_data(parsed["chunks"])
+	for provider_id in OPTIONAL_PROVIDERS:
+		if providers.has(provider_id) and parsed.has(provider_id) and parsed[provider_id] is Dictionary:
+			providers[provider_id].load_save_data(parsed[provider_id])
 	providers["player"].load_save_data(parsed["player"])
 	var result := LoadResult.new(true, "ok", "Loaded %s" % save_path, save_path)
 	if event_bus:

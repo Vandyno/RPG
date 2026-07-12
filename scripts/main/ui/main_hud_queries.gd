@@ -155,7 +155,8 @@ func trade_text(shop_id: String) -> String:
 	var lines: Array[String] = [shop_name]
 	lines.append(_shop_hours_text(shop_id))
 	if not shops.is_shop_open(shop_id):
-		lines.append("Closed now.")
+		var unavailable_reason: String = shops.shop_unavailable_reason(shop_id) if shops.has_method("shop_unavailable_reason") else ""
+		lines.append(unavailable_reason if not unavailable_reason.is_empty() else "Closed now.")
 	lines.append(
 		"Gold: %d" % inventory.get_count(ShopManagerScript.CURRENCY_ITEM_ID)
 		if inventory

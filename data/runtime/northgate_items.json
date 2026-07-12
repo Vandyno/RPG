@@ -1,0 +1,13 @@
+{
+  "item_northgate_trade_manifest": {
+    "description": "A wax-marked road ledger sheet listing carts expected through Northgate.",
+    "id": "item_northgate_trade_manifest",
+    "max_stack": 1,
+    "name": "Northgate Trade Manifest",
+    "tags": [
+      "quest"
+    ],
+    "type": "quest",
+    "value": 0
+  }
+}

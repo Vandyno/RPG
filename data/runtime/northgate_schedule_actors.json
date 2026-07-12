@@ -1,0 +1,34 @@
+[
+  {
+    "activation_status": "review_required",
+    "actor_category": "humanoid",
+    "assigned_home_structure_id": "structure_northgate_south_home_plot",
+    "assigned_work_structure_id": "poi_northgate_working_farm",
+    "attack_damage": 0,
+    "behavior_state": "idle",
+    "brain_id": "civilian_schedule",
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_farmer",
+    "combat_enabled": true,
+    "damage_taken_per_hit": 4,
+    "equipment_owner_id": "char_northgate_farmer",
+    "global_tile": [
+      -3282,
+      -3902
+    ],
+    "home_tile": [
+      -3282,
+      -3902
+    ],
+    "hostility": "neutral",
+    "id": "npc_northgate_farmer_world",
+    "inventory": [],
+    "inventory_owner_id": "char_northgate_farmer",
+    "kind": "npc",
+    "max_health": 12,
+    "move_speed": 96,
+    "name": "Northgate Farmer Proposal",
+    "npc_id": "npc_northgate_farmer",
+    "world_layer": "surface"
+  }
+]

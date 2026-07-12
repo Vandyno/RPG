@@ -26,5 +26,12 @@
     "type": "trade_poi",
     "region": "Marches of Velcor",
     "description": "A canvas-fronted peddler stall built against a wooden shop, stacked with travel goods, spare cord, sealed jars, and weatherproof map scraps."
+  },
+  "location_northgate": {
+    "id": "location_northgate",
+    "name": "Northgate",
+    "type": "road_junction_town",
+    "region": "Marches of Velcor",
+    "description": "A timber-palisaded road town where four Marches routes meet around an inn, smithy, market, hall, homes, and guarded gates."
   }
 }

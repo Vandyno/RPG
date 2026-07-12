@@ -12,6 +12,7 @@ class ActionListContext:
 	var dialogues
 	var player
 	var world_state
+	var civilian_schedules
 
 	func _init(main) -> void:
 		condition_evaluator = main.condition_evaluator
@@ -19,6 +20,7 @@ class ActionListContext:
 		dialogues = main.dialogues
 		player = main.player
 		world_state = main.world_state
+		civilian_schedules = main.get("civilian_schedules")
 
 
 class ActionHandleContext:
@@ -29,6 +31,7 @@ class ActionHandleContext:
 	var hud
 	var inventory_transfer_context
 	var player
+	var civilian_schedules
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
 	var _interact_npc: Callable
@@ -43,6 +46,7 @@ class ActionHandleContext:
 		hud = main.hud
 		inventory_transfer_context = MainInventoryTransfer.context(main)
 		player = main.player
+		civilian_schedules = main.get("civilian_schedules")
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
 		_interact_npc = Callable(main, "_interact_npc")
@@ -75,17 +79,24 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		var npc: Dictionary = _npc_for_entity(ctx, entity)
 		if ctx.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
 			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
-		if not String(npc.get("dialogue_id", "")).is_empty():
+		var dialogue_block_reason := _dialogue_block_reason(ctx, entity)
+		if dialogue_block_reason == "They are asleep.":
+			actions.append({"id": "wake:%s" % String(entity.data.get("npc_id", "")), "text": "Wake"})
+		if dialogue_block_reason.is_empty() and not String(npc.get("dialogue_id", "")).is_empty():
 			actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
-		var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
-		if not _array_field(line.get("effects", [])).is_empty():
-			actions.append(
-				{"id": "line:%s" % String(line.get("line_id", "")), "text": _line_action_text(line)}
-			)
-		for choice in _effectful_dialogue_choices(ctx, npc, entity):
-			actions.append(
-				{"id": "dialogue:%s" % String(choice.get("id", "")), "text": choice.get("text", "")}
-			)
+		if dialogue_block_reason.is_empty():
+			var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
+			if not _array_field(line.get("effects", [])).is_empty():
+				actions.append(
+					{"id": "line:%s" % String(line.get("line_id", "")), "text": _line_action_text(line)}
+				)
+			for choice in _effectful_dialogue_choices(ctx, npc, entity):
+				actions.append(
+					{"id": "dialogue:%s" % String(choice.get("id", "")), "text": choice.get("text", "")}
+				)
+			var rumor := _local_rumor(ctx, entity)
+			if not rumor.is_empty():
+				actions.append({"id": "rumor:%s" % String(entity.data.get("npc_id", "")), "text": "Ask Rumors"})
 	return actions
 
 
@@ -132,6 +143,10 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_trade_action_selected(ctx, String(parsed.get("id", "")))
 		"talk":
 			_handle_talk_action_selected(ctx, String(parsed.get("id", "")))
+		"wake":
+			_handle_wake_action_selected(ctx, String(parsed.get("id", "")))
+		"rumor":
+			_handle_rumor_action_selected(ctx, String(parsed.get("id", "")))
 		"inspect":
 			_handle_poi_inspect_selected(ctx, String(parsed.get("id", "")))
 		"pickpocket":
@@ -213,7 +228,45 @@ static func _handle_talk_action_selected(ctx: ActionHandleContext, _dialogue_id:
 	if not entity or entity.get_kind() != "npc":
 		ctx.event_bus.post_message("No one to talk to.")
 		return
+	var blocked_reason := _dialogue_block_reason(ctx.actions, entity)
+	if not blocked_reason.is_empty():
+		ctx.event_bus.post_message(blocked_reason)
+		ctx._refresh_hud.call()
+		return
 	ctx._interact_npc.call(entity)
+
+
+static func _handle_wake_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one to wake.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	if not ctx.actions.civilian_schedules or not ctx.actions.civilian_schedules.has_method("wake_npc"):
+		ctx.event_bus.post_message("They cannot be woken right now.")
+		return
+	if ctx.actions.civilian_schedules.wake_npc(npc_id):
+		ctx.event_bus.post_message("Woken.")
+	else:
+		ctx.event_bus.post_message("They are not asleep.")
+	ctx._refresh_hud.call()
+
+
+static func _handle_rumor_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one has news for you.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	var rumor := _local_rumor(ctx.actions, entity)
+	ctx.event_bus.post_message(rumor if not rumor.is_empty() else "They have no news to share.")
+	ctx._refresh_hud.call()
 
 
 static func _handle_poi_inspect_selected(ctx: ActionHandleContext, _entity_id: String) -> void:
@@ -317,6 +370,22 @@ static func _npc_for_entity(ctx: ActionListContext, entity) -> Dictionary:
 	if not entity:
 		return {}
 	return ctx.content.get_npc(String(entity.data.get("npc_id", "")))
+
+
+static func _routine_dialogue_available(ctx: ActionListContext, entity) -> bool:
+	return _dialogue_block_reason(ctx, entity).is_empty()
+
+
+static func _dialogue_block_reason(ctx: ActionListContext, entity) -> String:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("dialogue_block_reason"):
+		return ""
+	return String(ctx.civilian_schedules.dialogue_block_reason(String(entity.data.get("npc_id", ""))))
+
+
+static func _local_rumor(ctx: ActionListContext, entity) -> String:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("get_local_rumor"):
+		return ""
+	return String(ctx.civilian_schedules.get_local_rumor(String(entity.data.get("npc_id", ""))))
 
 
 static func _trade_shop_id_for_entity(ctx: ActionHandleContext, entity) -> String:

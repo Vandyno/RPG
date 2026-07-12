@@ -94,6 +94,10 @@ static func _validate_world_object_kind(
 			_validate_poi_object(content, entry, object_id, errors)
 		"location":
 			_validate_location_object(content, entry, object_id, errors)
+		"fixture":
+			pass
+		"surface_detail":
+			pass
 		_:
 			errors.append("World object %s has unsupported kind %s." % [object_id, kind])
 

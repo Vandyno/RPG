@@ -1,0 +1,250 @@
+{
+  "binding_northgate_apprentice": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_southeast_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_apprentice",
+    "schedule_id": "schedule_smith_standard",
+    "work_break_destination_id": "northgate_smith_break_runtime",
+    "work_destination_id": "northgate_smith_anvil_runtime"
+  },
+  "binding_northgate_clerk": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_south_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_clerk",
+    "schedule_id": "schedule_clerk_standard",
+    "work_break_destination_id": "northgate_hall_break_runtime",
+    "work_destination_id": "northgate_hall_clerk_runtime"
+  },
+  "binding_northgate_farmer": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_farmer_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime"
+    ],
+    "npc_id": "npc_northgate_farmer",
+    "schedule_id": "schedule_farmer_standard",
+    "work_break_destination_id": "northgate_farm_meal_runtime",
+    "work_destination_id": "northgate_farm_field_runtime"
+  },
+  "binding_northgate_guard_north": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_west_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_guard_north",
+    "patrol_destination_id": "northgate_guard_gate_runtime",
+    "schedule_id": "schedule_guard_standard",
+    "work_break_destination_id": "northgate_guard_break_runtime",
+    "work_destination_id": "northgate_guard_watch_runtime"
+  },
+  "binding_northgate_innkeeper": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_innkeeper",
+    "schedule_id": "schedule_innkeeper_standard",
+    "work_break_destination_id": "northgate_inn_table_runtime",
+    "work_destination_id": "northgate_inn_service_runtime"
+  },
+  "binding_northgate_reeve": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_south_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_reeve",
+    "schedule_id": "schedule_clerk_standard",
+    "work_break_destination_id": "northgate_hall_break_runtime",
+    "work_destination_id": "northgate_hall_notice_runtime"
+  },
+  "binding_northgate_resident_01": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_west_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_resident_01",
+    "schedule_id": "schedule_resident_standard",
+    "visit_destination_ids": [
+      "northgate_south_home_runtime"
+    ],
+    "visit_target_npc_ids": [
+      "npc_northgate_resident_02"
+    ],
+    "work_break_destination_id": "northgate_west_home_runtime",
+    "work_destination_id": "northgate_square_runtime"
+  },
+  "binding_northgate_resident_02": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_south_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_resident_02",
+    "schedule_id": "schedule_resident_standard",
+    "visit_destination_ids": [
+      "northgate_east_home_runtime"
+    ],
+    "visit_target_npc_ids": [
+      "npc_northgate_resident_03"
+    ],
+    "work_break_destination_id": "northgate_south_home_runtime",
+    "work_destination_id": "northgate_square_runtime"
+  },
+  "binding_northgate_resident_03": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_resident_03",
+    "schedule_id": "schedule_resident_standard",
+    "visit_destination_ids": [
+      "northgate_southeast_home_runtime"
+    ],
+    "visit_target_npc_ids": [
+      "npc_northgate_resident_04"
+    ],
+    "work_break_destination_id": "northgate_east_home_runtime",
+    "work_destination_id": "northgate_square_runtime"
+  },
+  "binding_northgate_resident_04": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_southeast_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_resident_04",
+    "schedule_id": "schedule_resident_standard",
+    "visit_destination_ids": [
+      "northgate_far_east_home_runtime"
+    ],
+    "visit_target_npc_ids": [
+      "npc_northgate_resident_05"
+    ],
+    "work_break_destination_id": "northgate_southeast_home_runtime",
+    "work_destination_id": "northgate_square_runtime"
+  },
+  "binding_northgate_resident_05": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_far_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_resident_05",
+    "personal_overrides": [
+      {
+        "action": "host_visitors",
+        "block_id": "weekend_visit",
+        "destination": "home"
+      }
+    ],
+    "schedule_id": "schedule_resident_standard",
+    "visit_destination_ids": [
+      "northgate_west_home_runtime"
+    ],
+    "visit_target_npc_ids": [
+      "npc_northgate_resident_01"
+    ],
+    "work_break_destination_id": "northgate_far_east_home_runtime",
+    "work_destination_id": "northgate_square_runtime"
+  },
+  "binding_northgate_shopkeeper": {
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_shopkeeper_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime"
+    ],
+    "npc_id": "npc_northgate_shopkeeper",
+    "schedule_id": "schedule_shopkeeper_standard",
+    "service_ids": [
+      "service_northgate_general_shop"
+    ],
+    "work_destination_id": "northgate_shop_counter_runtime"
+  },
+  "binding_northgate_shrine_keeper": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_shrine_keeper",
+    "schedule_id": "schedule_shrine_keeper_standard",
+    "work_break_destination_id": "northgate_shrine_break_runtime",
+    "work_destination_id": "northgate_shrine_service_runtime"
+  },
+  "binding_northgate_smith": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_southeast_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_smith",
+    "schedule_id": "schedule_smith_standard",
+    "service_ids": [
+      "service_northgate_smith"
+    ],
+    "work_break_destination_id": "northgate_smith_break_runtime",
+    "work_destination_id": "northgate_smith_service_runtime"
+  },
+  "binding_northgate_stablehand": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_far_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_stablehand",
+    "schedule_id": "schedule_stablehand_standard",
+    "work_break_destination_id": "northgate_stable_break_runtime",
+    "work_destination_id": "northgate_stable_work_runtime"
+  },
+  "binding_northgate_storekeeper": {
+    "activation_status": "review_required",
+    "canon_status": "proposal",
+    "home_destination_id": "northgate_far_east_home_runtime",
+    "leisure_destination_ids": [
+      "northgate_inn_table_runtime",
+      "northgate_square_runtime"
+    ],
+    "npc_id": "npc_northgate_storekeeper",
+    "schedule_id": "schedule_storekeeper_standard",
+    "work_break_destination_id": "northgate_store_break_runtime",
+    "work_destination_id": "northgate_store_counter_runtime"
+  }
+}

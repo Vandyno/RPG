@@ -17,6 +17,10 @@ Quest generation should use:
 - `MAP.md`
 - approved map images or location indexes when available
 
+For deterministic, review-only starting pitches, use
+`docs/QUEST_GENERATOR.md`. The generator may cite existing content IDs but does
+not create canon or runtime quest data.
+
 # Basic Loop
 
 1. Input world context.

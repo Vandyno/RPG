@@ -6,7 +6,7 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const WorldEntityScript = preload("res://scripts/world/world_entity.gd")
 const DEFAULT_INTERACTION_RADIUS_PIXELS := 32.0
 const DOOR_INTERACTION_RADIUS_PIXELS := 48.0
-const NON_INTERACTIVE_KINDS := ["location"]
+const NON_INTERACTIVE_KINDS := ["location", "fixture", "surface_detail"]
 
 var event_bus: EventBus
 var content: ContentDatabase
@@ -298,6 +298,7 @@ func _spawn_entry(entry: Dictionary) -> void:
 	):
 		return
 	spawn_entry = _entry_with_filtered_equipment(_entry_with_profile(spawn_entry))
+	spawn_entry = _entry_with_schedule_binding(spawn_entry)
 	var entity := WorldEntityScript.new()
 	add_child(entity)
 	entity.setup(spawn_entry, content)
@@ -433,6 +434,25 @@ func _entry_with_profile(entry: Dictionary) -> Dictionary:
 	var next_entry := entry.duplicate(true)
 	next_entry["character_profile_id"] = profile_id
 	next_entry["character_profile"] = profile
+	return next_entry
+
+
+func _entry_with_schedule_binding(entry: Dictionary) -> Dictionary:
+	if not content or String(entry.get("kind", "")) != "npc":
+		return entry
+	if not content.has_method("get_schedule_binding_for_npc"):
+		return entry
+	var binding: Dictionary = content.get_schedule_binding_for_npc(String(entry.get("npc_id", "")))
+	if binding.is_empty():
+		return entry
+	var next_entry := entry.duplicate(true)
+	next_entry["brain_id"] = "civilian_schedule"
+	next_entry["schedule_brain_id"] = "civilian_schedule"
+	next_entry["schedule_binding_id"] = String(binding.get("id", ""))
+	next_entry["hostility"] = "neutral"
+	# Civilians are not combat targets while neutral, but they remain damageable
+	# so an attack can trigger a defensive reaction.
+	next_entry["combat_enabled"] = true
 	return next_entry
 
 

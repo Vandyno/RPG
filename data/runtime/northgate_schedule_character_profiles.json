@@ -1,0 +1,24 @@
+{
+  "char_northgate_farmer": {
+    "appearance_generation": {
+      "jitter_strength": 0.025,
+      "proportion_jitter": true,
+      "seed": "northgate:farmer"
+    },
+    "character_id": "char_northgate_farmer",
+    "derived_bonuses": {
+
+    },
+    "equipment_owner_id": "char_northgate_farmer",
+    "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_farmer",
+    "level": 1,
+    "loadout_id": "",
+    "people_id": "people_human",
+    "spellbook_owner_id": "char_northgate_farmer",
+    "state": "alive",
+    "stats": {
+
+    }
+  }
+}

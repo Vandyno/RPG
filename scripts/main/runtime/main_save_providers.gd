@@ -3,7 +3,7 @@ extends RefCounted
 
 
 static func build(main) -> Dictionary:
-	return {
+	var providers := {
 		"player": main.player,
 		"world_state": main.world_state,
 		"quests": main.quests,
@@ -18,3 +18,7 @@ static func build(main) -> Dictionary:
 		"combat": main.combat,
 		"chunks": main.chunks
 	}
+	var civilian_schedules = main.get("civilian_schedules")
+	if civilian_schedules:
+		providers["civilian_schedules"] = civilian_schedules
+	return providers

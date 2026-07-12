@@ -502,6 +502,10 @@ static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
 	entity.data["hostility"] = ActorRules.HOSTILITY_HOSTILE
 	entity.data["hostile_to_player"] = true
 	entity.data["combat_enabled"] = true
+	if String(entity.data.get("brain_id", "")) == "civilian_schedule":
+		entity.data["schedule_brain_id"] = "civilian_schedule"
+		entity.data["brain_id"] = "hostile_basic"
+		entity.data["schedule_reaction"] = "defending_home"
 	if String(entity.data.get("brain_id", "")).is_empty():
 		entity.data["brain_id"] = "hostile_basic"
 	entity.data["_brain_mode"] = "engaged"

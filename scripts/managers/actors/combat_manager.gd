@@ -46,6 +46,8 @@ func damage_entity(
 	var counter_damage := (
 		_guarded_counter_damage(raw_counter_damage) if guarded else raw_counter_damage
 	)
+	if counter_damage > 0 and equipment and equipment.has_method("damage_equipped"):
+		equipment.damage_equipped(1)
 
 	if defeated:
 		health_by_entity_id.erase(entity_id)
@@ -74,6 +76,18 @@ func get_entity_health(entity) -> int:
 	var entity_id: String = entity.get_entity_id()
 	var max_health := _max_health_for_entity(entity)
 	return _clamped_entity_health(entity_id, max_health)
+
+
+func heal_entity(entity, amount: int) -> int:
+	var entity_id: String = entity.get_entity_id()
+	var max_health := _max_health_for_entity(entity)
+	var current_health := _clamped_entity_health(entity_id, max_health)
+	var healed_health := mini(max_health, current_health + maxi(0, amount))
+	if healed_health >= max_health:
+		health_by_entity_id.erase(entity_id)
+	else:
+		health_by_entity_id[entity_id] = healed_health
+	return healed_health
 
 
 func clear_entity(entity_id: String) -> void:

@@ -156,6 +156,7 @@ static func _idle_or_return_home(
 	_set_behavior_state(actor, "idle")
 	_clear_path(actor.data)
 	_set_locomotion(actor, false, delta)
+	_restore_civilian_schedule(actor)
 
 
 static func _return_home(ctx: BrainContext, actor, home_position: Vector2, delta: float) -> void:
@@ -165,6 +166,7 @@ static func _return_home(ctx: BrainContext, actor, home_position: Vector2, delta
 		_set_behavior_state(actor, "idle")
 		_clear_path(actor.data)
 		_set_locomotion(actor, false, delta)
+		_restore_civilian_schedule(actor)
 		return
 	actor.data["_brain_mode"] = "returning"
 	_set_behavior_state(actor, "returning")
@@ -459,9 +461,23 @@ static func _home_position(data: Dictionary) -> Vector2:
 static func _uses_basic_brain(actor) -> bool:
 	if not actor or not (actor.data is Dictionary):
 		return false
-	if String(actor.data.get("brain_id", "")) != BASIC_BRAIN_ID:
+	var brain_id := String(actor.data.get("brain_id", ""))
+	if brain_id != BASIC_BRAIN_ID:
 		return false
 	return ActorRules.is_combat_target_data(actor.data)
+
+
+static func _restore_civilian_schedule(actor) -> void:
+	if not actor or not (actor.data is Dictionary):
+		return
+	if String(actor.data.get("schedule_brain_id", "")) != "civilian_schedule":
+		return
+	actor.data["brain_id"] = "civilian_schedule"
+	actor.data["hostility"] = "neutral"
+	actor.data["hostile_to_player"] = false
+	actor.data["combat_enabled"] = true
+	actor.data["schedule_reaction"] = "routine_resumed"
+	actor.data["schedule_resume_requested"] = true
 
 
 static func _should_use_spells(data: Dictionary) -> bool:

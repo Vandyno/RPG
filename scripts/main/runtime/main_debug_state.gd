@@ -7,6 +7,7 @@ const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
 
 static func build(main) -> Dictionary:
 	var state: Dictionary = main.get_hud_state()
+	var civilian_schedules = main.get("civilian_schedules")
 	state.merge(
 		{
 			"player_world": "(%.1f, %.1f)" % [main.player.position.x, main.player.position.y],
@@ -19,6 +20,8 @@ static func build(main) -> Dictionary:
 				main._ranked_nearby_entities(), main.selected_target_id
 			),
 			"navigation": main.entities.get_navigation_summary(main.player.global_position),
+			"schedule_debug":
+			(civilian_schedules.get_debug_snapshot() if civilian_schedules else {}),
 			"flags":
 			(
 				", ".join(main.world_state.flags.keys())

@@ -1,0 +1,66 @@
+{
+  "dialogue_northgate_innkeeper": {
+    "id": "dialogue_northgate_innkeeper",
+    "lines": [
+      {
+        "id": "greeting",
+        "speaker": "Northgate Innkeeper",
+        "text": "Beds are kept upstairs and the common room stays warm for travellers."
+      }
+    ]
+  },
+  "dialogue_northgate_reeve": {
+    "id": "dialogue_northgate_reeve",
+    "lines": [
+      {
+        "id": "greeting",
+        "speaker": "Northgate Reeve",
+        "text": "The hall board carries work that needs doing. Names and details remain provisional."
+      }
+    ]
+  },
+  "dialogue_northgate_resident": {
+    "id": "dialogue_northgate_resident",
+    "lines": [
+      {
+        "id": "greeting",
+        "speaker": "Northgate Resident",
+        "text": "Roads are busy today. The hall board carries local work."
+      }
+    ]
+  },
+  "dialogue_northgate_shopkeeper": {
+    "id": "dialogue_northgate_shopkeeper",
+    "lines": [
+      {
+        "choices": [
+          {
+            "id": "trade_general",
+            "open_shop_id": "shop_northgate_general",
+            "text": "Trade"
+          }
+        ],
+        "id": "trade",
+        "speaker": "Northgate Shopkeeper",
+        "text": "General road goods, weighed and honestly priced."
+      }
+    ]
+  },
+  "dialogue_northgate_smith": {
+    "id": "dialogue_northgate_smith",
+    "lines": [
+      {
+        "choices": [
+          {
+            "id": "trade_smith",
+            "open_shop_id": "shop_northgate_smith",
+            "text": "Browse smithing stock"
+          }
+        ],
+        "id": "trade",
+        "speaker": "Northgate Smith",
+        "text": "I keep road gear sound and sell what the forge can spare."
+      }
+    ]
+  }
+}

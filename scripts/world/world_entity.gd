@@ -79,6 +79,12 @@ func set_global_tile(tile: Vector2i) -> void:
 	set_world_position(_center_of_tile(tile))
 
 
+func set_world_layer(layer: String) -> void:
+	world_layer = "surface" if layer.is_empty() else layer
+	data["world_layer"] = world_layer
+	queue_redraw()
+
+
 func set_world_position(world_position: Vector2) -> void:
 	position = world_position
 	global_tile = GridMath.world_to_tile(position)
