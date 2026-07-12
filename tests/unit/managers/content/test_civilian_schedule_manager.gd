@@ -461,7 +461,7 @@ func test_runtime_shopkeeper_crosses_authored_portals_between_home_and_shop() ->
 	for _step in range(40):
 		manager.update(1.0)
 	assert_eq(shopkeeper.world_layer, "interior:structure_northgate_shop_plot")
-	assert_true([Vector2i(2, 2), Vector2i(3, 2), Vector2i(2, 3)].has(shopkeeper.global_tile))
+	assert_true([Vector2i(6, 3), Vector2i(7, 3), Vector2i(6, 4)].has(shopkeeper.global_tile))
 	assert_true(manager.get_schedule_debug("npc_northgate_shopkeeper").get("at_destination", false))
 
 
@@ -477,6 +477,38 @@ func test_combat_promotion_records_schedule_interruption_for_civilian() -> void:
 	var state := manager.get_schedule_debug("npc_northgate_shopkeeper_proposal")
 	assert_true(state.has("interruption"))
 	assert_eq(state["interruption"]["reason"], "combat")
+
+
+func test_player_incident_memory_survives_save_load_and_can_be_addressed() -> void:
+	var fixture := _fixture()
+	var manager: CivilianScheduleManager = fixture["manager"]
+	var shopkeeper: WorldEntity = fixture["entities"].entities_by_id["northgate_shopkeeper_actor"]
+	var npc_id := "npc_northgate_shopkeeper_proposal"
+	shopkeeper.data["schedule_brain_id"] = "civilian_schedule"
+	shopkeeper.data["brain_id"] = "hostile_basic"
+	shopkeeper.data["hostility"] = "hostile"
+	shopkeeper.data["hostile_to_player"] = true
+	manager.update(0.1)
+	assert_eq(manager.get_player_memory(npc_id)["attack_count"], 1)
+
+	shopkeeper.data["brain_id"] = "civilian_schedule"
+	shopkeeper.data["hostility"] = "neutral"
+	shopkeeper.data["hostile_to_player"] = false
+	assert_true(manager.resume(npc_id))
+	assert_eq(manager.dialogue_block_reason(npc_id), "They are wary of you.")
+	assert_true(manager.can_address_player_incident(npc_id))
+
+	var saved: Dictionary = manager.get_save_data()
+	var restored: CivilianScheduleManager = CivilianScheduleManager.new()
+	add_child_autofree(restored)
+	restored.setup(fixture["bus"], null, fixture["time"], fixture["entities"], null)
+	restored.load_authored_data(fixture["profiles"], fixture["bindings"], fixture["destinations"])
+	restored.load_save_data(saved)
+	assert_eq(restored.get_player_memory(npc_id)["attack_count"], 1)
+	assert_eq(restored.dialogue_block_reason(npc_id), "They are wary of you.")
+	assert_true(restored.acknowledge_player_incident(npc_id))
+	assert_false(restored.get_player_memory(npc_id)["unresolved"])
+	assert_eq(restored.dialogue_block_reason(npc_id), "")
 
 
 func test_wounded_civilian_flees_home_recovers_and_resumes_schedule() -> void:

@@ -23,6 +23,8 @@ const FLEE_HEALTH_RATIO := 0.35
 const RECOVERY_MINUTES := 60
 const TRESPASS_REACTION_MINUTES := 2
 const TRESPASS_COOLDOWN_MINUTES := 30
+const ATTACK_WARY_MINUTES := 1440
+const TRESPASS_WARY_MINUTES := 180
 
 var event_bus
 var content
@@ -40,6 +42,7 @@ var reservations := ScheduleReservationManager.new()
 var state_by_npc_id: Dictionary = {}
 var social_relationships: Dictionary = {}
 var work_records: Dictionary = {}
+var player_memories: Dictionary = {}
 var _last_absolute_minute := -1
 var _social_snapshot_key := ""
 var _suppress_social_memory := false
@@ -246,6 +249,37 @@ func get_local_rumor(npc_id: String) -> String:
 	return "Rumor: %s" % topic
 
 
+func get_player_memory(npc_id: String) -> Dictionary:
+	var memory: Variant = player_memories.get(npc_id, {})
+	return memory.duplicate(true) if memory is Dictionary else {}
+
+
+func can_address_player_incident(npc_id: String) -> bool:
+	var memory := get_player_memory(npc_id)
+	if memory.is_empty() or not bool(memory.get("unresolved", false)):
+		return false
+	var state: Dictionary = state_by_npc_id.get(npc_id, {})
+	if state.is_empty() or String(state.get("activity", "")) in ["sleep", "flee", "recover", "investigate", "quest"]:
+		return false
+	var actor = _actor_for_npc(npc_id)
+	return actor != null and not _actor_is_unavailable(actor)
+
+
+func acknowledge_player_incident(npc_id: String) -> bool:
+	if not can_address_player_incident(npc_id):
+		return false
+	var memory := get_player_memory(npc_id)
+	memory["unresolved"] = false
+	memory["wary_until_absolute"] = _absolute_minute()
+	memory["last_acknowledged_absolute"] = _absolute_minute()
+	player_memories[npc_id] = memory
+	var state: Dictionary = state_by_npc_id.get(npc_id, {})
+	state["reason"] = "player addressed the incident"
+	state_by_npc_id[npc_id] = state
+	_write_state_to_actor(npc_id, state)
+	return true
+
+
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"brain_id": BRAIN_ID,
@@ -254,7 +288,8 @@ func get_debug_snapshot() -> Dictionary:
 		"states": _compact_save_states(),
 		"reservations": reservations.get_save_data(),
 		"social_relationships": social_relationships.duplicate(true),
-		"work_records": work_records.duplicate(true)
+		"work_records": work_records.duplicate(true),
+		"player_memories": player_memories.duplicate(true)
 	}
 
 
@@ -313,6 +348,9 @@ func dialogue_block_reason(npc_id: String) -> String:
 		return "They are occupied with a task."
 	if state.has("interruption"):
 		return "They are unavailable right now."
+	var memory := get_player_memory(npc_id)
+	if bool(memory.get("unresolved", false)) and _absolute_minute() < int(memory.get("wary_until_absolute", 0)):
+		return "They are wary of you."
 	var actor = _actor_for_npc(npc_id)
 	if actor and _actor_is_unavailable(actor):
 		return "They cannot answer right now."
@@ -325,7 +363,8 @@ func get_save_data() -> Dictionary:
 		"states": _compact_save_states(),
 		"reservations": reservations.get_save_data(),
 		"social_relationships": social_relationships.duplicate(true),
-		"work_records": work_records.duplicate(true)
+		"work_records": work_records.duplicate(true),
+		"player_memories": player_memories.duplicate(true)
 	}
 
 
@@ -333,6 +372,7 @@ func load_save_data(data: Dictionary) -> void:
 	state_by_npc_id.clear()
 	social_relationships.clear()
 	work_records.clear()
+	player_memories.clear()
 	var states: Variant = data.get("states", {})
 	if states is Dictionary:
 		for npc_id in states:
@@ -345,6 +385,9 @@ func load_save_data(data: Dictionary) -> void:
 	var saved_work_records: Variant = data.get("work_records", {})
 	if saved_work_records is Dictionary:
 		work_records = saved_work_records.duplicate(true)
+	var saved_player_memories: Variant = data.get("player_memories", {})
+	if saved_player_memories is Dictionary:
+		player_memories = saved_player_memories.duplicate(true)
 	reservations.load_save_data(data.get("reservations", {}) if data.get("reservations", {}) is Dictionary else {})
 	_suppress_social_memory = true
 	_sync_all(true)
@@ -778,6 +821,7 @@ func _write_state(actor, state: Dictionary) -> void:
 	actor.data["schedule_weather"] = String(state.get("weather", ""))
 	actor.data["schedule_social_presence"] = String(state.get("social_presence", ""))
 	actor.data["schedule_social_exchange"] = String(state.get("social_exchange", ""))
+	actor.data["schedule_player_memory"] = get_player_memory(String(state.get("npc_id", "")))
 	actor.data["schedule_state"] = state.duplicate(true)
 	actor.data["behavior_state"] = String(state.get("behavior_state", state.get("activity", "idle")))
 	state_by_npc_id[String(state.get("npc_id", ""))] = state
@@ -822,6 +866,27 @@ func _is_scheduled_actor(actor) -> bool:
 	return String(actor.data.get("hostility", "neutral")) != "hostile"
 
 
+func _record_player_incident(npc_id: String, incident_kind: String) -> void:
+	if npc_id.is_empty() or incident_kind.is_empty():
+		return
+	var saved: Variant = player_memories.get(npc_id, {})
+	var memory: Dictionary = saved.duplicate(true) if saved is Dictionary else {}
+	var count_key := "%s_count" % incident_kind
+	memory[count_key] = int(memory.get(count_key, 0)) + 1
+	memory["last_incident"] = incident_kind
+	memory["last_incident_absolute"] = _absolute_minute()
+	memory["unresolved"] = true
+	var wary_minutes := ATTACK_WARY_MINUTES if incident_kind == "attack" else TRESPASS_WARY_MINUTES
+	memory["wary_until_absolute"] = maxi(
+		int(memory.get("wary_until_absolute", 0)), _absolute_minute() + wary_minutes
+	)
+	player_memories[npc_id] = memory
+	var state: Dictionary = state_by_npc_id.get(npc_id, {})
+	if not state.is_empty():
+		state["player_memory"] = memory.duplicate(true)
+		state_by_npc_id[npc_id] = state
+
+
 func _record_reactive_schedule_interrupt(actor) -> void:
 	if not actor or not actor.data is Dictionary:
 		return
@@ -841,6 +906,7 @@ func _record_reactive_schedule_interrupt(actor) -> void:
 		return
 	if state.has("interruption"):
 		return
+	_record_player_incident(npc_id, "attack")
 	interrupt(npc_id, "combat", "advance_to_current_block")
 
 
@@ -855,6 +921,7 @@ func _record_trespass_reaction(actor) -> void:
 		return
 	if not _player_is_trespassing_in_home(actor, npc_id):
 		return
+	_record_player_incident(npc_id, "trespass")
 	_begin_trespass_reaction(actor, npc_id)
 
 

@@ -77,7 +77,7 @@ func test_all_authored_interior_fixtures_are_live_and_homes_are_personalized() -
 	var fixtures: Array = content.world_object_entries().filter(
 		func(entry): return entry.get("kind", "") == "fixture"
 	)
-	assert_eq(fixtures.size(), 68)
+	assert_eq(fixtures.size(), 93)
 	var home_ids := [
 		"structure_northgate_west_home_plot", "structure_northgate_south_home_plot",
 		"structure_northgate_east_home_plot", "structure_northgate_southeast_home_plot",

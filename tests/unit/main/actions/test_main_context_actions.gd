@@ -41,6 +41,25 @@ class DialoguesStub:
 		return {"response": "Reward taken."}
 
 
+class ScheduleStub:
+	var reason := ""
+	var rumor := ""
+	var incident := false
+
+	func dialogue_block_reason(_npc_id: String) -> String:
+		return reason
+
+	func get_local_rumor(_npc_id: String) -> String:
+		return rumor
+
+	func can_address_player_incident(_npc_id: String) -> bool:
+		return incident
+
+	func acknowledge_player_incident(_npc_id: String) -> bool:
+		incident = false
+		return true
+
+
 class ContentStub:
 	func get_npc(npc_id: String) -> Dictionary:
 		match npc_id:
@@ -99,6 +118,7 @@ class MainStub:
 	var player := PlayerStub.new()
 	var seeded_inventory_owner_ids := {}
 	var world_state = null
+	var civilian_schedules = null
 	var nearby_entity := EntityStub.new()
 	var refreshed := 0
 	var updated_nearby := 0
@@ -146,6 +166,53 @@ func test_build_promotes_effectful_npc_actions_without_direct_trade() -> void:
 		_action_ids(secondary),
 		["talk:dialogue_trader", "dialogue:choice_reward"]
 	)
+
+
+func test_sleeping_npc_does_not_offer_routine_dialogue_actions() -> void:
+	var main := MainStub.new()
+	var schedule := ScheduleStub.new()
+	schedule.reason = "They are asleep."
+	main.civilian_schedules = schedule
+
+	var actions := MainContextActions.build(
+		MainContextActions.action_list_context(main), main.nearby_entity
+	)
+	assert_false(_action_ids(actions).any(func(action_id): return action_id.begins_with("talk:")))
+	assert_false(_action_ids(actions).any(func(action_id): return action_id.begins_with("line:")))
+	assert_false(_action_ids(actions).any(func(action_id): return action_id.begins_with("dialogue:")))
+	assert_true(_action_ids(actions).has("wake:npc_trader"))
+
+
+func test_social_npc_offers_rumor_action_and_routes_the_news() -> void:
+	var main := MainStub.new()
+	var schedule := ScheduleStub.new()
+	schedule.rumor = "Rumor: The field rows were tended."
+	main.civilian_schedules = schedule
+	var ctx := MainContextActions.handle_context(main)
+
+	var actions := MainContextActions.build(
+		MainContextActions.action_list_context(main), main.nearby_entity
+	)
+	assert_true(_action_ids(actions).has("rumor:npc_trader"))
+	MainContextActions.handle(ctx, "rumor:npc_trader")
+	assert_eq(main.event_bus.messages, ["Rumor: The field rows were tended."])
+
+
+func test_wary_npc_offers_incident_action_and_routes_the_acknowledgement() -> void:
+	var main := MainStub.new()
+	var schedule := ScheduleStub.new()
+	schedule.reason = "They are wary of you."
+	schedule.incident = true
+	main.civilian_schedules = schedule
+	var ctx := MainContextActions.handle_context(main)
+
+	var actions := MainContextActions.build(
+		MainContextActions.action_list_context(main), main.nearby_entity
+	)
+	assert_true(_action_ids(actions).has("incident:npc_trader"))
+	MainContextActions.handle(ctx, "incident:npc_trader")
+	assert_eq(main.event_bus.messages, ["They listen, but remain guarded."])
+	assert_eq(main.refreshed, 1)
 
 
 func test_handle_routes_dialogue_choice_and_unknown_actions() -> void:

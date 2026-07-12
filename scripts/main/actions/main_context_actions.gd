@@ -82,6 +82,8 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		var dialogue_block_reason := _dialogue_block_reason(ctx, entity)
 		if dialogue_block_reason == "They are asleep.":
 			actions.append({"id": "wake:%s" % String(entity.data.get("npc_id", "")), "text": "Wake"})
+		if dialogue_block_reason == "They are wary of you." and _can_address_incident(ctx, entity):
+			actions.append({"id": "incident:%s" % String(entity.data.get("npc_id", "")), "text": "Address the incident"})
 		if dialogue_block_reason.is_empty() and not String(npc.get("dialogue_id", "")).is_empty():
 			actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
 		if dialogue_block_reason.is_empty():
@@ -145,6 +147,8 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_talk_action_selected(ctx, String(parsed.get("id", "")))
 		"wake":
 			_handle_wake_action_selected(ctx, String(parsed.get("id", "")))
+		"incident":
+			_handle_incident_action_selected(ctx, String(parsed.get("id", "")))
 		"rumor":
 			_handle_rumor_action_selected(ctx, String(parsed.get("id", "")))
 		"inspect":
@@ -252,6 +256,25 @@ static func _handle_wake_action_selected(ctx: ActionHandleContext, npc_id: Strin
 		ctx.event_bus.post_message("Woken.")
 	else:
 		ctx.event_bus.post_message("They are not asleep.")
+	ctx._refresh_hud.call()
+
+
+static func _handle_incident_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one is here to hear you out.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	if ctx.civilian_schedules and ctx.civilian_schedules.has_method("acknowledge_player_incident"):
+		if ctx.civilian_schedules.acknowledge_player_incident(npc_id):
+			ctx.event_bus.post_message("They listen, but remain guarded.")
+		else:
+			ctx.event_bus.post_message("They are not ready to talk about it.")
+	else:
+		ctx.event_bus.post_message("They are not ready to talk about it.")
 	ctx._refresh_hud.call()
 
 
@@ -386,6 +409,12 @@ static func _local_rumor(ctx: ActionListContext, entity) -> String:
 	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("get_local_rumor"):
 		return ""
 	return String(ctx.civilian_schedules.get_local_rumor(String(entity.data.get("npc_id", ""))))
+
+
+static func _can_address_incident(ctx: ActionListContext, entity) -> bool:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("can_address_player_incident"):
+		return false
+	return bool(ctx.civilian_schedules.can_address_player_incident(String(entity.data.get("npc_id", ""))))
 
 
 static func _trade_shop_id_for_entity(ctx: ActionHandleContext, entity) -> String:
