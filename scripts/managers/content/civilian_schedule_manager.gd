@@ -876,6 +876,11 @@ func _record_player_incident(npc_id: String, incident_kind: String) -> void:
 	memory["last_incident"] = incident_kind
 	memory["last_incident_absolute"] = _absolute_minute()
 	memory["unresolved"] = true
+	memory["rumor"] = (
+		"Someone attacked me."
+		if incident_kind == "attack"
+		else "Someone entered my home without permission."
+	)
 	var wary_minutes := ATTACK_WARY_MINUTES if incident_kind == "attack" else TRESPASS_WARY_MINUTES
 	memory["wary_until_absolute"] = maxi(
 		int(memory.get("wary_until_absolute", 0)), _absolute_minute() + wary_minutes
@@ -1393,6 +1398,11 @@ func _record_social_meeting(
 
 func _social_topic_for_group(companions: Array) -> String:
 	for npc_id in companions:
+		var memory: Variant = player_memories.get(String(npc_id), {})
+		if memory is Dictionary and bool((memory as Dictionary).get("unresolved", false)):
+			var incident_rumor := String((memory as Dictionary).get("rumor", ""))
+			if not incident_rumor.is_empty():
+				return incident_rumor
 		var record: Dictionary = work_records.get(String(npc_id), {})
 		var output := String(record.get("last_output", "")) if record is Dictionary else ""
 		if not output.is_empty():

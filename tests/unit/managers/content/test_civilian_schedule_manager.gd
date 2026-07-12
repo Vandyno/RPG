@@ -176,6 +176,27 @@ func test_relaxing_civilians_form_a_social_exchange_after_reaching_the_same_anch
 	assert_eq(manager.get_save_data()["social_relationships"][relationship_key]["meetings"], 1)
 
 
+func test_unresolved_incident_becomes_a_social_rumor() -> void:
+	var fixture := _fixture()
+	var manager: CivilianScheduleManager = fixture["manager"]
+	var time: TimeManager = fixture["time"]
+	var bindings: Dictionary = fixture["bindings"].duplicate(true)
+	bindings["binding_northgate_shopkeeper_proposal"]["leisure_destination_ids"] = ["northgate_inn_bar"]
+	bindings["binding_northgate_farmer_proposal"]["leisure_destination_ids"] = ["northgate_inn_bar"]
+	manager.load_authored_data(fixture["profiles"], bindings, fixture["destinations"])
+	manager.player_memories["npc_northgate_farmer_proposal"] = {
+		"unresolved": true,
+		"rumor": "Someone entered my home without permission."
+	}
+
+	time.advance_minutes(690)
+	manager.update(120.0)
+	assert_eq(
+		manager.get_local_rumor("npc_northgate_shopkeeper_proposal"),
+		"Rumor: Someone entered my home without permission."
+	)
+
+
 func test_private_home_trespass_triggers_confrontation_then_schedule_resume() -> void:
 	var fixture := _fixture()
 	var manager: CivilianScheduleManager = fixture["manager"]

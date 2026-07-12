@@ -13,6 +13,7 @@ Implemented contracts:
 - Runtime state also tracks hunger and fatigue. Critical needs temporarily override a routine with eating or sleeping, recover over simulated time, and survive compact save/load. Combat promotion records a schedule interruption and civilian control is restored after the hostile brain returns home.
 - A badly wounded scheduled civilian now abandons hostile combat, flees through the authored home/portal route, enters a one-hour recovery state, and resumes the current schedule afterward.
 - Attack and trespass incidents persist per NPC. Wary civilians expose an `Address the incident` action; acknowledging it clears the unresolved disposition without erasing the incident history.
+- Unresolved incident memories can become social rumors when companions meet, so player actions propagate through the town’s social network.
 - `ShopManager` gates schedule-aware services on hours plus a qualified worker being present at the service anchor.
 - `MainDebugState` exposes the schedule snapshot; `SaveManager` stores the optional `civilian_schedules` section.
 
