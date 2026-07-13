@@ -30,6 +30,12 @@ func setup(bus, entity_manager, chunk_manager, combat_manager) -> void:
 	entities = entity_manager
 	chunks = chunk_manager
 	combat = combat_manager
+	if (
+		event_bus
+		and event_bus.has_signal("actor_state_changed")
+		and not event_bus.actor_state_changed.is_connected(_on_actor_state_changed)
+	):
+		event_bus.actor_state_changed.connect(_on_actor_state_changed)
 
 
 func set_player(player_controller) -> void:
@@ -125,6 +131,14 @@ func load_save_data(data: Dictionary) -> void:
 			companions_by_entity_id[String(entity_id)] = loaded[entity_id].duplicate(true)
 
 
+func _on_actor_state_changed(entity_id: String, _npc_id: String, state: String) -> void:
+	if not ActorRules.DEAD_STATES.has(state):
+		return
+	var actor = entities.get_entity(entity_id) if entities else null
+	if actor and is_player_owned(actor):
+		_end_companion_state(actor)
+
+
 func _apply_allegiance(actor, allegiance: String, restore: Dictionary) -> void:
 	actor.data["allegiance"] = allegiance
 	actor.data["allegiance_owner_id"] = "player"
@@ -139,6 +153,19 @@ func _apply_allegiance(actor, allegiance: String, restore: Dictionary) -> void:
 	if actor.has_method("set_allegiance_visual"):
 		actor.set_allegiance_visual(allegiance)
 	companions_by_entity_id[actor.get_entity_id()] = {"allegiance": allegiance}
+	_persist(actor)
+
+
+func _end_companion_state(actor) -> void:
+	var restore: Dictionary = _restore_snapshot(actor.data)
+	companions_by_entity_id.erase(actor.get_entity_id())
+	for key in ["allegiance", "allegiance_owner_id", "companion_command", "companion_restore"]:
+		actor.data.erase(key)
+	for key in restore:
+		actor.data[key] = restore[key]
+	if actor.has_method("set_allegiance_visual"):
+		actor.set_allegiance_visual("")
+		actor.data.erase("allegiance")
 	_persist(actor)
 
 

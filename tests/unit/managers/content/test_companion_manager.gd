@@ -5,6 +5,7 @@ const EntityManager = preload("res://scripts/managers/world/entity_manager.gd")
 const ChunkManager = preload("res://scripts/managers/world/chunk_manager.gd")
 const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const CombatManager = preload("res://scripts/managers/actors/combat_manager.gd")
+const EventBus = preload("res://scripts/core/event_bus.gd")
 
 
 class PlayerStub extends Node2D:
@@ -148,7 +149,35 @@ func test_thrall_prioritizes_a_hostile_attacking_player_outside_its_old_assist_r
 	assert_gt(actor.global_position.x, 40.0)
 
 
-func _entities() -> EntityManager:
+func test_dead_thrall_loses_companion_state_and_never_catches_up_as_a_corpse() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var entities := _entities(bus)
+	var actor = entities.get_entity("resident_world")
+	entities.transition_actor_to_dead(actor)
+	var manager := CompanionManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, entities, _chunks(), null)
+	var player := PlayerStub.new()
+	add_child_autofree(player)
+	manager.set_player(player)
+	manager.resurrect_as_thrall("resident_world")
+	var corpse_layer: String = String(actor.world_layer)
+	var corpse_tile: Vector2i = actor.global_tile
+
+	entities.transition_actor_to_dead(actor)
+	player.world_layer = "interior:test_portal"
+	player.global_tile = Vector2i(12, 8)
+	manager.update(0.1)
+
+	assert_false(manager.is_player_owned(actor))
+	assert_false(manager.get_save_data()["companions_by_entity_id"].has("resident_world"))
+	assert_false(actor.data.has("allegiance_owner_id"))
+	assert_eq(actor.world_layer, corpse_layer)
+	assert_eq(actor.global_tile, corpse_tile)
+
+
+func _entities(bus = null) -> EntityManager:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)
 	content.world_objects = [{
@@ -168,7 +197,7 @@ func _entities() -> EntityManager:
 	}]
 	var manager := EntityManager.new()
 	add_child_autofree(manager)
-	manager.setup(null, content, _chunks())
+	manager.setup(bus, content, _chunks())
 	manager.spawn_all()
 	return manager
 
