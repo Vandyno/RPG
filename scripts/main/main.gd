@@ -50,6 +50,7 @@ const CivilianScheduleBrain = preload("res://scripts/main/runtime/civilian_sched
 const CivilianScheduleManagerScript = preload("res://scripts/managers/content/civilian_schedule_manager.gd")
 const NpcPerceptionManagerScript = preload("res://scripts/managers/content/npc_perception_manager.gd")
 const CrimeManagerScript = preload("res://scripts/managers/content/crime_manager.gd")
+const CompanionManagerScript = preload("res://scripts/managers/content/companion_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -78,6 +79,7 @@ var save_manager: SaveManager
 var civilian_schedules: CivilianScheduleManager
 var npc_perception: NpcPerceptionManager
 var crime: CrimeManager
+var companions
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
@@ -130,6 +132,8 @@ func _process(delta: float) -> void:
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
 	CivilianScheduleBrain.update(civilian_schedules, delta)
+	if companions:
+		companions.update(delta)
 	if npc_perception and hud:
 		npc_perception.set_debug_visible(bool(hud.visible_debug))
 	_update_location_discoveries()
@@ -409,6 +413,10 @@ func _bootstrap_actor_runtime() -> void:
 	crime.name = "CrimeManager"
 	add_child(crime)
 	crime.setup(event_bus, entities, npc_perception, time, factions, civilian_schedules, chunks, inventory)
+	companions = CompanionManagerScript.new()
+	companions.name = "CompanionManager"
+	add_child(companions)
+	companions.setup(event_bus, entities, chunks, combat)
 	shops.set_schedule_manager(civilian_schedules)
 	shops.set_crime_manager(crime)
 
@@ -421,6 +429,7 @@ func _bootstrap_player() -> void:
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
 	civilian_schedules.set_player(player)
 	crime.set_player(player)
+	companions.set_player(player)
 	event_bus.player_jailed.connect(_on_player_jailed)
 	event_bus.player_released_from_jail.connect(_on_player_released_from_jail)
 	effect_runner.set_player(player)

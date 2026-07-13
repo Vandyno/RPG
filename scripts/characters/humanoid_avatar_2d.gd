@@ -112,6 +112,7 @@ var animation_time := 0.0
 var move_intensity := 0.0
 var is_sneaking := false
 var attack_pose: Dictionary = {}
+var thrall_eyes := false
 
 
 func setup(
@@ -124,6 +125,13 @@ func setup(
 
 func set_profile(profile_data: Dictionary) -> void:
 	profile = HumanoidProfile.from_data(profile_data)
+	queue_redraw()
+
+
+func set_thrall_eyes(value: bool) -> void:
+	if thrall_eyes == value:
+		return
+	thrall_eyes = value
 	queue_redraw()
 
 
@@ -763,6 +771,8 @@ func _face_part_id(part_id: String) -> String:
 
 
 func _eye_color_for_id(eye_id: String) -> Color:
+	if thrall_eyes:
+		return Color(0.82, 0.25, 1.0)
 	if eye_id.ends_with("_amber") or eye_id.ends_with("_gold"):
 		return Color(0.86, 0.70, 0.28)
 	if eye_id.ends_with("_moss"):

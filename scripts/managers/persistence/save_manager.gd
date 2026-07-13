@@ -18,7 +18,7 @@ const REQUIRED_PROVIDERS := [
 	"combat",
 	"chunks"
 ]
-const OPTIONAL_PROVIDERS := ["entities", "civilian_schedules", "crime"]
+const OPTIONAL_PROVIDERS := ["entities", "civilian_schedules", "crime", "companions"]
 
 var event_bus: EventBus
 var providers: Dictionary = {}

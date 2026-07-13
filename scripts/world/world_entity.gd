@@ -82,6 +82,12 @@ func set_actor_state(state: String) -> void:
 	queue_redraw()
 
 
+func set_allegiance_visual(allegiance: String) -> void:
+	data["allegiance"] = allegiance
+	if humanoid_avatar and humanoid_avatar.has_method("set_thrall_eyes"):
+		humanoid_avatar.set_thrall_eyes(allegiance == "thrall")
+
+
 func set_global_tile(tile: Vector2i) -> void:
 	set_world_position(_center_of_tile(tile))
 
@@ -368,6 +374,7 @@ func _setup_humanoid_avatar(content = null) -> void:
 		equipped = data.get("equipped_items", {})
 	humanoid_avatar.setup(data.get("character_profile", {}), equipped, content)
 	humanoid_avatar.set_facing_direction(facing_direction)
+	set_allegiance_visual(String(data.get("allegiance", "")))
 	if get_kind() == "body":
 		humanoid_avatar.rotation = PI * 0.5
 		humanoid_avatar.position = Vector2(2.0, 4.0)

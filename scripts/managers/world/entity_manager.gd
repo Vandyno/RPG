@@ -126,6 +126,35 @@ func set_actor_alive(entity_id: String) -> WorldEntity:
 	return entity
 
 
+func persist_actor_state(entity) -> void:
+	if not entity or not (entity.data is Dictionary) or not ActorRules.is_actor_data(entity.data):
+		return
+	var previous: Dictionary = _dictionary_field(actor_life_state_by_id.get(entity.get_entity_id(), {}))
+	actor_life_state_by_id[entity.get_entity_id()] = _actor_life_state_snapshot(
+		entity, bool(previous.get("inventory_seeded", false))
+	)
+
+
+func set_actor_location(entity_id: String, tile: Vector2i, layer: String) -> void:
+	if entity_id.is_empty():
+		return
+	var actor := get_entity(entity_id)
+	if actor:
+		actor.set_world_layer(layer)
+		actor.set_global_tile(tile)
+		persist_actor_state(actor)
+	else:
+		var state: Dictionary = _dictionary_field(actor_life_state_by_id.get(entity_id, {})).duplicate(true)
+		if state.is_empty():
+			return
+		var position := GridMath.tile_to_world(tile) + Vector2.ONE * float(GridMath.TILE_SIZE) * 0.5
+		state["global_tile"] = [tile.x, tile.y]
+		state["world_position"] = [position.x, position.y]
+		state["world_layer"] = "surface" if layer.is_empty() else layer
+		actor_life_state_by_id[entity_id] = state
+	_queue_respawn()
+
+
 func get_actor_state(entity_id: String) -> String:
 	var entity := get_entity(entity_id)
 	if entity:
@@ -512,7 +541,12 @@ func _entry_with_actor_life_state(entity_id: String, entry: Dictionary) -> Dicti
 	if saved.is_empty():
 		return entry
 	var next_entry := entry.duplicate(true)
-	for key in ["state", "global_tile", "world_position", "world_layer", "facing_direction"]:
+	for key in [
+		"state", "global_tile", "world_position", "world_layer", "facing_direction",
+		"allegiance", "allegiance_owner_id", "companion_command", "companion_restore",
+		"brain_id", "schedule_brain_id", "schedule_suspended", "hostility",
+		"hostile_to_player", "combat_enabled", "behavior_state"
+	]:
 		if saved.has(key):
 			next_entry[key] = saved[key]
 	return next_entry
@@ -553,6 +587,8 @@ func _entry_with_schedule_binding(entry: Dictionary) -> Dictionary:
 		return entry
 	if not content.has_method("get_schedule_binding_for_npc"):
 		return entry
+	if ["companion", "thrall"].has(String(entry.get("allegiance", ""))):
+		return entry
 	var binding: Dictionary = content.get_schedule_binding_for_npc(String(entry.get("npc_id", "")))
 	if binding.is_empty():
 		return entry
@@ -579,6 +615,13 @@ func _actor_life_state_snapshot(entity, inventory_seeded: bool) -> Dictionary:
 	if entity.has_method("get_facing_direction"):
 		var facing: Vector2 = entity.get_facing_direction()
 		state["facing_direction"] = [facing.x, facing.y]
+	for key in [
+		"allegiance", "allegiance_owner_id", "companion_command", "companion_restore",
+		"brain_id", "schedule_brain_id", "schedule_suspended", "hostility",
+		"hostile_to_player", "combat_enabled", "behavior_state"
+	]:
+		if entity.data.has(key):
+			state[key] = entity.data[key]
 	return state
 
 

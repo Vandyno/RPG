@@ -16,6 +16,7 @@ class ActionListContext:
 	var civilian_schedules
 	var npc_perception
 	var crime
+	var companions
 
 	func _init(main) -> void:
 		condition_evaluator = main.condition_evaluator
@@ -26,6 +27,7 @@ class ActionListContext:
 		civilian_schedules = main.get("civilian_schedules")
 		npc_perception = main.get("npc_perception")
 		crime = main.get("crime")
+		companions = main.get("companions")
 
 
 class ActionHandleContext:
@@ -38,6 +40,7 @@ class ActionHandleContext:
 	var player
 	var civilian_schedules
 	var crime
+	var companions
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
 	var _interact_npc: Callable
@@ -54,6 +57,7 @@ class ActionHandleContext:
 		player = main.player
 		civilian_schedules = main.get("civilian_schedules")
 		crime = main.get("crime")
+		companions = main.get("companions")
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
 		_interact_npc = Callable(main, "_interact_npc")
@@ -95,6 +99,16 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		if _poi_should_offer_inspect(ctx, entity):
 			actions.append({"id": "inspect:%s" % entity.get_entity_id(), "text": "Inspect"})
 	if entity and entity.get_kind() == "npc":
+		if ctx.companions and ctx.companions.has_method("is_player_owned") and ctx.companions.is_player_owned(entity):
+			var command := String(entity.data.get("companion_command", "follow"))
+			var entity_id: String = entity.get_entity_id()
+			actions.append({
+				"id": "companion:%s:%s" % ["follow" if command == "hold" else "hold", entity_id],
+				"text": "Follow" if command == "hold" else "Hold Position"
+			})
+			if String(entity.data.get("allegiance", "")) != "thrall":
+				actions.append({"id": "companion:dismiss:%s" % entity_id, "text": "Dismiss"})
+			return actions
 		var guard_response: Dictionary = (
 			ctx.crime.get_guard_response(String(entity.data.get("npc_id", "")))
 			if ctx.crime
@@ -206,6 +220,8 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_guard_response(ctx, String(parsed.get("id", "")))
 		"law":
 			_handle_law_action(ctx, String(parsed.get("id", "")))
+		"companion":
+			_handle_companion_action(ctx, String(parsed.get("id", "")))
 		_:
 			ctx.event_bus.post_message("Unknown action.")
 
@@ -408,6 +424,25 @@ static func _handle_law_action(ctx: ActionHandleContext, action_id: String) -> v
 		result = ctx.crime.surrender_to_guard(action_id.trim_prefix("surrender:"))
 	else:
 		result = {"ok": false, "message": "That legal action is unavailable."}
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
+
+
+static func _handle_companion_action(ctx: ActionHandleContext, action_id: String) -> void:
+	if not ctx.companions:
+		ctx.event_bus.post_message("No companion is available.")
+		return
+	var separator := action_id.find(":")
+	if separator < 0:
+		ctx.event_bus.post_message("That companion command is unavailable.")
+		return
+	var command_id := action_id.substr(0, separator)
+	var entity_id := action_id.substr(separator + 1)
+	var result: Dictionary = (
+		ctx.companions.dismiss(entity_id)
+		if command_id == "dismiss"
+		else ctx.companions.command(entity_id, command_id)
+	)
 	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
 	ctx._refresh_hud.call()
 

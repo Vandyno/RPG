@@ -5,6 +5,7 @@ const Main = preload("res://scripts/main/main.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
+const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
 const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 const TEST_SAVE_PATH := "user://test_main_flow.json"
 
@@ -859,6 +860,42 @@ func test_hostile_humanoid_death_keeps_same_lootable_npc_and_inventory() -> void
 	assert_eq(main.active_transfer_owner_id, "")
 	main.hud.show_systems_panel("inventory")
 	assert_false(main.get_hud_state()["transfer_open"])
+
+
+func test_dead_npc_resurrects_as_persistent_thrall_without_resetting_inventory() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.save_manager.save_path = TEST_SAVE_PATH
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
+	var body = main.entities.get_entity("npc_road_thug")
+	var inventory_before := main.inventory.get_count_for_owner("char_road_thug", "item_training_sword")
+
+	var result: Dictionary = main.companions.resurrect_as_thrall("npc_road_thug")
+
+	assert_true(result["ok"])
+	assert_eq(main.entities.get_entity("npc_road_thug"), body)
+	assert_eq(body.data.get("state"), "alive")
+	assert_eq(body.data.get("allegiance"), "thrall")
+	assert_true(body.humanoid_avatar.thrall_eyes)
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), inventory_before)
+	main.player.set_world_position(body.global_position + Vector2(8.0, 0.0))
+	main._update_nearby()
+	assert_true(
+		MainContextActions.build(main._action_list_context(), body).any(
+			func(action): return String(action.get("id", "")).begins_with("companion:hold:")
+		)
+	)
+	var hold_button := _button_containing(main.hud.context_action_buttons, "Hold Position")
+	assert_not_null(hold_button)
+	await MainFlowInputHelper.click(hold_button, get_tree())
+	body = main.entities.get_entity("npc_road_thug")
+	assert_eq(body.data.get("companion_command"), "hold")
+	assert_true(main.save_manager.save_game().ok)
+	assert_true(main.save_manager.load_game().ok)
+	var restored = main.entities.get_entity("npc_road_thug")
+	assert_eq(restored.data.get("allegiance"), "thrall")
+	assert_eq(restored.data.get("companion_command"), "hold")
+	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), inventory_before)
 
 
 func test_dedicated_test_hostile_actor_outside_town_has_sword_bow_and_lootable_body() -> void:

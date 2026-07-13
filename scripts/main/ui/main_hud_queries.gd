@@ -315,6 +315,11 @@ func _npc_detail_text(entity) -> String:
 	var quest_id := String(npc.get("quest_id", ""))
 	var faction_id := String(npc.get("faction", ""))
 	var parts: Array[String] = [String(npc.get("role", "NPC"))]
+	var allegiance := String(entity.data.get("allegiance", ""))
+	if allegiance == "thrall":
+		parts.append("your thrall")
+	elif allegiance == "companion":
+		parts.append("your companion")
 	if not quest_id.is_empty():
 		parts.append("quest %s" % quests.get_quest_state(quest_id))
 	if not faction_id.is_empty():

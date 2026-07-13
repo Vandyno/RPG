@@ -25,4 +25,7 @@ static func build(main) -> Dictionary:
 	var crime = main.get("crime")
 	if crime:
 		providers["crime"] = crime
+	var companions = main.get("companions")
+	if companions:
+		providers["companions"] = companions
 	return providers

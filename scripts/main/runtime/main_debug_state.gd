@@ -9,6 +9,7 @@ static func build(main) -> Dictionary:
 	var state: Dictionary = main.get_hud_state()
 	var civilian_schedules = main.get("civilian_schedules")
 	var npc_perception = main.get("npc_perception")
+	var companions = main.get("companions")
 	state.merge(
 		{
 			"player_world": "(%.1f, %.1f)" % [main.player.position.x, main.player.position.y],
@@ -25,6 +26,7 @@ static func build(main) -> Dictionary:
 			(civilian_schedules.get_debug_snapshot() if civilian_schedules else {}),
 			"perception_debug":
 			(npc_perception.get_debug_snapshot() if npc_perception else {}),
+			"companions": (companions.get_save_data() if companions else {}),
 			"flags":
 			(
 				", ".join(main.world_state.flags.keys())
