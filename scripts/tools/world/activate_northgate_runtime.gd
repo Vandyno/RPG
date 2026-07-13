@@ -361,7 +361,7 @@ func _fixture_objects(proposal: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for fixture in proposal.get("interior_fixture_slots", []):
 		var fixture_id := String(fixture.get("fixture", "furnishing"))
-		result.append({
+		var runtime_fixture := {
 			"id": String(fixture.get("id", "")),
 			"name": fixture_id.replace("_", " ").capitalize(),
 			"kind": "fixture",
@@ -371,7 +371,13 @@ func _fixture_objects(proposal: Dictionary) -> Array[Dictionary]:
 			"structure_id": String(fixture.get("structure_id", "")),
 			"authored_purpose": String(fixture.get("authored_purpose", "operational")),
 			"canon_status": "proposal"
-		})
+		}
+		if String(fixture.get("structure_id", "")) == "structure_northgate_inn_plot":
+			if fixture_id in ["guest_bed", "pantry_shelf", "west_bar_counter"]:
+				runtime_fixture["visual_style"] = "hidden"
+			elif fixture_id == "ale_barrels":
+				runtime_fixture["visual_style"] = "fixture:guest_trunk"
+		result.append(runtime_fixture)
 	for detail in _surface_detail_slots():
 		var runtime_detail := {
 			"id": String(detail.get("id", "")),
@@ -421,7 +427,7 @@ func _runtime_detail_tile(detail: Dictionary, proposal: Dictionary) -> Array:
 	elif detail_id.contains("inn_yard_cart"):
 		position = Vector2i(-3246, -3944)
 	elif detail_id.contains("inn_rain_barrel"):
-		position = Vector2i(-3251, -3947)
+		position = Vector2i(-3251, -3946)
 	elif detail_id.contains("stable_hay"):
 		position = Vector2i(-3235, -3942) if detail_id.ends_with("01") else Vector2i(-3234, -3942)
 	elif detail_id.contains("stable_cart"):
@@ -583,7 +589,7 @@ func _surface_detail_slots() -> Array[Dictionary]:
 		{"id": "detail_northgate_inn_woodpile", "name": "Inn Firewood", "fixture": "woodpile", "global_tile": [-3241, -3947]},
 		{"id": "detail_northgate_inn_yard_bench", "name": "Inn Yard Bench", "fixture": "bench", "global_tile": [-3248, -3944]},
 		{"id": "detail_northgate_inn_yard_cart", "name": "Inn Yard Cart", "fixture": "cart", "global_tile": [-3246, -3944]},
-		{"id": "detail_northgate_inn_rain_barrel", "name": "Inn Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3251, -3947]},
+		{"id": "detail_northgate_inn_rain_barrel", "name": "Inn Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3251, -3946]},
 		{"id": "detail_northgate_guard_crates", "name": "Guard Stores", "fixture": "crate_stack", "global_tile": [-3257, -3952]},
 		{"id": "detail_northgate_guard_bench", "name": "Guard Bench", "fixture": "bench", "global_tile": [-3247, -3952]},
 		{"id": "detail_northgate_hall_barrels", "name": "Hall Rain Barrels", "fixture": "barrel_stack", "global_tile": [-3272, -3944]},
