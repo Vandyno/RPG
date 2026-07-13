@@ -16,6 +16,20 @@ class EntitiesStub:
 	var entities_by_id: Dictionary = {}
 
 
+class AllegianceContentStub:
+	func get_combat_allegiances() -> Dictionary:
+		return {
+			"npc_assignments": {
+				"npc_citizen": "northgate_civilians",
+				"npc_guard": "northgate_watch"
+			},
+			"groups": {
+				"northgate_civilians": {"allies": ["northgate_watch"]},
+				"northgate_watch": {"allies": ["northgate_civilians"]}
+			}
+		}
+
+
 func test_alert_propagates_to_living_allies_but_never_player_thralls() -> void:
 	var victim := _actor("victim", "town_watch")
 	var ally := _actor("ally", "town_watch")
@@ -56,6 +70,24 @@ func test_saved_alert_applies_when_a_linked_actor_streams_in_later() -> void:
 
 	assert_eq(later.data["hostility"], "hostile")
 	assert_eq(later.data["_brain_mode"], "engaged")
+
+
+func test_allied_civilian_and_watch_groups_answer_the_same_alert() -> void:
+	var citizen := _actor("citizen", "")
+	citizen.data["npc_id"] = "npc_citizen"
+	var guard := _actor("guard", "")
+	guard.data["npc_id"] = "npc_guard"
+	var entities := EntitiesStub.new()
+	entities.entities_by_id = {"citizen": citizen, "guard": guard}
+	var manager := AllegianceManager.new()
+	add_child_autofree(manager)
+	manager.setup(null, entities, AllegianceContentStub.new())
+
+	assert_true(manager.alert_actor(citizen))
+	assert_true(bool(citizen.data.get("hostile_to_player", false)))
+	assert_true(bool(guard.data.get("hostile_to_player", false)))
+	assert_true(manager.is_alerted("northgate_civilians"))
+	assert_true(manager.is_alerted("northgate_watch"))
 
 
 func _actor(entity_id: String, allegiance_id: String) -> ActorStub:

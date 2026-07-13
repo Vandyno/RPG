@@ -1,0 +1,25 @@
+{
+  "npc_assignments": {
+    "npc_northgate_apprentice": "northgate_civilians",
+    "npc_northgate_clerk": "northgate_civilians",
+    "npc_northgate_farmer": "northgate_civilians",
+    "npc_northgate_guard_north": "northgate_watch",
+    "npc_northgate_innkeeper": "northgate_civilians",
+    "npc_northgate_jail_guard": "northgate_watch",
+    "npc_northgate_reeve": "northgate_civilians",
+    "npc_northgate_resident_01": "northgate_civilians",
+    "npc_northgate_resident_02": "northgate_civilians",
+    "npc_northgate_resident_03": "northgate_civilians",
+    "npc_northgate_resident_04": "northgate_civilians",
+    "npc_northgate_resident_05": "northgate_civilians",
+    "npc_northgate_shopkeeper": "northgate_civilians",
+    "npc_northgate_shrine_keeper": "northgate_civilians",
+    "npc_northgate_smith": "northgate_civilians",
+    "npc_northgate_stablehand": "northgate_civilians",
+    "npc_northgate_storekeeper": "northgate_civilians"
+  },
+  "groups": {
+    "northgate_civilians": {"allies": ["northgate_watch"]},
+    "northgate_watch": {"allies": ["northgate_civilians"]}
+  }
+}

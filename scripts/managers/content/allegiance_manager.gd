@@ -5,25 +5,34 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 var event_bus
 var entities
+var combat_allegiances: Dictionary = {}
 var alerted_by_allegiance_id: Dictionary = {}
 
 
-func setup(bus, entity_manager) -> void:
+func setup(bus, entity_manager, content = null) -> void:
 	event_bus = bus
 	entities = entity_manager
+	if content and content.has_method("get_combat_allegiances"):
+		combat_allegiances = content.get_combat_allegiances()
 
 
 func alert_actor(actor) -> bool:
 	if not actor or not (actor.data is Dictionary):
 		return false
-	var allegiance_id := ActorRules.allegiance_id(actor.data)
+	var allegiance_id := _allegiance_id_for_actor(actor)
 	if allegiance_id.is_empty() or allegiance_id == "player":
 		return false
-	if not alerted_by_allegiance_id.has(allegiance_id):
-		alerted_by_allegiance_id[allegiance_id] = true
+	var alerted_now := false
+	for alerted_id in _linked_allegiance_ids(allegiance_id):
+		if alerted_by_allegiance_id.has(alerted_id):
+			continue
+		alerted_by_allegiance_id[alerted_id] = true
+		alerted_now = true
+	if alerted_now:
 		if event_bus:
 			event_bus.post_message("%s has been alerted." % _display_name(allegiance_id))
-	_apply_alert(allegiance_id)
+	for alerted_id in _linked_allegiance_ids(allegiance_id):
+		_apply_alert(alerted_id)
 	return true
 
 
@@ -56,9 +65,41 @@ func _apply_alert(allegiance_id: String) -> void:
 	for actor in entities.entities_by_id.values():
 		if not actor or not (actor.data is Dictionary):
 			continue
-		if ActorRules.allegiance_id(actor.data) != allegiance_id:
+		if _allegiance_id_for_actor(actor) != allegiance_id:
 			continue
 		_make_hostile(actor)
+
+
+func _allegiance_id_for_actor(actor) -> String:
+	if not actor or not (actor.data is Dictionary):
+		return ""
+	if ActorRules.is_player_owned_data(actor.data):
+		return "player"
+	var npc_id := String(actor.data.get("npc_id", ""))
+	var assignments: Variant = combat_allegiances.get("npc_assignments", {})
+	if assignments is Dictionary:
+		var configured := String(assignments.get(npc_id, ""))
+		if not configured.is_empty():
+			return configured
+	return ActorRules.allegiance_id(actor.data)
+
+
+func _linked_allegiance_ids(allegiance_id: String) -> Array[String]:
+	var result: Array[String] = [allegiance_id]
+	var groups: Variant = combat_allegiances.get("groups", {})
+	if not groups is Dictionary:
+		return result
+	var group: Variant = groups.get(allegiance_id, {})
+	if not group is Dictionary:
+		return result
+	var allies: Variant = group.get("allies", [])
+	if not allies is Array:
+		return result
+	for value in allies:
+		var ally_id := String(value)
+		if not ally_id.is_empty() and not result.has(ally_id):
+			result.append(ally_id)
+	return result
 
 
 func _make_hostile(actor) -> void:

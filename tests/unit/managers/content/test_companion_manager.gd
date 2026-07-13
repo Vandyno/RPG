@@ -119,6 +119,35 @@ func test_thrall_assists_against_nearby_hostiles() -> void:
 	assert_eq(hostile.data.get("state"), "dead")
 
 
+func test_thrall_prioritizes_a_hostile_attacking_player_outside_its_old_assist_radius() -> void:
+	var entities := _entities()
+	var actor = entities.get_entity("resident_world")
+	entities.transition_actor_to_dead(actor)
+	var hostile = entities.add_runtime_entity({
+		"id": "player_threat_world", "name": "Player Threat", "kind": "npc",
+		"world_layer": "surface", "global_tile": [14, 2], "hostility": "hostile",
+		"hostile_to_player": true, "combat_enabled": true, "max_health": 10,
+		"character_profile": {
+			"character_id": "char_player_threat", "people_id": "human", "state": "alive",
+			"appearance": {"palette_id": "palette_human_warm_brown"}
+		}
+	})
+	var manager := CompanionManager.new()
+	add_child_autofree(manager)
+	manager.setup(null, entities, _chunks(), null)
+	var player := PlayerStub.new()
+	player.global_tile = Vector2i(14, 2)
+	player.global_position = hostile.global_position + Vector2(-8.0, 0.0)
+	add_child_autofree(player)
+	manager.set_player(player)
+	manager.resurrect_as_thrall("resident_world")
+
+	manager.update(0.1)
+
+	assert_eq(actor.data.get("behavior_state"), "assisting")
+	assert_gt(actor.global_position.x, 40.0)
+
+
 func _entities() -> EntityManager:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)

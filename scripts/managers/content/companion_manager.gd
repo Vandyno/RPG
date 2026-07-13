@@ -12,6 +12,7 @@ const FOLLOW_DISTANCE := 30.0
 const CATCH_UP_DISTANCE := 224.0
 const FOLLOW_SPEED := 96.0
 const ASSIST_RANGE := 144.0
+const PLAYER_THREAT_RANGE := 240.0
 const ASSIST_ATTACK_RANGE := 28.0
 const ASSIST_DAMAGE := 3
 const ASSIST_INTERVAL := 0.75
@@ -154,7 +155,7 @@ func _update_companion(actor, delta: float) -> void:
 	if String(actor.world_layer) != String(player.world_layer):
 		entities.set_actor_location(actor.get_entity_id(), _follow_tile(actor.get_entity_id()), player.world_layer)
 		return
-	var target = _nearest_hostile(actor)
+	var target = _player_threat(actor)
 	if target:
 		_assist(actor, target, delta)
 		return
@@ -197,7 +198,24 @@ func _assist(actor, target, delta: float) -> void:
 		event_bus.post_message("%s strikes %s." % [actor.get_display_name(), target.get_display_name()])
 
 
-func _nearest_hostile(actor):
+func _player_threat(actor):
+	var nearest = null
+	var nearest_distance := PLAYER_THREAT_RANGE
+	for candidate in entities.entities_by_id.values():
+		if not ActorRules.is_combat_target_entity(candidate):
+			continue
+		if String(candidate.world_layer) != String(player.world_layer):
+			continue
+		var distance: float = player.global_position.distance_to(candidate.global_position)
+		if distance < nearest_distance:
+			nearest = candidate
+			nearest_distance = distance
+	if nearest:
+		return nearest
+	return _nearest_hostile_near_companion(actor)
+
+
+func _nearest_hostile_near_companion(actor):
 	var nearest = null
 	var nearest_distance := ASSIST_RANGE
 	for candidate in entities.entities_by_id.values():

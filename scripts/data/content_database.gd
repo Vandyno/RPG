@@ -30,6 +30,7 @@ var schedule_bindings: Dictionary = {}
 var schedule_destinations: Dictionary = {}
 var status_effects: Dictionary = {}
 var spells: Dictionary = {}
+var combat_allegiances: Dictionary = {}
 var world_objects: Array[Dictionary] = []
 var world_terrain: Dictionary = {}
 var structure_archetypes: Dictionary = {}
@@ -56,6 +57,7 @@ func load_all() -> Array[String]:
 	schedule_destinations = _load_dictionary("res://data/schedule_destinations.json")
 	status_effects = _load_dictionary("res://data/status_effects.json")
 	spells = _load_dictionary("res://data/spells.json")
+	combat_allegiances = _load_dictionary("res://data/combat_allegiances.json")
 	world_objects = _load_array("res://data/world_objects.json")
 	world_terrain = _load_dictionary("res://data/world_terrain.json")
 	structure_archetypes = _load_dictionary("res://data/structure_archetypes.json")
@@ -348,6 +350,10 @@ func has_spell(spell_id: String) -> bool:
 
 func spell_ids() -> Array[String]:
 	return _dictionary_keys(spells)
+
+
+func get_combat_allegiances() -> Dictionary:
+	return _dictionary_copy(combat_allegiances)
 
 
 func world_object_entries() -> Array[Dictionary]:
