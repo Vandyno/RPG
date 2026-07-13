@@ -76,6 +76,26 @@ func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 	assert_eq(main.calls, ["refresh"])
 
 
+func test_raise_thrall_charges_with_direction_marker_then_raises_a_corpse() -> void:
+	var main := AimMainStub.new()
+	main.spells.assigned_spell = "spell_raise_thrall"
+	var corpse = main.enemies[1]
+	corpse.data["state"] = "dead"
+
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT, 0.75
+	)
+	MainSystemsActions.handle_aim(
+		MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT
+	)
+
+	assert_eq(main.companions.raised_entity_id, "actor_east")
+	assert_eq(main.player.mana, 82.0)
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "charge_cast"))
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "direction_indicator"))
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "raise_thrall"))
+
+
 func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
@@ -251,6 +271,9 @@ class AimMainStub:
 	var channeled_spell_damage_bank: Dictionary = {}
 	var channeled_spell_empty_reported: Dictionary = {}
 	var held_weapon_attack_elapsed: Dictionary = {}
+	var held_spell_charge_elapsed: Dictionary = {}
+	var held_spell_charge_visual_elapsed: Dictionary = {}
+	var companions := AimCompanionsStub.new()
 	var effects: Array[Dictionary] = []
 	var enemies := [
 		AimEntityStub.new("actor_west", "River Ruffian", Vector2.LEFT * 28.0),
@@ -281,6 +304,7 @@ class AimMainStub:
 	func add_child(effect: Node) -> void:
 		var effect_record := {
 			"type": effect.get_class(),
+			"kind": effect.get("effect_kind"),
 			"direction":
 			effect.get("direction") if effect.get("direction") is Vector2 else Vector2.ZERO
 		}
@@ -290,9 +314,10 @@ class AimMainStub:
 
 class AimSpellsStub:
 	extends RefCounted
+	var assigned_spell := "spell_fire_blast"
 
 	func get_assigned_spell(slot_id: String) -> String:
-		return "spell_fire_blast" if slot_id == "ability_1" else ""
+		return assigned_spell if slot_id == "ability_1" else ""
 
 
 class AimContentStub:
@@ -313,6 +338,22 @@ class AimContentStub:
 					"width_pixels": 50,
 					"damage_per_second": 1,
 					"visual": "fire_stream"
+				}
+			}
+		if spell_id == "spell_raise_thrall":
+			return {
+				"id": spell_id,
+				"name": "Raise Thrall",
+				"mana_cost": 18,
+				"charge_seconds": 0.75,
+				"min_charge_ratio": 0.35,
+				"cast_type": "raise_thrall",
+				"attack": {
+					"shape": "thrust",
+					"range_pixels": 80,
+					"width_pixels": 36,
+					"visual": "charge_cast",
+					"visual_tint": [0.72, 0.24, 1.0]
 				}
 			}
 		return {}
@@ -422,6 +463,15 @@ class AimPlayerStub:
 		var spent := minf(amount, mana)
 		mana -= spent
 		return spent
+
+
+class AimCompanionsStub:
+	extends RefCounted
+	var raised_entity_id := ""
+
+	func resurrect_as_thrall(entity_id: String) -> Dictionary:
+		raised_entity_id = entity_id
+		return {"ok": true, "message": "Raised."}
 
 
 class AimEntityStub:

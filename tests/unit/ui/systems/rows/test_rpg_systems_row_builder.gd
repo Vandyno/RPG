@@ -47,7 +47,7 @@ func test_category_labels_dispatch_to_each_tab_and_unknown_default() -> void:
 	)
 	assert_eq(
 		RpgSystemsRowBuilder.category_labels("spells"),
-		["All", "Fire", "Frost", "Storm", "Restore", "Utility"]
+		["All", "Fire", "Frost", "Storm", "Restore", "Necromancy", "Utility"]
 	)
 	assert_eq(
 		RpgSystemsRowBuilder.category_labels("character"),

@@ -898,6 +898,30 @@ func test_dead_npc_resurrects_as_persistent_thrall_without_resetting_inventory()
 	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), inventory_before)
 
 
+func test_raise_thrall_spell_uses_a_charged_aim_drag_on_a_dead_humanoid() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
+	var body = main.entities.get_entity("npc_road_thug")
+	assert_not_null(body)
+	main.player.set_world_position(body.global_position + Vector2(-32.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	assert_true(main.spells.assign_spell_to_slot("spell_raise_thrall", "ability_1"))
+	await MainFlowInputHelper.settle(main, get_tree())
+	var spell_control: Control = main.hud.ability_slot_buttons["ability_1"] as Control
+	assert_not_null(spell_control)
+
+	await MainFlowInputHelper.drag_hold(spell_control, Vector2(56.0, 0.0), get_tree())
+	await get_tree().create_timer(0.85).timeout
+	await MainFlowInputHelper.release_aim(spell_control, Vector2(56.0, 0.0), get_tree())
+
+	body = main.entities.get_entity("npc_road_thug")
+	assert_eq(body.data.get("state"), "alive")
+	assert_eq(body.data.get("allegiance"), "thrall")
+	assert_true(body.humanoid_avatar.thrall_eyes)
+	assert_eq(main.player.mana, 82.0)
+
+
 func test_dedicated_test_hostile_actor_outside_town_has_sword_bow_and_lootable_body() -> void:
 	var main := Main.new()
 	add_child_autofree(main)

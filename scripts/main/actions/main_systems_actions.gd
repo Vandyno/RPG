@@ -94,12 +94,15 @@ class AimCombatContext:
 	var channeled_spell_damage_bank: Dictionary
 	var channeled_spell_empty_reported: Dictionary
 	var combat
+	var companions
 	var content
 	var effect_runner
 	var entities
 	var equipment
 	var event_bus
 	var held_weapon_attack_elapsed: Dictionary
+	var held_spell_charge_elapsed: Dictionary
+	var held_spell_charge_visual_elapsed: Dictionary
 	var inventory
 	var player
 	var progression
@@ -115,12 +118,17 @@ class AimCombatContext:
 			main, "channeled_spell_empty_reported"
 		)
 		combat = main.get("combat")
+		companions = main.get("companions")
 		content = main.get("content")
 		effect_runner = main.get("effect_runner")
 		entities = main.get("entities")
 		equipment = main.get("equipment")
 		event_bus = main.get("event_bus")
 		held_weapon_attack_elapsed = _dictionary_property(main, "held_weapon_attack_elapsed")
+		held_spell_charge_elapsed = _dictionary_property(main, "held_spell_charge_elapsed")
+		held_spell_charge_visual_elapsed = _dictionary_property(
+			main, "held_spell_charge_visual_elapsed"
+		)
 		inventory = main.get("inventory")
 		player = main.get("player")
 		progression = main.get("progression")
@@ -235,6 +243,8 @@ static func _handle_spell_aim_release(
 	elif bool(spell.get("channel", false)):
 		ctx.refresh_hud()
 		return
+	elif String(spell.get("cast_type", "")) == "raise_thrall":
+		_cast_raise_thrall(ctx, action_id, aim_direction, spell)
 	else:
 		var spell_name := String(spell.get("name", spell_id))
 		var spell_attack := DirectionalAttack.spell_attack(spell)
@@ -267,7 +277,12 @@ static func _handle_held_spell_aim(
 ) -> void:
 	var spell_id: String = ctx.spells.get_assigned_spell(action_id) if ctx.spells else ""
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
-	if spell.is_empty() or not bool(spell.get("channel", false)):
+	if spell.is_empty():
+		return
+	if String(spell.get("cast_type", "")) == "raise_thrall":
+		_charge_spell_cast(ctx, action_id, aim_direction, spell, delta)
+		return
+	if not bool(spell.get("channel", false)):
 		return
 	if ctx.player.has_method("set_facing_direction"):
 		ctx.player.set_facing_direction(aim_direction)
@@ -301,6 +316,75 @@ static func _handle_held_spell_aim(
 		bank = 0.0
 	ctx.channeled_spell_damage_bank[action_id] = bank
 	ctx.refresh_hud()
+
+
+static func _charge_spell_cast(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, spell: Dictionary, delta: float
+) -> void:
+	if ctx.player.has_method("set_facing_direction"):
+		ctx.player.set_facing_direction(aim_direction)
+	var charge_seconds := _spell_charge_seconds(spell)
+	var elapsed := minf(
+		charge_seconds, float(ctx.held_spell_charge_elapsed.get(action_id, 0.0)) + delta
+	)
+	ctx.held_spell_charge_elapsed[action_id] = elapsed
+	var visual_elapsed := float(ctx.held_spell_charge_visual_elapsed.get(action_id, 0.0)) + delta
+	if visual_elapsed >= 0.12:
+		visual_elapsed = 0.0
+		var attack := DirectionalAttack.spell_attack(spell)
+		attack["charge_ratio"] = elapsed / charge_seconds
+		_spawn_effect(ctx, "charge_cast", aim_direction, attack)
+		_spawn_effect(ctx, "direction_indicator", aim_direction, attack)
+	ctx.held_spell_charge_visual_elapsed[action_id] = visual_elapsed
+
+
+static func _cast_raise_thrall(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, spell: Dictionary
+) -> void:
+	var charge_ratio := _consume_spell_charge_ratio(ctx, action_id, spell)
+	if aim_direction.length() <= MIN_AIM_DIRECTION:
+		ctx.event_bus.post_message("Aim Raise Thrall at a body.")
+		return
+	if charge_ratio < float(spell.get("min_charge_ratio", 0.0)):
+		ctx.event_bus.post_message("Raise Thrall needs more charge.")
+		return
+	var attack := DirectionalAttack.spell_attack(spell)
+	var corpse = _corpse_in_shape(ctx, aim_direction, attack)
+	if not corpse:
+		ctx.event_bus.post_message("Raise Thrall needs a dead humanoid in range.")
+		return
+	var mana_cost := maxi(1, int(spell.get("mana_cost", 1)))
+	if not ctx.player.has_method("spend_mana") or ctx.player.spend_mana(mana_cost) < mana_cost:
+		ctx.event_bus.post_message("Not enough mana for Raise Thrall.")
+		return
+	if not ctx.companions or not ctx.companions.has_method("resurrect_as_thrall"):
+		ctx.event_bus.post_message("No necromancy binding is available.")
+		return
+	var result: Dictionary = ctx.companions.resurrect_as_thrall(corpse.get_entity_id())
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	if bool(result.get("ok", false)):
+		attack["charge_ratio"] = charge_ratio
+		_spawn_effect_at(ctx, "raise_thrall", corpse.global_position, aim_direction, attack)
+
+
+static func _corpse_in_shape(ctx: AimCombatContext, direction: Vector2, attack: Dictionary):
+	var query := {"origin": ctx.player.global_position, "direction": direction, "attack": attack}
+	var closest = null
+	var closest_distance := INF
+	for entity in _combat_candidates(ctx):
+		if not entity or not (entity.data is Dictionary):
+			continue
+		if not ActorRules.is_dead_actor_data(entity.data):
+			continue
+		if String(entity.data.get("world_layer", "surface")) != _actor_world_layer(ctx.player):
+			continue
+		if not DirectionalAttack.contains_point(entity.global_position, query):
+			continue
+		var distance: float = ctx.player.global_position.distance_to(entity.global_position)
+		if distance < closest_distance:
+			closest = entity
+			closest_distance = distance
+	return closest
 
 
 static func parse_action_id(action_id: String) -> Dictionary:
@@ -619,6 +703,14 @@ static func _spawn_effect(
 	ctx.add_effect_child(effect)
 
 
+static func _spawn_effect_at(
+	ctx: AimCombatContext, visual: String, origin: Vector2, direction: Vector2, attack: Dictionary
+) -> void:
+	var effect := CombatActionEffect.new()
+	effect.setup(visual, origin, _aim_direction(direction), attack)
+	ctx.add_effect_child(effect)
+
+
 static func _spawn_weapon_action(
 	ctx: AimCombatContext, attack: Dictionary, direction: Vector2, damage: int, source_name: String
 ) -> void:
@@ -678,6 +770,19 @@ static func _is_projectile_attack(attack: Dictionary) -> bool:
 
 static func _projectile_charge_seconds(attack: Dictionary) -> float:
 	return maxf(0.05, float(attack.get("charge_seconds", DEFAULT_BOW_CHARGE_SECONDS)))
+
+
+static func _spell_charge_seconds(spell: Dictionary) -> float:
+	return maxf(0.05, float(spell.get("charge_seconds", DEFAULT_BOW_CHARGE_SECONDS)))
+
+
+static func _consume_spell_charge_ratio(
+	ctx: AimCombatContext, action_id: String, spell: Dictionary
+) -> float:
+	var elapsed := float(ctx.held_spell_charge_elapsed.get(action_id, 0.0))
+	ctx.held_spell_charge_elapsed.erase(action_id)
+	ctx.held_spell_charge_visual_elapsed.erase(action_id)
+	return clampf(elapsed / _spell_charge_seconds(spell), 0.0, 1.0)
 
 
 static func _set_actor_attack_pose(

@@ -51,6 +51,22 @@ static func drag(control: Control, offset: Vector2, tree: SceneTree) -> void:
 	await HudClickHelper.drag(control, offset, tree)
 
 
+static func drag_hold(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	await HudClickHelper.drag_hold(control, offset, tree)
+
+
+static func release_aim(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	if control.has_method("_gui_input"):
+		var release := InputEventMouseButton.new()
+		release.button_index = MOUSE_BUTTON_LEFT
+		release.position = control.size * 0.5 + offset
+		release.pressed = false
+		control._gui_input(release)
+		await tree.process_frame
+		return
+	await HudClickHelper.mouse_up(control, tree)
+
+
 static func world_click(main, world_position: Vector2, tree: SceneTree) -> void:
 	await settle(main, tree)
 	var screen_position: Vector2 = main.get_viewport().get_canvas_transform() * world_position

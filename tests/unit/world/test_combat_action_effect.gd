@@ -29,6 +29,19 @@ func test_setup_uses_right_direction_fallback_and_fire_ttl() -> void:
 	assert_eq(effect.ttl, 0.10)
 
 
+func test_charge_and_thrall_effects_use_their_short_cast_ttls() -> void:
+	var charge := CombatActionEffect.new()
+	var raise := CombatActionEffect.new()
+	add_child_autofree(charge)
+	add_child_autofree(raise)
+
+	charge.setup("charge_cast", Vector2.ZERO, Vector2.RIGHT, {"visual_tint": [0.72, 0.24, 1.0]})
+	raise.setup("raise_thrall", Vector2.ZERO, Vector2.RIGHT, {"visual_tint": [0.72, 0.24, 1.0]})
+
+	assert_eq(charge.ttl, 0.16)
+	assert_eq(raise.ttl, 0.48)
+
+
 func test_process_queues_effect_after_ttl() -> void:
 	var effect := CombatActionEffect.new()
 	add_child_autofree(effect)

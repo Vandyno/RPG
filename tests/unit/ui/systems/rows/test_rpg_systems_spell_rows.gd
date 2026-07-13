@@ -8,7 +8,7 @@ const RpgSystemsSpellRows = preload(
 func test_category_labels_match_known_spell_filters() -> void:
 	assert_eq(
 		RpgSystemsSpellRows.category_labels(),
-		["All", "Fire", "Frost", "Storm", "Restore", "Utility"]
+		["All", "Fire", "Frost", "Storm", "Restore", "Necromancy", "Utility"]
 	)
 
 

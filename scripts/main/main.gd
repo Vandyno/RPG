@@ -110,6 +110,8 @@ var active_transfer_access_mode := ""
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
 var held_weapon_attack_elapsed: Dictionary = {}
+var held_spell_charge_elapsed: Dictionary = {}
+var held_spell_charge_visual_elapsed: Dictionary = {}
 
 
 func _ready() -> void:
