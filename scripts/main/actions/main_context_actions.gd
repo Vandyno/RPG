@@ -123,6 +123,12 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 						"text": "Pay Bounty (%dg)" % ctx.crime.bounty
 					}
 				)
+				actions.append(
+					{
+						"id": "guard:bribe:%s" % guard_npc_id,
+						"text": "Bribe Guard (%dg)" % int(guard_response.get("bribe", 0))
+					}
+				)
 			actions.append({"id": "guard:submit:%s" % guard_npc_id, "text": "Surrender to Jail"})
 			actions.append({"id": "guard:resist:%s" % guard_npc_id, "text": "Resist"})
 			return actions

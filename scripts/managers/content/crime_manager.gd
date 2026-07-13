@@ -22,6 +22,7 @@ const JAIL_RELEASE_LAYER := "surface"
 const JAIL_RELEASE_TILE := Vector2i(-3244, -3953)
 const AMENDS_COST := 25
 const AMENDS_REPUTATION_GAIN := 5
+const BRIBE_MULTIPLIER := 0.75
 
 var event_bus
 var entities
@@ -32,6 +33,7 @@ var schedules
 var chunks
 var inventory
 var player
+var allegiances
 var crimes: Array[Dictionary] = []
 var witness_memories: Dictionary = {}
 var reports: Array[Dictionary] = []
@@ -67,6 +69,10 @@ func setup(
 
 func set_player(player_actor) -> void:
 	player = player_actor
+
+
+func set_allegiance_manager(manager) -> void:
+	allegiances = manager
 
 
 func _process(delta: float) -> void:
@@ -205,12 +211,21 @@ func resolve_guard_response(npc_id: String, response: String) -> Dictionary:
 			inventory.remove_item("item_gold_coin", fine)
 			_resolve_legal_response(npc_id)
 			return {"ok": true, "message": "You pay %dg. The guard records the settlement." % fine}
+		"bribe":
+			var bribe := _bribe_cost(guard_response)
+			if not inventory or not inventory.has_item("item_gold_coin", bribe):
+				return {"ok": false, "message": "You cannot afford the %dg bribe." % bribe}
+			inventory.remove_item("item_gold_coin", bribe)
+			_resolve_legal_response(npc_id)
+			return {"ok": true, "message": "The guard pockets %dg and closes the charge." % bribe}
 		"submit":
 			return _begin_jail_sentence(npc_id)
 		"resist":
 			var guard: Variant = _actor_for_npc(npc_id)
 			if guard:
 				_make_guard_hostile(guard)
+				if allegiances and allegiances.has_method("alert_actor"):
+					allegiances.alert_actor(guard)
 			guard_response["state"] = "attacking"
 			guard_response_by_npc_id[npc_id] = guard_response
 			return {"ok": true, "message": "You resist arrest."}
@@ -410,6 +425,7 @@ func _activate_guard_response(guard_npc_id: String, crime: Dictionary) -> void:
 		"action": action,
 		"state": "investigating",
 		"fine": _crime_bounty(kind),
+		"bribe": _bribe_cost_for_bounty(_crime_bounty(kind)),
 		"crime_world_position": crime.get("world_position", []),
 		"crime_world_layer": String(crime.get("world_layer", "surface"))
 	}
@@ -542,6 +558,14 @@ func _make_guard_hostile(guard) -> void:
 
 func _crime_bounty(kind: String) -> int:
 	return {"trespass": 5, "theft": 10, "assault": 25, "murder": 100}.get(kind, 0)
+
+
+func _bribe_cost(response: Dictionary) -> int:
+	return _bribe_cost_for_bounty(maxi(1, int(response.get("fine", bounty))))
+
+
+func _bribe_cost_for_bounty(value: int) -> int:
+	return maxi(1, ceili(float(maxi(1, value)) * BRIBE_MULTIPLIER))
 
 
 func _actor_for_npc(npc_id: String):

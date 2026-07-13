@@ -58,6 +58,14 @@ class InventoryStub:
 		return gold if item_id == "item_gold_coin" else 0
 
 
+class AllegianceStub:
+	var alerted_actor = null
+
+	func alert_actor(actor) -> bool:
+		alerted_actor = actor
+		return true
+
+
 func test_guard_witness_reports_crime_and_memories_survive_resurrection_and_save() -> void:
 	var bus := EventBus.new()
 	add_child_autofree(bus)
@@ -226,6 +234,37 @@ func test_pay_bounty_and_make_amends_cost_gold_and_repair_reputation() -> void:
 	assert_true(manager.make_amends()["ok"])
 	assert_eq(inventory.gold, 150)
 	assert_eq(factions.reputation, -10)
+
+
+func test_guard_bribe_closes_charge_and_resistance_alerts_guard_allegiance() -> void:
+	var inventory := InventoryStub.new()
+	var entities := EntitySet.new()
+	var guard := _actor("guard_actor", "npc_guard", "guard")
+	guard.data["faction_id"] = "faction_town"
+	entities.entities_by_id = {guard.get_entity_id(): guard}
+	var manager := CrimeManager.new()
+	add_child_autofree(manager)
+	manager.setup(null, entities, PerceptionStub.new(), TimeStub.new(), FactionStub.new(), null, null, inventory)
+	manager.bounty = 25
+	manager.reports = [{"status": "active"}]
+	manager.guard_response_by_npc_id["npc_guard"] = {"fine": 25, "state": "confronting"}
+
+	var bribe := manager.resolve_guard_response("npc_guard", "bribe")
+
+	assert_true(bribe["ok"])
+	assert_eq(inventory.gold, 181)
+	assert_eq(manager.bounty, 0)
+	assert_eq(manager.reports[0]["status"], "resolved")
+
+	manager.bounty = 25
+	manager.guard_response_by_npc_id["npc_guard"] = {"fine": 25, "state": "confronting"}
+	var allegiances := AllegianceStub.new()
+	manager.set_allegiance_manager(allegiances)
+	var resist := manager.resolve_guard_response("npc_guard", "resist")
+
+	assert_true(resist["ok"])
+	assert_eq(allegiances.alerted_actor, guard)
+	assert_true(bool(guard.data["hostile_to_player"]))
 
 
 func _actor(entity_id: String, npc_id: String, role: String) -> WorldEntity:

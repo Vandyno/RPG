@@ -423,6 +423,7 @@ func _bootstrap_actor_runtime() -> void:
 	allegiances.name = "AllegianceManager"
 	add_child(allegiances)
 	allegiances.setup(event_bus, entities)
+	crime.set_allegiance_manager(allegiances)
 	companions = CompanionManagerScript.new()
 	companions.name = "CompanionManager"
 	add_child(companions)
