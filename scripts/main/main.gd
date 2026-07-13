@@ -51,6 +51,7 @@ const CivilianScheduleManagerScript = preload("res://scripts/managers/content/ci
 const NpcPerceptionManagerScript = preload("res://scripts/managers/content/npc_perception_manager.gd")
 const CrimeManagerScript = preload("res://scripts/managers/content/crime_manager.gd")
 const CompanionManagerScript = preload("res://scripts/managers/content/companion_manager.gd")
+const AllegianceManagerScript = preload("res://scripts/managers/content/allegiance_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -80,6 +81,7 @@ var civilian_schedules: CivilianScheduleManager
 var npc_perception: NpcPerceptionManager
 var crime: CrimeManager
 var companions
+var allegiances
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
@@ -132,6 +134,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
+	if allegiances:
+		allegiances.update(delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
 	CivilianScheduleBrain.update(civilian_schedules, delta)
 	if companions:
@@ -415,6 +419,10 @@ func _bootstrap_actor_runtime() -> void:
 	crime.name = "CrimeManager"
 	add_child(crime)
 	crime.setup(event_bus, entities, npc_perception, time, factions, civilian_schedules, chunks, inventory)
+	allegiances = AllegianceManagerScript.new()
+	allegiances.name = "AllegianceManager"
+	add_child(allegiances)
+	allegiances.setup(event_bus, entities)
 	companions = CompanionManagerScript.new()
 	companions.name = "CompanionManager"
 	add_child(companions)

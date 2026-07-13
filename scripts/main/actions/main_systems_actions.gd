@@ -91,6 +91,7 @@ class SystemsActionContext:
 
 
 class AimCombatContext:
+	var allegiances
 	var channeled_spell_damage_bank: Dictionary
 	var channeled_spell_empty_reported: Dictionary
 	var combat
@@ -113,6 +114,7 @@ class AimCombatContext:
 	var _refresh_hud: Callable
 
 	func _init(main) -> void:
+		allegiances = main.get("allegiances")
 		channeled_spell_damage_bank = _dictionary_property(main, "channeled_spell_damage_bank")
 		channeled_spell_empty_reported = _dictionary_property(
 			main, "channeled_spell_empty_reported"
@@ -648,6 +650,8 @@ static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
 	if not entity or not (entity.data is Dictionary):
 		return
 	if ActorRules.is_hostile_to_player_data(entity.data):
+		if ctx.allegiances and ctx.allegiances.has_method("alert_actor"):
+			ctx.allegiances.alert_actor(entity)
 		return
 	entity.data["hostility"] = ActorRules.HOSTILITY_HOSTILE
 	entity.data["hostile_to_player"] = true
@@ -660,6 +664,8 @@ static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
 		entity.data["brain_id"] = "hostile_basic"
 	entity.data["_brain_mode"] = "engaged"
 	entity.data["behavior_state"] = "chasing"
+	if ctx.allegiances and ctx.allegiances.has_method("alert_actor"):
+		ctx.allegiances.alert_actor(entity)
 	if ctx.event_bus:
 		ctx.event_bus.post_message("%s turns hostile." % entity.get_display_name())
 

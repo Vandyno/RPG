@@ -88,6 +88,24 @@ static func is_hostile_to_player_data(data: Dictionary) -> bool:
 	return String(data.get("hostility", "")).to_lower() == HOSTILITY_HOSTILE
 
 
+static func allegiance_id(data: Dictionary) -> String:
+	if is_player_owned_data(data):
+		return "player"
+	var direct := String(data.get("allegiance_id", data.get("combat_allegiance_id", "")))
+	if not direct.is_empty():
+		return direct
+	var profile_data := profile(data)
+	var profile_id := String(profile_data.get("allegiance_id", ""))
+	if not profile_id.is_empty():
+		return profile_id
+	var faction_id := String(data.get("faction_id", profile_data.get("faction_id", "")))
+	return "faction:%s" % faction_id if not faction_id.is_empty() else ""
+
+
+static func is_player_owned_data(data: Dictionary) -> bool:
+	return String(data.get("allegiance_owner_id", "")) == "player"
+
+
 static func has_combat_behavior_data(data: Dictionary) -> bool:
 	if _bool_field(data.get("combat_enabled", false)):
 		return true

@@ -28,4 +28,7 @@ static func build(main) -> Dictionary:
 	var companions = main.get("companions")
 	if companions:
 		providers["companions"] = companions
+	var allegiances = main.get("allegiances")
+	if allegiances:
+		providers["allegiances"] = allegiances
 	return providers
