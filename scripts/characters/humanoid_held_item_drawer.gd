@@ -30,6 +30,7 @@ static func draw_glove_equipment(avatar, side: float, proportions: Dictionary) -
 		side,
 		avatar._equipment_color("gloves")
 	)
+	_draw_glove_finish(avatar, avatar._hand_position(side, proportions), side, hand_size)
 
 
 static func draw_hand_equipment(avatar, slot_id: String, proportions: Dictionary) -> void:
@@ -99,6 +100,31 @@ static func draw_weapon_grip_hand(
 		else avatar._current_skin_color()
 	)
 	avatar._draw_mitten(center, 2.55 * hand_size, side, color)
+	if avatar.equipped_visuals.has("gloves"):
+		_draw_glove_finish(avatar, center, side, hand_size)
+
+
+static func _draw_glove_finish(avatar, center: Vector2, side: float, hand_size: float) -> void:
+	var color: Color = avatar._equipment_color("gloves")
+	var layer_id: String = avatar._equipment_layer_id("gloves")
+	var cuff_start := center + Vector2(-side * 2.05 * hand_size, 0.62 * hand_size)
+	var cuff_end := center + Vector2(side * 0.30 * hand_size, 0.62 * hand_size)
+	if layer_id == "placeholder_iron_gauntlets":
+		avatar.draw_line(cuff_start, cuff_end, color.lightened(0.30), 0.72)
+		avatar.draw_line(
+			center + Vector2(side * 0.18 * hand_size, -1.15 * hand_size),
+			center + Vector2(side * 0.72 * hand_size, 0.85 * hand_size),
+			color.darkened(0.30),
+			0.48
+		)
+		return
+	avatar.draw_line(cuff_start, cuff_end, color.darkened(0.30), 0.62)
+	avatar.draw_line(
+		center + Vector2(-side * 0.92 * hand_size, -0.92 * hand_size),
+		center + Vector2(side * 0.48 * hand_size, 1.05 * hand_size),
+		color.lightened(0.14),
+		0.38
+	)
 
 
 static func held_item_grip_position_for_side(
@@ -169,12 +195,7 @@ static func held_item_draw_slot_for_side(avatar, side: float) -> String:
 
 
 static func held_item_draw_side(avatar, slot_id: String) -> float:
-	var visual_id: String = avatar._equipment_layer_id(slot_id)
-	if visual_id == "placeholder_bow":
-		return -avatar._dominant_hand_side()
-	if visual_uses_dominant_weapon_side(visual_id):
-		return avatar._dominant_hand_side()
-	return slot_side(slot_id)
+	return item_side_for_slot(avatar, slot_id)
 
 
 static func item_side_for_slot(avatar, slot_id: String) -> float:

@@ -4,9 +4,18 @@ extends Node
 const MINUTES_PER_HOUR := 60
 const HOURS_PER_DAY := 24
 const MINUTES_PER_DAY := HOURS_PER_DAY * MINUTES_PER_HOUR
+const DAYS_PER_SEASON := 28
+const DAYS_PER_YEAR := DAYS_PER_SEASON * 4
 const START_DAY := 1
 const START_HOUR := 8
 const START_MINUTE := 0
+const SEASONS := ["spring", "summer", "autumn", "winter"]
+const WEATHER_BY_SEASON := {
+	"spring": ["clear", "rain", "cloudy", "rain", "clear", "wind", "storm"],
+	"summer": ["clear", "clear", "clear", "cloudy", "rain", "wind", "storm"],
+	"autumn": ["cloudy", "rain", "wind", "clear", "rain", "storm", "fog"],
+	"winter": ["snow", "snow", "cloudy", "clear", "wind", "snow", "storm"]
+}
 
 var event_bus: EventBus
 var day := START_DAY
@@ -28,13 +37,13 @@ func advance_minutes(minutes: int) -> bool:
 	return true
 
 
-func advance_hours(hours: int) -> bool:
+func advance_hours(hours: float) -> bool:
 	if hours <= 0:
 		return false
-	return advance_minutes(hours * MINUTES_PER_HOUR)
+	return advance_minutes(int(round(hours * MINUTES_PER_HOUR)))
 
 
-func wait_hours(hours: int) -> Dictionary:
+func wait_hours(hours: float) -> Dictionary:
 	if not advance_hours(hours):
 		return {"ok": false, "message": "Could not wait right now."}
 	return {"ok": true, "message": "Waited %dh. %s." % [hours, get_summary()]}
@@ -57,6 +66,30 @@ func get_phase() -> String:
 	if hour >= 17 and hour < 21:
 		return "Evening"
 	return "Night"
+
+
+func get_day_of_year() -> int:
+	return posmod(day - 1, DAYS_PER_YEAR) + 1
+
+
+func get_season() -> String:
+	var season_index := floori(float(get_day_of_year() - 1) / float(DAYS_PER_SEASON))
+	return SEASONS[clampi(season_index, 0, SEASONS.size() - 1)]
+
+
+func get_season_day() -> int:
+	return posmod(get_day_of_year() - 1, DAYS_PER_SEASON) + 1
+
+
+func get_weather() -> String:
+	var options: Array = WEATHER_BY_SEASON.get(get_season(), ["clear"])
+	if options.is_empty():
+		return "clear"
+	return String(options[posmod(get_season_day() - 1, options.size())])
+
+
+func get_calendar_summary() -> String:
+	return "%s %d, %s" % [get_season().capitalize(), get_season_day(), get_weather()]
 
 
 func is_phase(phase: String) -> bool:
@@ -86,6 +119,7 @@ func get_details() -> String:
 	lines.append("Time: %s" % get_time_label())
 	lines.append("Day: %d" % day)
 	lines.append("Phase: %s" % get_phase())
+	lines.append("Calendar: %s" % get_calendar_summary())
 	return "\n".join(lines)
 
 

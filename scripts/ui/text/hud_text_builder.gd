@@ -1,6 +1,8 @@
 class_name HudTextBuilder
 extends RefCounted
 
+const TextUtil = preload("res://scripts/core/text_util.gd")
+
 
 static func status_text(state: Dictionary) -> String:
 	var lines: Array[String] = []
@@ -29,7 +31,7 @@ static func message_text(message_log: Array[String], compact: bool = false) -> S
 		return "Ready."
 	var line_count := 1 if compact else 3
 	var text := "\n".join(message_log.slice(maxi(0, message_log.size() - line_count)))
-	return _ellipsized(text, 42) if compact else text
+	return TextUtil.ellipsized(text, 42) if compact else text
 
 
 static func debug_text(state: Dictionary) -> String:
@@ -51,6 +53,8 @@ static func debug_text(state: Dictionary) -> String:
 	lines.append("Locations: %s" % state.get("locations", "none"))
 	lines.append("Factions:")
 	lines.append(String(state.get("factions", "none")))
+	lines.append("Stealth: %s" % state.get("stealth_state", "unknown"))
+	lines.append("Legal: %s, bounty %dg" % [state.get("legal_area", "unknown"), int(state.get("bounty", 0))])
 	return "\n".join(lines)
 
 
@@ -159,14 +163,6 @@ static func _primary_location_name(state: Dictionary) -> String:
 	if names.is_empty():
 		return locations
 	return names[0].strip_edges()
-
-
-static func _ellipsized(value: String, max_chars: int) -> String:
-	if value.length() <= max_chars:
-		return value
-	if max_chars <= 1:
-		return value.substr(0, max_chars)
-	return "%s..." % value.substr(0, max_chars - 3)
 
 
 static func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:

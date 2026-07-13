@@ -8,7 +8,9 @@ const KIND_BODY := "body"
 const CATEGORY_HUMANOID := "humanoid"
 const HOSTILITY_HOSTILE := "hostile"
 const STATE_ALIVE := ActorState.ALIVE
+const STATE_DEAD := ActorState.DEAD
 const STATE_DEAD_BODY := ActorState.DEAD_BODY
+const VALID_STATES := ActorState.VALID_STATES
 const DEAD_STATES := ActorState.DEAD_STATES
 
 
@@ -48,6 +50,8 @@ static func is_actor_data(data: Dictionary) -> bool:
 		return true
 	if String(data.get("kind", "")) == KIND_NPC:
 		return true
+	if not String(data.get("npc_id", "")).is_empty():
+		return true
 	return _has_humanoid_identity(data)
 
 
@@ -61,6 +65,10 @@ static func is_living_actor_data(data: Dictionary) -> bool:
 	if String(data.get("kind", "")) == KIND_BODY:
 		return false
 	return not DEAD_STATES.has(actor_state(data))
+
+
+static func is_dead_actor_data(data: Dictionary) -> bool:
+	return is_actor_data(data) and DEAD_STATES.has(actor_state(data))
 
 
 static func is_living_humanoid_data(data: Dictionary) -> bool:
@@ -80,6 +88,24 @@ static func is_hostile_to_player_data(data: Dictionary) -> bool:
 	return String(data.get("hostility", "")).to_lower() == HOSTILITY_HOSTILE
 
 
+static func allegiance_id(data: Dictionary) -> String:
+	if is_player_owned_data(data):
+		return "player"
+	var direct := String(data.get("allegiance_id", data.get("combat_allegiance_id", "")))
+	if not direct.is_empty():
+		return direct
+	var profile_data := profile(data)
+	var profile_id := String(profile_data.get("allegiance_id", ""))
+	if not profile_id.is_empty():
+		return profile_id
+	var faction_id := String(data.get("faction_id", profile_data.get("faction_id", "")))
+	return "faction:%s" % faction_id if not faction_id.is_empty() else ""
+
+
+static func is_player_owned_data(data: Dictionary) -> bool:
+	return String(data.get("allegiance_owner_id", "")) == "player"
+
+
 static func has_combat_behavior_data(data: Dictionary) -> bool:
 	if _bool_field(data.get("combat_enabled", false)):
 		return true
@@ -94,6 +120,10 @@ static func is_combat_target_data(data: Dictionary) -> bool:
 	)
 
 
+static func is_damageable_actor_data(data: Dictionary) -> bool:
+	return is_living_actor_data(data) and has_combat_behavior_data(data)
+
+
 static func is_combat_target_entity(entity: Variant) -> bool:
 	if entity == null:
 		return false
@@ -106,6 +136,24 @@ static func is_combat_target_entity(entity: Variant) -> bool:
 		return bool(entity.is_combat_target())
 	var data: Variant = entity.get("data")
 	return data is Dictionary and is_combat_target_data(data)
+
+
+static func is_damageable_actor_entity(entity: Variant) -> bool:
+	if entity == null:
+		return false
+	if entity is Dictionary:
+		var entity_data: Variant = entity.get("data", entity)
+		return entity_data is Dictionary and is_damageable_actor_data(entity_data)
+	if not (entity is Object):
+		return false
+	var data: Variant = entity.get("data")
+	if data is Dictionary:
+		return is_damageable_actor_data(data)
+	if entity.has_method("is_damageable_actor"):
+		return bool(entity.is_damageable_actor())
+	if entity.has_method("is_combat_target"):
+		return bool(entity.is_combat_target())
+	return false
 
 
 static func can_pickpocket_data(data: Dictionary) -> bool:

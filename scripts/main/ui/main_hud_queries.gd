@@ -2,6 +2,7 @@ class_name MainHudQueries
 extends RefCounted
 
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const ShopManagerScript = preload("res://scripts/managers/content/shop_manager.gd")
@@ -103,7 +104,7 @@ func inventory_actions_data() -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
 	for item_id in _sorted_inventory_ids():
 		var item: Dictionary = content.get_item(item_id)
-		var has_use := not _array_field(item.get("effects_on_use", [])).is_empty()
+		var has_use := not VariantFields.array(item.get("effects_on_use", [])).is_empty()
 		var slot := String(item.get("equipment_slot", ""))
 		var count: int = inventory.get_count(item_id)
 		if item.is_empty() or count <= 0 or (not has_use and slot.is_empty()):
@@ -154,7 +155,8 @@ func trade_text(shop_id: String) -> String:
 	var lines: Array[String] = [shop_name]
 	lines.append(_shop_hours_text(shop_id))
 	if not shops.is_shop_open(shop_id):
-		lines.append("Closed now.")
+		var unavailable_reason: String = shops.shop_unavailable_reason(shop_id) if shops.has_method("shop_unavailable_reason") else ""
+		lines.append(unavailable_reason if not unavailable_reason.is_empty() else "Closed now.")
 	lines.append(
 		"Gold: %d" % inventory.get_count(ShopManagerScript.CURRENCY_ITEM_ID)
 		if inventory
@@ -276,7 +278,7 @@ func target_detail_text(entity) -> String:
 			detail = "Body: loot"
 		"rest":
 			detail = _rest_detail_text(entity)
-	return detail
+	return _with_ownership_detail(entity, detail)
 
 
 func shop_id_for_entity(entity) -> String:
@@ -304,7 +306,7 @@ func _readable_detail_text(entity) -> String:
 func _pickup_detail_text(entity) -> String:
 	var item_id := String(entity.data.get("item_id", ""))
 	var item: Dictionary = content.get_item(item_id)
-	var count := _positive_int_field(entity.data, "count", 1)
+	var count := VariantFields.positive_int_field(entity.data, "count", 1)
 	return "Pickup: %s x%d" % [String(item.get("name", item_id)), count]
 
 
@@ -313,6 +315,11 @@ func _npc_detail_text(entity) -> String:
 	var quest_id := String(npc.get("quest_id", ""))
 	var faction_id := String(npc.get("faction", ""))
 	var parts: Array[String] = [String(npc.get("role", "NPC"))]
+	var allegiance := String(entity.data.get("allegiance", ""))
+	if allegiance == "thrall":
+		parts.append("your thrall")
+	elif allegiance == "companion":
+		parts.append("your companion")
 	if not quest_id.is_empty():
 		parts.append("quest %s" % quests.get_quest_state(quest_id))
 	if not faction_id.is_empty():
@@ -327,10 +334,10 @@ func _npc_detail_text(entity) -> String:
 
 func _hostile_actor_detail_text(entity) -> String:
 	var health: int = combat.get_entity_health(entity)
-	var max_health := _positive_int_field(
+	var max_health := VariantFields.positive_int_field(
 		entity.data, "max_health", CombatManagerScript.DEFAULT_MAX_HEALTH
 	)
-	var attack_damage := _non_negative_int_field(
+	var attack_damage := VariantFields.non_negative_int_field(
 		entity.data, "attack_damage", CombatManagerScript.DEFAULT_ENEMY_DAMAGE
 	)
 	return (
@@ -340,9 +347,24 @@ func _hostile_actor_detail_text(entity) -> String:
 
 
 func _rest_detail_text(entity) -> String:
-	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
-	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
+	var heal_amount := VariantFields.positive_int_field(entity.data, "heal_amount", player.max_health)
+	var rest_hours := VariantFields.positive_int_field(entity.data, "rest_hours", 8)
 	return "Rest: heals %d, advances %dh" % [heal_amount, rest_hours]
+
+
+func _with_ownership_detail(entity, detail: String) -> String:
+	if not entity or not (entity.data is Dictionary):
+		return detail
+	var owner_faction_id := String(entity.data.get("owner_faction_id", ""))
+	if not owner_faction_id.is_empty():
+		var faction: Dictionary = content.get_faction(owner_faction_id)
+		return "%s · Owned by %s" % [detail, String(faction.get("name", owner_faction_id))]
+	if bool(entity.data.get("private", false)):
+		return "%s · Private" % detail
+	var layer := String(entity.data.get("world_layer", "surface"))
+	if layer.contains("home_plot"):
+		return "%s · Private property" % detail
+	return detail
 
 
 func _shop_hours_text(shop_id: String) -> String:
@@ -367,25 +389,3 @@ func _sell_action_text(sell_entry: Dictionary) -> String:
 		String(sell_entry.get("name", sell_entry.get("item_id", ""))),
 		int(sell_entry.get("price", 0))
 	]
-
-
-func _array_field(value: Variant) -> Array:
-	return value if value is Array else []
-
-
-func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	var value: Variant = source.get(field_id, fallback)
-	if not _is_number(value):
-		return maxi(1, fallback)
-	return maxi(1, int(value))
-
-
-func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	var value: Variant = source.get(field_id, fallback)
-	if not _is_number(value):
-		return maxi(0, fallback)
-	return maxi(0, int(value))
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

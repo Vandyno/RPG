@@ -3,39 +3,48 @@ extends SceneTree
 const Main = preload("res://scripts/main/main.gd")
 const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
+const DEFAULT_WIDTH := 1152
+const DEFAULT_HEIGHT := 648
+const DEFAULT_OUTPUT_PATH := "res://reports/content_panel.png"
+const DEFAULT_MODE := "dialogue"
+
 
 func _initialize() -> void:
 	_capture.call_deferred()
 
 
 func _capture() -> void:
-	var args := OS.get_cmdline_user_args()
-	var width := CaptureSheetHelper.positive_arg(args, 0, 1152)
-	var height := CaptureSheetHelper.positive_arg(args, 1, 648)
-	var output_path := CaptureSheetHelper.string_arg(args, 2, "res://reports/content_panel.png")
-	var mode := CaptureSheetHelper.string_arg(args, 3, "dialogue")
-
-	root.size = Vector2i(width, height)
-	var main := Main.new()
-	root.add_child(main)
-	await process_frame
-	await process_frame
-
-	main.hud._apply_layout_for_size(Vector2(width, height))
-	_show_fixture(main, mode)
-	await process_frame
-	await process_frame
-
-	var image := root.get_texture().get_image()
-	var error := image.save_png(output_path)
-	if error != OK:
-		printerr("Could not save content panel capture: %s" % error_string(error))
-		quit(1)
+	var config := capture_config(OS.get_cmdline_user_args())
+	var width := int(config["width"])
+	var height := int(config["height"])
+	var output_path := String(config["output_path"])
+	var mode := String(config["mode"])
+	if not await CaptureSheetHelper.capture_main_scene_png(
+		self,
+		root,
+		Main,
+		width,
+		height,
+		output_path,
+		"content panel",
+		Callable(self, "prepare_main_for_capture"),
+		[mode]
+	):
 		return
-	quit()
 
 
-func _show_fixture(main, mode: String) -> void:
+static func capture_config(args: Array) -> Dictionary:
+	return CaptureSheetHelper.image_capture_config(
+		args, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_OUTPUT_PATH, ["mode"], {"mode": DEFAULT_MODE}
+	)
+
+
+static func prepare_main_for_capture(main, width: int, height: int, mode: String) -> void:
+	main.hud._apply_layout_for_size(Vector2(width, height))
+	show_fixture(main, mode)
+
+
+static func show_fixture(main, mode: String) -> void:
 	match mode:
 		"readable":
 			main.hud.show_content_card(

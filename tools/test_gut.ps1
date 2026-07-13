@@ -26,7 +26,13 @@ try {
     @{ Name = "project"; Path = "project" },
     @{ Name = "tools_capture"; Path = "tools/capture" },
     @{ Name = "tools_verify"; Path = "tools/verify" },
-    @{ Name = "ui"; Path = "ui" },
+    @{ Name = "ui_content"; Path = "ui/content" },
+    @{ Name = "ui_controls"; Path = "ui/controls" },
+    @{ Name = "ui_rpg"; Path = "ui/rpg" },
+    @{ Name = "ui_shell"; Path = "ui/shell" },
+    @{ Name = "ui_systems"; Path = "ui/systems" },
+    @{ Name = "ui_text"; Path = "ui/text" },
+    @{ Name = "ui_world"; Path = "ui/world" },
     @{ Name = "world"; Path = "world" }
   )
   foreach ($suite in $testSuites) {
@@ -38,9 +44,22 @@ try {
       "-gexit",
       "-gjunit_xml_file", "res://reports/gut_results_$($suite.Name).xml"
     )
-    & $godot @args
-    if ($LASTEXITCODE -ne 0) {
-      exit $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $suiteOutput = @(& $godot @args 2>&1)
+    $suiteExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    $suiteOutput | ForEach-Object { Write-Output ([string]$_) }
+    if ($suiteExitCode -ne 0) {
+      exit $suiteExitCode
+    }
+    $suiteText = $suiteOutput -join "`n"
+    if (
+      $suiteText -match "SCRIPT ERROR: Parse Error:" -or
+      $suiteText -match "ERROR: Failed to load script"
+    ) {
+      Write-Error "GUT suite '$($suite.Name)' could not load every test script."
+      exit 1
     }
   }
 

@@ -97,7 +97,8 @@ func test_system_tabs_preserve_transfer_character_and_journal_payloads() -> void
 		),
 		MainHudState._trade_tab("No trader selected.", [], []),
 		MainHudState._quests_tab([{"title": "Missing Tools"}], "none", []),
-		MainHudState._journal_tab("Day 2, 09:00", [], "", "Town", "")
+		MainHudState._journal_tab("Day 2, 09:00", [], "", "Town", ""),
+		MainHudState._spells_tab([{"name": "Fire Blast"}], {"ability_1": {"name": "Fire Blast"}})
 	)
 
 	assert_true(tabs["inventory"]["transfer"]["open"])
@@ -108,6 +109,8 @@ func test_system_tabs_preserve_transfer_character_and_journal_payloads() -> void
 	assert_eq(tabs["journal"]["time"], "Day 2, 09:00")
 	assert_eq(tabs["journal"]["locations"], "Town")
 	assert_eq(tabs["quests"]["quests"], [{"title": "Missing Tools"}])
+	assert_eq(tabs["spells"]["spells"], [{"name": "Fire Blast"}])
+	assert_eq(tabs["spells"]["spell_slots"]["ability_1"]["name"], "Fire Blast")
 
 
 func test_inventory_items_are_sorted_and_shaped_for_ui() -> void:

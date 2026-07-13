@@ -1,0 +1,14 @@
+[
+  {
+    "actor_category": "humanoid", "aggro_radius": 160, "allow_public_access": true,
+    "assigned_home_structure_id": "structure_northgate_jail", "assigned_work_structure_id": "structure_northgate_jail",
+    "attack_damage": 3, "behavior_state": "idle", "brain_id": "civilian_schedule", "canon_status": "proposal",
+    "character_profile_id": "char_northgate_jail_guard", "combat_enabled": true, "damage_taken_per_hit": 4,
+    "equipment_owner_id": "char_northgate_jail_guard", "global_tile": [6, 2], "hearing_radius": 176,
+    "home_tile": [6, 4], "hostility": "neutral", "id": "npc_northgate_jail_guard_world",
+    "inventory": [{"count": 4, "item_id": "item_gold_coin"}], "inventory_owner_id": "char_northgate_jail_guard",
+    "kind": "npc", "max_health": 20, "move_speed": 76, "name": "Northgate Gaoler",
+    "npc_id": "npc_northgate_jail_guard", "role": "jail_guard", "vision_degrees": 130,
+    "vision_distance": 208, "world_layer": "interior:structure_northgate_jail"
+  }
+]

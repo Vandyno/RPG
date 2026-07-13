@@ -21,39 +21,6 @@
     "weight": 5.0,
     "tags": ["quest"]
   },
-  "item_roadside_draught": {
-    "id": "item_roadside_draught",
-    "name": "Roadside Draught",
-    "description": "A bitter green tonic carried by travellers who expect trouble on the road.",
-    "type": "consumable",
-    "stackable": true,
-    "max_stack": 5,
-    "value": 12,
-    "weight": 0.3,
-    "tags": ["consumable", "healing"],
-    "consume_on_use": true,
-    "effects_on_use": [
-      {
-        "type": "heal_player",
-        "amount": 35
-      },
-      {
-        "type": "apply_status",
-        "status_id": "status_road_focus"
-      }
-    ]
-  },
-  "item_river_mint": {
-    "id": "item_river_mint",
-    "name": "River Mint",
-    "description": "Bright mint gathered along Briarwatch's riverbank and used in simple tonics.",
-    "type": "ingredient",
-    "stackable": true,
-    "max_stack": 20,
-    "value": 2,
-    "weight": 0.1,
-    "tags": ["ingredient"]
-  },
   "item_road_hatchet": {
     "id": "item_road_hatchet",
     "name": "Road Hatchet",
@@ -208,5 +175,141 @@
       "visual_layer_id": "placeholder_smith_apron",
       "accepted_placeholder": true
     }
+  },
+  "item_leather_cuirass": {
+    "id": "item_leather_cuirass",
+    "name": "Leather Cuirass",
+    "description": "Layered boiled leather with a broad, flexible chest panel.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 35,
+    "weight": 4.2,
+    "tags": ["armour", "leather"],
+    "equipment_slot": "chest",
+    "avatar_visual": {
+      "avatar_slot": "chest",
+      "visual_layer_id": "placeholder_leather_vest"
+    }
+  },
+  "item_iron_cuirass": {
+    "id": "item_iron_cuirass",
+    "name": "Iron Cuirass",
+    "description": "A riveted iron breastplate for soldiers who expect to be hit.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 70,
+    "weight": 8.5,
+    "tags": ["armour", "iron"],
+    "equipment_slot": "chest",
+    "avatar_visual": {
+      "avatar_slot": "chest",
+      "visual_layer_id": "placeholder_iron_cuirass"
+    }
+  },
+  "item_leather_cap": {
+    "id": "item_leather_cap",
+    "name": "Leather Cap",
+    "description": "A close leather cap.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 18,
+    "weight": 1.0,
+    "tags": ["armour", "leather"],
+    "equipment_slot": "head",
+    "avatar_visual": {"avatar_slot": "head", "visual_layer_id": "placeholder_leather_cap"}
+  },
+  "item_leather_leggings": {
+    "id": "item_leather_leggings",
+    "name": "Leather Leggings",
+    "description": "Flexible leather thigh guards.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 25,
+    "weight": 2.8,
+    "tags": ["armour", "leather"],
+    "equipment_slot": "legs",
+    "avatar_visual": {"avatar_slot": "legs", "visual_layer_id": "placeholder_leather_leggings"}
+  },
+  "item_leather_gloves": {
+    "id": "item_leather_gloves",
+    "name": "Leather Gloves",
+    "description": "Grip-safe leather gloves.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 14,
+    "weight": 0.7,
+    "tags": ["armour", "leather"],
+    "equipment_slot": "gloves",
+    "avatar_visual": {"avatar_slot": "gloves", "visual_layer_id": "placeholder_leather_gloves"}
+  },
+  "item_leather_boots": {
+    "id": "item_leather_boots",
+    "name": "Leather Boots",
+    "description": "Hard-wearing leather boots.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 16,
+    "weight": 1.4,
+    "tags": ["armour", "leather"],
+    "equipment_slot": "boots",
+    "avatar_visual": {"avatar_slot": "boots", "visual_layer_id": "placeholder_leather_boots"}
+  },
+  "item_iron_helm": {
+    "id": "item_iron_helm",
+    "name": "Iron Helm",
+    "description": "A riveted iron helm.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 38,
+    "weight": 2.6,
+    "tags": ["armour", "iron"],
+    "equipment_slot": "head",
+    "avatar_visual": {"avatar_slot": "head", "visual_layer_id": "placeholder_iron_helm"}
+  },
+  "item_iron_leggings": {
+    "id": "item_iron_leggings",
+    "name": "Iron Leggings",
+    "description": "Segmented iron leg guards.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 52,
+    "weight": 5.2,
+    "tags": ["armour", "iron"],
+    "equipment_slot": "legs",
+    "avatar_visual": {"avatar_slot": "legs", "visual_layer_id": "placeholder_iron_leggings"}
+  },
+  "item_iron_gauntlets": {
+    "id": "item_iron_gauntlets",
+    "name": "Iron Gauntlets",
+    "description": "Articulated iron hand guards.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 32,
+    "weight": 1.8,
+    "tags": ["armour", "iron"],
+    "equipment_slot": "gloves",
+    "avatar_visual": {"avatar_slot": "gloves", "visual_layer_id": "placeholder_iron_gauntlets"}
+  },
+  "item_iron_boots": {
+    "id": "item_iron_boots",
+    "name": "Iron Boots",
+    "description": "Heavy iron-capped boots.",
+    "type": "armour",
+    "stackable": false,
+    "max_stack": 1,
+    "value": 34,
+    "weight": 2.9,
+    "tags": ["armour", "iron"],
+    "equipment_slot": "boots",
+    "avatar_visual": {"avatar_slot": "boots", "visual_layer_id": "placeholder_iron_boots"}
   }
 }

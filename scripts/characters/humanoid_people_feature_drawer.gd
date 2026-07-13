@@ -2,6 +2,12 @@ class_name HumanoidPeopleFeatureDrawer
 extends RefCounted
 
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
+const HumanoidRavenfolkFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_ravenfolk_feature_drawer.gd"
+)
+const HumanoidSpeciesFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_species_feature_drawer.gd"
+)
 
 const PEOPLE_FEATURE_LAYER_BACK := "back"
 const PEOPLE_FEATURE_LAYER_BODY := "body"
@@ -11,28 +17,37 @@ const PEOPLE_FEATURE_LAYER_FRONT := "front"
 static func draw_layer(avatar, skin: Color, proportions: Dictionary, layer_id: String) -> void:
 	var people_id := String(avatar.profile.get("people_id", ""))
 	var feature_ids := appearance_feature_ids(avatar.profile, people_id)
-	if people_id == "people_tanglekin":
-		if layer_id == PEOPLE_FEATURE_LAYER_BACK:
-			avatar._draw_tanglekin_back_feature(skin, proportions, feature_ids)
-		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			avatar._draw_tanglekin_feature(skin, proportions, feature_ids)
+	var procedural_feature_ids := feature_ids
+	if HumanoidSpeciesFeatureDrawer.draw_layer(
+		avatar, people_id, skin, proportions, procedural_feature_ids, layer_id
+	):
 		return
 	if people_id == "people_ravenfolk":
+		var appearance: Dictionary = avatar.profile.get("appearance", {})
 		if layer_id == PEOPLE_FEATURE_LAYER_BACK:
-			avatar._draw_ravenfolk_back_feature(skin, proportions, feature_ids)
+			HumanoidRavenfolkFeatureDrawer.draw_back(
+				avatar, skin, proportions, procedural_feature_ids, appearance
+			)
 		elif layer_id == PEOPLE_FEATURE_LAYER_BODY:
-			avatar._draw_ravenfolk_body_feature(skin, proportions, feature_ids)
+			HumanoidRavenfolkFeatureDrawer.draw_body(
+				avatar, skin, proportions, procedural_feature_ids, appearance
+			)
 		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			avatar._draw_ravenfolk_front_feature(skin, proportions, feature_ids)
+			HumanoidRavenfolkFeatureDrawer.draw_front(
+				avatar, skin, proportions, procedural_feature_ids, appearance
+			)
 		return
-	if layer_id != PEOPLE_FEATURE_LAYER_FRONT:
+
+
+static func draw_headgear_face_overlay(avatar, skin: Color, proportions: Dictionary) -> void:
+	var people_id := String(avatar.profile.get("people_id", ""))
+	if people_id != "people_mirefolk":
 		return
-	if people_id == "people_tuskfolk":
-		avatar._draw_tuskfolk_feature(skin, proportions, feature_ids)
-	elif people_id == "people_mirefolk":
-		avatar._draw_mirefolk_feature(skin, proportions, feature_ids)
-	elif people_id == "people_rootborn":
-		avatar._draw_rootborn_feature(skin, proportions, feature_ids)
+	var feature_ids := appearance_feature_ids(avatar.profile, people_id)
+	var appearance: Dictionary = avatar.profile.get("appearance", {})
+	HumanoidSpeciesFeatureDrawer.draw_headgear_face_overlay(
+		avatar, people_id, skin, proportions, feature_ids, appearance
+	)
 
 
 static func debug_layer_entries(avatar, people_id: String, layer_id: String) -> Array[String]:
@@ -46,39 +61,7 @@ static func people_feature_layer_ids(
 	profile: Dictionary, people_id: String, layer_id: String
 ) -> Array[String]:
 	var source_ids := appearance_feature_ids(profile, people_id)
-	var result: Array[String] = []
-	for feature_id in source_ids:
-		if people_id == "people_tanglekin":
-			if layer_id == PEOPLE_FEATURE_LAYER_BACK and feature_id == "feature_tanglekin_tail":
-				result.append(feature_id)
-			elif layer_id == PEOPLE_FEATURE_LAYER_FRONT and feature_id != "feature_tanglekin_tail":
-				result.append(feature_id)
-		elif people_id == "people_ravenfolk":
-			if (
-				layer_id == PEOPLE_FEATURE_LAYER_BACK
-				and feature_id == "feature_ravenfolk_tail_feathers"
-			):
-				result.append(feature_id)
-			elif (
-				layer_id == PEOPLE_FEATURE_LAYER_BODY
-				and feature_id == "feature_ravenfolk_body_feathers"
-			):
-				result.append(feature_id)
-			elif (
-				layer_id == PEOPLE_FEATURE_LAYER_FRONT
-				and (
-					feature_id
-					in [
-						"feature_ravenfolk_head_crest",
-						"feature_ravenfolk_beak",
-						"feature_ravenfolk_quill_marks"
-					]
-				)
-			):
-				result.append(feature_id)
-		elif layer_id == PEOPLE_FEATURE_LAYER_FRONT:
-			result.append(feature_id)
-	return result
+	return HumanoidSpeciesFeatureDrawer.feature_ids_for_layer(source_ids, people_id, layer_id)
 
 
 static func appearance_feature_ids(profile: Dictionary, people_id: String) -> Array[String]:

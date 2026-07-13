@@ -7,6 +7,7 @@ const CombatActionEffect = preload("res://scripts/world/combat_action_effect.gd"
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const SpellSlots = preload("res://scripts/core/spell_slots.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const WorldPathfinder = preload("res://scripts/world/world_pathfinder.gd")
 
 const BASIC_BRAIN_ID := "hostile_basic"
@@ -29,6 +30,7 @@ class BrainContext:
 	var content
 	var chunks
 	var event_bus
+	var perception
 	var _add_effect_child: Callable
 	var _player_defeated: Callable
 	var _refresh_hud: Callable
@@ -39,6 +41,7 @@ class BrainContext:
 		content = values.get("content")
 		chunks = values.get("chunks")
 		event_bus = values.get("event_bus")
+		perception = values.get("perception")
 		_add_effect_child = values.get("add_effect_child", Callable())
 		_player_defeated = values.get("player_defeated", Callable())
 		_refresh_hud = values.get("refresh_hud", Callable())
@@ -55,8 +58,8 @@ class BrainContext:
 		if _refresh_hud.is_valid():
 			_refresh_hud.call()
 
-	func path_query() -> Dictionary:
-		return {"can_stand_at": Callable(player, "_can_stand_at")}
+	func can_stand_at() -> Callable:
+		return Callable(player, "_can_stand_at")
 
 
 static func context(main) -> BrainContext:
@@ -69,6 +72,7 @@ static func context(main) -> BrainContext:
 			"content": main.get("content"),
 			"chunks": main.get("chunks"),
 			"event_bus": main.get("event_bus"),
+			"perception": main.get("npc_perception"),
 			"add_effect_child": Callable(main, "add_child"),
 			"player_defeated": Callable(main, "_handle_player_defeated"),
 			"refresh_hud": Callable(main, "_refresh_hud")
@@ -94,18 +98,27 @@ static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 	_tick_cooldown(actor.data, delta)
 	var to_player: Vector2 = ctx.player.global_position - actor.global_position
 	var distance: float = to_player.length()
-	var aggro_radius: float = _positive_float_field(
+	var awareness_state := "detected"
+	if ctx.perception and ctx.perception.has_method("update_awareness_of_target"):
+		awareness_state = String(ctx.perception.update_awareness_of_target(actor, ctx.player))
+	var aggro_radius: float = VariantFields.positive_float_field(
 		actor.data, "aggro_radius", DEFAULT_AGGRO_RADIUS
 	)
-	var leash_radius: float = _positive_float_field(
+	var leash_radius: float = VariantFields.positive_float_field(
 		actor.data, "leash_radius", DEFAULT_LEASH_RADIUS
 	)
-	var disengage_radius: float = _positive_float_field(
+	var disengage_radius: float = VariantFields.positive_float_field(
 		actor.data, "disengage_radius", maxf(aggro_radius * 1.5, leash_radius)
 	)
 	var home_position: Vector2 = _home_position(actor.data)
 	var home_distance: float = actor.global_position.distance_to(home_position)
 	var mode := String(actor.data.get("_brain_mode", "idle"))
+	if mode != "engaged" and awareness_state == "unaware":
+		_idle_or_return_home(ctx, actor, home_position, delta)
+		return
+	if mode != "engaged" and awareness_state == "suspicious":
+		_investigate_last_stimulus(ctx, actor, delta)
+		return
 	if mode == "returning":
 		if distance <= aggro_radius and home_distance <= leash_radius:
 			actor.data["_brain_mode"] = "engaged"
@@ -136,11 +149,27 @@ static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 		return
 
 	_set_behavior_state(actor, "chasing")
-	var move_speed := _positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
+	var move_speed := VariantFields.positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
 	var stop_distance := _approach_stop_distance(attack)
 	var move_target := _next_path_target(
 		ctx, actor, ctx.player.global_position, stop_distance, true
 	)
+	if actor.has_method("try_move"):
+		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
+
+
+static func _investigate_last_stimulus(ctx: BrainContext, actor, delta: float) -> void:
+	var npc_id := String(actor.data.get("npc_id", actor.get_entity_id()))
+	var awareness: Dictionary = ctx.perception.get_awareness(npc_id)
+	var destination := VariantFields.vector2_from_pair(
+		awareness.get("last_world_position", []), actor.global_position
+	)
+	actor.data["_brain_mode"] = "investigating"
+	_set_behavior_state(actor, "investigating")
+	if actor.has_method("set_facing_direction"):
+		actor.set_facing_direction(destination - actor.global_position)
+	var move_speed := VariantFields.positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
+	var move_target := _next_path_target(ctx, actor, destination, HOME_ARRIVAL_DISTANCE, false)
 	if actor.has_method("try_move"):
 		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
 
@@ -155,6 +184,7 @@ static func _idle_or_return_home(
 	_set_behavior_state(actor, "idle")
 	_clear_path(actor.data)
 	_set_locomotion(actor, false, delta)
+	_restore_civilian_schedule(actor)
 
 
 static func _return_home(ctx: BrainContext, actor, home_position: Vector2, delta: float) -> void:
@@ -164,12 +194,13 @@ static func _return_home(ctx: BrainContext, actor, home_position: Vector2, delta
 		_set_behavior_state(actor, "idle")
 		_clear_path(actor.data)
 		_set_locomotion(actor, false, delta)
+		_restore_civilian_schedule(actor)
 		return
 	actor.data["_brain_mode"] = "returning"
 	_set_behavior_state(actor, "returning")
 	if actor.has_method("set_facing_direction"):
 		actor.set_facing_direction(home_position - actor.global_position)
-	var move_speed := _positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
+	var move_speed := VariantFields.positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
 	var move_target := _next_path_target(ctx, actor, home_position, HOME_ARRIVAL_DISTANCE, false)
 	if actor.has_method("try_move"):
 		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
@@ -184,27 +215,25 @@ static func _try_attack_player(
 	):
 		_try_channel_spell_player(ctx, actor, attack_info, direction, delta)
 		return
-	var cooldown := _non_negative_float_value(actor.data.get("_brain_attack_cooldown", 0.0), 0.0)
+	var cooldown := VariantFields.non_negative_float(
+		actor.data.get("_brain_attack_cooldown", 0.0), 0.0
+	)
 	if cooldown > 0.0:
 		return
 	var damage := maxi(1, int(attack_info.get("damage", 1)))
+	actor.data["_brain_attack_cooldown"] = maxf(0.05, float(attack_info.get("interval", 0.55)))
 	if String(attack_info.get("kind", "weapon")) == "weapon":
 		_spawn_weapon_action(ctx, actor, direction, attack_info, damage)
 	else:
 		_spawn_effect(ctx, actor, direction, attack_info.get("attack", {}))
-		ctx.player.apply_damage(damage)
-		_post_attack_message(ctx, actor, attack_info, damage)
-	actor.data["_brain_attack_cooldown"] = maxf(0.05, float(attack_info.get("interval", 0.55)))
-	if ctx.player.health <= 0:
-		ctx.player_defeated(actor.get_display_name())
-	ctx.refresh_hud()
+		_apply_player_damage_from_actor(ctx, actor, attack_info, damage)
 
 
 static func _try_channel_spell_player(
 	ctx: BrainContext, actor, attack_info: Dictionary, direction: Vector2, delta: float
 ) -> void:
 	var attack: Dictionary = attack_info.get("attack", {})
-	var effect_cooldown := _non_negative_float_value(
+	var effect_cooldown := VariantFields.non_negative_float(
 		actor.data.get("_brain_spell_effect_cooldown", 0.0), 0.0
 	)
 	if effect_cooldown <= 0.0:
@@ -223,6 +252,12 @@ static func _try_channel_spell_player(
 	actor.data["_brain_spell_damage_bank"] = bank
 	if damage <= 0:
 		return
+	_apply_player_damage_from_actor(ctx, actor, attack_info, damage)
+
+
+static func _apply_player_damage_from_actor(
+	ctx: BrainContext, actor, attack_info: Dictionary, damage: int
+) -> void:
 	ctx.player.apply_damage(damage)
 	_post_attack_message(ctx, actor, attack_info, damage)
 	if ctx.player.health <= 0:
@@ -248,7 +283,7 @@ static func _selected_attack_info(content, data: Dictionary) -> Dictionary:
 
 
 static func _weapon_attack_info(content, data: Dictionary) -> Dictionary:
-	var equipped := _dictionary_field(data.get("equipped_items", {}))
+	var equipped := VariantFields.dictionary(data.get("equipped_items", {}))
 	var item_id := String(equipped.get("right_hand", ""))
 	var attack := DirectionalAttack.weapon_attack_for_item(content, item_id)
 	return {
@@ -264,7 +299,7 @@ static func _spell_attack_info(content, data: Dictionary) -> Dictionary:
 	if not content:
 		return {}
 	var slot_id := String(data.get("spell_attack_slot", DEFAULT_SPELL_SLOT))
-	var loadout_slots := _dictionary_field(data.get("loadout_slots", {}))
+	var loadout_slots := VariantFields.dictionary(data.get("loadout_slots", {}))
 	var spell_id := String(loadout_slots.get(slot_id, ""))
 	if spell_id.is_empty():
 		return {}
@@ -272,7 +307,7 @@ static func _spell_attack_info(content, data: Dictionary) -> Dictionary:
 	if spell.is_empty():
 		return {}
 	var attack := DirectionalAttack.spell_attack(spell)
-	var interval := _positive_float_field(
+	var interval := VariantFields.positive_float_field(
 		data, "actor_spell_interval_seconds", DEFAULT_SPELL_INTERVAL
 	)
 	return {
@@ -333,8 +368,7 @@ static func _spawn_weapon_action(
 		return
 	var targets_provider := func() -> Array: return [ctx.player]
 	var hit_callback := func(_target, dealt_damage: int, _source_name: String) -> void:
-		ctx.player.apply_damage(dealt_damage)
-		_post_attack_message(ctx, actor, attack_info, dealt_damage)
+		_apply_player_damage_from_actor(ctx, actor, attack_info, dealt_damage)
 	var action := ActorWeaponAttackAction.new()
 	action.setup(
 		{
@@ -359,11 +393,13 @@ static func _attack_direction(actor, to_player: Vector2) -> Vector2:
 
 
 static func _tick_cooldown(data: Dictionary, delta: float) -> void:
-	var cooldown := _non_negative_float_value(data.get("_brain_attack_cooldown", 0.0), 0.0)
+	var cooldown := VariantFields.non_negative_float(data.get("_brain_attack_cooldown", 0.0), 0.0)
 	data["_brain_attack_cooldown"] = maxf(0.0, cooldown - delta)
-	var path_cooldown := _non_negative_float_value(data.get("_brain_path_cooldown", 0.0), 0.0)
+	var path_cooldown := VariantFields.non_negative_float(
+		data.get("_brain_path_cooldown", 0.0), 0.0
+	)
 	data["_brain_path_cooldown"] = maxf(0.0, path_cooldown - delta)
-	var spell_effect_cooldown := _non_negative_float_value(
+	var spell_effect_cooldown := VariantFields.non_negative_float(
 		data.get("_brain_spell_effect_cooldown", 0.0), 0.0
 	)
 	data["_brain_spell_effect_cooldown"] = maxf(0.0, spell_effect_cooldown - delta)
@@ -376,15 +412,15 @@ static func _next_path_target(
 	if _should_repath(actor.data, path, destination):
 		path = (
 			WorldPathfinder.approach_path_to(
-				ctx.path_query(), actor.global_position, destination, stop_distance
+				ctx.can_stand_at(), actor.global_position, destination, stop_distance
 			)
 			if approach_destination
-			else WorldPathfinder.path_to(ctx.path_query(), actor.global_position, destination)
+			else WorldPathfinder.path_to(ctx.can_stand_at(), actor.global_position, destination)
 		)
 		actor.data["_brain_path"] = path
 		actor.data["_brain_path_index"] = 0
 		actor.data["_brain_path_destination"] = [destination.x, destination.y]
-		actor.data["_brain_path_cooldown"] = _positive_float_field(
+		actor.data["_brain_path_cooldown"] = VariantFields.positive_float_field(
 			actor.data, "brain_repath_seconds", DEFAULT_REPATH_SECONDS
 		)
 	if path.is_empty():
@@ -413,10 +449,12 @@ static func _current_path(data: Dictionary) -> Array[Vector2]:
 static func _should_repath(data: Dictionary, path: Array[Vector2], destination: Vector2) -> bool:
 	if path.is_empty():
 		return true
-	var path_cooldown := _non_negative_float_value(data.get("_brain_path_cooldown", 0.0), 0.0)
+	var path_cooldown := VariantFields.non_negative_float(
+		data.get("_brain_path_cooldown", 0.0), 0.0
+	)
 	if path_cooldown <= 0.0:
 		return true
-	var previous_destination := _vector2_from_pair(
+	var previous_destination := VariantFields.vector2_from_pair(
 		data.get("_brain_path_destination", []), destination
 	)
 	return previous_destination.distance_to(destination) >= PATH_DESTINATION_REPATH_DISTANCE
@@ -430,24 +468,44 @@ static func _clear_path(data: Dictionary) -> void:
 
 
 static func _home_position(data: Dictionary) -> Vector2:
-	var home_position := _vector2_from_pair(data.get("home_position", []), Vector2.INF)
+	var home_position := VariantFields.vector2_from_pair(data.get("home_position", []), Vector2.INF)
 	if home_position != Vector2.INF:
 		return home_position
-	var home_tile := _tile_from_pair(data.get("home_tile", []), Vector2i(999999, 999999))
+	var home_tile := VariantFields.vector2i_from_pair(
+		data.get("home_tile", []), Vector2i(999999, 999999)
+	)
 	if home_tile != Vector2i(999999, 999999):
 		return _tile_center(home_tile)
-	var spawn_tile := _tile_from_pair(data.get("_spawn_global_tile", []), Vector2i(999999, 999999))
+	var spawn_tile := VariantFields.vector2i_from_pair(
+		data.get("_spawn_global_tile", []), Vector2i(999999, 999999)
+	)
 	if spawn_tile != Vector2i(999999, 999999):
 		return _tile_center(spawn_tile)
-	return _tile_center(_tile_from_pair(data.get("global_tile", [0, 0]), Vector2i.ZERO))
+	return _tile_center(
+		VariantFields.vector2i_from_pair(data.get("global_tile", [0, 0]), Vector2i.ZERO)
+	)
 
 
 static func _uses_basic_brain(actor) -> bool:
 	if not actor or not (actor.data is Dictionary):
 		return false
-	if String(actor.data.get("brain_id", "")) != BASIC_BRAIN_ID:
+	var brain_id := String(actor.data.get("brain_id", ""))
+	if brain_id != BASIC_BRAIN_ID:
 		return false
 	return ActorRules.is_combat_target_data(actor.data)
+
+
+static func _restore_civilian_schedule(actor) -> void:
+	if not actor or not (actor.data is Dictionary):
+		return
+	if String(actor.data.get("schedule_brain_id", "")) != "civilian_schedule":
+		return
+	actor.data["brain_id"] = "civilian_schedule"
+	actor.data["hostility"] = "neutral"
+	actor.data["hostile_to_player"] = false
+	actor.data["combat_enabled"] = true
+	actor.data["schedule_reaction"] = "routine_resumed"
+	actor.data["schedule_resume_requested"] = true
 
 
 static func _should_use_spells(data: Dictionary) -> bool:
@@ -468,54 +526,8 @@ static func _set_locomotion(actor, moving: bool, delta: float) -> void:
 
 
 static func _has_runtime(ctx: BrainContext) -> bool:
-	return (
-		ctx
-		and ctx.player
-		and ctx.entities
-		and ctx.content
-		and ctx.chunks
-	)
-
-
-static func _dictionary_field(value: Variant) -> Dictionary:
-	return value if value is Dictionary else {}
-
-
-static func _vector2_from_pair(value: Variant, fallback: Vector2) -> Vector2:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2(float(value[0]), float(value[1]))
-
-
-static func _tile_from_pair(value: Variant, fallback: Vector2i) -> Vector2i:
-	if not value is Array or value.size() < 2:
-		return fallback
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return fallback
-	return Vector2i(int(value[0]), int(value[1]))
+	return ctx and ctx.player and ctx.entities and ctx.content and ctx.chunks
 
 
 static func _tile_center(tile: Vector2i) -> Vector2:
 	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
-
-
-static func _positive_float_field(source: Dictionary, field_id: String, fallback: float) -> float:
-	return _positive_float_value(source.get(field_id, fallback), fallback)
-
-
-static func _positive_float_value(value: Variant, fallback: float) -> float:
-	if not _is_number(value):
-		return maxf(0.01, fallback)
-	return maxf(0.01, float(value))
-
-
-static func _non_negative_float_value(value: Variant, fallback: float) -> float:
-	if not _is_number(value):
-		return maxf(0.0, fallback)
-	return maxf(0.0, float(value))
-
-
-static func _is_number(value: Variant) -> bool:
-	return value is int or value is float

@@ -4,6 +4,7 @@ extends RefCounted
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 class ActionListContext:
@@ -12,13 +13,21 @@ class ActionListContext:
 	var dialogues
 	var player
 	var world_state
+	var civilian_schedules
+	var npc_perception
+	var crime
+	var companions
 
-	func _init(values: Dictionary) -> void:
-		condition_evaluator = values.get("condition_evaluator")
-		content = values.get("content")
-		dialogues = values.get("dialogues")
-		player = values.get("player")
-		world_state = values.get("world_state")
+	func _init(main) -> void:
+		condition_evaluator = main.condition_evaluator
+		content = main.content
+		dialogues = main.dialogues
+		player = main.player
+		world_state = main.world_state
+		civilian_schedules = main.get("civilian_schedules")
+		npc_perception = main.get("npc_perception")
+		crime = main.get("crime")
+		companions = main.get("companions")
 
 
 class ActionHandleContext:
@@ -29,6 +38,9 @@ class ActionHandleContext:
 	var hud
 	var inventory_transfer_context
 	var player
+	var civilian_schedules
+	var crime
+	var companions
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
 	var _interact_npc: Callable
@@ -43,6 +55,9 @@ class ActionHandleContext:
 		hud = main.hud
 		inventory_transfer_context = MainInventoryTransfer.context(main)
 		player = main.player
+		civilian_schedules = main.get("civilian_schedules")
+		crime = main.get("crime")
+		companions = main.get("companions")
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
 		_interact_npc = Callable(main, "_interact_npc")
@@ -55,26 +70,28 @@ static func context(main) -> ActionHandleContext:
 
 
 static func action_list_context(main) -> ActionListContext:
-	return ActionListContext.new(_action_list_values(main))
+	return ActionListContext.new(main)
 
 
 static func handle_context(main) -> ActionHandleContext:
 	return ActionHandleContext.new(main)
 
 
-static func _action_list_values(main) -> Dictionary:
-	return {
-		"condition_evaluator": main.condition_evaluator,
-		"content": main.content,
-		"dialogues": main.dialogues,
-		"player": main.player,
-		"world_state": main.world_state
-	}
-
-
 static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
+	if entity and ActorRules.is_dead_actor_data(entity.data):
+		return actions
 	if entity and entity.get_kind() == "poi":
+		if ctx.crime and String(entity.data.get("jail_action", "")) == "serve_sentence":
+			if ctx.crime.is_player_jailed():
+				actions.append(
+					{
+						"id": "law:serve_sentence",
+						"text": "Serve Sentence (%dh)" % ctx.crime.sentence_remaining_hours()
+					}
+				)
+		if ctx.crime and bool(entity.data.get("legal_service", false)):
+			_append_legal_service_actions(ctx, actions)
 		for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
 			actions.append(
 				{"id": "poi:%s" % String(action.get("id", "")), "text": action.get("text", "")}
@@ -82,23 +99,73 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		if _poi_should_offer_inspect(ctx, entity):
 			actions.append({"id": "inspect:%s" % entity.get_entity_id(), "text": "Inspect"})
 	if entity and entity.get_kind() == "npc":
+		if ctx.companions and ctx.companions.has_method("is_player_owned") and ctx.companions.is_player_owned(entity):
+			var command := String(entity.data.get("companion_command", "follow"))
+			var entity_id: String = entity.get_entity_id()
+			actions.append({
+				"id": "companion:%s:%s" % ["follow" if command == "hold" else "hold", entity_id],
+				"text": "Follow" if command == "hold" else "Hold Position"
+			})
+			if String(entity.data.get("allegiance", "")) != "thrall":
+				actions.append({"id": "companion:dismiss:%s" % entity_id, "text": "Dismiss"})
+			return actions
+		var guard_response: Dictionary = (
+			ctx.crime.get_guard_response(String(entity.data.get("npc_id", "")))
+			if ctx.crime
+			else {}
+		)
+		if String(guard_response.get("state", "")) == "confronting":
+			var guard_npc_id := String(entity.data.get("npc_id", ""))
+			if ctx.crime.bounty > 0:
+				actions.append(
+					{
+						"id": "guard:pay_fine:%s" % guard_npc_id,
+						"text": "Pay Bounty (%dg)" % ctx.crime.bounty
+					}
+				)
+				actions.append(
+					{
+						"id": "guard:bribe:%s" % guard_npc_id,
+						"text": "Bribe Guard (%dg)" % int(guard_response.get("bribe", 0))
+					}
+				)
+			actions.append({"id": "guard:submit:%s" % guard_npc_id, "text": "Surrender to Jail"})
+			actions.append({"id": "guard:resist:%s" % guard_npc_id, "text": "Resist"})
+			return actions
+		if ctx.crime and _is_guard_entity(entity):
+			var guard_npc_id := String(entity.data.get("npc_id", ""))
+			if ctx.crime.bounty > 0:
+				actions.append(
+					{"id": "law:pay_bounty", "text": "Pay Bounty (%dg)" % ctx.crime.bounty}
+				)
+				actions.append(
+					{"id": "law:surrender:%s" % guard_npc_id, "text": "Surrender to Jail"}
+				)
+			elif ctx.crime.can_make_amends():
+				actions.append({"id": "law:make_amends", "text": "Make Amends (25g)"})
 		var npc: Dictionary = _npc_for_entity(ctx, entity)
 		if ctx.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
 			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
-		var shop_id := String(npc.get("shop_id", ""))
-		if not shop_id.is_empty():
-			actions.append({"id": "trade:%s" % shop_id, "text": "Trade"})
-			if not String(npc.get("dialogue_id", "")).is_empty():
-				actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
-		var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
-		if not _array_field(line.get("effects", [])).is_empty():
-			actions.append(
-				{"id": "line:%s" % String(line.get("line_id", "")), "text": _line_action_text(line)}
-			)
-		for choice in _effectful_dialogue_choices(ctx, npc, entity):
-			actions.append(
-				{"id": "dialogue:%s" % String(choice.get("id", "")), "text": choice.get("text", "")}
-			)
+		var dialogue_block_reason := _dialogue_block_reason(ctx, entity)
+		if dialogue_block_reason == "They are asleep.":
+			actions.append({"id": "wake:%s" % String(entity.data.get("npc_id", "")), "text": "Wake"})
+		if dialogue_block_reason == "They are wary of you." and _can_address_incident(ctx, entity):
+			actions.append({"id": "incident:%s" % String(entity.data.get("npc_id", "")), "text": "Address the incident"})
+		if dialogue_block_reason.is_empty() and not String(npc.get("dialogue_id", "")).is_empty():
+			actions.append({"id": "talk:%s" % String(npc.get("dialogue_id", "")), "text": "Talk"})
+		if dialogue_block_reason.is_empty():
+			var line: Dictionary = _preview_dialogue_line(ctx, npc, entity)
+			if not _array_field(line.get("effects", [])).is_empty():
+				actions.append(
+					{"id": "line:%s" % String(line.get("line_id", "")), "text": _line_action_text(line)}
+				)
+			for choice in _effectful_dialogue_choices(ctx, npc, entity):
+				actions.append(
+					{"id": "dialogue:%s" % String(choice.get("id", "")), "text": choice.get("text", "")}
+				)
+			var rumor := _local_rumor(ctx, entity)
+			if not rumor.is_empty():
+				actions.append({"id": "rumor:%s" % String(entity.data.get("npc_id", "")), "text": "Ask Rumors"})
 	return actions
 
 
@@ -108,8 +175,6 @@ static func preferred_primary(ctx: ActionListContext, entity) -> Dictionary:
 		var action_id := String(action.get("id", ""))
 		if action_id.begins_with("line:"):
 			return action
-	if entity and entity.get_kind() == "npc":
-		return _first_action_with_prefix(actions, "trade:")
 	if (
 		entity
 		and entity.get_kind() == "poi"
@@ -147,10 +212,22 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_trade_action_selected(ctx, String(parsed.get("id", "")))
 		"talk":
 			_handle_talk_action_selected(ctx, String(parsed.get("id", "")))
+		"wake":
+			_handle_wake_action_selected(ctx, String(parsed.get("id", "")))
+		"incident":
+			_handle_incident_action_selected(ctx, String(parsed.get("id", "")))
+		"rumor":
+			_handle_rumor_action_selected(ctx, String(parsed.get("id", "")))
 		"inspect":
 			_handle_poi_inspect_selected(ctx, String(parsed.get("id", "")))
 		"pickpocket":
 			_handle_pickpocket_selected(ctx, String(parsed.get("id", "")))
+		"guard":
+			_handle_guard_response(ctx, String(parsed.get("id", "")))
+		"law":
+			_handle_law_action(ctx, String(parsed.get("id", "")))
+		"companion":
+			_handle_companion_action(ctx, String(parsed.get("id", "")))
 		_:
 			ctx.event_bus.post_message("Unknown action.")
 
@@ -228,7 +305,64 @@ static func _handle_talk_action_selected(ctx: ActionHandleContext, _dialogue_id:
 	if not entity or entity.get_kind() != "npc":
 		ctx.event_bus.post_message("No one to talk to.")
 		return
+	var blocked_reason := _dialogue_block_reason(ctx.actions, entity)
+	if not blocked_reason.is_empty():
+		ctx.event_bus.post_message(blocked_reason)
+		ctx._refresh_hud.call()
+		return
 	ctx._interact_npc.call(entity)
+
+
+static func _handle_wake_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one to wake.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	if not ctx.actions.civilian_schedules or not ctx.actions.civilian_schedules.has_method("wake_npc"):
+		ctx.event_bus.post_message("They cannot be woken right now.")
+		return
+	if ctx.actions.civilian_schedules.wake_npc(npc_id):
+		ctx.event_bus.post_message("Woken.")
+	else:
+		ctx.event_bus.post_message("They are not asleep.")
+	ctx._refresh_hud.call()
+
+
+static func _handle_incident_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one is here to hear you out.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	if ctx.civilian_schedules and ctx.civilian_schedules.has_method("acknowledge_player_incident"):
+		if ctx.civilian_schedules.acknowledge_player_incident(npc_id):
+			ctx.event_bus.post_message("They listen, but remain guarded.")
+		else:
+			ctx.event_bus.post_message("They are not ready to talk about it.")
+	else:
+		ctx.event_bus.post_message("They are not ready to talk about it.")
+	ctx._refresh_hud.call()
+
+
+static func _handle_rumor_action_selected(ctx: ActionHandleContext, npc_id: String) -> void:
+	var entity = ctx._get_nearby_entity.call()
+	if not entity or entity.get_kind() != "npc":
+		ctx.event_bus.post_message("No one has news for you.")
+		return
+	if String(entity.data.get("npc_id", "")) != npc_id:
+		ctx.event_bus.post_message("That person is no longer nearby.")
+		ctx._refresh_hud.call()
+		return
+	var rumor := _local_rumor(ctx.actions, entity)
+	ctx.event_bus.post_message(rumor if not rumor.is_empty() else "They have no news to share.")
+	ctx._refresh_hud.call()
 
 
 static func _handle_poi_inspect_selected(ctx: ActionHandleContext, _entity_id: String) -> void:
@@ -256,7 +390,11 @@ static func _handle_pickpocket_selected(ctx: ActionHandleContext, entity_id: Str
 		ctx._refresh_hud.call()
 		return
 	var result := PickpocketRules.access_result(
-		entity, ctx.player.global_position, ctx.player.is_sneaking
+		entity,
+		ctx.player.global_position,
+		ctx.player.is_sneaking,
+		ctx.actions.npc_perception,
+		String(ctx.player.world_layer)
 	)
 	if not bool(result.get("allowed", false)):
 		ctx.event_bus.post_message(String(result.get("reason", "Cannot pickpocket.")))
@@ -265,12 +403,81 @@ static func _handle_pickpocket_selected(ctx: ActionHandleContext, entity_id: Str
 	MainInventoryTransfer.open_pickpocket(ctx.inventory_transfer_context, entity)
 
 
+static func _handle_guard_response(ctx: ActionHandleContext, response_id: String) -> void:
+	var separator := response_id.find(":")
+	if separator < 0 or not ctx.crime:
+		ctx.event_bus.post_message("No guard response is available.")
+		return
+	var response := response_id.substr(0, separator)
+	var npc_id := response_id.substr(separator + 1)
+	var result: Dictionary = ctx.crime.resolve_guard_response(npc_id, response)
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
+
+
+static func _handle_law_action(ctx: ActionHandleContext, action_id: String) -> void:
+	if not ctx.crime:
+		ctx.event_bus.post_message("No legal service is available.")
+		return
+	var result: Dictionary
+	if action_id == "serve_sentence":
+		result = ctx.crime.serve_sentence()
+	elif action_id == "pay_bounty":
+		result = ctx.crime.pay_bounty()
+	elif action_id == "make_amends":
+		result = ctx.crime.make_amends()
+	elif action_id.begins_with("surrender:"):
+		result = ctx.crime.surrender_to_guard(action_id.trim_prefix("surrender:"))
+	else:
+		result = {"ok": false, "message": "That legal action is unavailable."}
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
+
+
+static func _handle_companion_action(ctx: ActionHandleContext, action_id: String) -> void:
+	if not ctx.companions:
+		ctx.event_bus.post_message("No companion is available.")
+		return
+	var separator := action_id.find(":")
+	if separator < 0:
+		ctx.event_bus.post_message("That companion command is unavailable.")
+		return
+	var command_id := action_id.substr(0, separator)
+	var entity_id := action_id.substr(separator + 1)
+	var result: Dictionary = (
+		ctx.companions.dismiss(entity_id)
+		if command_id == "dismiss"
+		else ctx.companions.command(entity_id, command_id)
+	)
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
+
+
+static func _append_legal_service_actions(
+	ctx: ActionListContext, actions: Array[Dictionary]
+) -> void:
+	if ctx.crime.bounty > 0:
+		actions.append({"id": "law:pay_bounty", "text": "Pay Bounty (%dg)" % ctx.crime.bounty})
+	elif ctx.crime.can_make_amends():
+		actions.append({"id": "law:make_amends", "text": "Make Amends (25g)"})
+
+
+static func _is_guard_entity(entity) -> bool:
+	if not entity or not (entity.data is Dictionary):
+		return false
+	var role := String(entity.data.get("role", "")).to_lower()
+	var npc_id := String(entity.data.get("npc_id", "")).to_lower()
+	return role.contains("guard") or npc_id.contains("guard")
+
+
 static func _apply_choice_action(ctx: ActionHandleContext, action: Dictionary) -> void:
 	ctx.active_content_choices.clear()
 	if ctx.hud:
 		ctx.hud.hide_content_card()
 	var result: Dictionary = ctx.dialogues.apply_choice(action)
 	var response := String(result.get("response", ""))
+	if bool(result.get("effects_failed", false)):
+		ctx.event_bus.post_message("Some dialogue effects could not be applied.")
 	if response.is_empty():
 		ctx.event_bus.post_message(String(result.get("text", "Done.")))
 	else:
@@ -282,9 +489,9 @@ static func _apply_line_action(ctx: ActionHandleContext, line: Dictionary) -> vo
 	ctx.active_content_choices.clear()
 	if ctx.hud:
 		ctx.hud.hide_content_card()
-	for effect in _array_field(line.get("effects", [])):
-		if effect is Dictionary:
-			ctx._apply_effect.call(effect)
+	var effects_failed := _apply_effects(_array_field(line.get("effects", [])), ctx._apply_effect)
+	if effects_failed:
+		ctx.event_bus.post_message("Some dialogue effects could not be applied.")
 	var response := String(line.get("text", "Done."))
 	if not response.is_empty():
 		ctx.event_bus.post_message(response)
@@ -330,6 +537,28 @@ static func _npc_for_entity(ctx: ActionListContext, entity) -> Dictionary:
 	if not entity:
 		return {}
 	return ctx.content.get_npc(String(entity.data.get("npc_id", "")))
+
+
+static func _routine_dialogue_available(ctx: ActionListContext, entity) -> bool:
+	return _dialogue_block_reason(ctx, entity).is_empty()
+
+
+static func _dialogue_block_reason(ctx: ActionListContext, entity) -> String:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("dialogue_block_reason"):
+		return ""
+	return String(ctx.civilian_schedules.dialogue_block_reason(String(entity.data.get("npc_id", ""))))
+
+
+static func _local_rumor(ctx: ActionListContext, entity) -> String:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("get_local_rumor"):
+		return ""
+	return String(ctx.civilian_schedules.get_local_rumor(String(entity.data.get("npc_id", ""))))
+
+
+static func _can_address_incident(ctx: ActionListContext, entity) -> bool:
+	if not ctx.civilian_schedules or not ctx.civilian_schedules.has_method("can_address_player_incident"):
+		return false
+	return bool(ctx.civilian_schedules.can_address_player_incident(String(entity.data.get("npc_id", ""))))
 
 
 static func _trade_shop_id_for_entity(ctx: ActionHandleContext, entity) -> String:
@@ -394,3 +623,13 @@ static func _poi_should_offer_inspect(ctx: ActionListContext, entity) -> bool:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+static func _apply_effects(effects: Array, apply_effect: Callable) -> bool:
+	if not apply_effect.is_valid():
+		return not effects.is_empty()
+	var failed := false
+	for effect in effects:
+		if effect is Dictionary:
+			failed = not bool(apply_effect.call(effect)) or failed
+	return failed

@@ -5,6 +5,8 @@ const RpgTransferItemButton = preload(
 	"res://scripts/ui/controls/buttons/rpg_transfer_item_button.gd"
 )
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
+const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
 
 
 class RefreshRequest:
@@ -33,12 +35,12 @@ static func refresh(request: RefreshRequest) -> void:
 	request.container.add_child(panes)
 	_add_side(
 		panes, "TransferPlayerInventory", "Your Inventory",
-		_array_field(transfer.get("player_items", [])), "put", target_short,
+		_array_field(transfer.get("player_items", [])), SystemsActionIds.ACTION_PUT, target_short,
 		request.category, request.action_selected
 	)
 	_add_side(
 		panes, "TransferTargetInventory", target_name,
-		_array_field(transfer.get("target_items", [])), "take", "Pack",
+		_array_field(transfer.get("target_items", [])), SystemsActionIds.ACTION_TAKE, "Pack",
 		request.category, request.action_selected
 	)
 
@@ -94,8 +96,11 @@ static func _add_item_button(
 	var count := maxi(0, int(item.get("count", 0)))
 	if item_id.is_empty() or count <= 0:
 		return
-	var verb := "Take" if action == "take" else "Put"
-	var action_id := "%s:%s" % [action, item_id]
+	var is_take := action == SystemsActionIds.ACTION_TAKE
+	var verb := "Take" if is_take else "Put"
+	var action_id := (
+		SystemsActionIds.take_item(item_id) if is_take else SystemsActionIds.put_item(item_id)
+	)
 	var button := RpgTransferItemButton.new()
 	button.name = "Transfer%s_%s" % [verb, item_id.to_pascal_case()]
 	button.tooltip_text = "%s %s" % [verb, item_name]
@@ -124,29 +129,7 @@ static func _item_meta(item: Dictionary, other_side: String) -> String:
 static func _matches_category(item: Dictionary, category: String) -> bool:
 	if category.is_empty() or category == "all":
 		return true
-	var item_type := String(item.get("type", ""))
-	var tags := _array_field(item.get("tags", []))
-	match category:
-		"weapons":
-			return item_type == "weapon" or tags.has("weapon")
-		"armour":
-			return tags.has("armour") or tags.has("armor")
-		"ingredients":
-			return item_type == "ingredient" or tags.has("ingredient")
-		"quest":
-			return item_type == "quest_item" or tags.has("quest")
-		"misc":
-			return not (
-				item_type == "weapon"
-				or item_type == "ingredient"
-				or item_type == "quest_item"
-				or tags.has("weapon")
-				or tags.has("armour")
-				or tags.has("armor")
-				or tags.has("ingredient")
-				or tags.has("quest")
-			)
-	return true
+	return RpgSystemsRowData.inventory_category(item) == category
 
 
 static func _add_margin(parent: PanelContainer, child: Control, value: int) -> void:

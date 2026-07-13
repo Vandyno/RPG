@@ -3,6 +3,7 @@ extends GutTest
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 func test_town_hall_job_board_shows_place_card() -> void:
@@ -10,14 +11,9 @@ func test_town_hall_job_board_shows_place_card() -> void:
 	add_child_autofree(main)
 
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
-	assert_eq(
-		main.get_debug_state()["target_detail"],
-		"Town Hall: jobs, notices, and town records"
-	)
+	assert_eq(main.get_debug_state()["target_detail"], "Town Hall: jobs, notices, and town records")
 	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 
 	assert_eq(main.hud.content_kind_label.text, "Place")
@@ -33,26 +29,24 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	var main := Main.new()
 	add_child_autofree(main)
 
+	assert_true(await MainFlowInputHelper.enter_forge(main, get_tree()))
 	assert_true(await MainFlowInputHelper.target_entity(main, "npc_harrow_venn_world", get_tree()))
 	await MainFlowInputHelper.click(
 		MainFlowInputHelper.button_containing(main.hud.content_choice_list, "I'll find it."),
 		get_tree()
 	)
 	assert_eq(main.quests.get_quest_state("quest_missing_tools"), "active")
+	assert_true(await MainFlowInputHelper.exit_forge(main, get_tree()))
 
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
 	assert_eq(main.get_debug_state()["primary_action"], "Use")
 	assert_true(await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree()))
 	assert_true(main.hud.content_body_label.text.contains("official notices"))
 	main.hud.hide_content_card()
 	assert_true(
-		await MainFlowInputHelper.target_entity(
-			main, "poi_briarwatch_square", get_tree(), false
-		)
+		await MainFlowInputHelper.target_entity(main, "poi_briarwatch_square", get_tree(), false)
 	)
 	var job_button := MainFlowInputHelper.button_containing(
 		main.hud.context_action_buttons, "Take Road Patrol Job"
@@ -70,114 +64,11 @@ func test_available_town_square_job_can_be_started_from_context_action() -> void
 	assert_false(main.hud.status_label.text.contains("Quest:"))
 
 
-func test_shop_poi_opens_trade_panel_directly() -> void:
+func test_maera_stall_terminal_is_not_spawned() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 
-	_select_entity(main, "poi_maera_stall")
-	assert_eq(main.get_debug_state()["target_detail"], "Market Stall: trade and rumor hook")
-	assert_eq(main.get_debug_state()["primary_action"], "Trade")
-	var inspect_button := _button_containing(main.hud.context_action_buttons, "Inspect")
-	assert_not_null(inspect_button)
-	var stall = main.entities.get_entity("poi_maera_stall")
-	assert_true(stall.action_hint_visible)
-	assert_true(stall.action_hint_selected)
-	assert_eq(stall.action_hint_text, "Trade Maera's Stall")
-	inspect_button.pressed.emit()
-
-	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
-	assert_true(main.hud.is_content_card_visible())
-	assert_eq(main.hud.content_kind_label.text, "Place")
-	assert_true(main.hud.content_body_label.text.contains("wooden shop"))
-	assert_false(main.hud.is_systems_panel_visible())
-	main.hud.hide_content_card()
-	main._handle_interact_requested()
-
-	assert_true(main.world_state.discovered_locations.has("location_maera_stall"))
-	assert_true(main.hud.is_systems_panel_visible())
-	assert_eq(main.hud.get_systems_tab(), "trade")
-	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
-	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Roadside Draught"))
-	assert_true(main.hud.log_label.text.contains("Discovered Maera's Stall"))
-
-
-func test_shop_poi_shop_id_opens_trade_without_system_tab() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-	var stall = main.entities.get_entity("poi_maera_stall")
-
-	assert_not_null(stall)
-	stall.data.erase("system_tab")
-	_select_entity(main, "poi_maera_stall")
-	assert_eq(main.get_debug_state()["primary_action"], "Trade")
-	main._handle_interact_requested()
-
-	assert_true(main.hud.is_systems_panel_visible())
-	assert_eq(main.hud.get_systems_tab(), "trade")
-	assert_true(main.hud.systems_body_label.text.contains("Crossroads Peddler"))
-	assert_not_null(_button_containing(main.hud.systems_action_list, "Buy Roadside Draught"))
-
-
-func test_forge_poi_offers_paid_sharpening_service_when_requirements_are_met() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-
-	_select_entity(main, "poi_harrow_forge")
-	main._handle_interact_requested()
-	assert_eq(main.hud.content_kind_label.text, "Place")
-	assert_true(main.hud.content_body_label.text.contains("repair, crafting, upgrade"))
-	assert_null(_button_containing(main.hud.content_choice_list, "Sharpen Road Hatchet"))
-	main.hud.hide_content_card()
-
-	_select_entity(main, "pickup_road_hatchet")
-	main._handle_interact_requested()
-	_select_entity(main, "object_road_cache")
-	main._handle_interact_requested()
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main.hud.hide_systems_panel()
-	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
-
-	_select_entity(main, "poi_harrow_forge")
-	assert_eq(main.get_debug_state()["primary_action"], "Sharpen Road Hatchet (2g)")
-	assert_not_null(_button_containing(main.hud.context_action_buttons, "Inspect"))
-	var sharpen_context_button := _button_containing(
-		main.hud.context_action_buttons, "Sharpen Road Hatchet"
-	)
-	assert_true(sharpen_context_button == null or not sharpen_context_button.visible)
-	main._handle_interact_requested()
-
-	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
-	assert_false(main.hud.is_content_card_visible())
-	assert_true(main.hud.log_label.text.contains("hatchet edge"))
-
-
-func test_forge_service_can_be_used_from_context_action_when_requirements_are_met() -> void:
-	var main := Main.new()
-	add_child_autofree(main)
-
-	_select_entity(main, "pickup_road_hatchet")
-	main._handle_interact_requested()
-	_select_entity(main, "object_road_cache")
-	main._handle_interact_requested()
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main._handle_inventory_item_selected("take:item_gold_coin")
-	main.hud.hide_systems_panel()
-	assert_eq(main.inventory.get_count("item_gold_coin"), 2)
-
-	_select_entity(main, "poi_harrow_forge")
-	var sharpen_button := _button_containing(
-		main.hud.context_action_buttons, "Sharpen Road Hatchet"
-	)
-	assert_not_null(sharpen_button)
-	assert_eq(main.get_debug_state()["primary_action"], "Use")
-	sharpen_button.pressed.emit()
-
-	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.statuses.get_remaining_charges("status_road_focus"), 3)
-	assert_false(main.hud.is_content_card_visible())
-	assert_true(main.hud.log_label.text.contains("hatchet edge"))
+	assert_null(main.entities.get_entity("poi_maera_stall"))
 
 
 func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
@@ -185,10 +76,10 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	add_child_autofree(main)
 
 	_select_entity(main, "poi_briarwatch_square")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	var take_job_button := _button_containing(main.hud.content_choice_list, "Take Road Patrol Job")
 	assert_not_null(take_job_button)
-	take_job_button.pressed.emit()
+	await MainFlowInputHelper.click(take_job_button, get_tree())
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "active")
 	assert_eq(main.hud.content_kind_label.text, "Result")
@@ -199,12 +90,12 @@ func test_town_square_job_board_starts_and_completes_patrol_quest() -> void:
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 
 	_select_entity(main, "poi_briarwatch_square")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	var report_button := _button_containing(
 		main.hud.content_choice_list, "Report Road Patrol Complete"
 	)
 	assert_not_null(report_button)
-	report_button.pressed.emit()
+	await MainFlowInputHelper.click(report_button, get_tree())
 
 	assert_eq(main.quests.get_quest_state("quest_briarwatch_road_patrol"), "completed")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 11)
@@ -227,7 +118,7 @@ func _select_entity(main, entity_id: String) -> void:
 		if entity and entity.get_entity_id() == entity_id:
 			main._update_nearby()
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 
@@ -239,7 +130,8 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _i in range(8):
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-		if not main.entities.get_entity(entity_id):
+		var actor = main.entities.get_entity(entity_id)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 	fail_test("Hostile actor was not defeated: %s" % entity_id)
 

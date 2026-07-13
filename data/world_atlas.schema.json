@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "res://data/world_atlas.schema.json",
+  "title": "Velcor World Atlas Proposal",
+  "type": "object",
+  "required": ["schema_version", "proposal_status", "coordinate_space", "generator_coordinate_space", "traversal_target", "authoring_policy", "continent_bounds", "coastline", "water_exclusions", "regions", "terrain_features", "settlements", "routes", "zones", "landmarks", "required_named_location_ids"],
+  "properties": {
+    "proposal_status": {"const": "proposal"},
+    "coordinate_space": {"type": "object", "required": ["kind", "size", "source_image", "runtime_use"], "properties": {"runtime_use": {"const": false}}},
+    "generator_coordinate_space": {"type": "object", "required": ["kind", "atlas_origin_maps_to_global_tile", "global_tiles_per_atlas_unit", "global_tile_bounds", "conversion"]},
+    "traversal_target": {"type": "object", "required": ["target_minutes", "baseline_tiles_per_second", "target_route_tiles", "scaled_land_width_tiles"]},
+    "authoring_policy": {"type": "object", "required": ["terrain_palette", "may_add_tile_kinds", "intent", "requirements"], "properties": {"terrain_palette": {"const": "extensible"}, "may_add_tile_kinds": {"const": true}, "requirements": {"type": "array", "minItems": 1, "items": {"type": "string"}}}},
+    "continent_bounds": {"type": "object", "required": ["min", "max"]},
+    "coastline": {"$ref": "#/$defs/polygon"},
+    "water_exclusions": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["polygon"]}]}},
+    "regions": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["polygon", "biome_weights"]}]}},
+    "terrain_features": {"type": "array", "items": {"$ref": "#/$defs/named"}},
+    "settlements": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["type", "size_band", "role", "region_id", "anchor", "review_status"]}]}},
+    "routes": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["kind", "endpoint_refs", "path"]}]}},
+    "zones": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["kind", "pressure", "polygon"]}]}},
+    "landmarks": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/named"}, {"type": "object", "required": ["kind", "anchor", "review_status"]}]}}
+  },
+  "$defs": {
+    "point": {"type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}], "minItems": 2, "maxItems": 2},
+    "polygon": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/point"}},
+    "named": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string", "minLength": 1}, "name": {"type": "string", "minLength": 1}}}
+  }
+}

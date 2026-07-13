@@ -1,6 +1,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
 const TEST_SAVE_PATH := "user://test_equipment_main_flow.json"
 
 
@@ -18,9 +19,9 @@ func test_main_save_load_preserves_equipment() -> void:
 	main.save_manager.save_path = TEST_SAVE_PATH
 
 	_select_entity(main, "pickup_road_hatchet")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	_select_entity(main, "pickup_traveler_buckler")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 	assert_true(main.equipment.equip_item("item_road_hatchet"))
 	assert_true(main.equipment.equip_item("item_traveler_buckler"))
 
@@ -45,7 +46,7 @@ func _select_entity(main, entity_id: String) -> void:
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 

@@ -42,14 +42,6 @@
           }
         },
         {
-          "id": "east_forge_floor",
-          "kind": "wood_floor",
-          "rect": {
-            "position": [4, -1],
-            "size": [5, 5]
-          }
-        },
-        {
           "id": "maera_shop_floor",
           "kind": "wood_floor",
           "rect": {
@@ -66,36 +58,11 @@
           }
         },
         {
-          "id": "town_hall_floor",
-          "kind": "wood_floor",
-          "rect": {
-            "position": [1, 4],
-            "size": [5, 4]
-          }
-        },
-        {
-          "id": "northeast_house_floor",
-          "kind": "wood_floor",
-          "rect": {
-            "position": [9, -7],
-            "size": [4, 5]
-          }
-        },
-        {
           "id": "west_road_hall_walls",
           "kind": "wood_wall",
           "rect": {
             "position": [-11, 3],
             "size": [4, 4]
-          },
-          "border_only": true
-        },
-        {
-          "id": "east_forge_walls",
-          "kind": "wood_wall",
-          "rect": {
-            "position": [4, -1],
-            "size": [5, 5]
           },
           "border_only": true
         },
@@ -118,33 +85,13 @@
           "border_only": true
         },
         {
-          "id": "town_hall_walls",
-          "kind": "wood_wall",
-          "rect": {
-            "position": [1, 4],
-            "size": [5, 4]
-          },
-          "border_only": true
-        },
-        {
-          "id": "northeast_house_walls",
-          "kind": "wood_wall",
-          "rect": {
-            "position": [9, -7],
-            "size": [4, 5]
-          },
-          "border_only": true
-        },
-        {
           "id": "building_doorways",
           "kind": "wood_floor",
           "tiles": [
             [-10, 3], [-9, 3], [-8, 3],
-            [4, -1], [4, 0], [4, 1], [4, 2], [4, 3],
+            [1, -6], [1, -5], [1, -4], [1, -3],
             [2, -3], [3, -3], [4, -3], [5, -3],
-            [-5, -3], [-4, -3], [-3, -3], [-2, -3],
-            [2, 4], [3, 4], [4, 4], [5, 4],
-            [10, -3], [11, -3], [12, -3]
+            [-5, -3], [-4, -3], [-3, -3], [-2, -3]
           ]
         },
         {

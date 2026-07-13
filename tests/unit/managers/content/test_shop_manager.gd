@@ -9,6 +9,17 @@ const ShopManager = preload("res://scripts/managers/content/shop_manager.gd")
 const TimeManager = preload("res://scripts/managers/content/time_manager.gd")
 
 
+class CrimeStub:
+	var disposition := -20
+	var reported := true
+
+	func get_disposition(_npc_id: String) -> int:
+		return disposition
+
+	func has_active_report_for_faction(_faction_id: String) -> bool:
+		return reported
+
+
 func test_shop_buys_and_sells_with_gold_and_item_caps() -> void:
 	var systems := _make_systems()
 	var inventory: InventoryManager = systems["inventory"]
@@ -16,16 +27,16 @@ func test_shop_buys_and_sells_with_gold_and_item_caps() -> void:
 
 	inventory.add_item("item_gold_coin", 25)
 
-	assert_true(shops.buy_item("shop_crossroads_peddler", "item_roadside_draught"))
-	assert_eq(inventory.get_count("item_gold_coin"), 17)
-	assert_eq(inventory.get_count("item_roadside_draught"), 1)
+	assert_true(shops.buy_item("shop_crossroads_peddler", "item_traveler_buckler"))
+	assert_eq(inventory.get_count("item_gold_coin"), 7)
+	assert_eq(inventory.get_count("item_traveler_buckler"), 1)
 
-	assert_true(shops.sell_item("shop_crossroads_peddler", "item_roadside_draught"))
-	assert_eq(inventory.get_count("item_gold_coin"), 23)
-	assert_false(inventory.has_item("item_roadside_draught"))
+	assert_true(shops.sell_item("shop_crossroads_peddler", "item_traveler_buckler"))
+	assert_eq(inventory.get_count("item_gold_coin"), 15)
+	assert_false(inventory.has_item("item_traveler_buckler"))
 
 	assert_false(shops.buy_item("shop_crossroads_peddler", "missing_item"))
-	assert_false(shops.buy_item("missing_shop", "item_roadside_draught"))
+	assert_false(shops.buy_item("missing_shop", "item_traveler_buckler"))
 	assert_false(shops.sell_item("shop_crossroads_peddler", "item_gold_coin"))
 	assert_false(shops.sell_item("shop_crossroads_peddler", "item_old_toolbox"))
 
@@ -51,9 +62,9 @@ func test_shop_blocks_selling_equipped_items_and_reports_actions() -> void:
 	assert_eq(
 		shops.get_stock_entries("shop_crossroads_peddler")[0],
 		{
-			"item_id": "item_roadside_draught",
-			"name": "Roadside Draught",
-			"price": 8,
+			"item_id": "item_traveler_buckler",
+			"name": "Traveler Buckler",
+			"price": 18,
 			"merchant_name": "Crossroads Peddler"
 		}
 	)
@@ -70,16 +81,30 @@ func test_shop_hours_gate_buy_sell_actions() -> void:
 	inventory.add_item("item_road_hatchet", 1)
 
 	assert_true(shops.is_shop_open("shop_crossroads_peddler"))
-	assert_true(shops.buy_item("shop_crossroads_peddler", "item_roadside_draught"))
+	assert_true(shops.buy_item("shop_crossroads_peddler", "item_traveler_buckler"))
 	assert_false(shops.get_stock_entries("shop_crossroads_peddler").is_empty())
 	assert_false(shops.get_sellable_entries("shop_crossroads_peddler").is_empty())
 
 	assert_true(time.advance_hours(12))
 	assert_false(shops.is_shop_open("shop_crossroads_peddler"))
-	assert_false(shops.buy_item("shop_crossroads_peddler", "item_roadside_draught"))
+	assert_false(shops.buy_item("shop_crossroads_peddler", "item_traveler_buckler"))
 	assert_false(shops.sell_item("shop_crossroads_peddler", "item_road_hatchet"))
 	assert_false(shops.get_stock_entries("shop_crossroads_peddler").is_empty())
 	assert_true(shops.get_sellable_entries("shop_crossroads_peddler").is_empty())
+
+
+func test_crime_disposition_changes_prices_then_causes_service_refusal() -> void:
+	var systems := _make_systems()
+	var shops: ShopManager = systems["shops"]
+	var crime := CrimeStub.new()
+	shops.set_crime_manager(crime)
+
+	assert_eq(shops.buy_price("shop_northgate_general", "item_traveler_buckler"), 23)
+	assert_true(shops.is_shop_open("shop_northgate_general"))
+
+	crime.disposition = -50
+	assert_false(shops.is_shop_open("shop_northgate_general"))
+	assert_true(shops.shop_unavailable_reason("shop_northgate_general").contains("refuses"))
 
 
 func test_hud_queries_build_shop_presentation_rows_and_actions() -> void:
@@ -101,23 +126,23 @@ func test_hud_queries_build_shop_presentation_rows_and_actions() -> void:
 	inventory.add_item("item_gold_coin", 25)
 	inventory.add_item("item_road_hatchet", 1)
 
-	assert_true(queries.trade_text("shop_crossroads_peddler").contains("Roadside Draught: 8g"))
+	assert_true(queries.trade_text("shop_crossroads_peddler").contains("Traveler Buckler: 18g"))
 	assert_true(queries.trade_text("shop_crossroads_peddler").contains("Sell Road Hatchet"))
 	assert_eq(
 		queries.trade_actions_data("shop_crossroads_peddler")[0],
 		{
-			"id": "buy:item_roadside_draught",
-			"item_id": "item_roadside_draught",
-			"text": "Buy Roadside Draught (8g)"
+			"id": "buy:item_traveler_buckler",
+			"item_id": "item_traveler_buckler",
+			"text": "Buy Traveler Buckler (18g)"
 		}
 	)
 	assert_eq(
 		queries.trade_stock_rows_data("shop_crossroads_peddler")[0],
 		{
-			"item_id": "item_roadside_draught",
-			"name": "Roadside Draught",
-			"price": 8,
-			"action_id": "buy:item_roadside_draught",
+			"item_id": "item_traveler_buckler",
+			"name": "Traveler Buckler",
+			"price": 18,
+			"action_id": "buy:item_traveler_buckler",
 			"available": true,
 			"merchant_name": "Crossroads Peddler"
 		}

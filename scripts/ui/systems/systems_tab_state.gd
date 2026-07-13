@@ -32,6 +32,13 @@ static func character(state: Dictionary) -> Dictionary:
 	})
 
 
+static func spells(state: Dictionary) -> Dictionary:
+	return _tab_with_fallback(state, "spells", {
+		"spells": state.get("spells", []),
+		"spell_slots": state.get("spell_slots", {})
+	})
+
+
 static func trade(state: Dictionary) -> Dictionary:
 	return _tab_with_fallback(state, "trade", {
 		"summary": state.get("trade", "No trader selected."),

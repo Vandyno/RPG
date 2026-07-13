@@ -7,17 +7,26 @@ const MainHudState = preload("res://scripts/main/ui/main_hud_state.gd")
 
 static func build(main) -> Dictionary:
 	var state: Dictionary = main.get_hud_state()
+	var civilian_schedules = main.get("civilian_schedules")
+	var npc_perception = main.get("npc_perception")
+	var companions = main.get("companions")
 	state.merge(
 		{
 			"player_world": "(%.1f, %.1f)" % [main.player.position.x, main.player.position.y],
+			"player_layer": main.player.world_layer,
 			"player_tile": str(main.player.global_tile),
 			"player_chunk": str(GridMath.tile_to_chunk(main.player.global_tile)),
-			"terrain": main.chunks.get_tile_kind(main.player.global_tile),
+			"terrain": main.world_query.get_tile_kind(main.player.global_tile, main.player.world_layer),
 			"loaded_chunk_count": main.streamer.get_loaded_chunk_keys().size(),
 			"nearby_all": main.hud_queries.nearby_entities_text(
 				main._ranked_nearby_entities(), main.selected_target_id
 			),
 			"navigation": main.entities.get_navigation_summary(main.player.global_position),
+			"schedule_debug":
+			(civilian_schedules.get_debug_snapshot() if civilian_schedules else {}),
+			"perception_debug":
+			(npc_perception.get_debug_snapshot() if npc_perception else {}),
+			"companions": (companions.get_save_data() if companions else {}),
 			"flags":
 			(
 				", ".join(main.world_state.flags.keys())

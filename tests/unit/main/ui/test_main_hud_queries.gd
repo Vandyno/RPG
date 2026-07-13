@@ -23,6 +23,25 @@ class ContentStub:
 				return {"name": "Sword", "equipment_slot": "right_hand"}
 		return {}
 
+	func get_faction(faction_id: String) -> Dictionary:
+		return {"name": "Marches of Velcor"} if faction_id == "faction_marches_of_velcor" else {}
+
+
+class EntityStub:
+	var data := {
+		"owner_faction_id": "faction_marches_of_velcor",
+		"kind": "fixture"
+	}
+
+	func get_kind() -> String:
+		return "fixture"
+
+	func get_entity_id() -> String:
+		return "owned_chest"
+
+	func get_display_name() -> String:
+		return "Evidence Chest"
+
 
 class EquipmentStub:
 	func get_equipped_item(slot_id: String) -> String:
@@ -40,7 +59,6 @@ func test_inventory_text_details_and_actions_are_sorted_and_player_ready() -> vo
 			}
 		)
 	)
-
 	assert_eq(queries.inventory_text(), "Apple x2, Sword x1")
 	assert_true(queries.inventory_details_text().contains("Apple x2: Crisp."))
 	assert_eq(
@@ -50,3 +68,10 @@ func test_inventory_text_details_and_actions_are_sorted_and_player_ready() -> vo
 			{"id": "unequip:right_hand", "item_id": "item_sword", "text": "Unequip Sword"}
 		]
 	)
+
+
+func test_target_detail_marks_faction_owned_property() -> void:
+	var queries := MainHudQueries.new()
+	queries.setup(MainHudQueries.Dependencies.new({"content": ContentStub.new()}))
+
+	assert_true(queries.target_detail_text(EntityStub.new()).contains("Owned by Marches of Velcor"))

@@ -1,6 +1,8 @@
 class_name RpgDetailLabel
 extends Label
 
+const RpgTextFit = preload("res://scripts/ui/text/rpg_text_fit.gd")
+
 const TEXT := Color(0.96, 0.90, 0.78, 0.98)
 const MUTED := Color(0.78, 0.68, 0.52, 0.95)
 const ACCENT := Color(0.88, 0.72, 0.42, 0.95)
@@ -65,43 +67,29 @@ func _fit_wrapped_lines(
 	var line := ""
 	for word in value.split(" ", false):
 		var candidate := word if line.is_empty() else "%s %s" % [line, word]
-		if _line_width(candidate, font, font_size) <= max_width:
+		if RpgTextFit.line_width(candidate, font, font_size) <= max_width:
 			line = candidate
 			continue
 		if not line.is_empty():
 			result.append(line)
 			if result.size() >= max_lines:
-				result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+				result[result.size() - 1] = RpgTextFit.ellipsize(
+					result[result.size() - 1], font, font_size, max_width
+				)
 				return result
 		line = word
 	if not line.is_empty():
 		result.append(line)
 	if result.size() > max_lines:
 		result = result.slice(0, max_lines)
-		result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+		result[result.size() - 1] = RpgTextFit.ellipsize(
+			result[result.size() - 1], font, font_size, max_width
+		)
 	elif not result.is_empty():
-		result[result.size() - 1] = _ellipsize(result[result.size() - 1], font, font_size, max_width)
+		result[result.size() - 1] = RpgTextFit.ellipsize(
+			result[result.size() - 1], font, font_size, max_width
+		)
 	return result
-
-
-func _ellipsize(value: String, font: Font, font_size: int, max_width: float) -> String:
-	if _line_width(value, font, font_size) <= max_width:
-		return value
-	var suffix := "..."
-	var suffix_width := _line_width(suffix, font, font_size)
-	if suffix_width >= max_width:
-		return suffix
-	var best := ""
-	for index in range(1, value.length() + 1):
-		var candidate := value.substr(0, index).strip_edges()
-		if _line_width(candidate, font, font_size) + suffix_width > max_width:
-			break
-		best = candidate
-	return "%s%s" % [best, suffix]
-
-
-func _line_width(value: String, font: Font, font_size: int) -> float:
-	return font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
 func _visible_lines(value: String) -> Array[String]:

@@ -12,6 +12,8 @@ const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.
 const MIN_AIM_DIRECTION := 0.1
 const DEFAULT_BOW_CHARGE_SECONDS := 2.0
 const MIN_PROJECTILE_CHARGE_DAMAGE_RATIO := 0.15
+const MAX_HELD_ATTACKS_PER_FRAME := 2
+const MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME := 3
 
 
 class SystemsActionContext:
@@ -27,6 +29,7 @@ class SystemsActionContext:
 	var time
 	var current_shop_id := ""
 	var _apply_effect: Callable
+	var _appearance_requested: Callable
 	var _load_requested: Callable
 	var _refresh_hud: Callable
 	var _save_requested: Callable
@@ -48,6 +51,7 @@ class SystemsActionContext:
 		if main.has_method("_current_shop_id"):
 			current_shop_id = String(main.call("_current_shop_id"))
 		_apply_effect = Callable(main, "apply_effect")
+		_appearance_requested = Callable(main, "open_character_appearance")
 		_load_requested = Callable(main, "_handle_load_requested")
 		_refresh_hud = Callable(main, "_refresh_hud")
 		_save_requested = Callable(main, "_handle_save_requested")
@@ -74,6 +78,10 @@ class SystemsActionContext:
 		else:
 			refresh_hud()
 
+	func open_character_appearance() -> void:
+		if _appearance_requested.is_valid():
+			_appearance_requested.call()
+
 	func post_result(result: Dictionary) -> void:
 		post_message(String(result.get("message", "")))
 		if String(result.get("refresh", "hud")) == "nearby":
@@ -83,15 +91,19 @@ class SystemsActionContext:
 
 
 class AimCombatContext:
+	var allegiances
 	var channeled_spell_damage_bank: Dictionary
 	var channeled_spell_empty_reported: Dictionary
 	var combat
+	var companions
 	var content
 	var effect_runner
 	var entities
 	var equipment
 	var event_bus
 	var held_weapon_attack_elapsed: Dictionary
+	var held_spell_charge_elapsed: Dictionary
+	var held_spell_charge_visual_elapsed: Dictionary
 	var inventory
 	var player
 	var progression
@@ -102,17 +114,23 @@ class AimCombatContext:
 	var _refresh_hud: Callable
 
 	func _init(main) -> void:
+		allegiances = main.get("allegiances")
 		channeled_spell_damage_bank = _dictionary_property(main, "channeled_spell_damage_bank")
 		channeled_spell_empty_reported = _dictionary_property(
 			main, "channeled_spell_empty_reported"
 		)
 		combat = main.get("combat")
+		companions = main.get("companions")
 		content = main.get("content")
 		effect_runner = main.get("effect_runner")
 		entities = main.get("entities")
 		equipment = main.get("equipment")
 		event_bus = main.get("event_bus")
 		held_weapon_attack_elapsed = _dictionary_property(main, "held_weapon_attack_elapsed")
+		held_spell_charge_elapsed = _dictionary_property(main, "held_spell_charge_elapsed")
+		held_spell_charge_visual_elapsed = _dictionary_property(
+			main, "held_spell_charge_visual_elapsed"
+		)
 		inventory = main.get("inventory")
 		player = main.get("player")
 		progression = main.get("progression")
@@ -130,8 +148,8 @@ class AimCombatContext:
 		else:
 			effect.free()
 
-	func apply_effect(effect: Dictionary, refresh: bool = false) -> void:
-		_apply_effect.call(effect, refresh)
+	func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
+		return _apply_effect.is_valid() and bool(_apply_effect.call(effect, emit_feedback))
 
 	func refresh_hud() -> void:
 		_refresh_hud.call()
@@ -139,10 +157,6 @@ class AimCombatContext:
 	func _dictionary_property(source, property_name: String) -> Dictionary:
 		var value: Variant = source.get(property_name)
 		return value if value is Dictionary else {}
-
-
-static func context(main) -> SystemsActionContext:
-	return systems_context(main)
 
 
 static func systems_context(main) -> SystemsActionContext:
@@ -158,36 +172,38 @@ static func handle(ctx: SystemsActionContext, action_id: String) -> Dictionary:
 	var action := String(parsed.get("action", "use"))
 	var target_id := String(parsed.get("target_id", action_id))
 	match action:
-		"equip":
+		SystemsActionIds.ACTION_EQUIP:
 			_handle_equip_item(ctx, target_id)
-		"equip_slot":
+		SystemsActionIds.ACTION_EQUIP_SLOT:
 			_handle_equip_item_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
-		"swap_mainhand":
+		SystemsActionIds.ACTION_SWAP_MAINHAND:
 			_handle_swap_mainhand_weapon(ctx)
-		"unequip":
+		SystemsActionIds.ACTION_UNEQUIP:
 			_handle_unequip_slot(ctx, target_id)
-		"train":
+		SystemsActionIds.ACTION_TRAIN:
 			_handle_train_stat(ctx, target_id)
-		"buy":
+		SystemsActionIds.ACTION_BUY:
 			_handle_buy_item(ctx, target_id)
-		"sell":
+		SystemsActionIds.ACTION_SELL:
 			_handle_sell_item(ctx, target_id)
-		"wait":
+		SystemsActionIds.ACTION_WAIT:
 			_handle_wait_action(ctx, target_id.to_int())
-		"target":
+		SystemsActionIds.ACTION_TARGET:
 			return {"intent": "target_entity", "entity_id": target_id}
-		"save":
+		SystemsActionIds.ACTION_SAVE:
 			ctx._save_requested.call()
-		"load":
+		SystemsActionIds.ACTION_LOAD:
 			ctx._load_requested.call()
-		"ui":
+		SystemsActionIds.ACTION_UI:
 			if target_id == "back":
 				ctx.hide_systems_panel()
-		"assign_spell":
+			elif target_id == "appearance":
+				ctx.open_character_appearance()
+		SystemsActionIds.ACTION_ASSIGN_SPELL:
 			_handle_assign_spell_to_slot(ctx, target_id, String(parsed.get("slot_id", "")))
-		"take":
+		SystemsActionIds.ACTION_TAKE:
 			MainInventoryTransfer.take_item(ctx.inventory_transfer_context, target_id)
-		"put":
+		SystemsActionIds.ACTION_PUT:
 			MainInventoryTransfer.put_item(ctx.inventory_transfer_context, target_id)
 		_:
 			_use_inventory_item(ctx, target_id)
@@ -200,35 +216,44 @@ static func handle_aim(ctx: AimCombatContext, action_id: String, direction: Vect
 	if direction.length() > MIN_AIM_DIRECTION and ctx.player.has_method("set_facing_direction"):
 		ctx.player.set_facing_direction(aim_direction)
 	if attack_action:
-		var attack := DirectionalAttack.weapon_attack(ctx.content, ctx.equipment)
-		if _is_projectile_attack(attack):
-			var charge_ratio := _consume_projectile_charge_ratio(ctx, action_id, attack)
-			_perform_weapon_attack(ctx, aim_direction, charge_ratio)
-			ctx.refresh_hud()
-			return
-		if _consume_held_weapon_release(ctx, action_id):
-			ctx.refresh_hud()
-			return
-		_perform_weapon_attack(ctx, aim_direction)
-		ctx.refresh_hud()
+		_handle_weapon_aim_release(ctx, action_id, aim_direction)
 		return
+	_handle_spell_aim_release(ctx, action_id, aim_direction)
+
+
+static func _handle_weapon_aim_release(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2
+) -> void:
+	var attack := DirectionalAttack.weapon_attack(ctx.content, ctx.equipment)
+	if _is_projectile_attack(attack):
+		var charge_ratio := _consume_projectile_charge_ratio(ctx, action_id, attack)
+		_perform_weapon_attack(ctx, aim_direction, charge_ratio)
+	elif _consume_held_weapon_release(ctx, action_id):
+		pass
+	else:
+		_perform_weapon_attack(ctx, aim_direction)
+	ctx.refresh_hud()
+
+
+static func _handle_spell_aim_release(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2
+) -> void:
 	var spell_id: String = ctx.spells.get_assigned_spell(action_id) if ctx.spells else ""
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
 	if spell.is_empty():
 		ctx.event_bus.post_message("%s is empty." % action_id.replace("_", " "))
 	elif bool(spell.get("channel", false)):
-		pass
+		ctx.refresh_hud()
+		return
+	elif String(spell.get("cast_type", "")) == "raise_thrall":
+		_cast_raise_thrall(ctx, action_id, aim_direction, spell)
 	else:
 		var spell_name := String(spell.get("name", spell_id))
 		var spell_attack := DirectionalAttack.spell_attack(spell)
 		var spell_query := {
-			"origin": ctx.player.global_position,
-			"direction": aim_direction,
-			"attack": spell_attack
+			"origin": ctx.player.global_position, "direction": aim_direction, "attack": spell_attack
 		}
-		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), spell_query
-		)
+		var targets := DirectionalAttack.targets_in_shape(_combat_candidates(ctx), spell_query)
 		var damage := maxi(1, int(spell_attack.get("damage", spell.get("mana_cost", 1))))
 		if targets.is_empty():
 			ctx.event_bus.post_message("%s missed." % spell_name)
@@ -246,9 +271,20 @@ static func handle_aim_held(
 	if action_id == "attack" or action_id == "primary":
 		_handle_held_weapon_attack(ctx, action_id, aim_direction, delta)
 		return
+	_handle_held_spell_aim(ctx, action_id, aim_direction, delta)
+
+
+static func _handle_held_spell_aim(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, delta: float
+) -> void:
 	var spell_id: String = ctx.spells.get_assigned_spell(action_id) if ctx.spells else ""
 	var spell: Dictionary = ctx.content.get_spell(spell_id)
-	if spell.is_empty() or not bool(spell.get("channel", false)):
+	if spell.is_empty():
+		return
+	if String(spell.get("cast_type", "")) == "raise_thrall":
+		_charge_spell_cast(ctx, action_id, aim_direction, spell, delta)
+		return
+	if not bool(spell.get("channel", false)):
 		return
 	if ctx.player.has_method("set_facing_direction"):
 		ctx.player.set_facing_direction(aim_direction)
@@ -269,17 +305,88 @@ static func handle_aim_held(
 	_spawn_effect(ctx, String(attack.get("visual", "fire_stream")), aim_direction, attack)
 	var dps := maxf(0.0, float(attack.get("damage_per_second", spell.get("mana_cost", 1))))
 	var bank: float = float(ctx.channeled_spell_damage_bank.get(action_id, 0.0)) + dps * delta
-	while bank >= 1.0:
+	var damage_ticks := 0
+	while bank >= 1.0 and damage_ticks < MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME:
 		bank -= 1.0
 		var channel_query := {
 			"origin": ctx.player.global_position, "direction": aim_direction, "attack": attack
 		}
-		var targets := DirectionalAttack.targets_in_shape(
-			_combat_candidates(ctx), channel_query
-		)
+		var targets := DirectionalAttack.targets_in_shape(_combat_candidates(ctx), channel_query)
 		_damage_targets(ctx, targets, 1, spell_name)
+		damage_ticks += 1
+	if damage_ticks >= MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME:
+		bank = 0.0
 	ctx.channeled_spell_damage_bank[action_id] = bank
 	ctx.refresh_hud()
+
+
+static func _charge_spell_cast(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, spell: Dictionary, delta: float
+) -> void:
+	if ctx.player.has_method("set_facing_direction"):
+		ctx.player.set_facing_direction(aim_direction)
+	var charge_seconds := _spell_charge_seconds(spell)
+	var elapsed := minf(
+		charge_seconds, float(ctx.held_spell_charge_elapsed.get(action_id, 0.0)) + delta
+	)
+	ctx.held_spell_charge_elapsed[action_id] = elapsed
+	var visual_elapsed := float(ctx.held_spell_charge_visual_elapsed.get(action_id, 0.0)) + delta
+	if visual_elapsed >= 0.12:
+		visual_elapsed = 0.0
+		var attack := DirectionalAttack.spell_attack(spell)
+		attack["charge_ratio"] = elapsed / charge_seconds
+		_spawn_effect(ctx, "charge_cast", aim_direction, attack)
+		_spawn_effect(ctx, "direction_indicator", aim_direction, attack)
+	ctx.held_spell_charge_visual_elapsed[action_id] = visual_elapsed
+
+
+static func _cast_raise_thrall(
+	ctx: AimCombatContext, action_id: String, aim_direction: Vector2, spell: Dictionary
+) -> void:
+	var charge_ratio := _consume_spell_charge_ratio(ctx, action_id, spell)
+	if aim_direction.length() <= MIN_AIM_DIRECTION:
+		ctx.event_bus.post_message("Aim Raise Thrall at a body.")
+		return
+	if charge_ratio < float(spell.get("min_charge_ratio", 0.0)):
+		ctx.event_bus.post_message("Raise Thrall needs more charge.")
+		return
+	var attack := DirectionalAttack.spell_attack(spell)
+	var corpse = _corpse_in_shape(ctx, aim_direction, attack)
+	if not corpse:
+		ctx.event_bus.post_message("Raise Thrall needs a dead humanoid in range.")
+		return
+	var mana_cost := maxi(1, int(spell.get("mana_cost", 1)))
+	if not ctx.player.has_method("spend_mana") or ctx.player.spend_mana(mana_cost) < mana_cost:
+		ctx.event_bus.post_message("Not enough mana for Raise Thrall.")
+		return
+	if not ctx.companions or not ctx.companions.has_method("resurrect_as_thrall"):
+		ctx.event_bus.post_message("No necromancy binding is available.")
+		return
+	var result: Dictionary = ctx.companions.resurrect_as_thrall(corpse.get_entity_id())
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	if bool(result.get("ok", false)):
+		attack["charge_ratio"] = charge_ratio
+		_spawn_effect_at(ctx, "raise_thrall", corpse.global_position, aim_direction, attack)
+
+
+static func _corpse_in_shape(ctx: AimCombatContext, direction: Vector2, attack: Dictionary):
+	var query := {"origin": ctx.player.global_position, "direction": direction, "attack": attack}
+	var closest = null
+	var closest_distance := INF
+	for entity in _combat_candidates(ctx):
+		if not entity or not (entity.data is Dictionary):
+			continue
+		if not ActorRules.is_dead_actor_data(entity.data):
+			continue
+		if String(entity.data.get("world_layer", "surface")) != _actor_world_layer(ctx.player):
+			continue
+		if not DirectionalAttack.contains_point(entity.global_position, query):
+			continue
+		var distance: float = ctx.player.global_position.distance_to(entity.global_position)
+		if distance < closest_distance:
+			closest = entity
+			closest_distance = distance
+	return closest
 
 
 static func parse_action_id(action_id: String) -> Dictionary:
@@ -411,6 +518,7 @@ static func _perform_weapon_attack(
 		attack["charge_ratio"] = safe_charge_ratio
 		attack["released"] = true
 		damage = maxi(1, int(round(float(full_damage) * safe_charge_ratio)))
+	_emit_player_attack_noise(ctx, attack)
 	_spawn_weapon_action(ctx, attack, direction, damage, String(attack.get("item_name", "Attack")))
 
 
@@ -432,10 +540,14 @@ static func _handle_held_weapon_attack(
 	var interval := maxf(0.05, float(attack.get("attack_interval_seconds", 0.55)))
 	var elapsed := float(ctx.held_weapon_attack_elapsed.get(action_id, interval)) + delta
 	var fired := false
-	while elapsed >= interval:
+	var attacks_fired := 0
+	while elapsed >= interval and attacks_fired < MAX_HELD_ATTACKS_PER_FRAME:
 		elapsed -= interval
 		_perform_weapon_attack(ctx, direction)
 		fired = true
+		attacks_fired += 1
+	if attacks_fired >= MAX_HELD_ATTACKS_PER_FRAME:
+		elapsed = 0.0
 	ctx.held_weapon_attack_elapsed[action_id] = elapsed
 	if fired:
 		ctx.refresh_hud()
@@ -467,15 +579,95 @@ static func _damage_targets(
 
 
 static func _damage_target(ctx: AimCombatContext, entity, damage: int, source_name: String) -> void:
-	if not ActorRules.is_combat_target_entity(entity):
+	if not ActorRules.is_damageable_actor_entity(entity):
 		return
+	var was_hostile := ActorRules.is_hostile_to_player_data(entity.data)
+	_aggravate_attacked_actor(ctx, entity)
 	var result: Dictionary = ctx.combat.damage_entity(entity, damage, false)
+	if not was_hostile:
+		_emit_player_violent_crime(ctx, entity, bool(result.get("defeated", false)))
 	if bool(result.get("defeated", false)):
 		_defeat_actor(ctx, entity, result)
 	else:
 		ctx.event_bus.post_message(
 			"%s hits %s for %d." % [source_name, entity.get_display_name(), damage]
 		)
+
+
+static func _emit_player_attack_noise(ctx: AimCombatContext, attack: Dictionary) -> void:
+	if not ctx.event_bus or not ctx.player or not ctx.event_bus.has_signal("noise_emitted"):
+		return
+	var shape := String(attack.get("shape", "swing"))
+	var radius := 48.0 if shape == "punch" else 96.0
+	if shape in ["projectile", "cone", "stream"]:
+		radius = 160.0
+	ctx.event_bus.noise_emitted.emit(
+		{
+			"kind": "weapon_attack",
+			"source_id": "player",
+			"world_position": [ctx.player.global_position.x, ctx.player.global_position.y],
+			"world_layer": _actor_world_layer(ctx.player),
+			"noise_radius": radius,
+			"loudness": "loud",
+			"visible": false
+		}
+	)
+
+
+static func _actor_world_layer(actor) -> String:
+	if actor and actor.has_method("get_world_layer"):
+		return String(actor.get_world_layer())
+	var value: Variant = actor.get("world_layer") if actor else null
+	return String(value) if value is String and not String(value).is_empty() else "surface"
+
+
+static func _emit_player_violent_crime(ctx: AimCombatContext, victim, defeated: bool) -> void:
+	if (
+		not ctx.event_bus
+		or not ctx.event_bus.has_signal("player_crime_committed")
+		or not victim
+		or not (victim.data is Dictionary)
+	):
+		return
+	var profile := ActorRules.profile(victim.data)
+	ctx.event_bus.player_crime_committed.emit(
+		{
+			"kind": "murder" if defeated else "assault",
+			"offender_id": "player",
+			"victim_entity_id": victim.get_entity_id(),
+			"victim_npc_id": String(victim.data.get("npc_id", victim.get_entity_id())),
+			"victim_faction_id": String(profile.get("faction_id", victim.data.get("faction_id", ""))),
+			"world_position": [victim.global_position.x, victim.global_position.y],
+			"world_layer": String(victim.data.get("world_layer", "surface")),
+			"noise_radius": 160.0,
+			"loudness": "loud",
+			"visible": true
+		}
+	)
+
+
+static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
+	if not entity or not (entity.data is Dictionary):
+		return
+	if ActorRules.is_hostile_to_player_data(entity.data):
+		if ctx.allegiances and ctx.allegiances.has_method("alert_actor"):
+			ctx.allegiances.alert_actor(entity)
+		return
+	entity.data["hostility"] = ActorRules.HOSTILITY_HOSTILE
+	entity.data["hostile_to_player"] = true
+	entity.data["combat_enabled"] = true
+	if String(entity.data.get("brain_id", "")) == "civilian_schedule":
+		entity.data["schedule_brain_id"] = "civilian_schedule"
+		entity.data["brain_id"] = "hostile_basic"
+		entity.data["schedule_reaction"] = "defending_home"
+	if String(entity.data.get("brain_id", "")).is_empty():
+		entity.data["brain_id"] = "hostile_basic"
+	entity.data["_brain_mode"] = "engaged"
+	entity.data["behavior_state"] = "chasing"
+	if ctx.allegiances and ctx.allegiances.has_method("alert_actor"):
+		ctx.allegiances.alert_actor(entity)
+	if ctx.event_bus:
+		ctx.event_bus.post_message("%s turns hostile." % entity.get_display_name())
 
 
 static func _combat_candidates(ctx: AimCombatContext) -> Array:
@@ -497,65 +689,16 @@ static func _defeat_actor(ctx: AimCombatContext, entity, result: Dictionary) -> 
 	var defeat_effects := []
 	if entity and entity.data is Dictionary:
 		defeat_effects = entity.data.get("effects_on_defeat", [])
-	_create_body_for_defeated_humanoid(ctx, entity)
+	if ctx.entities.has_method("transition_actor_to_dead"):
+		ctx.entities.transition_actor_to_dead(entity)
 	ctx.combat.clear_entity(entity.get_entity_id())
-	ctx.entities.remove_entity(entity.get_entity_id())
 	ctx.event_bus.post_message("Defeated %s." % result.get("name", "hostile actor"))
-	for effect in defeat_effects:
-		if effect is Dictionary:
-			ctx.apply_effect(effect, false)
+	var effects_failed := _apply_effects(defeat_effects, ctx, false)
+	if effects_failed:
+		ctx.event_bus.post_message("Some rewards could not be applied.")
 	var reward_text: String = ctx.effect_runner.describe_effects(defeat_effects)
-	if not reward_text.is_empty():
+	if not reward_text.is_empty() and not effects_failed:
 		ctx.event_bus.post_message("Rewards: %s." % reward_text)
-
-
-static func _create_body_for_defeated_humanoid(
-	ctx: AimCombatContext, entity: WorldEntity
-) -> void:
-	if not entity or not (entity.data is Dictionary):
-		return
-	var profile: Dictionary = ActorRules.profile(entity.data)
-	if profile.is_empty():
-		return
-	if not ctx.entities.has_method("add_runtime_entity"):
-		return
-	var owner_id := ActorRules.inventory_owner_id(entity.data)
-	var equipment_owner_id := ActorRules.equipment_owner_id(entity.data)
-	if owner_id.is_empty():
-		return
-	_seed_body_inventory(ctx, owner_id, entity.data)
-	var body_profile := profile.duplicate(true)
-	body_profile["state"] = ActorRules.STATE_DEAD_BODY
-	var entity_id: String = entity.get_entity_id()
-	var body_id: String = "body_%s" % entity_id
-	var body_entry := {
-		"id": body_id,
-		"name": "%s Body" % entity.get_display_name(),
-		"kind": "body",
-		"global_tile": [entity.global_tile.x, entity.global_tile.y],
-		"interaction_radius": 128,
-		"character_id": String(profile.get("character_id", "")),
-		"character_profile_id": String(entity.data.get("character_profile_id", "")),
-		"character_profile": body_profile,
-		"inventory_owner_id": owner_id,
-		"equipment_owner_id": equipment_owner_id,
-		"equipped_items": _dictionary_field(entity.data.get("equipped_items", {})),
-		"collapsed_pose_id": "pose_fallen_side"
-	}
-	ctx.entities.add_runtime_entity(body_entry)
-
-
-static func _seed_body_inventory(ctx: AimCombatContext, owner_id: String, data: Dictionary) -> void:
-	for entry in _array_field(data.get("inventory", [])):
-		if not entry is Dictionary:
-			continue
-		var item_id := String(entry.get("item_id", ""))
-		var count := _positive_int_value(entry.get("count", 1), 1)
-		ctx.inventory.add_item_to_owner(owner_id, item_id, count)
-	for item_id_value in _dictionary_field(data.get("equipped_items", {})).values():
-		var item_id := String(item_id_value)
-		if not item_id.is_empty():
-			ctx.inventory.add_item_to_owner(owner_id, item_id, 1)
 
 
 static func _spawn_effect(
@@ -563,6 +706,14 @@ static func _spawn_effect(
 ) -> void:
 	var effect := CombatActionEffect.new()
 	effect.setup(visual, ctx.player.global_position, _aim_direction(direction), attack)
+	ctx.add_effect_child(effect)
+
+
+static func _spawn_effect_at(
+	ctx: AimCombatContext, visual: String, origin: Vector2, direction: Vector2, attack: Dictionary
+) -> void:
+	var effect := CombatActionEffect.new()
+	effect.setup(visual, origin, _aim_direction(direction), attack)
 	ctx.add_effect_child(effect)
 
 
@@ -627,6 +778,19 @@ static func _projectile_charge_seconds(attack: Dictionary) -> float:
 	return maxf(0.05, float(attack.get("charge_seconds", DEFAULT_BOW_CHARGE_SECONDS)))
 
 
+static func _spell_charge_seconds(spell: Dictionary) -> float:
+	return maxf(0.05, float(spell.get("charge_seconds", DEFAULT_BOW_CHARGE_SECONDS)))
+
+
+static func _consume_spell_charge_ratio(
+	ctx: AimCombatContext, action_id: String, spell: Dictionary
+) -> float:
+	var elapsed := float(ctx.held_spell_charge_elapsed.get(action_id, 0.0))
+	ctx.held_spell_charge_elapsed.erase(action_id)
+	ctx.held_spell_charge_visual_elapsed.erase(action_id)
+	return clampf(elapsed / _spell_charge_seconds(spell), 0.0, 1.0)
+
+
 static func _set_actor_attack_pose(
 	actor, attack: Dictionary, direction: Vector2, progress: float
 ) -> void:
@@ -653,6 +817,16 @@ static func _dictionary_field(value: Variant) -> Dictionary:
 
 static func _array_field(value: Variant) -> Array:
 	return value if value is Array else []
+
+
+static func _apply_effects(
+	effects_value: Variant, ctx: AimCombatContext, emit_feedback: bool
+) -> bool:
+	var failed := false
+	for effect in _array_field(effects_value):
+		if effect is Dictionary:
+			failed = not ctx.apply_effect(effect, emit_feedback) or failed
+	return failed
 
 
 static func _positive_int_value(value: Variant, fallback: int) -> int:

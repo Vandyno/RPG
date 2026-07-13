@@ -131,6 +131,16 @@ func test_hint_text_uses_compact_selected_name_and_action_fallbacks() -> void:
 		MainWorldGuidance._hint_text_for_width("Inspect", "Ancient Boundary Stone", true, 640.0),
 		"Inspect"
 	)
+	var working_npc := EntityStub.new(
+		"farmer", "npc", "Farmer", Vector2.ZERO,
+		{"schedule_activity_status": "working", "schedule_activity_action": "hoe_rows"}
+	)
+	var sleeping_npc := EntityStub.new(
+		"resident", "npc", "Resident", Vector2.ZERO,
+		{"schedule_activity_status": "sleeping", "schedule_activity_action": "sleep"}
+	)
+	assert_eq(MainWorldGuidance._action_text(MainStub.new(), working_npc, false), "Hoe Rows")
+	assert_eq(MainWorldGuidance._action_text(MainStub.new(), sleeping_npc, false), "Sleeping")
 
 
 func test_sync_limits_compact_hints_and_uses_poi_primary_action() -> void:

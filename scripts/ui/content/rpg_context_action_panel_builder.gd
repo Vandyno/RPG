@@ -195,10 +195,7 @@ static func _button(container: HFlowContainer, index: int, new_button: Callable)
 	var button := RpgContentChoiceButton.new()
 	var styled := new_button.call("", Vector2(150, 50)) as Button
 	if styled:
-		button.add_theme_stylebox_override("normal", styled.get_theme_stylebox("normal"))
-		button.add_theme_stylebox_override("hover", styled.get_theme_stylebox("hover"))
-		button.add_theme_stylebox_override("pressed", styled.get_theme_stylebox("pressed"))
-		button.add_theme_stylebox_override("focus", styled.get_theme_stylebox("focus"))
+		RpgContentChoiceButton.copy_style_from(button, styled)
 		styled.free()
 	button.focus_mode = Control.FOCUS_NONE
 	container.add_child(button)

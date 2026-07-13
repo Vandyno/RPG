@@ -1,0 +1,9 @@
+{
+  "char_northgate_jail_guard": {
+    "appearance_generation": {"jitter_strength": 0.025, "proportion_jitter": true, "seed": "northgate:jail_guard"},
+    "character_id": "char_northgate_jail_guard", "corpse_entity_id": "", "derived_bonuses": {},
+    "equipment_owner_id": "char_northgate_jail_guard", "faction_id": "faction_marches_of_velcor",
+    "inventory_owner_id": "char_northgate_jail_guard", "level": 2, "loadout_id": "",
+    "people_id": "people_human", "spellbook_owner_id": "char_northgate_jail_guard", "state": "alive", "stats": {}
+  }
+}

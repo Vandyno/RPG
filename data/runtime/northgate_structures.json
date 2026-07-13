@@ -1,0 +1,288 @@
+[
+  {
+    "archetype_id": "archetype_structure_northgate_shrine_plot_exterior",
+    "id": "structure_northgate_shrine_plot",
+    "name": "Northgate Road Shrine",
+    "origin_tile": [
+      -3268,
+      -3953
+    ],
+    "seed": "northgate:2701:structure_northgate_shrine_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_shrine_plot_interior",
+    "id": "structure_northgate_shrine_plot_interior",
+    "name": "Northgate Road Shrine Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_shrine_plot_interior",
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_guard_plot_exterior",
+    "id": "structure_northgate_guard_plot",
+    "name": "Northgate Guard Post",
+    "origin_tile": [
+      -3255,
+      -3954
+    ],
+    "seed": "northgate:2701:structure_northgate_guard_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_guard_plot_interior",
+    "id": "structure_northgate_guard_plot_interior",
+    "name": "Northgate Guard Post Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_guard_plot_interior",
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_hall_plot_exterior",
+    "id": "structure_northgate_hall_plot",
+    "name": "Northgate Town Hall",
+    "origin_tile": [
+      -3271,
+      -3949
+    ],
+    "seed": "northgate:2701:structure_northgate_hall_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_hall_plot_interior",
+    "id": "structure_northgate_hall_plot_interior",
+    "name": "Northgate Town Hall Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_hall_plot_interior",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_inn_plot_exterior",
+    "id": "structure_northgate_inn_plot",
+    "name": "Northgate Coaching Inn",
+    "origin_tile": [
+      -3252,
+      -3950
+    ],
+    "seed": "northgate:2701:structure_northgate_inn_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_inn_plot_interior",
+    "id": "structure_northgate_inn_plot_interior",
+    "name": "Northgate Coaching Inn Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_inn_plot_interior",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_stable_plot_exterior",
+    "id": "structure_northgate_stable_plot",
+    "name": "Northgate Stable",
+    "origin_tile": [
+      -3239,
+      -3948
+    ],
+    "seed": "northgate:2701:structure_northgate_stable_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_stable_plot_interior",
+    "id": "structure_northgate_stable_plot_interior",
+    "name": "Northgate Stable Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_stable_plot_interior",
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_shop_plot_exterior",
+    "id": "structure_northgate_shop_plot",
+    "name": "Northgate General Shop",
+    "origin_tile": [
+      -3273,
+      -3937
+    ],
+    "seed": "northgate:2701:structure_northgate_shop_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_shop_plot_interior",
+    "id": "structure_northgate_shop_plot_interior",
+    "name": "Northgate General Shop Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_shop_plot_interior",
+    "world_layer": "interior:structure_northgate_shop_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_store_plot_exterior",
+    "id": "structure_northgate_store_plot",
+    "name": "Northgate Storehouse",
+    "origin_tile": [
+      -3269,
+      -3932
+    ],
+    "seed": "northgate:2701:structure_northgate_store_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_store_plot_interior",
+    "id": "structure_northgate_store_plot_interior",
+    "name": "Northgate Storehouse Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_store_plot_interior",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_west_home_plot_exterior",
+    "id": "structure_northgate_west_home_plot",
+    "name": "Northgate Home 08",
+    "origin_tile": [
+      -3277,
+      -3931
+    ],
+    "seed": "northgate:2701:structure_northgate_west_home_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_west_home_plot_interior",
+    "id": "structure_northgate_west_home_plot_interior",
+    "name": "Northgate Home 08 Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_west_home_plot_interior",
+    "world_layer": "interior:structure_northgate_west_home_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_south_home_plot_exterior",
+    "id": "structure_northgate_south_home_plot",
+    "name": "Northgate Home 09",
+    "origin_tile": [
+      -3268,
+      -3927
+    ],
+    "seed": "northgate:2701:structure_northgate_south_home_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_south_home_plot_interior",
+    "id": "structure_northgate_south_home_plot_interior",
+    "name": "Northgate Home 09 Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_south_home_plot_interior",
+    "world_layer": "interior:structure_northgate_south_home_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_smith_plot_exterior",
+    "id": "structure_northgate_smith_plot",
+    "name": "Northgate Smithy",
+    "origin_tile": [
+      -3253,
+      -3936
+    ],
+    "seed": "northgate:2701:structure_northgate_smith_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_smith_plot_interior",
+    "id": "structure_northgate_smith_plot_interior",
+    "name": "Northgate Smithy Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_smith_plot_interior",
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_east_home_plot_exterior",
+    "id": "structure_northgate_east_home_plot",
+    "name": "Northgate Home 11",
+    "origin_tile": [
+      -3242,
+      -3937
+    ],
+    "seed": "northgate:2701:structure_northgate_east_home_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_east_home_plot_interior",
+    "id": "structure_northgate_east_home_plot_interior",
+    "name": "Northgate Home 11 Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_east_home_plot_interior",
+    "world_layer": "interior:structure_northgate_east_home_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_southeast_home_plot_exterior",
+    "id": "structure_northgate_southeast_home_plot",
+    "name": "Northgate Home 12",
+    "origin_tile": [
+      -3254,
+      -3928
+    ],
+    "seed": "northgate:2701:structure_northgate_southeast_home_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_southeast_home_plot_interior",
+    "id": "structure_northgate_southeast_home_plot_interior",
+    "name": "Northgate Home 12 Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_southeast_home_plot_interior",
+    "world_layer": "interior:structure_northgate_southeast_home_plot"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_far_east_home_plot_exterior",
+    "id": "structure_northgate_far_east_home_plot",
+    "name": "Northgate Home 13",
+    "origin_tile": [
+      -3242,
+      -3928
+    ],
+    "seed": "northgate:2701:structure_northgate_far_east_home_plot",
+    "world_layer": "surface"
+  },
+  {
+    "archetype_id": "archetype_structure_northgate_far_east_home_plot_interior",
+    "id": "structure_northgate_far_east_home_plot_interior",
+    "name": "Northgate Home 13 Interior",
+    "origin_tile": [
+      0,
+      0
+    ],
+    "seed": "northgate:2701:structure_northgate_far_east_home_plot_interior",
+    "world_layer": "interior:structure_northgate_far_east_home_plot"
+  }
+]

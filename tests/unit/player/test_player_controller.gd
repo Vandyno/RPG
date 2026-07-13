@@ -3,6 +3,7 @@ extends GutTest
 const PlayerController = preload("res://scripts/player/player_controller.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const EventBus = preload("res://scripts/core/event_bus.gd")
 
 
 class BlockingChunks:
@@ -13,6 +14,27 @@ class BlockingChunks:
 
 	func is_walkable(tile: Vector2i) -> bool:
 		return not blocked_tiles.has("%d:%d" % [tile.x, tile.y])
+
+
+func test_footsteps_emit_quieter_smaller_noise_while_sneaking() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var noises: Array[Dictionary] = []
+	bus.noise_emitted.connect(func(noise: Dictionary) -> void: noises.append(noise))
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(bus, null, Vector2i.ZERO)
+
+	player._tick_footstep_noise(0.1)
+	player.set_sneaking(true)
+	player.footstep_cooldown = 0.0
+	player._tick_footstep_noise(0.1)
+
+	assert_eq(noises.size(), 2)
+	assert_eq(noises[0]["kind"], "footstep")
+	assert_eq(noises[0]["loudness"], "normal")
+	assert_eq(noises[1]["loudness"], "quiet")
+	assert_lt(float(noises[1]["noise_radius"]), float(noises[0]["noise_radius"]))
 
 
 func test_world_position_can_move_inside_tile_without_snapping() -> void:
@@ -160,6 +182,19 @@ func test_large_motion_does_not_tunnel_through_blocked_tile() -> void:
 	assert_eq(player.global_tile, Vector2i(1, 0))
 
 
+func test_large_frame_hitch_caps_player_collision_steps() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+
+	player.try_move(Vector2.RIGHT, 100.0)
+
+	assert_eq(
+		player.position.x,
+		8.0 + float(PlayerController.MAX_MOVE_STEPS_PER_CALL * PlayerController.MAX_COLLISION_STEP)
+	)
+
+
 func test_diagonal_blocked_motion_slides_along_open_axis() -> void:
 	var chunks := BlockingChunks.new()
 	chunks.block(Vector2i(2, 0))
@@ -202,6 +237,32 @@ func test_player_health_damage_heal_and_save_load() -> void:
 	assert_eq(loaded.max_health, 100)
 	assert_almost_eq(loaded.mana, 87.5, 0.001)
 	assert_almost_eq(loaded.max_mana, 100.0, 0.001)
+
+
+func test_save_load_preserves_humanoid_appearance_profile() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+	player.set_humanoid_profile(
+		{
+			"character_id": "char_player",
+			"people_id": "people_mirefolk",
+			"appearance": {
+				"eye_id": "eyes_mirefolk_narrow",
+				"mouth_id": "mouth_mirefolk_short",
+				"visual_model_id": "people_mirefolk_default"
+			}
+		}
+	)
+
+	var loaded := PlayerController.new()
+	add_child_autofree(loaded)
+	loaded.setup(null, null, Vector2i.ZERO)
+	loaded.load_save_data(player.get_save_data())
+
+	assert_eq(loaded.humanoid_profile["people_id"], "people_mirefolk")
+	assert_eq(loaded.humanoid_profile["appearance"]["eye_id"], "eyes_mirefolk_narrow")
+	assert_eq(loaded.humanoid_profile["appearance"]["mouth_id"], "mouth_mirefolk_short")
 
 
 func test_load_malformed_world_position_falls_back_to_global_tile() -> void:

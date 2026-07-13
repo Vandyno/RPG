@@ -53,7 +53,7 @@ static func equipped_weapon(content, equipment) -> Dictionary:
 static func targets_in_shape(candidate_entities: Array, query: Dictionary) -> Array:
 	var result := []
 	for entity in candidate_entities:
-		if not ActorRules.is_combat_target_entity(entity):
+		if not ActorRules.is_damageable_actor_entity(entity):
 			continue
 		if contains_point(entity.global_position, query):
 			result.append(entity)
@@ -63,7 +63,7 @@ static func targets_in_shape(candidate_entities: Array, query: Dictionary) -> Ar
 static func targets_in_weapon_sweep(candidate_entities: Array, query: Dictionary) -> Array:
 	var result := []
 	for entity in candidate_entities:
-		if not ActorRules.is_combat_target_entity(entity):
+		if not ActorRules.is_damageable_actor_entity(entity):
 			continue
 		if weapon_sweep_contains_point(entity.global_position, query):
 			result.append(entity)

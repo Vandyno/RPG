@@ -3,19 +3,7 @@ extends RefCounted
 
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
-
-const ARMOUR_EQUIPMENT_SLOTS := [
-	"left_hand",
-	"chest",
-	"head",
-	"legs",
-	"gloves",
-	"boots",
-	"back",
-	"necklace",
-	"ring_1",
-	"ring_2"
-]
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 
 static func category_labels() -> Array:
@@ -58,7 +46,7 @@ static func _transfer_rows(tab: Dictionary, category: String) -> Array[Dictionar
 		RpgSystemsRowData.array_field(transfer.get("player_items", [])),
 		"player",
 		"Player Pack",
-		"put",
+		SystemsActionIds.ACTION_PUT,
 		category
 	)
 	_append_transfer_side_rows(
@@ -66,7 +54,7 @@ static func _transfer_rows(tab: Dictionary, category: String) -> Array[Dictionar
 		RpgSystemsRowData.array_field(transfer.get("target_items", [])),
 		"target",
 		target_name,
-		"take",
+		SystemsActionIds.ACTION_TAKE,
 		category
 	)
 	if rows_data.is_empty():
@@ -91,7 +79,7 @@ static func _append_transfer_side_rows(
 	for item in items:
 		if not item is Dictionary:
 			continue
-		var item_category := _inventory_category(item)
+		var item_category := RpgSystemsRowData.inventory_category(item)
 		if not _transfer_category_matches(category, side, item_category):
 			continue
 		var item_id := String(item.get("item_id", ""))
@@ -99,14 +87,18 @@ static func _append_transfer_side_rows(
 		var count := maxi(0, int(item.get("count", 0)))
 		if item_id.is_empty() or name.is_empty() or count <= 0:
 			continue
-		var action_text := "Take" if action == "take" else "Put"
+		var is_take := action == SystemsActionIds.ACTION_TAKE
+		var action_text := "Take" if is_take else "Put"
+		var action_id := (
+			SystemsActionIds.take_item(item_id) if is_take else SystemsActionIds.put_item(item_id)
+		)
 		var description := String(item.get("description", "No item details available."))
 		var value := maxi(0, int(item.get("value", 0)))
 		var weight := maxf(0.0, float(item.get("weight", 0.0)))
 		rows_data.append({
 			"id": "transfer_%s_%s" % [side, item_id],
 			"item_id": item_id,
-			"action_id": "%s:%s" % [action, item_id],
+			"action_id": action_id,
 			"title": name,
 			"subtitle": "%s - Count %d - %s" % [side_name, count, action_text],
 			"meta": action_text,
@@ -134,7 +126,7 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 	for item in RpgSystemsRowData.array_field(tab.get("items", [])):
 		if not item is Dictionary:
 			continue
-		var item_category := _inventory_category(item)
+		var item_category := RpgSystemsRowData.inventory_category(item)
 		if category != "all" and category != item_category:
 			continue
 		var name := String(item.get("name", item.get("item_id", "Item")))
@@ -147,7 +139,7 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 		)
 		var action_id := String(action.get("id", ""))
 		var action_text := String(action.get("text", ""))
-		var item_type := _inventory_category_label(item_category)
+		var item_type := RpgSystemsRowData.inventory_category_label(item_category)
 		var description := String(item.get("description", "No item details available."))
 		var count_text := "Count %d" % count
 		var value := maxi(0, int(item.get("value", 0)))
@@ -170,33 +162,6 @@ static func _typed_inventory_rows(tab: Dictionary, category: String) -> Array[Di
 			"detail": _inventory_item_detail(name, count, description, value, weight)
 		})
 	return rows_data
-
-
-static func _inventory_category(item: Dictionary) -> String:
-	var item_type := String(item.get("type", "")).to_lower()
-	var slot := String(item.get("equipment_slot", "")).to_lower()
-	var tags := RpgSystemsRowData.lower_array(item.get("tags", []))
-	if item_type == "weapon" or slot == "right_hand" or tags.has("weapon"):
-		return "weapons"
-	if ["armor", "armour", "shield"].has(item_type) or ARMOUR_EQUIPMENT_SLOTS.has(slot):
-		return "armour"
-	if tags.has("armor") or tags.has("armour") or tags.has("shield"):
-		return "armour"
-	if item_type == "ingredient" or tags.has("ingredient"):
-		return "ingredients"
-	if item_type == "quest_item" or tags.has("quest"):
-		return "quest"
-	return "misc"
-
-
-static func _inventory_category_label(category: String) -> String:
-	return {
-		"weapons": "Weapons",
-		"armour": "Armour",
-		"ingredients": "Ingredients",
-		"quest": "Quest",
-		"misc": "Misc"
-	}.get(category, "Inventory")
 
 
 static func _inventory_item_detail(

@@ -2,7 +2,7 @@ class_name MainFlowInputHelper
 extends RefCounted
 
 const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
-const HudClickHelper = preload("res://tests/unit/ui/hud_click_helper.gd")
+const HudClickHelper = preload("res://tests/unit/ui/helpers/hud_click_helper.gd")
 
 
 static func target_entity(main, entity_id: String, tree: SceneTree, interact := true) -> bool:
@@ -21,14 +21,121 @@ static func target_entity(main, entity_id: String, tree: SceneTree, interact := 
 
 
 static func interact_action(main) -> void:
+	_action(main, "interact")
+
+
+static func cycle_target_action(main) -> void:
+	_action(main, "cycle_target")
+
+
+static func save_action(main) -> void:
+	_action(main, "save_game")
+
+
+static func load_action(main) -> void:
+	_action(main, "load_game")
+
+
+static func _action(main, action_id: String) -> void:
 	var event := InputEventAction.new()
-	event.action = "interact"
+	event.action = action_id
 	event.pressed = true
 	MainInputRouter.handle_event(main, event)
 
 
 static func click(button: Button, tree: SceneTree) -> void:
 	await HudClickHelper.click(button, tree)
+
+
+static func drag(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	await HudClickHelper.drag(control, offset, tree)
+
+
+static func drag_hold(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	await HudClickHelper.drag_hold(control, offset, tree)
+
+
+static func release_aim(control: Control, offset: Vector2, tree: SceneTree) -> void:
+	if control.has_method("_gui_input"):
+		var release := InputEventMouseButton.new()
+		release.button_index = MOUSE_BUTTON_LEFT
+		release.position = control.size * 0.5 + offset
+		release.pressed = false
+		control._gui_input(release)
+		await tree.process_frame
+		return
+	await HudClickHelper.mouse_up(control, tree)
+
+
+static func world_click(main, world_position: Vector2, tree: SceneTree) -> void:
+	await settle(main, tree)
+	var screen_position: Vector2 = main.get_viewport().get_canvas_transform() * world_position
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.position = screen_position
+	press.pressed = true
+	main._unhandled_input(press)
+	await tree.process_frame
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = screen_position
+	release.pressed = false
+	main._unhandled_input(release)
+	await settle(main, tree)
+
+
+static func enter_forge(main, tree: SceneTree) -> bool:
+	var door = main.entities.get_entity("object_harrow_forge_door")
+	if not door:
+		return false
+	var door_position: Vector2 = door.global_position
+	main.player.set_world_position(door_position + Vector2(-12.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	await world_click(main, door_position, tree)
+	return main.player.world_layer == "interior:structure_briarwatch_harrow_forge"
+
+
+static func enter_forge_direct(main) -> bool:
+	var door = main.entities.get_entity("object_harrow_forge_door")
+	if not door:
+		return main.player.world_layer == "interior:structure_briarwatch_harrow_forge"
+	main._interact_portal(door)
+	return main.player.world_layer == "interior:structure_briarwatch_harrow_forge"
+
+
+static func exit_forge(main, tree: SceneTree) -> bool:
+	var door = main.entities.get_entity("object_harrow_forge_exit")
+	if not door:
+		return false
+	var door_position: Vector2 = door.global_position
+	main.player.set_world_position(door_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+	await world_click(main, door_position, tree)
+	return main.player.world_layer == "surface"
+
+
+static func exit_forge_direct(main) -> bool:
+	var door = main.entities.get_entity("object_harrow_forge_exit")
+	if not door:
+		return main.player.world_layer == "surface"
+	main._interact_portal(door)
+	return main.player.world_layer == "surface"
+
+
+static func enter_town_hall_direct(main) -> bool:
+	var door = main.entities.get_entity("object_briarwatch_town_hall_door")
+	if not door:
+		return main.player.world_layer == "interior:structure_briarwatch_town_hall"
+	main._interact_portal(door)
+	return main.player.world_layer == "interior:structure_briarwatch_town_hall"
+
+
+static func exit_town_hall_direct(main) -> bool:
+	var door = main.entities.get_entity("object_briarwatch_town_hall_exit")
+	if not door:
+		return main.player.world_layer == "surface"
+	main._interact_portal(door)
+	return main.player.world_layer == "surface"
 
 
 static func settle(main, tree: SceneTree) -> void:

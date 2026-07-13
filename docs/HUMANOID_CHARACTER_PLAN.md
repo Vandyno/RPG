@@ -380,7 +380,6 @@ Equipment items should eventually include visual metadata:
   "visual_layer_id": "layer_leather_vest",
   "avatar_slot": "body_armour",
   "held_pose": "one_hand_low",
-  "paperdoll_sprite_id": "sprite_leather_vest_a",
   "icon_id": "icon_leather_vest"
 }
 ```

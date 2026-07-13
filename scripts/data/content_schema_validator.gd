@@ -125,6 +125,10 @@ static func validate_effect(
 			if not content.has_status_effect(status_id):
 				errors.append("%s references missing status %s." % [owner, status_id])
 			validate_optional_positive_number(effect, "charges", "%s apply_status" % owner, errors)
+		"repair_equipment":
+			validate_required_positive_number(
+				effect, "cost", "%s repair_equipment" % owner, errors
+			)
 		_:
 			errors.append("%s has unsupported effect type %s." % [owner, effect_type])
 
@@ -200,8 +204,8 @@ static func validate_condition(
 			if not ["Morning", "Afternoon", "Evening", "Night"].has(phase):
 				errors.append("%s has time_phase with invalid phase %s." % [owner, phase])
 		"time_hour_between":
-			validate_required_bounded_number(condition, "start_hour", owner, 0.0, 23.0, errors)
-			validate_required_bounded_number(condition, "end_hour", owner, 0.0, 23.0, errors)
+			validate_required_hour(condition, "start_hour", owner, errors)
+			validate_required_hour(condition, "end_hour", owner, errors)
 		_:
 			errors.append("%s has unsupported condition type %s." % [owner, condition_type])
 
@@ -279,7 +283,25 @@ static func validate_required_number(
 		errors.append("%s %s must be numeric." % [owner, field_id])
 
 
-static func validate_required_bounded_number(
+static func validate_required_hour(
+	entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+) -> void:
+	_validate_required_bounded_number(entry, field_id, owner, 0.0, 23.0, errors)
+
+
+static func validate_optional_hour(
+	entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+) -> void:
+	_validate_optional_bounded_number(entry, field_id, owner, 0.0, 23.0, errors)
+
+
+static func validate_optional_reputation(
+	entry: Dictionary, field_id: String, owner: String, errors: Array[String]
+) -> void:
+	_validate_optional_bounded_number(entry, field_id, owner, -100.0, 100.0, errors)
+
+
+static func _validate_required_bounded_number(
 	entry: Dictionary,
 	field_id: String,
 	owner: String,
@@ -309,7 +331,7 @@ static func validate_optional_non_negative_number(
 		errors.append("%s must have non-negative %s." % [owner, field_id])
 
 
-static func validate_optional_bounded_number(
+static func _validate_optional_bounded_number(
 	entry: Dictionary,
 	field_id: String,
 	owner: String,
@@ -373,9 +395,13 @@ static func supported_terrain_kinds() -> Array[String]:
 		"bridge",
 		"stone_wall",
 		"wood_wall",
+		"palisade",
+		"structure_blocker",
 		"wood_floor",
 		"forest",
 		"hill",
+		"soil",
+		"worn_ground",
 		"road"
 	]
 

@@ -4,8 +4,107 @@ extends RefCounted
 const LocationTextBuilder = preload("res://scripts/ui/text/location_text_builder.gd")
 const QuestTargetTextBuilder = preload("res://scripts/ui/text/quest_target_text_builder.gd")
 const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 const EquipmentSlots = preload("res://scripts/core/equipment_slots.gd")
 const SpellSlots = preload("res://scripts/core/spell_slots.gd")
+
+
+class HudDataSources:
+	var content
+	var entities
+	var inventory
+	var equipment
+	var spells
+	var progression
+	var quests
+	var statuses
+	var factions
+	var crime
+	var npc_perception
+	var time
+
+	func _init(
+		content_value,
+		entities_value,
+		inventory_value,
+		equipment_value,
+		spells_value,
+		progression_value,
+		quests_value,
+		statuses_value,
+		factions_value,
+		time_value,
+		crime_value = null,
+		npc_perception_value = null
+	) -> void:
+		content = content_value
+		entities = entities_value
+		inventory = inventory_value
+		equipment = equipment_value
+		spells = spells_value
+		progression = progression_value
+		quests = quests_value
+		statuses = statuses_value
+		factions = factions_value
+		time = time_value
+		crime = crime_value
+		npc_perception = npc_perception_value
+
+
+class HudUiServices:
+	var hud_queries
+	var context_actions_context
+	var world_state
+
+	func _init(hud_queries_value, context_actions_context_value, world_state_value) -> void:
+		hud_queries = hud_queries_value
+		context_actions_context = context_actions_context_value
+		world_state = world_state_value
+
+
+class HudSnapshot:
+	var active_transfer_name: String
+	var active_transfer_owner_id: String
+	var auto_interact_target_id: String
+	var auto_move_active: bool
+	var current_location_name: String
+	var nearby
+	var nearby_targets: Array
+	var player
+	var primary_action: String
+	var shop_id: String
+
+	func _init(
+		active_transfer_name_value: String,
+		active_transfer_owner_id_value: String,
+		auto_interact_target_id_value: String,
+		auto_move_active_value: bool,
+		current_location_name_value: String,
+		nearby_value,
+		nearby_targets_value: Array,
+		player_value,
+		primary_action_value: String,
+		shop_id_value: String
+	) -> void:
+		active_transfer_name = active_transfer_name_value
+		active_transfer_owner_id = active_transfer_owner_id_value
+		auto_interact_target_id = auto_interact_target_id_value
+		auto_move_active = auto_move_active_value
+		current_location_name = current_location_name_value
+		nearby = nearby_value
+		nearby_targets = _typed_dictionary_array(nearby_targets_value)
+		player = player_value
+		primary_action = primary_action_value
+		shop_id = shop_id_value
+
+	func _typed_dictionary_array(value: Variant) -> Array:
+		var result: Array = []
+		if not value is Array:
+			return result
+		for entry in value:
+			if entry is Dictionary:
+				result.append(entry)
+		return result
 
 
 class HudContext:
@@ -13,13 +112,14 @@ class HudContext:
 	var active_transfer_owner_id: String
 	var auto_interact_target_id: String
 	var auto_move_active: bool
-	var chunks
-	var condition_evaluator
 	var content
 	var context_actions_context
+	var current_location_name: String
 	var entities
 	var equipment
 	var factions
+	var crime
+	var npc_perception
 	var hud_queries
 	var inventory
 	var nearby
@@ -34,117 +134,162 @@ class HudContext:
 	var time
 	var world_state
 
-	func _init(values: Dictionary) -> void:
-		active_transfer_name = String(values.get("active_transfer_name", ""))
-		active_transfer_owner_id = String(values.get("active_transfer_owner_id", ""))
-		auto_interact_target_id = String(values.get("auto_interact_target_id", ""))
-		auto_move_active = bool(values.get("auto_move_active", false))
-		chunks = values.get("chunks")
-		condition_evaluator = values.get("condition_evaluator")
-		content = values.get("content")
-		context_actions_context = values.get("context_actions_context")
-		entities = values.get("entities")
-		equipment = values.get("equipment")
-		factions = values.get("factions")
-		hud_queries = values.get("hud_queries")
-		inventory = values.get("inventory")
-		nearby = values.get("nearby")
-		nearby_targets = _typed_dictionary_array(values.get("nearby_targets", []))
-		player = values.get("player")
-		primary_action = String(values.get("primary_action", "Explore"))
-		progression = values.get("progression")
-		quests = values.get("quests")
-		shop_id = String(values.get("shop_id", ""))
-		spells = values.get("spells")
-		statuses = values.get("statuses")
-		time = values.get("time")
-		world_state = values.get("world_state")
-
-	func _typed_dictionary_array(value: Variant) -> Array:
-		var result: Array = []
-		if not value is Array:
-			return result
-		for entry in value:
-			if entry is Dictionary:
-				result.append(entry)
-		return result
+	func _init(sources: HudDataSources, services: HudUiServices, snapshot: HudSnapshot) -> void:
+		active_transfer_name = snapshot.active_transfer_name
+		active_transfer_owner_id = snapshot.active_transfer_owner_id
+		auto_interact_target_id = snapshot.auto_interact_target_id
+		auto_move_active = snapshot.auto_move_active
+		content = sources.content
+		context_actions_context = services.context_actions_context
+		current_location_name = snapshot.current_location_name
+		entities = sources.entities
+		equipment = sources.equipment
+		factions = sources.factions
+		crime = sources.crime
+		npc_perception = sources.npc_perception
+		hud_queries = services.hud_queries
+		inventory = sources.inventory
+		nearby = snapshot.nearby
+		nearby_targets = snapshot.nearby_targets
+		player = snapshot.player
+		primary_action = snapshot.primary_action
+		progression = sources.progression
+		quests = sources.quests
+		shop_id = snapshot.shop_id
+		spells = sources.spells
+		statuses = sources.statuses
+		time = sources.time
+		world_state = services.world_state
 
 
 static func context(values: Dictionary) -> HudContext:
-	return HudContext.new(values)
+	return HudContext.new(
+		HudDataSources.new(
+			values.get("content"),
+			values.get("entities"),
+			values.get("inventory"),
+			values.get("equipment"),
+			values.get("spells"),
+			values.get("progression"),
+			values.get("quests"),
+			values.get("statuses"),
+			values.get("factions"),
+			values.get("time"),
+			values.get("crime"),
+			values.get("npc_perception")
+		),
+		HudUiServices.new(
+			values.get("hud_queries"),
+			values.get("context_actions_context"),
+			values.get("world_state")
+		),
+		HudSnapshot.new(
+			String(values.get("active_transfer_name", "")),
+			String(values.get("active_transfer_owner_id", "")),
+			String(values.get("auto_interact_target_id", "")),
+			bool(values.get("auto_move_active", false)),
+			String(values.get("current_location_name", "")),
+			values.get("nearby"),
+			values.get("nearby_targets", []),
+			values.get("player"),
+			String(values.get("primary_action", "Explore")),
+			String(values.get("shop_id", ""))
+		)
+	)
 
 
 static func build(ctx: HudContext) -> Dictionary:
+	var target_state := _target_state(ctx)
+	var inventory_state := _inventory_state(ctx)
+	var trade_state := _trade_state(ctx)
+	var character_state := _character_state(ctx)
+	var journal_state := _journal_state(ctx)
+	var quest_state := _quest_state(ctx)
+	var spell_state := _spell_state(ctx)
+	var equipment_state := _equipment_state(ctx)
+	var state := {}
+	for section in [
+		target_state,
+		inventory_state,
+		trade_state,
+		character_state,
+		journal_state,
+		quest_state,
+		spell_state,
+		equipment_state
+	]:
+		state.merge(section)
+	state["system_tabs"] = _system_tabs_from_sections(
+		inventory_state,
+		character_state,
+		equipment_state,
+		trade_state,
+		quest_state,
+		journal_state,
+		spell_state
+	)
+	var legal_status: Dictionary = ctx.crime.get_status_data() if ctx.crime else {}
+	state.merge(legal_status, true)
+	state["legal_area"] = ctx.crime.area_status(String(ctx.player.world_layer)) if ctx.crime else ""
+	state["stealth_state"] = (
+		ctx.npc_perception.player_stealth_state(ctx.player) if ctx.npc_perception else ""
+	)
+	return state
+
+
+static func _target_state(ctx: HudContext) -> Dictionary:
 	var auto_target = ctx.entities.get_entity(ctx.auto_interact_target_id)
 	var displayed = auto_target if auto_target else ctx.nearby
-	var shop_id: String = ctx.shop_id
 	var target_name := "Destination" if ctx.auto_move_active else _target_name(displayed)
 	var target_detail := "Moving" if ctx.auto_move_active else _target_detail(ctx, displayed)
+	return {
+		"nearby": target_name,
+		"primary_action": ctx.primary_action,
+		"target_detail": target_detail,
+		"nearby_targets": ctx.nearby_targets,
+		"context_actions": MainContextActions.secondary(ctx.context_actions_context, ctx.nearby)
+	}
+
+
+static func _inventory_state(ctx: HudContext) -> Dictionary:
 	var inventory_summary := String(ctx.hud_queries.inventory_text())
 	var inventory_items := _inventory_items_data(ctx)
 	var inventory_details := String(ctx.hud_queries.inventory_details_text())
 	var inventory_actions = ctx.hud_queries.inventory_actions_data()
 	var transfer_open := not ctx.active_transfer_owner_id.is_empty()
 	var transfer_target := {
-		"owner_id": ctx.active_transfer_owner_id,
-		"name": ctx.active_transfer_name
+		"owner_id": ctx.active_transfer_owner_id, "name": ctx.active_transfer_name
 	}
 	var transfer_target_items := _inventory_items_for_owner(ctx, ctx.active_transfer_owner_id)
-	var trade_summary := String(ctx.hud_queries.trade_text(shop_id))
-	var trade_actions: Array = ctx.hud_queries.trade_actions_data(shop_id)
-	var trade_stock_rows: Array = ctx.hud_queries.trade_stock_rows_data(shop_id)
+	return {
+		"inventory": inventory_summary,
+		"inventory_items": inventory_items,
+		"inventory_details": inventory_details,
+		"inventory_actions": inventory_actions,
+		"transfer_open": transfer_open,
+		"transfer_target": transfer_target,
+		"transfer_player_items": inventory_items,
+		"transfer_target_items": transfer_target_items
+	}
+
+
+static func _trade_state(ctx: HudContext) -> Dictionary:
+	var trade_summary := String(ctx.hud_queries.trade_text(ctx.shop_id))
+	var trade_actions: Array = ctx.hud_queries.trade_actions_data(ctx.shop_id)
+	var trade_stock_rows: Array = ctx.hud_queries.trade_stock_rows_data(ctx.shop_id)
+	return {
+		"trade": trade_summary, "trade_actions": trade_actions, "trade_stock_rows": trade_stock_rows
+	}
+
+
+static func _character_state(ctx: HudContext) -> Dictionary:
 	var progression_summary := String(ctx.progression.get_summary())
 	var progression_details := String(ctx.progression.get_details())
 	var progression_actions: Array = ctx.hud_queries.progression_actions_data()
 	var status_summary := String(ctx.statuses.get_summary())
 	var status_details := String(ctx.statuses.get_details())
-	var time_summary := String(ctx.time.get_summary())
-	var time_actions := [{"id": "wait:1", "text": "Wait 1h"}, {"id": "wait:8", "text": "Wait 8h"}]
-	var location_names := LocationTextBuilder.names(ctx.world_state.discovered_locations, ctx.content)
-	var location_details := LocationTextBuilder.details(
-		ctx.world_state.discovered_locations, ctx.content
-	)
-	var quest_directions := QuestTargetTextBuilder.directions(
-		ctx.quests, ctx.entities, ctx.player.global_position
-	)
-	var quest_target_actions := _quest_target_actions(ctx)
-	var active_quests: Array = ctx.quests.get_active_summary()
 	var player_health := "%d/%d" % [ctx.player.health, ctx.player.max_health]
-	var player_mana := "%d/%d" % [
-		int(roundf(ctx.player.mana)), int(roundf(ctx.player.max_mana))
-	]
-	var equipment_summary := String(ctx.equipment.get_summary())
-	var faction_summary := String(ctx.factions.get_summary())
-	var system_tabs := _system_tabs(
-		_inventory_tab(
-			inventory_summary,
-			inventory_items,
-			inventory_details,
-			inventory_actions,
-			transfer_open,
-			transfer_target,
-			transfer_target_items
-		),
-		_character_tab(
-			player_health,
-			player_mana,
-			progression_summary,
-			progression_details,
-			equipment_summary,
-			status_summary,
-			status_details,
-			progression_actions
-		),
-		_trade_tab(trade_summary, trade_actions, trade_stock_rows),
-		_quests_tab(active_quests, quest_directions, quest_target_actions),
-		_journal_tab(
-			time_summary,
-			time_actions,
-			faction_summary,
-			location_names,
-			location_details
-		)
-	)
+	var player_mana := "%d/%d" % [int(roundf(ctx.player.mana)), int(roundf(ctx.player.max_mana))]
 	return {
 		"player_health": player_health,
 		"player_health_value": ctx.player.health,
@@ -153,42 +298,109 @@ static func build(ctx: HudContext) -> Dictionary:
 		"player_mana_value": ctx.player.mana,
 		"player_max_mana": ctx.player.max_mana,
 		"player_sneaking": ctx.player.is_sneaking,
-		"nearby": target_name,
-		"primary_action": ctx.primary_action,
-		"target_detail": target_detail,
-		"nearby_targets": ctx.nearby_targets,
-		"context_actions": MainContextActions.secondary(ctx.context_actions_context, ctx.nearby),
-		"inventory": inventory_summary,
-		"inventory_items": inventory_items,
-		"inventory_details": inventory_details,
-		"inventory_actions": inventory_actions,
-		"transfer_open": transfer_open,
-		"transfer_target": transfer_target,
-		"transfer_player_items": inventory_items,
-		"transfer_target_items": transfer_target_items,
-		"spells": _spells_data(ctx),
-		"spell_slots": _spell_slots_data(ctx),
-		"trade": trade_summary,
-		"trade_actions": trade_actions,
-		"trade_stock_rows": trade_stock_rows,
-		"equipment": equipment_summary,
-		"equipment_slots": _equipment_slots_data(ctx),
-		"factions": faction_summary,
 		"progression": progression_summary,
 		"progression_details": progression_details,
 		"progression_actions": progression_actions,
 		"statuses": status_summary,
-		"status_details": status_details,
+		"status_details": status_details
+	}
+
+
+static func _journal_state(ctx: HudContext) -> Dictionary:
+	var time_summary := String(ctx.time.get_summary())
+	var time_actions := [
+		{"id": SystemsActionIds.wait_hours(1), "text": "Wait 1h"},
+		{"id": SystemsActionIds.wait_hours(8), "text": "Wait 8h"}
+	]
+	var location_names := LocationTextBuilder.names(
+		ctx.world_state.discovered_locations, ctx.content
+	)
+	var location_details := LocationTextBuilder.details(
+		ctx.world_state.discovered_locations, ctx.content
+	)
+	var faction_summary := String(ctx.factions.get_summary())
+	return {
+		"factions": faction_summary,
 		"time": time_summary,
 		"time_actions": time_actions,
 		"time_details": ctx.time.get_details(),
 		"locations": location_names,
-		"location_details": location_details,
+		"current_location": ctx.current_location_name,
+		"location_details": location_details
+	}
+
+
+static func _quest_state(ctx: HudContext) -> Dictionary:
+	var quest_directions := QuestTargetTextBuilder.directions(
+		ctx.quests, ctx.entities, ctx.player.global_position
+	)
+	var quest_target_actions := _quest_target_actions(ctx)
+	var active_quests: Array = ctx.quests.get_active_summary()
+	return {
 		"quest_directions": quest_directions,
 		"quest_target_actions": quest_target_actions,
-		"quests": active_quests,
-		"system_tabs": system_tabs
+		"quests": active_quests
 	}
+
+
+static func _spell_state(ctx: HudContext) -> Dictionary:
+	return {"spells": _spells_data(ctx), "spell_slots": _spell_slots_data(ctx)}
+
+
+static func _equipment_state(ctx: HudContext) -> Dictionary:
+	return {
+		"equipment": String(ctx.equipment.get_summary()),
+		"equipment_slots": _equipment_slots_data(ctx)
+	}
+
+
+static func _system_tabs_from_sections(
+	inventory_state: Dictionary,
+	character_state: Dictionary,
+	equipment_state: Dictionary,
+	trade_state: Dictionary,
+	quest_state: Dictionary,
+	journal_state: Dictionary,
+	spell_state: Dictionary
+) -> Dictionary:
+	var transfer_target: Dictionary = inventory_state["transfer_target"]
+	return _system_tabs(
+		_inventory_tab(
+			inventory_state["inventory"],
+			inventory_state["inventory_items"],
+			inventory_state["inventory_details"],
+			inventory_state["inventory_actions"],
+			inventory_state["transfer_open"],
+			transfer_target,
+			inventory_state["transfer_target_items"]
+		),
+		_character_tab(
+			character_state["player_health"],
+			character_state["player_mana"],
+			character_state["progression"],
+			character_state["progression_details"],
+			equipment_state["equipment"],
+			character_state["statuses"],
+			character_state["status_details"],
+			character_state["progression_actions"]
+		),
+		_trade_tab(
+			trade_state["trade"], trade_state["trade_actions"], trade_state["trade_stock_rows"]
+		),
+		_quests_tab(
+			quest_state["quests"],
+			quest_state["quest_directions"],
+			quest_state["quest_target_actions"]
+		),
+		_journal_tab(
+			journal_state["time"],
+			journal_state["time_actions"],
+			journal_state["factions"],
+			journal_state["locations"],
+			journal_state["location_details"]
+		),
+		_spells_tab(spell_state["spells"], spell_state["spell_slots"])
+	)
 
 
 static func _system_tabs(
@@ -196,10 +408,12 @@ static func _system_tabs(
 	character_tab: Dictionary,
 	trade_tab: Dictionary,
 	quests_tab: Dictionary,
-	journal_tab: Dictionary
+	journal_tab: Dictionary,
+	spells_tab: Dictionary
 ) -> Dictionary:
 	return {
 		"inventory": inventory_tab,
+		"spells": spells_tab,
 		"character": character_tab,
 		"trade": trade_tab,
 		"quests": quests_tab,
@@ -257,16 +471,16 @@ static func _trade_tab(summary: String, actions: Array, stock_rows: Array) -> Di
 	return {"summary": summary, "actions": actions, "stock_rows": stock_rows}
 
 
+static func _spells_tab(spells: Array, spell_slots: Dictionary) -> Dictionary:
+	return {"spells": spells, "spell_slots": spell_slots}
+
+
 static func _quests_tab(quests: Array, directions: String, actions: Array) -> Dictionary:
 	return {"quests": quests, "directions": directions, "actions": actions}
 
 
 static func _journal_tab(
-	time: String,
-	actions: Array,
-	factions: String,
-	locations: String,
-	location_details: String
+	time: String, actions: Array, factions: String, locations: String, location_details: String
 ) -> Dictionary:
 	return {
 		"time": time,
@@ -296,7 +510,12 @@ static func _quest_target_actions(ctx: HudContext) -> Array[Dictionary]:
 		if not entity:
 			continue
 		seen[target_id] = true
-		actions.append({"id": "target:%s" % target_id, "text": "Target %s" % entity.get_display_name()})
+		actions.append(
+			{
+				"id": SystemsActionIds.target_entity(target_id),
+				"text": "Target %s" % entity.get_display_name()
+			}
+		)
 	return actions
 
 
@@ -313,17 +532,19 @@ static func _inventory_items_for_owner(ctx: HudContext, owner_id: String) -> Arr
 		var count: int = ctx.inventory.get_count_for_owner(owner_id, item_id)
 		if item.is_empty() or count <= 0:
 			continue
-		entries.append({
-			"item_id": item_id,
-			"name": String(item.get("name", item_id)),
-			"count": count,
-			"type": String(item.get("type", "")),
-			"tags": _array_field(item.get("tags", [])),
-			"equipment_slot": String(item.get("equipment_slot", "")),
-			"value": maxi(0, int(item.get("value", 0))),
-			"weight": maxf(0.0, float(item.get("weight", 0.0))),
-			"description": String(item.get("description", ""))
-		})
+		entries.append(
+			{
+				"item_id": item_id,
+				"name": String(item.get("name", item_id)),
+				"count": count,
+				"type": String(item.get("type", "")),
+				"tags": _array_field(item.get("tags", [])),
+				"equipment_slot": String(item.get("equipment_slot", "")),
+				"value": maxi(0, int(item.get("value", 0))),
+				"weight": maxf(0.0, float(item.get("weight", 0.0))),
+				"description": String(item.get("description", ""))
+			}
+		)
 	return entries
 
 
@@ -388,9 +609,8 @@ static func _spell_data(ctx: HudContext, spell_id: String, spell: Dictionary) ->
 		"school": String(spell.get("school", "")),
 		"icon": String(spell.get("icon", "")),
 		"mana_cost": int(spell.get("mana_cost", 0)),
-		"mana_drain_per_second": float(
-			spell.get("mana_drain_per_second", spell.get("mana_cost", 0))
-		),
+		"mana_drain_per_second":
+		float(spell.get("mana_drain_per_second", spell.get("mana_cost", 0))),
 		"range": String(spell.get("range", "")),
 		"behavior": String(spell.get("behavior", "")),
 		"assigned_slot": assigned,

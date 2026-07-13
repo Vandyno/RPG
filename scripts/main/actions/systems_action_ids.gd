@@ -69,8 +69,28 @@ static func sell_item(item_id: String) -> String:
 	return build(ACTION_SELL, item_id)
 
 
+static func wait_hours(hours: int) -> String:
+	return build(ACTION_WAIT, str(maxi(1, hours)))
+
+
+static func target_entity(entity_id: String) -> String:
+	return build(ACTION_TARGET, entity_id)
+
+
 static func assign_spell(spell_id: String, slot_id: String) -> String:
 	return build(ACTION_ASSIGN_SPELL, spell_id, slot_id)
+
+
+static func take_item(item_id: String) -> String:
+	return build(ACTION_TAKE, item_id)
+
+
+static func put_item(item_id: String) -> String:
+	return build(ACTION_PUT, item_id)
+
+
+static func open_appearance() -> String:
+	return build(ACTION_UI, "appearance")
 
 
 static func is_action(action_id: String, action: String) -> bool:

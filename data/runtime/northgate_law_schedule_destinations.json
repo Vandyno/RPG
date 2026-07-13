@@ -1,0 +1,18 @@
+{
+  "northgate_guard_gate_runtime": {
+    "activity_cycle_minutes": 25,
+    "activity_tiles": [[-3260, -3955], [-3244, -3953], [-3231, -3940], [-3260, -3927], [-3276, -3940]],
+    "global_tile": [-3263, -3955], "kind": "guard.patrol", "world_layer": "surface"
+  },
+  "northgate_jail_guard_work": {
+    "activity_cycle_minutes": 45, "activity_tiles": [[6, 2], [6, 3], [5, 3]], "exclusive": true,
+    "global_tile": [6, 2], "kind": "guard.jail", "reservation_minutes": 90,
+    "world_layer": "interior:structure_northgate_jail"
+  },
+  "northgate_jail_guard_break": {"global_tile": [6, 4], "kind": "guard.break", "world_layer": "interior:structure_northgate_jail"},
+  "northgate_jail_guard_patrol": {
+    "activity_cycle_minutes": 25,
+    "activity_tiles": [[-3244, -3953], [-3252, -3952], [-3260, -3943], [-3231, -3940]],
+    "global_tile": [-3244, -3953], "kind": "guard.patrol", "world_layer": "surface"
+  }
+}

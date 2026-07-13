@@ -54,6 +54,120 @@ func test_world_distance_interaction_finds_nearest_entity_inside_range() -> void
 	assert_eq(entity.get_entity_id(), "near")
 
 
+func test_streamed_schedule_location_materializes_actor_in_active_surface_chunk() -> void:
+	var content := _content()
+	content.world_objects = [{
+		"id": "scheduled_world",
+		"npc_id": "scheduled",
+		"name": "Scheduled Resident",
+		"kind": "npc",
+		"brain_id": "civilian_schedule",
+		"hostility": "neutral",
+		"world_layer": "interior:test_home",
+		"global_tile": [2, 2]
+	}]
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var manager := EntityManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, content, _chunks())
+	var destination := Vector2i(5, 5)
+	manager._on_chunks_changed([
+		GridMath.chunk_key(GridMath.tile_to_chunk(destination), "surface")
+	])
+	assert_null(manager.get_entity("scheduled_world"))
+
+	manager.set_scheduled_entity_location("scheduled_world", destination, "surface")
+	await wait_process_frames(2)
+
+	var actor = manager.get_entity("scheduled_world")
+	assert_not_null(actor)
+	assert_eq(actor.global_tile, destination)
+	assert_eq(actor.data.get("world_layer", ""), "surface")
+
+
+func test_defeated_actor_switches_to_dead_without_replacing_the_npc() -> void:
+	var content := _content()
+	content.world_objects = [{
+		"id": "resident",
+		"name": "Resident",
+		"kind": "npc",
+		"world_layer": "interior:test_home",
+		"global_tile": [4, 3],
+		"inventory_owner_id": "char_resident",
+		"character_profile": {"character_id": "char_resident", "state": "alive"}
+	}]
+	var manager := EntityManager.new()
+	add_child_autofree(manager)
+	_setup_unfiltered(manager, content, _chunks())
+	var resident = manager.get_entity("resident")
+
+	var dead_resident = manager.transition_actor_to_dead(resident)
+
+	assert_same(dead_resident, resident)
+	assert_same(manager.get_entity("resident"), resident)
+	assert_eq(resident.get_entity_id(), "resident")
+	assert_eq(resident.get_kind(), "npc")
+	assert_eq(resident.global_tile, Vector2i(4, 3))
+	assert_eq(resident.world_layer, "interior:test_home")
+	assert_eq(resident.data.get("state", ""), "dead")
+	assert_false(resident.is_combat_target())
+
+	var revived = manager.set_actor_alive("resident")
+
+	assert_same(revived, resident)
+	assert_eq(resident.data.get("state", ""), "alive")
+
+
+func test_dead_actor_state_and_death_location_round_trip_through_save_data() -> void:
+	var content := _content()
+	content.world_objects = [{
+		"id": "resident",
+		"npc_id": "resident_npc",
+		"name": "Resident",
+		"kind": "npc",
+		"world_layer": "interior:test_home",
+		"global_tile": [4, 3],
+		"inventory_owner_id": "char_resident",
+		"character_profile": {"character_id": "char_resident", "state": "alive"}
+	}]
+	var manager := EntityManager.new()
+	add_child_autofree(manager)
+	_setup_unfiltered(manager, content, _chunks())
+	var resident = manager.get_entity("resident")
+	resident.set_world_position(Vector2(180.0, 148.0))
+	manager.transition_actor_to_dead(resident)
+	var saved := manager.get_save_data()
+
+	var loaded := EntityManager.new()
+	add_child_autofree(loaded)
+	_setup_unfiltered(loaded, content, _chunks())
+	loaded.load_save_data(saved)
+	var corpse = loaded.get_entity("resident")
+
+	assert_not_null(corpse)
+	assert_eq(corpse.get_entity_id(), "resident")
+	assert_eq(corpse.get_kind(), "npc")
+	assert_eq(corpse.data.get("state", ""), "dead")
+	assert_eq(corpse.world_layer, "interior:test_home")
+	assert_eq(corpse.global_position, Vector2(180.0, 148.0))
+	assert_true(loaded.is_npc_dead("resident_npc"))
+
+	loaded.set_actor_alive("resident")
+	var revived_save := loaded.get_save_data()
+	var revived_world := EntityManager.new()
+	add_child_autofree(revived_world)
+	_setup_unfiltered(revived_world, content, _chunks())
+	revived_world.load_save_data(revived_save)
+	var revived = revived_world.get_entity("resident")
+
+	assert_not_null(revived)
+	assert_eq(revived.get_entity_id(), "resident")
+	assert_eq(revived.data.get("state", ""), "alive")
+	assert_eq(revived.global_position, Vector2(180.0, 148.0))
+	assert_false(revived_world.is_npc_dead("resident_npc"))
+
+
 func test_world_tap_hit_test_uses_marker_distance_not_interaction_radius() -> void:
 	var content := _content()
 	content.world_objects = [
@@ -528,4 +642,3 @@ func test_conditioned_entities_spawn_after_state_change_signal() -> void:
 	await wait_process_frames(1)
 
 	assert_not_null(manager.get_entity("conditional"))
-

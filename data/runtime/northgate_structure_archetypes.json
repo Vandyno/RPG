@@ -1,0 +1,918 @@
+{
+  "archetype_structure_northgate_east_home_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        0.0
+      ]
+    },
+    "id": "archetype_structure_northgate_east_home_plot_exterior",
+    "name": "Home Exterior",
+    "role": "surface_exterior",
+    "size": [
+      6.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwdww",
+      "wfffww",
+      "wwww.."
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "northgate_timber_home"
+  },
+  "archetype_structure_northgate_east_home_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        7.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        7.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_east_home_plot_interior",
+    "name": "Home Interior",
+    "role": "interior_room",
+    "size": [
+      10.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wwwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "northgate_timber_home_courier_household_interior"
+  },
+  "archetype_structure_northgate_far_east_home_plot_exterior": {
+    "anchors": {
+      "entry": [
+        0.0,
+        1.0
+      ]
+    },
+    "id": "archetype_structure_northgate_far_east_home_plot_exterior",
+    "name": "Home Exterior",
+    "role": "surface_exterior",
+    "size": [
+      7.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwww..",
+      "dffffww",
+      "wwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "northgate_timber_home"
+  },
+  "archetype_structure_northgate_far_east_home_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        7.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        7.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_far_east_home_plot_interior",
+    "name": "Home Interior",
+    "role": "interior_room",
+    "size": [
+      10.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wwwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "northgate_timber_home_lodger_household_interior"
+  },
+  "archetype_structure_northgate_guard_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        2.0
+      ]
+    },
+    "id": "archetype_structure_northgate_guard_plot_exterior",
+    "name": "Guard Post Exterior",
+    "role": "surface_exterior",
+    "size": [
+      7.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwwwww",
+      "wwffffw",
+      "..wdwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "timber_guard_post"
+  },
+  "archetype_structure_northgate_guard_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        8.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        8.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_guard_plot_interior",
+    "name": "Guard Post Interior",
+    "role": "interior_room",
+    "size": [
+      11.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwww",
+      "wfffffffffw",
+      "wfffffffffw",
+      "wfffffffffw",
+      "wfffffffffw",
+      "wfffffffffw",
+      "wfffffffffw",
+      "wwwwwdwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "timber_guard_post_interior"
+  },
+  "archetype_structure_northgate_hall_plot_exterior": {
+    "anchors": {
+      "entry": [
+        7.0,
+        2.0
+      ]
+    },
+    "id": "archetype_structure_northgate_hall_plot_exterior",
+    "name": "Town Hall Exterior",
+    "role": "surface_exterior",
+    "size": [
+      8.0,
+      4.0
+    ],
+    "terrain_rows": [
+      "wwwwwwww",
+      "wffffffw",
+      "wfffffwd",
+      "wwwwww.."
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "junction_hall"
+  },
+  "archetype_structure_northgate_hall_plot_interior": {
+    "anchors": {
+      "exit": [
+        7.0,
+        9.0
+      ],
+      "home": [
+        11.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        11.0,
+        7.0
+      ]
+    },
+    "id": "archetype_structure_northgate_hall_plot_interior",
+    "name": "Town Hall Interior",
+    "role": "interior_room",
+    "size": [
+      14.0,
+      10.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwwwww",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wwwwwwwdwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "junction_hall_interior"
+  },
+  "archetype_structure_northgate_inn_plot_exterior": {
+    "anchors": {
+      "entry": [
+        0.0,
+        1.0
+      ]
+    },
+    "id": "archetype_structure_northgate_inn_plot_exterior",
+    "name": "Coaching Inn Exterior",
+    "role": "surface_exterior",
+    "size": [
+      10.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "dffffffffw",
+      "wwwwwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "deep_eaved_coaching_inn"
+  },
+  "archetype_structure_northgate_inn_plot_interior": {
+    "anchors": {
+      "exit": [
+        7.0,
+        9.0
+      ],
+      "home": [
+        4.0,
+        4.0
+      ],
+      "service": [
+        4.0,
+        4.0
+      ],
+      "storage": [
+        12.0,
+        8.0
+      ]
+    },
+    "id": "archetype_structure_northgate_inn_plot_interior",
+    "name": "Coaching Inn Interior",
+    "role": "interior_room",
+    "size": [
+      14.0,
+      10.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwwwww",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wffffffffffffw",
+      "wwwwwwwdwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "deep_eaved_coaching_inn_interior"
+  },
+  "archetype_structure_northgate_shop_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        0.0
+      ]
+    },
+    "id": "archetype_structure_northgate_shop_plot_exterior",
+    "name": "General Shop Exterior",
+    "role": "surface_exterior",
+    "size": [
+      7.0,
+      4.0
+    ],
+    "terrain_rows": [
+      "wwwdwww",
+      "wfffffw",
+      "wwffffw",
+      "..wwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "shuttered_crossroads_shop"
+  },
+  "archetype_structure_northgate_shop_plot_interior": {
+    "anchors": {
+      "exit": [
+        6.0,
+        8.0
+      ],
+      "home": [
+        9.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        9.0,
+        6.0
+      ]
+    },
+    "id": "archetype_structure_northgate_shop_plot_interior",
+    "name": "General Shop Interior",
+    "role": "interior_room",
+    "size": [
+      12.0,
+      9.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwww",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wwwwwwdwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "shuttered_crossroads_shop_interior"
+  },
+  "archetype_structure_northgate_shrine_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        2.0
+      ]
+    },
+    "id": "archetype_structure_northgate_shrine_plot_exterior",
+    "name": "Road Shrine Exterior",
+    "role": "surface_exterior",
+    "size": [
+      6.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwwww",
+      "wwfffw",
+      "..wdww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "road_stone_shrine"
+  },
+  "archetype_structure_northgate_shrine_plot_interior": {
+    "anchors": {
+      "exit": [
+        4.0,
+        7.0
+      ],
+      "home": [
+        6.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        6.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_shrine_plot_interior",
+    "name": "Road Shrine Interior",
+    "role": "interior_room",
+    "size": [
+      9.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwww",
+      "wfffffffw",
+      "wfffffffw",
+      "wfffffffw",
+      "wfffffffw",
+      "wfffffffw",
+      "wfffffffw",
+      "wwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "road_stone_shrine_interior"
+  },
+  "archetype_structure_northgate_smith_plot_exterior": {
+    "anchors": {
+      "entry": [
+        4.0,
+        0.0
+      ]
+    },
+    "id": "archetype_structure_northgate_smith_plot_exterior",
+    "name": "Smithy Exterior",
+    "role": "surface_exterior",
+    "size": [
+      8.0,
+      5.0
+    ],
+    "terrain_rows": [
+      "..wwdwww",
+      "wwfffffw",
+      "wffffffw",
+      "wffffffw",
+      "wwwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "open_front_road_smithy"
+  },
+  "archetype_structure_northgate_smith_plot_interior": {
+    "anchors": {
+      "exit": [
+        6.0,
+        9.0
+      ],
+      "home": [
+        10.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        10.0,
+        7.0
+      ]
+    },
+    "id": "archetype_structure_northgate_smith_plot_interior",
+    "name": "Smithy Interior",
+    "role": "interior_room",
+    "size": [
+      13.0,
+      10.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwwww",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wwwwwwdwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "open_front_road_smithy_interior"
+  },
+  "archetype_structure_northgate_south_home_plot_exterior": {
+    "anchors": {
+      "entry": [
+        5.0,
+        1.0
+      ]
+    },
+    "id": "archetype_structure_northgate_south_home_plot_exterior",
+    "name": "Home Exterior",
+    "role": "surface_exterior",
+    "size": [
+      6.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "..wwww",
+      "wwfffd",
+      "wwwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "northgate_timber_home"
+  },
+  "archetype_structure_northgate_south_home_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        7.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        7.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_south_home_plot_interior",
+    "name": "Home Interior",
+    "role": "interior_room",
+    "size": [
+      10.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wwwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "northgate_timber_home_multigenerational_household_interior"
+  },
+  "archetype_structure_northgate_southeast_home_plot_exterior": {
+    "anchors": {
+      "entry": [
+        0.0,
+        1.0
+      ]
+    },
+    "id": "archetype_structure_northgate_southeast_home_plot_exterior",
+    "name": "Home Exterior",
+    "role": "surface_exterior",
+    "size": [
+      6.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "..wwww",
+      "dwfffw",
+      "wwwwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "northgate_timber_home"
+  },
+  "archetype_structure_northgate_southeast_home_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        7.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        7.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_southeast_home_plot_interior",
+    "name": "Home Interior",
+    "role": "interior_room",
+    "size": [
+      10.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wwwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "northgate_timber_home_kitchen_garden_household_interior"
+  },
+  "archetype_structure_northgate_stable_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_stable_plot_exterior",
+    "name": "Stable Exterior",
+    "role": "surface_exterior",
+    "size": [
+      7.0,
+      6.0
+    ],
+    "terrain_rows": [
+      "wwwww..",
+      "wfffw..",
+      "wffffww",
+      "wfffffw",
+      "wfffffw",
+      "wwwdwww"
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "road_junction_stable"
+  },
+  "archetype_structure_northgate_stable_plot_interior": {
+    "anchors": {
+      "exit": [
+        6.0,
+        10.0
+      ],
+      "home": [
+        10.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        10.0,
+        8.0
+      ]
+    },
+    "id": "archetype_structure_northgate_stable_plot_interior",
+    "name": "Stable Interior",
+    "role": "interior_room",
+    "size": [
+      13.0,
+      11.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwwww",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wfffffffffffw",
+      "wwwwwwdwwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "road_junction_stable_interior"
+  },
+  "archetype_structure_northgate_store_plot_exterior": {
+    "anchors": {
+      "entry": [
+        6.0,
+        2.0
+      ]
+    },
+    "id": "archetype_structure_northgate_store_plot_exterior",
+    "name": "Storehouse Exterior",
+    "role": "surface_exterior",
+    "size": [
+      7.0,
+      4.0
+    ],
+    "terrain_rows": [
+      "wwwwwww",
+      "wfffffw",
+      "wffffwd",
+      "wwwww.."
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "raised_trade_storehouse"
+  },
+  "archetype_structure_northgate_store_plot_interior": {
+    "anchors": {
+      "exit": [
+        6.0,
+        8.0
+      ],
+      "home": [
+        9.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        9.0,
+        6.0
+      ]
+    },
+    "id": "archetype_structure_northgate_store_plot_interior",
+    "name": "Storehouse Interior",
+    "role": "interior_room",
+    "size": [
+      12.0,
+      9.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwwwww",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wffffffffffw",
+      "wwwwwwdwwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "raised_trade_storehouse_interior"
+  },
+  "archetype_structure_northgate_west_home_plot_exterior": {
+    "anchors": {
+      "entry": [
+        3.0,
+        0.0
+      ]
+    },
+    "id": "archetype_structure_northgate_west_home_plot_exterior",
+    "name": "Home Exterior",
+    "role": "surface_exterior",
+    "size": [
+      6.0,
+      3.0
+    ],
+    "terrain_rows": [
+      "wwwdww",
+      "wfffww",
+      "wwww.."
+    ],
+    "tile_kinds": {
+      "d": "grass",
+      "f": "grass",
+      "w": "structure_blocker"
+    },
+    "visual_style": "northgate_timber_home"
+  },
+  "archetype_structure_northgate_west_home_plot_interior": {
+    "anchors": {
+      "exit": [
+        5.0,
+        7.0
+      ],
+      "home": [
+        7.0,
+        2.0
+      ],
+      "service": [
+        2.0,
+        2.0
+      ],
+      "storage": [
+        7.0,
+        5.0
+      ]
+    },
+    "id": "archetype_structure_northgate_west_home_plot_interior",
+    "name": "Home Interior",
+    "role": "interior_room",
+    "size": [
+      10.0,
+      8.0
+    ],
+    "terrain_rows": [
+      "wwwwwwwwww",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wffffffffw",
+      "wwwwwdwwww"
+    ],
+    "tile_kinds": {
+      "d": "wood_floor",
+      "f": "wood_floor",
+      "w": "wood_wall"
+    },
+    "visual_style": "northgate_timber_home_quiet_craft_household_interior"
+  }
+}

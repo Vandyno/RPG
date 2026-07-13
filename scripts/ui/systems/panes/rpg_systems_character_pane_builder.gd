@@ -44,10 +44,20 @@ static func build(context: BuildContext) -> Dictionary:
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(stack)
 
+	var nodes := {"scroll": scroll, "new_button": context.new_button}
+	nodes.merge(_build_character_header(stack, context))
+	nodes.merge(_build_character_health_bar(stack))
+	nodes.merge(_build_character_equipment_grid(stack))
+	nodes.merge(_build_character_rows_container(stack))
+	nodes.merge(_build_hidden_character_label(stack, context))
+	return nodes
+
+
+static func _build_character_header(parent: VBoxContainer, context: BuildContext) -> Dictionary:
 	var header := HBoxContainer.new()
 	header.name = "SystemsCharacterHeader"
 	header.add_theme_constant_override("separation", 8)
-	stack.add_child(header)
+	parent.add_child(header)
 
 	var portrait := Panel.new()
 	portrait.name = "SystemsCharacterPortrait"
@@ -79,45 +89,49 @@ static func build(context: BuildContext) -> Dictionary:
 	subtitle.add_theme_color_override("font_color", Color(0.82, 0.74, 0.60))
 	title_stack.add_child(subtitle)
 
+	return {"portrait_label": portrait_label, "subtitle": subtitle}
+
+
+static func _build_character_health_bar(parent: VBoxContainer) -> Dictionary:
 	var health_bar := ProgressBar.new()
 	health_bar.name = "SystemsCharacterHealthBar"
 	health_bar.custom_minimum_size = Vector2(0, 12)
 	health_bar.show_percentage = false
 	_style_health_bar(health_bar)
-	stack.add_child(health_bar)
+	parent.add_child(health_bar)
+	return {"health_bar": health_bar}
 
+
+static func _build_character_equipment_grid(parent: VBoxContainer) -> Dictionary:
 	var equipment_grid := GridContainer.new()
 	equipment_grid.name = "SystemsEquipmentSlots"
 	equipment_grid.columns = 3
 	equipment_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	equipment_grid.add_theme_constant_override("h_separation", 6)
 	equipment_grid.add_theme_constant_override("v_separation", 6)
-	stack.add_child(equipment_grid)
+	parent.add_child(equipment_grid)
+	return {
+		"equipment_grid": equipment_grid, "equipment_slots": _build_equipment_slots(equipment_grid)
+	}
 
-	var equipment_slots := _build_equipment_slots(equipment_grid)
 
+static func _build_character_rows_container(parent: VBoxContainer) -> Dictionary:
 	var rows := VBoxContainer.new()
 	rows.name = "SystemsCharacterRows"
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rows.add_theme_constant_override("separation", 7)
-	stack.add_child(rows)
+	parent.add_child(rows)
+	return {"rows": rows}
 
+
+static func _build_hidden_character_label(
+	parent: VBoxContainer, context: BuildContext
+) -> Dictionary:
 	var hidden_label: Label = context.new_label.call(14)
 	hidden_label.name = "SystemsCharacter"
 	hidden_label.visible = false
-	stack.add_child(hidden_label)
-
-	return {
-		"portrait_label": portrait_label,
-		"subtitle": subtitle,
-		"health_bar": health_bar,
-		"equipment_grid": equipment_grid,
-		"equipment_slots": equipment_slots,
-		"scroll": scroll,
-		"rows": rows,
-		"hidden_label": hidden_label,
-		"new_button": context.new_button
-	}
+	parent.add_child(hidden_label)
+	return {"hidden_label": hidden_label}
 
 
 static func _add_portrait_art(parent: Control) -> void:
@@ -216,10 +230,18 @@ static func _row_button(nodes: Dictionary, index: int) -> Button:
 static func _build_equipment_slots(parent: GridContainer) -> Dictionary:
 	var slots := {}
 	var layout := [
-		"", "head", "necklace",
-		"left_hand", "chest", "right_hand",
-		"ring_1", "legs", "ring_2",
-		"gloves", "boots", "back"
+		"",
+		"head",
+		"necklace",
+		"left_hand",
+		"chest",
+		"right_hand",
+		"ring_1",
+		"legs",
+		"ring_2",
+		"gloves",
+		"boots",
+		"back"
 	]
 	for slot_id in layout:
 		if slot_id.is_empty():

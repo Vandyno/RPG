@@ -1,0 +1,6 @@
+{
+  "dialogue_northgate_jail_guard": {
+    "id": "dialogue_northgate_jail_guard",
+    "lines": [{"id": "lawful", "speaker": "Northgate Gaoler", "text": "Fines settle lesser charges. Surrender serves the sentence. Resistance makes it blood work.", "choices": [{"id": "leave", "text": "Understood."}]}]
+  }
+}

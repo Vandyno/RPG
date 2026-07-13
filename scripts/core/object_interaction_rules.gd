@@ -1,13 +1,15 @@
 class_name ObjectInteractionRules
 extends RefCounted
 
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
+
 
 static func container_detail(entity, chunk_manager, condition_evaluator) -> String:
 	return access_detail(entity, chunk_manager, condition_evaluator, "Container")
 
 
 static func access_detail(entity, chunk_manager, condition_evaluator, label: String) -> String:
-	if chunk_manager.is_object_opened(entity.get_entity_id(), entity.global_tile):
+	if _is_object_opened(chunk_manager, entity):
 		return "%s: opened" % label
 	if is_access_locked(entity.data, condition_evaluator):
 		return "%s: locked" % label
@@ -15,7 +17,7 @@ static func access_detail(entity, chunk_manager, condition_evaluator, label: Str
 
 
 static func access_action_text(entity, chunk_manager, condition_evaluator) -> String:
-	if chunk_manager.is_object_opened(entity.get_entity_id(), entity.global_tile):
+	if _is_object_opened(chunk_manager, entity):
 		return "Opened"
 	if is_access_locked(entity.data, condition_evaluator):
 		return "Locked"
@@ -42,3 +44,24 @@ static func is_access_locked(data: Dictionary, condition_evaluator) -> bool:
 	if not conditions is Array or conditions.is_empty():
 		return false
 	return not condition_evaluator or not condition_evaluator.evaluate_all(conditions)
+
+
+static func _is_object_opened(chunk_manager, entity) -> bool:
+	if not chunk_manager or not chunk_manager.has_method("is_object_opened"):
+		return false
+	var arg_count := _method_argument_count(chunk_manager, "is_object_opened")
+	if arg_count >= 3:
+		return bool(
+			chunk_manager.is_object_opened(
+				entity.get_entity_id(), entity.global_tile, VariantFields.entity_layer(entity)
+			)
+		)
+	return bool(chunk_manager.is_object_opened(entity.get_entity_id(), entity.global_tile))
+
+
+static func _method_argument_count(target, method_name: String) -> int:
+	for method in target.get_method_list():
+		if String(method.get("name", "")) != method_name:
+			continue
+		return method.get("args", []).size()
+	return 0

@@ -10,6 +10,10 @@ var content: ContentDatabase
 var inventory: InventoryManager
 var equipment: EquipmentManager
 var time: TimeManager
+var schedule_manager
+var crime_manager
+
+const REFUSAL_DISPOSITION := -40
 
 
 func setup(
@@ -24,6 +28,14 @@ func setup(
 	inventory = inventory_manager
 	equipment = equipment_manager
 	time = time_manager
+
+
+func set_schedule_manager(manager) -> void:
+	schedule_manager = manager
+
+
+func set_crime_manager(manager) -> void:
+	crime_manager = manager
 
 
 func buy_item(shop_id: String, item_id: String) -> bool:
@@ -92,14 +104,18 @@ func sell_result(shop_id: String, item_id: String) -> Dictionary:
 func buy_price(shop_id: String, item_id: String) -> int:
 	for stock_entry in _shop_stock(shop_id):
 		if String(stock_entry.get("item_id", "")) == item_id:
-			return _positive_int_value(stock_entry.get("price", _item_value(item_id)), 0)
+			var base := _positive_int_value(stock_entry.get("price", _item_value(item_id)), 0)
+			return ceili(float(base) * _crime_price_multiplier(shop_id))
 	return 0
 
 
 func sell_price(shop_id: String, item_id: String) -> int:
 	if not is_shop_open(shop_id):
 		return 0
-	return base_sell_price(item_id)
+	var base := base_sell_price(item_id)
+	if base <= 0:
+		return 0
+	return maxi(1, floori(float(base) / _crime_price_multiplier(shop_id)))
 
 
 func base_sell_price(item_id: String) -> int:
@@ -183,6 +199,43 @@ func get_sellable_entries(shop_id: String) -> Array[Dictionary]:
 func is_shop_open(shop_id: String) -> bool:
 	var shop := _shop(shop_id)
 	if shop.is_empty() or not shop.has("open_hour") or not shop.has("close_hour") or not time:
+		return not _worker_refuses_service(shop_id)
+	if _worker_refuses_service(shop_id):
+		return false
+	var service_id := String(shop.get("service_id", shop_id))
+	var open_minute := _hour_to_minute(shop.get("open_hour", 0))
+	var close_minute := _hour_to_minute(shop.get("close_hour", 0))
+	var current_minute: int = time.minute_of_day
+	if open_minute == close_minute:
+		return true
+	if open_minute < close_minute:
+		if not (current_minute >= open_minute and current_minute < close_minute):
+			return false
+	else:
+		if not (current_minute >= open_minute or current_minute < close_minute):
+			return false
+	if shop.has("worker_npc_id") and schedule_manager and not schedule_manager.is_service_available(service_id):
+		return false
+	return true
+
+
+func shop_unavailable_reason(shop_id: String) -> String:
+	var shop := _shop(shop_id)
+	if shop.is_empty():
+		return "Shop does not exist."
+	var service_id := String(shop.get("service_id", shop_id))
+	if _worker_refuses_service(shop_id):
+		return "The worker refuses to serve you because of your crimes."
+	if shop.has("worker_npc_id") and schedule_manager and not schedule_manager.is_service_available(service_id):
+		return schedule_manager.service_unavailable_reason(service_id)
+	if not is_shop_open_by_hours(shop_id):
+		return "Shop is closed."
+	return ""
+
+
+func is_shop_open_by_hours(shop_id: String) -> bool:
+	var shop := _shop(shop_id)
+	if shop.is_empty() or not shop.has("open_hour") or not shop.has("close_hour") or not time:
 		return true
 	var open_minute := _hour_to_minute(shop.get("open_hour", 0))
 	var close_minute := _hour_to_minute(shop.get("close_hour", 0))
@@ -212,6 +265,35 @@ func _item(item_id: String) -> Dictionary:
 
 func _item_value(item_id: String) -> int:
 	return _non_negative_int_value(_item(item_id).get("value", 0), 0)
+
+
+func _worker_refuses_service(shop_id: String) -> bool:
+	if not crime_manager:
+		return false
+	var npc_id := String(_shop(shop_id).get("worker_npc_id", ""))
+	return not npc_id.is_empty() and crime_manager.get_disposition(npc_id) <= REFUSAL_DISPOSITION
+
+
+func _crime_price_multiplier(shop_id: String) -> float:
+	if not crime_manager:
+		return 1.0
+	var shop := _shop(shop_id)
+	var npc_id := String(shop.get("worker_npc_id", ""))
+	var disposition: int = crime_manager.get_disposition(npc_id) if not npc_id.is_empty() else 0
+	var multiplier := 1.0 + maxf(0.0, float(-disposition)) * 0.005
+	var faction_id := _worker_faction_id(npc_id)
+	if crime_manager.has_active_report_for_faction(faction_id):
+		multiplier += 0.15
+	return clampf(multiplier, 0.5, 2.0)
+
+
+func _worker_faction_id(npc_id: String) -> String:
+	if npc_id.is_empty() or not content:
+		return ""
+	var npc: Dictionary = content.get_npc(npc_id)
+	var profile_id := String(npc.get("character_profile_id", ""))
+	var profile: Dictionary = content.get_resolved_character_profile(profile_id)
+	return String(profile.get("faction_id", npc.get("faction_id", "")))
 
 
 func _hour_to_minute(value: Variant) -> int:

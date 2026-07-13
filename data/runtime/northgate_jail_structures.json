@@ -1,0 +1,4 @@
+[
+  {"archetype_id": "archetype_structure_northgate_jail_exterior", "id": "structure_northgate_jail", "name": "Northgate Lockup", "origin_tile": [-3247, -3958], "seed": "northgate:jail:exterior", "world_layer": "surface"},
+  {"archetype_id": "archetype_structure_northgate_jail_interior", "id": "structure_northgate_jail_interior", "name": "Northgate Lockup Interior", "origin_tile": [0, 0], "seed": "northgate:jail:interior", "world_layer": "interior:structure_northgate_jail"}
+]

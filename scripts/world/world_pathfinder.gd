@@ -6,14 +6,16 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const MAX_SEARCH_RADIUS := 28
 
 
-static func path_to(query: Dictionary, from_world: Vector2, to_world: Vector2) -> Array[Vector2]:
-	if not _can_stand_at(query, to_world):
+static func path_to(
+	can_stand_at: Callable, from_world: Vector2, to_world: Vector2
+) -> Array[Vector2]:
+	if not _can_stand_at(can_stand_at, to_world):
 		return []
 	var start_tile := GridMath.world_to_tile(from_world)
 	var goal_tile := GridMath.world_to_tile(to_world)
 	if start_tile == goal_tile:
 		return [to_world]
-	var tiles := _tile_path(query, start_tile, goal_tile)
+	var tiles := _tile_path(can_stand_at, start_tile, goal_tile)
 	if tiles.is_empty():
 		return []
 	var points: Array[Vector2] = []
@@ -21,25 +23,25 @@ static func path_to(query: Dictionary, from_world: Vector2, to_world: Vector2) -
 		points.append(_tile_center(tiles[index]))
 	if points.is_empty() or points[points.size() - 1].distance_to(to_world) > 1.0:
 		points.append(to_world)
-	return _simplified_points(query, from_world, points)
+	return _simplified_points(can_stand_at, from_world, points)
 
 
 static func approach_path_to(
-	query: Dictionary, from_world: Vector2, target_world: Vector2, stop_distance: float
+	can_stand_at: Callable, from_world: Vector2, target_world: Vector2, stop_distance: float
 ) -> Array[Vector2]:
 	if stop_distance <= 0.0:
 		return []
 	if from_world.distance_to(target_world) <= stop_distance:
 		return [from_world]
-	for candidate in _approach_candidates(query, from_world, target_world, stop_distance):
-		var path := path_to(query, from_world, candidate)
+	for candidate in _approach_candidates(can_stand_at, from_world, target_world, stop_distance):
+		var path := path_to(can_stand_at, from_world, candidate)
 		if not path.is_empty():
 			return path
 	return []
 
 
 static func _approach_candidates(
-	query: Dictionary, from_world: Vector2, target_world: Vector2, stop_distance: float
+	can_stand_at: Callable, from_world: Vector2, target_world: Vector2, stop_distance: float
 ) -> Array[Vector2]:
 	var candidates: Array[Vector2] = []
 	var target_tile := GridMath.world_to_tile(target_world)
@@ -49,9 +51,9 @@ static func _approach_candidates(
 			var point := _tile_center(Vector2i(x, y))
 			if point.distance_to(target_world) > stop_distance:
 				continue
-			if _can_stand_at(query, point):
+			if _can_stand_at(can_stand_at, point):
 				candidates.append(point)
-	if _can_stand_at(query, target_world):
+	if _can_stand_at(can_stand_at, target_world):
 		candidates.append(target_world)
 	candidates.sort_custom(
 		func(a: Vector2, b: Vector2) -> bool:
@@ -65,7 +67,7 @@ static func _approach_candidates(
 
 
 static func _tile_path(
-	query: Dictionary, start_tile: Vector2i, goal_tile: Vector2i
+	can_stand_at: Callable, start_tile: Vector2i, goal_tile: Vector2i
 ) -> Array[Vector2i]:
 	var frontier: Array[Vector2i] = [start_tile]
 	var came_from: Dictionary = {_tile_key(start_tile): start_tile}
@@ -85,7 +87,7 @@ static func _tile_path(
 			var key := _tile_key(neighbor)
 			if came_from.has(key):
 				continue
-			if not _can_stand_at(query, _tile_center(neighbor)):
+			if not _can_stand_at(can_stand_at, _tile_center(neighbor)):
 				continue
 			came_from[key] = current
 			frontier.append(neighbor)
@@ -104,7 +106,7 @@ static func _reconstruct_path(
 
 
 static func _simplified_points(
-	query: Dictionary, from_world: Vector2, points: Array[Vector2]
+	can_stand_at: Callable, from_world: Vector2, points: Array[Vector2]
 ) -> Array[Vector2]:
 	var simplified: Array[Vector2] = []
 	var anchor := from_world
@@ -112,7 +114,7 @@ static func _simplified_points(
 	while index < points.size():
 		var farthest := index
 		for candidate in range(points.size() - 1, index - 1, -1):
-			if _has_clear_segment(query, anchor, points[candidate]):
+			if _has_clear_segment(can_stand_at, anchor, points[candidate]):
 				farthest = candidate
 				break
 		simplified.append(points[farthest])
@@ -121,7 +123,7 @@ static func _simplified_points(
 	return simplified
 
 
-static func _has_clear_segment(query: Dictionary, start: Vector2, end: Vector2) -> bool:
+static func _has_clear_segment(can_stand_at: Callable, start: Vector2, end: Vector2) -> bool:
 	var delta := end - start
 	var distance := delta.length()
 	if distance <= 1.0:
@@ -130,14 +132,13 @@ static func _has_clear_segment(query: Dictionary, start: Vector2, end: Vector2) 
 	var step := maxf(4.0, float(GridMath.TILE_SIZE) * 0.5)
 	var traveled := step
 	while traveled < distance:
-		if not _can_stand_at(query, start + direction * traveled):
+		if not _can_stand_at(can_stand_at, start + direction * traveled):
 			return false
 		traveled += step
-	return _can_stand_at(query, end)
+	return _can_stand_at(can_stand_at, end)
 
 
-static func _can_stand_at(query: Dictionary, world_position: Vector2) -> bool:
-	var can_stand_at: Callable = query.get("can_stand_at", Callable())
+static func _can_stand_at(can_stand_at: Callable, world_position: Vector2) -> bool:
 	return can_stand_at.is_valid() and bool(can_stand_at.call(world_position))
 
 

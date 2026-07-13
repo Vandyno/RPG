@@ -52,7 +52,41 @@ func test_rejects_broken_objects_and_terrain() -> void:
 			"system_tab": "trade",
 			"actions": [{"id": "", "text": ""}]
 		},
+		{
+			"id": "door_bad_portal",
+			"name": "Bad Portal",
+			"kind": "door",
+			"global_tile": [4, 4],
+			"portal": {"target_layer": "", "target_tile": ["x", 1], "target_facing": [0]}
+		},
 		{"id": "poi_bad", "name": "Duplicate", "kind": "unknown", "global_tile": [3, 3]}
+	]
+	content.structure_archetypes = {
+		"archetype_bad": {
+			"id": "wrong_archetype",
+			"name": "",
+			"visual_style": "",
+			"size": [2, 2],
+			"terrain_rows": ["wxy"],
+			"tile_kinds": {"w": "lava"},
+			"anchors": {"": [0, 0], "bad": [0]}
+		}
+	}
+	content.world_structures = [
+		{
+			"id": "",
+			"name": "Missing ID",
+			"archetype_id": "missing",
+			"world_layer": "",
+			"origin_tile": [0]
+		},
+		{
+			"id": "structure_bad",
+			"name": "",
+			"archetype_id": "missing",
+			"world_layer": "",
+			"origin_tile": ["x", 0]
+		}
 	]
 	content.world_terrain = {
 		"areas":
@@ -91,6 +125,23 @@ func test_rejects_broken_objects_and_terrain() -> void:
 	assert_true(joined.contains("trade system_tab without shop_id"))
 	assert_true(joined.contains("Duplicate world object id poi_bad"))
 	assert_true(joined.contains("World object poi_bad has unsupported kind unknown"))
+	assert_true(joined.contains("World object door_bad_portal portal is missing target_layer"))
+	assert_true(joined.contains("target_tile values must be numeric"))
+	assert_true(joined.contains("target_facing must be [x, y]"))
+	assert_true(joined.contains("Structure archetype archetype_bad has mismatched id"))
+	assert_true(joined.contains("Structure archetype archetype_bad is missing name"))
+	assert_true(joined.contains("Structure archetype archetype_bad is missing visual_style"))
+	assert_true(joined.contains("terrain_rows height must match size"))
+	assert_true(joined.contains("terrain row 0 width must match size"))
+	assert_true(joined.contains("terrain code w has unsupported kind lava"))
+	assert_true(joined.contains("terrain code x has no tile kind"))
+	assert_true(joined.contains("anchors has blank anchor id"))
+	assert_true(joined.contains("anchor bad must be [x, y]"))
+	assert_true(joined.contains("World structure is missing id"))
+	assert_true(joined.contains("World structure structure_bad is missing name"))
+	assert_true(joined.contains("references missing archetype missing"))
+	assert_true(joined.contains("World structure structure_bad is missing world_layer"))
+	assert_true(joined.contains("origin_tile values must be numeric"))
 	assert_true(joined.contains("bounds min must be [x, y]"))
 	assert_true(joined.contains("bounds max values must be numeric"))
 	assert_true(joined.contains("unsupported terrain kind lava"))

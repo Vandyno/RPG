@@ -66,13 +66,8 @@ static func _validate_item_avatar_visual(
 	elif not EquipmentSlots.accepts(avatar_slot, String(item.get("equipment_slot", ""))):
 		errors.append("Item %s avatar_visual avatar_slot does not match equipment_slot." % item_id)
 	var layer_id := String(visual.get("visual_layer_id", ""))
-	var accepted_placeholder := bool(visual.get("accepted_placeholder", false))
 	if layer_id.is_empty():
 		errors.append("Item %s avatar_visual is missing visual_layer_id." % item_id)
-	if not accepted_placeholder and String(visual.get("paperdoll_sprite_id", "")).is_empty():
-		errors.append(
-			"Item %s avatar_visual needs paperdoll_sprite_id or accepted_placeholder." % item_id
-		)
 
 
 static func _validate_readables(content: ContentDatabase, errors: Array[String]) -> void:
@@ -95,12 +90,8 @@ static func _validate_shops(content: ContentDatabase, errors: Array[String]) -> 
 		Schema.validate_keyed_id(shop, String(shop_id), "Shop", errors)
 		if String(shop.get("name", "")).is_empty():
 			errors.append("Shop %s is missing name." % shop_id)
-		Schema.validate_optional_bounded_number(
-			shop, "open_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
-		)
-		Schema.validate_optional_bounded_number(
-			shop, "close_hour", "Shop %s" % shop_id, 0.0, 23.0, errors
-		)
+		Schema.validate_optional_hour(shop, "open_hour", "Shop %s" % shop_id, errors)
+		Schema.validate_optional_hour(shop, "close_hour", "Shop %s" % shop_id, errors)
 		var stock_value: Variant = shop.get("stock", [])
 		var stock: Array = Schema.array_field(stock_value)
 		if not stock_value is Array or stock.is_empty():

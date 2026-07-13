@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 class_name PlayerController
 extends Node2D
 
@@ -5,18 +6,25 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const HumanoidProfile = preload("res://scripts/characters/humanoid_profile.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.gd")
 
 const COLLISION_RADIUS := WorldEntityMovement.COLLISION_RADIUS
 const MAX_COLLISION_STEP := WorldEntityMovement.MAX_COLLISION_STEP
+const MAX_MOVE_STEPS_PER_CALL := WorldEntityMovement.MAX_MOVE_STEPS_PER_CALL
 const BLOCKED_MESSAGE_INTERVAL := 0.35
 const DEFAULT_MAX_HEALTH := 100
 const DEFAULT_MAX_MANA := 100.0
 const SNEAK_SPEED_MULTIPLIER := 0.45
 const MOVE_INPUT_THRESHOLD := 0.01
+const FOOTSTEP_INTERVAL_SECONDS := 0.42
+const SNEAK_FOOTSTEP_INTERVAL_SECONDS := 0.70
+const FOOTSTEP_NOISE_RADIUS := 88.0
+const SNEAK_FOOTSTEP_NOISE_RADIUS := 30.0
 
 var event_bus: EventBus
 var chunk_manager
+var world_layer := "surface"
 var global_tile := Vector2i.ZERO
 var move_speed := 220.0
 var blocked_message_cooldown := 0.0
@@ -29,11 +37,13 @@ var facing_direction := Vector2.DOWN
 var humanoid_profile: Dictionary = HumanoidProfile.from_data({"character_id": "char_player"})
 var humanoid_avatar: HumanoidAvatar2D
 var is_sneaking := false
+var footstep_cooldown := 0.0
 
 
 func setup(bus: EventBus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
 	event_bus = bus
 	chunk_manager = chunks
+	_apply_query_layer()
 	_ensure_humanoid_avatar()
 	set_global_tile(start_tile)
 
@@ -46,6 +56,9 @@ func _process(delta: float) -> void:
 		humanoid_avatar.set_locomotion(is_moving, is_sneaking, delta)
 	if is_moving:
 		try_move(direction, delta)
+		_tick_footstep_noise(delta)
+	else:
+		footstep_cooldown = 0.0
 
 
 func try_move(direction: Vector2, delta: float = 1.0) -> void:
@@ -57,13 +70,15 @@ func try_move(direction: Vector2, delta: float = 1.0) -> void:
 		humanoid_avatar.set_facing_direction(facing_direction)
 	var speed := move_speed * (SNEAK_SPEED_MULTIPLIER if is_sneaking else 1.0)
 	var remaining_distance := speed * delta
-	while remaining_distance > 0.0:
+	var step_count := 0
+	while remaining_distance > 0.0 and step_count < MAX_MOVE_STEPS_PER_CALL:
 		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
 		var motion := normalized_direction * step_distance
 		if not _try_move_step(motion):
 			_post_blocked_message()
 			return
 		remaining_distance -= step_distance
+		step_count += 1
 
 
 func _try_move_step(motion: Vector2) -> bool:
@@ -84,33 +99,53 @@ func set_world_position(world_position: Vector2) -> void:
 	queue_redraw()
 
 
+func set_world_layer(layer: String) -> void:
+	var next_layer := "surface" if layer.is_empty() else layer
+	if world_layer == next_layer:
+		_apply_query_layer()
+		return
+	world_layer = next_layer
+	_apply_query_layer()
+	if event_bus:
+		event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
+
+
+func get_world_layer() -> String:
+	return world_layer
+
+
 func get_save_data() -> Dictionary:
 	return {
 		"global_tile": [global_tile.x, global_tile.y],
 		"world_position": [position.x, position.y],
 		"chunk_coord":
 		[GridMath.tile_to_chunk(global_tile).x, GridMath.tile_to_chunk(global_tile).y],
-		"world_layer": "surface",
+		"world_layer": world_layer,
 		"stats": {},
 		"health": health,
 		"max_health": max_health,
 		"mana": mana,
-		"max_mana": max_mana
+		"max_mana": max_mana,
+		"humanoid_profile": humanoid_profile.duplicate(true)
 	}
 
 
 func load_save_data(data: Dictionary) -> void:
+	var saved_profile: Variant = data.get("humanoid_profile", {})
+	if saved_profile is Dictionary and not saved_profile.is_empty():
+		set_humanoid_profile(saved_profile)
+	set_world_layer(String(data.get("world_layer", "surface")))
 	max_health = maxi(1, int(data.get("max_health", DEFAULT_MAX_HEALTH)))
 	set_health(int(data.get("health", max_health)))
 	max_mana = maxf(1.0, float(data.get("max_mana", DEFAULT_MAX_MANA)))
 	set_mana(float(data.get("mana", max_mana)))
-	var world_position := _numeric_pair(data.get("world_position", []))
+	var world_position := VariantFields.numeric_pair(data.get("world_position", []))
 	if not world_position.is_empty():
 		var loaded_position := Vector2(float(world_position[0]), float(world_position[1]))
 		if _can_stand_at(loaded_position):
 			set_world_position(loaded_position)
 			return
-	var tile_array := _numeric_pair(data.get("global_tile", [0, 0]))
+	var tile_array := VariantFields.numeric_pair(data.get("global_tile", [0, 0]))
 	if tile_array.is_empty():
 		tile_array = [0, 0]
 	var loaded_tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
@@ -196,6 +231,31 @@ func set_sneaking(value: bool) -> bool:
 	return is_sneaking
 
 
+func _tick_footstep_noise(delta: float) -> void:
+	footstep_cooldown -= delta
+	if footstep_cooldown > 0.0:
+		return
+	footstep_cooldown = (
+		SNEAK_FOOTSTEP_INTERVAL_SECONDS if is_sneaking else FOOTSTEP_INTERVAL_SECONDS
+	)
+	if not event_bus or not event_bus.has_signal("noise_emitted"):
+		return
+	event_bus.noise_emitted.emit(
+		{
+			"kind": "footstep",
+			"source_id": "player",
+			"world_position": [global_position.x, global_position.y],
+			"world_layer": world_layer,
+			"noise_radius": (
+				SNEAK_FOOTSTEP_NOISE_RADIUS if is_sneaking else FOOTSTEP_NOISE_RADIUS
+			),
+			"loudness": "quiet" if is_sneaking else "normal",
+			"visible": false,
+			"target_sneaking": is_sneaking
+		}
+	)
+
+
 func set_facing_direction(value: Vector2) -> void:
 	if value.length() > 0.01:
 		facing_direction = FacingBuckets.snap_direction(value, facing_direction)
@@ -222,6 +282,11 @@ func _can_stand_at(world_position: Vector2) -> bool:
 	return WorldEntityMovement.can_stand_at(world_position, chunk_manager)
 
 
+func _apply_query_layer() -> void:
+	if chunk_manager and chunk_manager.has_method("set_layer"):
+		chunk_manager.set_layer(world_layer)
+
+
 func _post_blocked_message() -> void:
 	if blocked_message_cooldown > 0.0:
 		return
@@ -230,20 +295,8 @@ func _post_blocked_message() -> void:
 		event_bus.post_message("The path is blocked.")
 
 
-func _numeric_pair(value: Variant) -> Array:
-	if not value is Array or value.size() < 2:
-		return []
-	if not _is_number(value[0]) or not _is_number(value[1]):
-		return []
-	return [value[0], value[1]]
-
-
 func _center_of_tile(tile: Vector2i) -> Vector2:
 	return GridMath.tile_to_world(tile) + Vector2(GridMath.TILE_SIZE, GridMath.TILE_SIZE) * 0.5
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float
 
 
 func _ensure_humanoid_avatar() -> void:

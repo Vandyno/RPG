@@ -6,12 +6,48 @@
     "close_hour": 18,
     "stock": [
       {
-        "item_id": "item_roadside_draught",
-        "price": 8
-      },
-      {
         "item_id": "item_traveler_buckler",
         "price": 18
+      },
+      {
+        "item_id": "item_leather_cuirass",
+        "price": 35
+      },
+      {
+        "item_id": "item_iron_cuirass",
+        "price": 70
+      },
+      {
+        "item_id": "item_leather_cap",
+        "price": 18
+      },
+      {
+        "item_id": "item_leather_leggings",
+        "price": 25
+      },
+      {
+        "item_id": "item_leather_gloves",
+        "price": 14
+      },
+      {
+        "item_id": "item_leather_boots",
+        "price": 16
+      },
+      {
+        "item_id": "item_iron_helm",
+        "price": 38
+      },
+      {
+        "item_id": "item_iron_leggings",
+        "price": 52
+      },
+      {
+        "item_id": "item_iron_gauntlets",
+        "price": 32
+      },
+      {
+        "item_id": "item_iron_boots",
+        "price": 34
       }
     ]
   }

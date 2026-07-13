@@ -3,6 +3,7 @@ extends RefCounted
 
 const SystemsTabState = preload("res://scripts/ui/systems/systems_tab_state.gd")
 const RpgSystemsRowData = preload("res://scripts/ui/systems/rows/rpg_systems_row_data.gd")
+const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.gd")
 
 
 static func category_labels() -> Array:
@@ -56,6 +57,14 @@ static func _character_rows(state: Dictionary) -> Array[Dictionary]:
 				String(tab.get("status_details", "")),
 				"No active effects."
 			)
+		},
+		{
+			"id": "character_appearance",
+			"title": "Appearance",
+			"subtitle": "People, face, and body",
+			"meta": "Overview",
+			"detail": "Change your people, face, and body appearance.",
+			"action_id": SystemsActionIds.open_appearance()
 		}
 	]
 	var actions := RpgSystemsRowData.array_field(tab.get("actions", []))

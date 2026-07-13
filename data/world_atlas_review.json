@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "atlas_id": "velcor_continent_proposal_v1",
+  "atlas_schema_version": "1.0.0",
+  "decision_status": "approved",
+  "reviewed_by": "user",
+  "reviewed_at_utc": "2026-07-11T03:08:35Z",
+  "notes": "Editable review record. Only record approval after the user explicitly decides. Rejected items require atlas revision before generation.",
+  "item_decisions": [
+    {"collection": "settlements", "id": "saltspring", "decision": "approved", "note": "Approved by user as atlas canon."},
+    {"collection": "settlements", "id": "mudwake", "decision": "approved", "note": "Approved by user as atlas canon."},
+    {"collection": "settlements", "id": "greywake", "decision": "approved", "note": "Approved by user as atlas canon."},
+    {"collection": "settlements", "id": "wreckpoint", "decision": "approved", "note": "Approved by user as atlas canon."},
+    {"collection": "landmarks", "id": "greenwood_boundary", "decision": "approved", "note": "Approved manually traced geometry."},
+    {"collection": "landmarks", "id": "blackrook_archive", "decision": "approved", "note": "Approved reference-image isle wording."},
+    {"collection": "landmarks", "id": "last_perch", "decision": "approved", "note": "Approved by user as atlas canon."}
+  ]
+}

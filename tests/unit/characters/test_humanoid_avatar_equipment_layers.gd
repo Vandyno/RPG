@@ -162,27 +162,6 @@ func test_smith_apron_uses_wrapping_chest_visual() -> void:
 	assert_true(avatar._chest_equipment_uses_wrap_style())
 
 
-func test_smith_apron_uses_front_side_and_back_draw_modes() -> void:
-	var avatar := HumanoidAvatar2D.new()
-	add_child_autofree(avatar)
-	avatar.setup({}, {"chest": "item_smith_apron"}, ContentStub.new())
-
-	avatar.set_facing_direction(Vector2.DOWN)
-	assert_eq(avatar._apron_draw_mode(), "front")
-
-	avatar.set_facing_direction(Vector2.RIGHT)
-	assert_eq(avatar._apron_draw_mode(), "side")
-
-	avatar.set_facing_direction(Vector2.UP)
-	assert_eq(avatar._apron_draw_mode(), "back")
-
-	avatar.set_facing_direction(Vector2(1.0, 1.0))
-	assert_eq(avatar._apron_draw_mode(), "front")
-
-	avatar.set_facing_direction(Vector2(1.0, -1.0))
-	assert_eq(avatar._apron_draw_mode(), "back")
-
-
 func test_body_projection_turns_side_edges_with_facing() -> void:
 	var avatar := HumanoidAvatar2D.new()
 	add_child_autofree(avatar)

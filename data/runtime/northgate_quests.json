@@ -1,0 +1,56 @@
+{
+  "quest_northgate_missing_manifest": {
+    "canon_status": "proposal",
+    "description": "Northgate's trade manifest has gone missing inside the storehouse.",
+    "id": "quest_northgate_missing_manifest",
+    "initial_state": "inactive",
+    "required_npc_ids": [
+      "npc_northgate_storekeeper"
+    ],
+    "rewards": [
+      {
+        "count": 12,
+        "item_id": "item_gold_coin",
+        "type": "add_item"
+      },
+      {
+        "amount": 2,
+        "faction_id": "faction_marches_of_velcor",
+        "type": "change_reputation"
+      },
+      {
+        "amount": 10,
+        "type": "add_experience"
+      }
+    ],
+    "stages": {
+      "found": {
+        "objectives": {
+          "return": {
+            "target_id": "poi_northgate_notice_board",
+            "text": "Return the manifest to Northgate's notice board."
+          }
+        }
+      },
+      "search": {
+        "npc_routines": [
+          {
+            "action": "search the ledger desk",
+            "destination_id": "northgate_store_ledger_runtime",
+            "npc_id": "npc_northgate_storekeeper",
+            "reason": "quest duty",
+            "routine_id": "search_missing_manifest"
+          }
+        ],
+        "objectives": {
+          "find": {
+            "target_id": "pickup_northgate_missing_manifest",
+            "text": "Find the missing trade manifest in Northgate's storehouse."
+          }
+        }
+      }
+    },
+    "start_stage": "search",
+    "title": "The Missing Manifest"
+  }
+}

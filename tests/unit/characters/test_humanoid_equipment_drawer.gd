@@ -15,12 +15,18 @@ func test_equipment_drawer_handles_empty_avatar_visuals() -> void:
 func test_equipment_drawer_owns_apron_draw_mode_policy() -> void:
 	var avatar := HumanoidAvatar2D.new()
 
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "front")
+
+	avatar.set_facing_direction(Vector2(1.0, 1.0))
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "front")
+
 	avatar.set_facing_direction(Vector2.UP)
+	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "back")
+
+	avatar.set_facing_direction(Vector2(1.0, -1.0))
 	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "back")
 
 	avatar.set_facing_direction(Vector2.RIGHT)
 	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "side")
-
-	avatar.set_facing_direction(Vector2.DOWN)
-	assert_eq(HumanoidEquipmentDrawer._apron_draw_mode(avatar), "front")
 	avatar.free()

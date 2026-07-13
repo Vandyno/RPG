@@ -10,7 +10,7 @@ func test_path_to_returns_direct_goal_when_segment_is_clear() -> void:
 	var start := _center(Vector2i(0, 0))
 	var goal := _center(Vector2i(3, 0))
 
-	var path := WorldPathfinder.path_to(_query({}), start, goal)
+	var path := WorldPathfinder.path_to(_can_stand_at_for({}), start, goal)
 
 	assert_eq(path, [goal])
 
@@ -19,7 +19,9 @@ func test_path_to_rejects_blocked_destination() -> void:
 	var start := _center(Vector2i(0, 0))
 	var goal_tile := Vector2i(2, 0)
 
-	var path := WorldPathfinder.path_to(_query({_key(goal_tile): true}), start, _center(goal_tile))
+	var path := WorldPathfinder.path_to(
+		_can_stand_at_for({_key(goal_tile): true}), start, _center(goal_tile)
+	)
 
 	assert_eq(path, [])
 
@@ -28,7 +30,7 @@ func test_path_to_routes_around_blocked_segment() -> void:
 	var start := _center(Vector2i(0, 0))
 	var goal := _center(Vector2i(2, 0))
 
-	var path := WorldPathfinder.path_to(_query({_key(Vector2i(1, 0)): true}), start, goal)
+	var path := WorldPathfinder.path_to(_can_stand_at_for({_key(Vector2i(1, 0)): true}), start, goal)
 
 	assert_gt(path.size(), 1)
 	assert_eq(path[path.size() - 1], goal)
@@ -42,7 +44,7 @@ func test_path_to_returns_empty_when_goal_is_unreachable() -> void:
 		wall[_key(Vector2i(1, y))] = true
 
 	var path := WorldPathfinder.path_to(
-		_query(wall),
+		_can_stand_at_for(wall),
 		_center(Vector2i(0, 0)),
 		_center(Vector2i(2, 0))
 	)
@@ -54,7 +56,7 @@ func test_approach_path_returns_current_position_when_already_in_range() -> void
 	var start := _center(Vector2i(0, 0))
 	var target := _center(Vector2i(1, 0))
 
-	var path := WorldPathfinder.approach_path_to(_query({}), start, target, 24.0)
+	var path := WorldPathfinder.approach_path_to(_can_stand_at_for({}), start, target, 24.0)
 
 	assert_eq(path, [start])
 
@@ -65,7 +67,7 @@ func test_approach_path_stops_near_blocked_target() -> void:
 	var target := _center(target_tile)
 
 	var path := WorldPathfinder.approach_path_to(
-		_query({_key(target_tile): true}),
+		_can_stand_at_for({_key(target_tile): true}),
 		start,
 		target,
 		24.0
@@ -76,9 +78,9 @@ func test_approach_path_stops_near_blocked_target() -> void:
 	assert_lte(path[path.size() - 1].distance_to(target), 24.0)
 
 
-func _query(blocked: Dictionary) -> Dictionary:
+func _can_stand_at_for(blocked: Dictionary) -> Callable:
 	blocked_tiles = blocked
-	return {"can_stand_at": Callable(self, "_can_stand_at")}
+	return Callable(self, "_can_stand_at")
 
 
 func _can_stand_at(world_position: Vector2) -> bool:

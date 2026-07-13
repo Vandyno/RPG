@@ -60,14 +60,21 @@ func test_actor_rules_hostility_state_drives_combat_targeting() -> void:
 	var neutral_actor := hostile_actor.duplicate(true)
 	neutral_actor["hostility"] = "neutral"
 	neutral_actor["combat_enabled"] = false
+	var neutral_damageable_actor := hostile_actor.duplicate(true)
+	neutral_damageable_actor["hostility"] = "neutral"
 	var body_actor := hostile_actor.duplicate(true)
 	body_actor["kind"] = "body"
 	var legacy_enemy_kind := {"kind": "enemy", "hostility": "hostile", "combat_enabled": true}
 
 	assert_true(ActorRules.is_combat_target_data(hostile_actor))
 	assert_false(ActorRules.is_combat_target_data(neutral_actor))
+	assert_false(ActorRules.is_combat_target_data(neutral_damageable_actor))
 	assert_false(ActorRules.is_combat_target_data(body_actor))
 	assert_false(ActorRules.is_combat_target_data(legacy_enemy_kind))
+	assert_true(ActorRules.is_damageable_actor_data(hostile_actor))
+	assert_false(ActorRules.is_damageable_actor_data(neutral_actor))
+	assert_true(ActorRules.is_damageable_actor_data(neutral_damageable_actor))
+	assert_false(ActorRules.is_damageable_actor_data(body_actor))
 
 
 func test_actor_rules_reads_combat_target_from_entities() -> void:
@@ -83,6 +90,7 @@ func test_actor_rules_reads_combat_target_from_entities() -> void:
 	assert_false(ActorRules.is_combat_target_entity(MethodCombatEntity.new(false)))
 	assert_true(ActorRules.is_combat_target_entity(DataCombatEntity.new(hostile_actor)))
 	assert_true(ActorRules.is_combat_target_entity({"data": hostile_actor}))
+	assert_true(ActorRules.is_damageable_actor_entity(DataCombatEntity.new(hostile_actor)))
 	assert_false(ActorRules.is_combat_target_entity(null))
 
 

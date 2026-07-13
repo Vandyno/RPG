@@ -56,29 +56,94 @@ static func draw_boot_layer(avatar: HumanoidAvatar2D, proportions: Dictionary) -
 	if not avatar.equipped_visuals.has("boots"):
 		return
 	var color := avatar._equipment_color("boots")
+	var layer_id := avatar._equipment_layer_id("boots")
 	var foot_size := avatar._proportion(proportions, "foot_size")
 	for side in [-1.0, 1.0]:
-		avatar._draw_foot(
+		var center := (
 			avatar._foot_anchor(side, proportions)
 			+ avatar._stride_offset(side)
-			+ Vector2(0.0, 0.8 * foot_size),
+			+ Vector2(0.0, 0.8 * foot_size)
+		)
+		avatar._draw_foot(
+			center,
 			4.6 * foot_size,
 			3.8 * foot_size,
 			side,
 			color
 		)
+		_draw_boot_finish(avatar, center, side, foot_size, color, layer_id)
+
+
+static func _draw_boot_finish(
+	avatar, center: Vector2, side: float, foot_size: float, color: Color, layer_id: String
+) -> void:
+	var toe := center + Vector2(side * 1.45 * foot_size, 0.45 * foot_size)
+	if layer_id == "placeholder_iron_boots":
+		avatar.draw_line(
+			center + Vector2(-1.65 * foot_size, -0.55 * foot_size),
+			center + Vector2(1.65 * foot_size, -0.55 * foot_size),
+			color.lightened(0.28),
+			0.62
+		)
+		avatar.draw_line(
+			toe + Vector2(-0.40 * foot_size, -1.15 * foot_size),
+			toe + Vector2(0.25 * foot_size, 0.65 * foot_size),
+			color.darkened(0.30),
+			0.54
+		)
+		return
+	avatar.draw_line(
+		center + Vector2(-1.35 * foot_size, -0.48 * foot_size),
+		center + Vector2(1.35 * foot_size, -0.48 * foot_size),
+		color.darkened(0.30),
+		0.58
+	)
+	avatar.draw_line(
+		center + Vector2(-side * 0.4 * foot_size, -1.15 * foot_size),
+		toe,
+		color.lightened(0.16),
+		0.42
+	)
 
 
 static func draw_leg_layer(avatar: HumanoidAvatar2D, proportions: Dictionary) -> void:
 	if not avatar.equipped_visuals.has("legs"):
 		return
 	var color := avatar._equipment_color("legs")
+	var iron := avatar._equipment_layer_id("legs") == "placeholder_iron_leggings"
 	var waist_width := 13.0 * avatar._proportion(proportions, "waist_width")
 	for side in [-1.0, 1.0]:
 		var hip := avatar._body_point(side * waist_width * 0.20, 2.7)
 		var knee := avatar._body_point(side * waist_width * 0.14, 7.9)
 		avatar.draw_line(hip, knee, color, 3.4)
 		avatar.draw_line(hip + Vector2(side * 0.7, 0.2), knee, color.lightened(0.16), 0.55)
+		if iron:
+			avatar.draw_circle(hip.lerp(knee, 0.68), 1.72, color.darkened(0.12))
+			avatar.draw_line(
+				hip.lerp(knee, 0.68) + Vector2(-1.05, 0.0),
+				hip.lerp(knee, 0.68) + Vector2(1.05, 0.0),
+				color.lightened(0.30),
+				0.58
+			)
+			avatar.draw_line(
+				hip.lerp(knee, 0.38) + Vector2(-1.2, 0.0),
+				hip.lerp(knee, 0.38) + Vector2(1.2, 0.0),
+				color.lightened(0.28),
+				0.6
+			)
+		else:
+			avatar.draw_line(
+				hip + Vector2(side * 0.45, 0.4),
+				knee + Vector2(side * 0.22, -0.25),
+				color.darkened(0.26),
+				0.46
+			)
+			avatar.draw_line(
+				hip.lerp(knee, 0.72) + Vector2(-1.1, 0.0),
+				hip.lerp(knee, 0.72) + Vector2(1.1, 0.0),
+				color.lightened(0.22),
+				0.6
+			)
 
 
 static func draw_chest_layer(avatar: HumanoidAvatar2D, proportions: Dictionary) -> void:
@@ -98,6 +163,7 @@ static func draw_head_layer(avatar: HumanoidAvatar2D, proportions: Dictionary) -
 	var radius := 7.1 * head_size
 	var head_offset := avatar._head_turn_offset()
 	var back_turn := avatar._back_turn_amount()
+	var lower_edge := -15.8 + back_turn * 1.0
 	var cap := PackedVector2Array(
 		[
 			head_offset + Vector2(-radius * 0.78, -15.2 - back_turn * 0.4),
@@ -105,17 +171,67 @@ static func draw_head_layer(avatar: HumanoidAvatar2D, proportions: Dictionary) -
 			head_offset + Vector2(0.0, -21.3),
 			head_offset + Vector2(radius * 0.52, -19.2),
 			head_offset + Vector2(radius * 0.78, -15.2 - back_turn * 0.4),
-			head_offset + Vector2(radius * 0.48, -13.4 + back_turn * 1.4),
-			head_offset + Vector2(-radius * 0.48, -13.4 + back_turn * 1.4)
+			head_offset + Vector2(radius * 0.48, lower_edge),
+			head_offset + Vector2(-radius * 0.48, lower_edge)
 		]
 	)
 	avatar._draw_shape(cap, color, avatar.OUTLINE, 0.75)
+	if String(avatar.profile.get("people_id", "")) == "people_mirefolk":
+		_draw_mirefolk_helm_eye_ports(avatar, head_size, head_offset, back_turn)
+	if avatar._equipment_layer_id("head") == "placeholder_iron_helm":
+		if String(avatar.profile.get("people_id", "")) != "people_mirefolk":
+			avatar.draw_line(
+				head_offset + Vector2(-radius * 0.52, -16.4),
+				head_offset + Vector2(radius * 0.52, -16.4),
+				color.lightened(0.24),
+				0.8
+			)
+		avatar.draw_line(
+			head_offset + Vector2(0.0, -19.6),
+			head_offset + Vector2(0.0, -16.1),
+			color.darkened(0.25),
+			0.65
+		)
 	avatar.draw_line(
-		head_offset + Vector2(-radius * 0.42, -15.0),
-		head_offset + Vector2(radius * 0.42, -15.2),
+		head_offset + Vector2(-radius * 0.42, -16.5),
+		head_offset + Vector2(radius * 0.42, -16.7),
 		color.lightened(0.18),
 		0.55
 	)
+
+
+static func _draw_mirefolk_helm_eye_ports(
+	avatar, head_size: float, head_offset: Vector2, back_turn: float
+) -> void:
+	if back_turn > 0.55:
+		return
+	var skin: Color = avatar._current_skin_color().darkened(0.06)
+	var rim: Color = avatar._equipment_color("head").darkened(0.34)
+	var side_turn: float = avatar._side_turn_amount()
+	if side_turn > 0.70:
+		var side: float = avatar._face_side()
+		_draw_helm_eye_port(
+			avatar, head_offset + Vector2(side * 4.5 * head_size, -18.0), 1.42 * head_size, skin, rim
+		)
+		_draw_helm_eye_port(
+			avatar,
+			head_offset + Vector2(-side * 2.5 * head_size, -18.5),
+			0.55 * head_size,
+			skin,
+			rim
+		)
+		return
+	for side in [-1.0, 1.0]:
+		_draw_helm_eye_port(
+			avatar, head_offset + Vector2(side * 4.8 * head_size, -18.1), 1.34 * head_size, skin, rim
+		)
+
+
+static func _draw_helm_eye_port(
+	avatar, center: Vector2, radius: float, skin: Color, rim: Color
+) -> void:
+	avatar.draw_circle(center, radius + 0.28, rim)
+	avatar.draw_circle(center, radius, skin)
 
 
 static func _draw_chest_armour_layer(
@@ -133,6 +249,41 @@ static func _draw_chest_armour_layer(
 		]
 	)
 	avatar._draw_shape(armour_points, color, avatar.OUTLINE, 1.0)
+	var layer_id := avatar._equipment_layer_id("chest")
+	if layer_id == "placeholder_iron_cuirass":
+		for y in [-3.8, -1.1, 1.6]:
+			avatar.draw_line(
+				avatar._body_point(-chest_width * 0.33, y),
+				avatar._body_point(chest_width * 0.33, y - 0.15),
+				color.lightened(0.24),
+				0.7
+			)
+		for side in [-1.0, 1.0]:
+			avatar.draw_circle(
+				avatar._body_point(side * chest_width * 0.27, -4.6),
+				0.46,
+				color.lightened(0.34)
+			)
+	else:
+		for side in [-1.0, 1.0]:
+			avatar.draw_line(
+				avatar._body_point(side * chest_width * 0.30, -5.5),
+				avatar._body_point(side * chest_width * 0.23, -1.1),
+				color.darkened(0.28),
+				0.62
+			)
+		avatar.draw_line(
+			avatar._body_point(0.0, -5.4),
+			avatar._body_point(0.0, 3.9),
+			color.darkened(0.25),
+			0.7
+		)
+		avatar.draw_line(
+			avatar._body_point(-chest_width * 0.26, 2.7),
+			avatar._body_point(chest_width * 0.26, 2.7),
+			color.lightened(0.12),
+			0.46
+		)
 	avatar.draw_line(
 		avatar._body_point(-chest_width * 0.22, -3.0),
 		avatar._body_point(chest_width * 0.20, -3.3),

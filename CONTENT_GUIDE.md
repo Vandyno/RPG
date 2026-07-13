@@ -228,6 +228,66 @@ code.
 
 ---
 
+# Structures And Interiors
+
+Reusable structure shapes live in `data/structure_archetypes.json`. Placed
+structures live in `data/world_structures.json`.
+
+Use structures when a building needs owned visuals, layer-aware collision, or an
+interior. Keep authored terrain for broad roads, rivers, town walls, and small
+tile fixes.
+
+Structure archetypes can define:
+
+- `size`: `[width, height]` in tiles.
+- `terrain_rows`: optional row strings for wall/floor overrides.
+- `tile_kinds`: map from row character to tile kind.
+- `visual_style`: renderer style key.
+- `anchors`: named local tiles such as `entry`, `exit`, `hearth`, or `stall`.
+
+Placed structures define:
+
+- `id`
+- `name`
+- `archetype_id`
+- `world_layer`, usually `surface` or `interior:<structure_id>`
+- `origin_tile`
+- `seed`
+
+Example:
+
+```json
+{
+  "id": "structure_briarwatch_harrow_forge",
+  "name": "Harrow's Forge",
+  "archetype_id": "archetype_briarwatch_forge_exterior",
+  "world_layer": "surface",
+  "origin_tile": [4, -1],
+  "seed": "briarwatch:harrow_forge:surface"
+}
+```
+
+Doors can move the player between layers with `portal`:
+
+```json
+{
+  "id": "object_harrow_forge_door",
+  "name": "Harrow's Forge Door",
+  "kind": "door",
+  "world_layer": "surface",
+  "global_tile": [4, 3],
+  "portal": {
+    "target_layer": "interior:structure_briarwatch_harrow_forge",
+    "target_tile": [3, 4]
+  }
+}
+```
+
+Use `pick_radius` on dense doors or markers when the visible target should be
+clickable without stealing exact clicks from nearby NPCs.
+
+---
+
 # NPCs
 
 NPCs should have:
@@ -302,10 +362,6 @@ Example:
     "close_hour": 18,
     "stock": [
       {
-        "item_id": "item_roadside_draught",
-        "price": 8
-      },
-      {
         "item_id": "item_traveler_buckler",
         "price": 18
       }
@@ -319,7 +375,7 @@ items should not be sellable, and equipped items remain protected from selling.
 If a shop has hours, the Trade tab should show the hours and hide buy/sell
 actions while the shop is closed.
 
-Good shop stock should support nearby gameplay tests: healing, equipment,
+Good shop stock should support nearby gameplay tests: equipment,
 currency flow, and basic buy/sell behavior should all be reachable near the
 current spawn while the systems are still being hardened. At least one early
 shop should also be testable after resting into a closed time window.
@@ -540,17 +596,8 @@ Level-ups grant skill points. Skill points are intentionally banked for now;
 there are no implemented trainable stats until the stat model is designed.
 
 Status effects are defined in `data/status_effects.json` and can be applied by
-any authored effect list:
-
-```json
-{
-  "type": "apply_status",
-  "status_id": "status_road_focus",
-  "charges": 2
-}
-```
-
-If `charges` is omitted, the status uses its authored `attack_charges`.
+authored effect lists when a concrete gameplay slice needs them. No status is
+currently authored for Briarwatch.
 
 Time can be advanced by authored effects:
 
@@ -923,6 +970,9 @@ A copper medallion showing a faceless saint with raised hands. The back is scrat
 
 Equipment items use normal item definitions plus an `equipment_slot`.
 
+Visible humanoid equipment uses `avatar_visual.visual_layer_id`, drawn by the
+shared procedural avatar renderer.
+
 Supported early slots:
 
 - `weapon`
@@ -951,18 +1001,8 @@ Example:
 
 ## Status Effects
 
-Status effects live in `data/status_effects.json`. Current status definitions
-use attack charges, which are consumed when the player attacks.
-
-```json
-{
-  "id": "status_road_focus",
-  "name": "Road Focus",
-  "description": "A steadying rush that makes the next few strikes hit harder.",
-  "attack_charges": 2,
-  "damage_bonus": 3
-}
-```
+Status effects live in `data/status_effects.json`. The current Briarwatch slice
+does not author one yet.
 
 Consumables, readables, containers, doors, quest rewards, or dialogue choices can
 apply statuses through `apply_status`. Active statuses are shown in the HUD and
@@ -1025,9 +1065,6 @@ for simple costs:
   ]
 }
 ```
-
-For example, Harrow's Forge uses an action that requires `item_road_hatchet` and
-2 gold, removes the gold, and applies a short sharpening status.
 
 Service POIs can open a supported Systems tab directly. A market stall can link
 to a shop:
@@ -1094,7 +1131,7 @@ the conditions are not met:
 ```json
 {
   "id": "object_sealed_strongbox",
-  "name": "Sealed Strongbox",
+  "name": "Warden's Strongbox",
   "kind": "container",
   "global_tile": [7, 0],
   "interaction_radius": 128,
@@ -1109,7 +1146,7 @@ the conditions are not met:
     {
       "type": "add_item",
       "item_id": "item_gold_coin",
-      "count": 4
+      "count": 5
     }
   ]
 }
@@ -1122,8 +1159,8 @@ that should be data-driven:
 
 ```json
 {
-  "id": "object_warden_cache",
-  "name": "Warden's Cache",
+  "id": "object_aftermath_cache",
+  "name": "Aftermath Cache",
   "kind": "container",
   "global_tile": [5, 3],
   "conditions": [
@@ -1149,8 +1186,8 @@ with containers:
 
 ```json
 {
-  "id": "object_north_gate",
-  "name": "North Gate",
+  "id": "object_example_route_gate",
+  "name": "Route Gate",
   "kind": "door",
   "global_tile": [0, -7],
   "interaction_radius": 128,
@@ -1160,11 +1197,11 @@ with containers:
       "readable_id": "readable_briarwatch_notice"
     }
   ],
-  "locked_text": "The north gate chain is marked with the warden's notice seal.",
+  "locked_text": "The route gate chain is marked with the notice seal.",
   "effects_on_open": [
     {
       "type": "set_flag",
-      "flag_id": "flag_north_gate_opened",
+      "flag_id": "flag_example_route_gate_opened",
       "value": true
     },
     {
@@ -1180,8 +1217,8 @@ authored access without custom code:
 
 ```json
 {
-  "id": "object_training_gate",
-  "name": "Training Gate",
+  "id": "object_example_training_door",
+  "name": "Training Door",
   "kind": "door",
   "global_tile": [-7, 1],
   "interaction_radius": 128,
@@ -1192,11 +1229,11 @@ authored access without custom code:
       "count": 1
     }
   ],
-  "locked_text": "The training gate's lever is notched for a training sword.",
+  "locked_text": "The training door's lever is notched for a training sword.",
   "effects_on_open": [
     {
       "type": "set_flag",
-      "flag_id": "flag_training_gate_opened",
+      "flag_id": "flag_example_training_door_opened",
       "value": true
     }
   ]
@@ -1503,3 +1540,65 @@ It should include:
 - one location or NPC response changed by quest completion
 
 The first content pack should prove that authored RPG content can be created without custom code for every object.
+## World Authoring Proposals
+
+Settlement iterations and player-facing verdicts must be appended to
+`docs/SETTLEMENT_AUTHORING_ITERATION_LOG.md`. A green validator or functional
+test suite may justify `functional_only`; it cannot justify `passable` without
+human review of the running settlement.
+
+A settlement plot is not a building footprint. Ordinary houses should use a
+compact, deliberately authored footprint inside the plot, leaving meaningful
+space for access, yards, work, drainage, planting, and visual separation.
+Harrow's `6x3` forge exterior is the current composition benchmark. Larger
+houses require an authored purpose; generators must not inflate walls to fill
+the available plot.
+
+Generated regions, settlements, POIs, NPC roles, services, and quest hooks are
+proposal data. They are not canon and are not runtime content merely because
+they validate.
+
+Proposal invariants:
+
+- `proposal_status` stays `proposal`;
+- `activation_status` stays `review_required`;
+- generated entities record atlas region, seed, template, and generator
+  version;
+- named atlas places and fixed routes are preserved rather than renamed or
+  moved;
+- review artifacts must include editable JSON, screenshots, validation, and a
+  short role/hook summary;
+- activation into `world_terrain.json`, `world_structures.json`,
+  `world_objects.json`, locations, NPCs, or quests is manual and separately
+  reviewed.
+
+Current proposal commands:
+
+```powershell
+godot --headless --path . --script res://scripts/tools/world/check_world_atlas.gd -- --require-approved
+godot --headless --path . --script res://scripts/tools/generate_world_region_proposal.gd
+godot --headless --path . --script res://scripts/tools/capture/capture_world_region_proposal.gd
+godot --headless --path . --script res://scripts/tools/generate_world_settlement_proposal.gd
+godot --headless --path . --script res://scripts/tools/capture/capture_world_settlement_proposal.gd
+```
+
+The checked-in v3 examples are Marches seed `1701` and Northgate seed `2701`.
+Marches remains review-gated. The user approved Northgate seed `2701` as the
+runtime layout basis; generated identities, lore, and other unapproved content
+inside that activation remain marked `canon_status: proposal`.
+
+Marches v2 uses multi-scale coherent terrain fields instead of large hash
+blocks. Every terrain cell records its settlement, route, or water influence;
+every minor POI records its biome and distance context. Road connectors join
+the nearest fixed-route segment and are limited to genuinely roadside POIs.
+Northgate v6 keeps its authored roles while using rasterized thick road paths,
+offset plots, irregular exterior terrain rows, and a non-rectangular palisade.
+
+Northgate runtime files live under `data/runtime/northgate_*.json` and are
+reproduced by `scripts/tools/world/activate_northgate_runtime.gd`. The activation
+owns its terrain overlay, structure archetypes and instances, portals, 68
+non-interactive furniture fixtures, provisional residents/profiles/dialogues,
+shops, readables, quest, schedules, and arrival routes. `ContentDatabase` merges
+these checked-in artifacts after base content. Do not hand-edit generated
+runtime JSON; change the approved proposal or activation mapping, regenerate,
+then run Northgate content and real-input tests.

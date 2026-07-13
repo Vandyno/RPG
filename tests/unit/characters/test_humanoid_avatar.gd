@@ -10,6 +10,9 @@ const HumanoidHeldItemDrawer = preload("res://scripts/characters/humanoid_held_i
 const HumanoidPeopleFeatureDrawer = preload(
 	"res://scripts/characters/humanoid_people_feature_drawer.gd"
 )
+const HumanoidSpeciesFeatureDrawer = preload(
+	"res://scripts/characters/humanoid_species_feature_drawer.gd"
+)
 
 
 class ContentStub:
@@ -408,9 +411,9 @@ func test_avatar_tanglekin_side_muzzle_is_rounded_and_mirrored() -> void:
 	avatar.setup({"people_id": "people_tanglekin"})
 
 	avatar.set_facing_direction(Vector2.RIGHT)
-	var east_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+	var east_rect := HumanoidSpeciesFeatureDrawer.tanglekin_side_muzzle_rect(avatar, 1.0)
 	avatar.set_facing_direction(Vector2.LEFT)
-	var west_rect := avatar._tanglekin_side_muzzle_rect(1.0)
+	var west_rect := HumanoidSpeciesFeatureDrawer.tanglekin_side_muzzle_rect(avatar, 1.0)
 
 	assert_gt(east_rect.size.x, east_rect.size.y)
 	assert_gt(east_rect.get_center().x, 0.0)
@@ -445,7 +448,7 @@ func test_avatar_tuskfolk_side_tusk_stays_mounted_to_face() -> void:
 	avatar.setup({"people_id": "people_tuskfolk"})
 
 	avatar.set_facing_direction(Vector2.RIGHT)
-	var points := avatar._tuskfolk_side_tusk_points(1.0, 9.2)
+	var points := HumanoidSpeciesFeatureDrawer.tuskfolk_side_tusk_points(avatar, 1.0, 9.2)
 	var base_top: Vector2 = points[0]
 	var tip: Vector2 = points[1]
 	var base_bottom: Vector2 = points[2]
@@ -481,6 +484,25 @@ func test_avatar_layers_tanglekin_tail_behind_body() -> void:
 	assert_lt(order.find("people_feature_back:feature_tanglekin_tail"), order.find("body:torso"))
 	assert_eq(order.find("people_feature_front:feature_tanglekin_tail"), -1)
 	assert_gt(order.find("people_feature_front:feature_tanglekin_muzzle"), order.find("body:head"))
+
+
+func test_avatar_places_far_hand_behind_torso_on_front_diagonals() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup()
+
+	avatar.set_facing_direction(Vector2.DOWN)
+	assert_eq(avatar._near_hand_sides({}), [-1.0, 1.0])
+
+	avatar.set_facing_direction(Vector2(1.0, 1.0))
+	assert_eq(avatar._near_hand_sides({}), [1.0])
+	assert_eq(avatar._hand_sides_for_layer("back", {}), [-1.0])
+	assert_eq(avatar._hand_sides_for_layer("front", {}), [1.0])
+
+	avatar.set_facing_direction(Vector2(-1.0, 1.0))
+	assert_eq(avatar._near_hand_sides({}), [-1.0])
+	assert_eq(avatar._hand_sides_for_layer("back", {}), [1.0])
+	assert_eq(avatar._hand_sides_for_layer("front", {}), [-1.0])
 
 
 func test_avatar_keeps_mirefolk_eyes_in_face_feature_layer() -> void:
@@ -538,6 +560,24 @@ func test_avatar_layers_ravenfolk_feather_anatomy() -> void:
 	assert_gt(order.find("people_feature_front:feature_ravenfolk_beak"), order.find("body:head"))
 	assert_gt(
 		order.find("people_feature_front:feature_ravenfolk_head_crest"), order.find("body:head")
+	)
+
+
+func test_avatar_draws_body_features_beneath_chest_equipment() -> void:
+	var avatar := HumanoidAvatar2D.new()
+	add_child_autofree(avatar)
+	avatar.setup(
+		{
+			"people_id": "people_ravenfolk",
+			"appearance": {"feature_ids": ["feature_ravenfolk_body_feathers"]}
+		}
+	)
+	avatar.equipped_visuals["chest"] = {"visual_layer_id": "placeholder_iron_cuirass"}
+
+	var order := avatar.get_debug_draw_layer_order()
+	assert_lt(
+		order.find("people_feature_body:feature_ravenfolk_body_feathers"),
+		order.find("equipment:chest")
 	)
 	assert_eq(order.find("people_feature_front:feature_ravenfolk_tail_feathers"), -1)
 
@@ -732,9 +772,85 @@ func test_held_item_grips_match_hand_anchors_in_all_sixteen_directions() -> void
 						anchors[hand_id],
 						ItemVisual2D.grip_position(model, grip_id),
 						Vector2.ONE * 0.001,
-						"%s %s %s bucket %d"
-						% [handedness, item_id, grip_id, bucket_index]
+						"%s %s %s bucket %d" % [handedness, item_id, grip_id, bucket_index]
 					)
+
+
+func test_held_item_attack_grips_match_hands_for_all_people_directions_and_scales() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	var attack_items := [
+		"item_road_hatchet", "item_training_sword", "item_test_polearm", "item_hunting_bow"
+	]
+	for people_id in [
+		"people_human", "people_tanglekin", "people_tuskfolk", "people_mirefolk", "people_ravenfolk",
+		"people_rootborn"
+	]:
+		var profile := content.get_generated_people_profile(people_id, "held_item_anchor_%s" % people_id)
+		for handedness in ["right", "left"]:
+			profile["handedness"] = handedness
+			for item_id in attack_items:
+				var item: Dictionary = content.get_item(item_id)
+				var attack: Dictionary = item.get("weapon_attack", {})
+				for bucket_index in FacingBuckets.COUNT:
+					var avatar := HumanoidAvatar2D.new()
+					add_child_autofree(avatar)
+					avatar.setup(profile, {"right_hand": item_id}, content)
+					var angle := TAU * float(bucket_index) / float(FacingBuckets.COUNT)
+					var direction := Vector2(cos(angle), sin(angle))
+					avatar.set_facing_direction(direction)
+					for progress in [0.0, 0.5, 1.0]:
+						avatar.set_attack_pose(attack, direction, progress)
+						_assert_held_item_grips_match_anchors(avatar, "right_hand", item_id, bucket_index, progress)
+
+
+func test_buckler_stays_on_equipped_hand_for_all_people_and_directions() -> void:
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	content.load_all()
+	for people_id in [
+		"people_human", "people_tanglekin", "people_tuskfolk", "people_mirefolk", "people_ravenfolk",
+		"people_rootborn"
+	]:
+		var profile := content.get_generated_people_profile(people_id, "buckler_anchor_%s" % people_id)
+		for bucket_index in FacingBuckets.COUNT:
+			var avatar := HumanoidAvatar2D.new()
+			add_child_autofree(avatar)
+			avatar.setup(profile, {"left_hand": "item_traveler_buckler"}, content)
+			var angle := TAU * float(bucket_index) / float(FacingBuckets.COUNT)
+			avatar.set_facing_direction(Vector2(cos(angle), sin(angle)))
+			var model := HumanoidHeldItemDrawer.held_item_model(
+				avatar, "left_hand", avatar.profile.get("appearance", {}).get("proportions", {})
+			)
+			var origin: Vector2 = model.get("origin", Vector2.ZERO)
+			origin.y *= avatar.get_proportion("body_height")
+			assert_almost_eq(
+				avatar.get_body_part_anchors()["left_hand"], origin, Vector2.ONE * 0.001,
+				"%s buckler bucket %d" % [people_id, bucket_index]
+			)
+
+
+func _assert_held_item_grips_match_anchors(
+	avatar: HumanoidAvatar2D, slot_id: String, item_id: String, bucket_index: int, progress: float
+) -> void:
+	var anchors := avatar.get_body_part_anchors()
+	var proportions: Dictionary = avatar.profile.get("appearance", {}).get("proportions", {})
+	var model := HumanoidHeldItemDrawer.held_item_model(avatar, slot_id, proportions)
+	var body_height := avatar.get_proportion("body_height")
+	for grip_id in ItemVisual2D.grip_ids(String(model.get("visual_id", ""))):
+		var side := HumanoidHeldItemDrawer.grip_side_for_slot(avatar, grip_id, slot_id)
+		if is_zero_approx(side):
+			continue
+		var expected := ItemVisual2D.grip_position(model, grip_id)
+		expected.y *= body_height
+		var hand_id := avatar._hand_slot_id(side)
+		assert_almost_eq(
+			anchors[hand_id], expected, Vector2.ONE * 0.001,
+			"%s %s %s bucket %d progress %.2f" % [
+				String(avatar.profile.get("people_id", "")), item_id, grip_id, bucket_index, progress
+			]
+		)
 
 
 func test_seed_humanoids_have_visual_variation() -> void:

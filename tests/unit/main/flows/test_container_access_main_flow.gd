@@ -7,6 +7,7 @@ const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input
 func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
+	assert_true(MainFlowInputHelper.enter_town_hall_direct(main))
 
 	assert_true(
 		await MainFlowInputHelper.target_entity(
@@ -17,7 +18,7 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 	assert_eq(main.get_debug_state()["primary_action"], "Locked")
 	assert_true(await MainFlowInputHelper.target_entity(main, "object_sealed_strongbox", get_tree()))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_false(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(3, 6)))
+	assert_false(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(9, 5)))
 	assert_true(main.hud.log_label.text.contains("strongbox seal matches"))
 
 	assert_true(await MainFlowInputHelper.target_entity(main, "object_road_notice", get_tree()))
@@ -40,10 +41,10 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 		MainFlowInputHelper.label_containing(main.hud.systems_item_list, "Your Inventory")
 	)
 	assert_not_null(
-		MainFlowInputHelper.label_containing(main.hud.systems_item_list, "Sealed Strongbox")
+		MainFlowInputHelper.label_containing(main.hud.systems_item_list, "Warden's Strongbox")
 	)
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 4)
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 5)
 	assert_not_null(main.hud.systems_item_list.find_child("TransferTake_ItemGoldCoin", true, false))
 
 	await MainFlowInputHelper.click(
@@ -51,15 +52,19 @@ func test_container_open_conditions_gate_loot_until_unlocked() -> void:
 		get_tree()
 	)
 	assert_eq(main.inventory.get_count("item_gold_coin"), 1)
-	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 3)
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 4)
 
 	await MainFlowInputHelper.click(
 		main.hud.systems_item_list.find_child("TransferPut_ItemGoldCoin", true, false) as Button,
 		get_tree()
 	)
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
-	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 4)
-	assert_true(main.chunks.is_object_opened("object_sealed_strongbox", Vector2i(3, 6)))
+	assert_eq(main.inventory.get_count_for_owner("loot:object_sealed_strongbox", "item_gold_coin"), 5)
+	assert_true(
+		main.chunks.is_object_opened(
+			"object_sealed_strongbox", Vector2i(9, 5), "interior:structure_briarwatch_town_hall"
+		)
+	)
 	assert_eq(main.get_debug_state()["target_detail"], "Container: opened")
 	assert_eq(main.get_debug_state()["primary_action"], "Opened")
 
@@ -94,5 +99,5 @@ func _select_entity(main, entity_id: String) -> void:
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)

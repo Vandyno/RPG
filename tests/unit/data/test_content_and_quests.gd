@@ -67,12 +67,10 @@ func test_content_database_loads_seed_content() -> void:
 	assert_false(content.locations.is_empty())
 	assert_false(content.factions.is_empty())
 	assert_false(content.shops.is_empty())
-	assert_false(content.status_effects.is_empty())
 	assert_false(content.spells.is_empty())
 	assert_false(content.world_objects.is_empty())
 	assert_false(content.world_terrain.is_empty())
 	assert_eq(content.get_item("item_old_toolbox").get("name"), "Old Toolbox")
-	assert_eq(content.get_item("item_river_mint").get("type"), "ingredient")
 	assert_eq(
 		content.get_location("location_briarwatch_crossroads").get("name"), "Briarwatch Crossroads"
 	)
@@ -88,7 +86,6 @@ func test_content_database_loads_seed_content() -> void:
 	)
 	assert_eq(content.get_faction("faction_marches_of_velcor").get("name"), "Marches of Velcor")
 	assert_eq(content.get_spell("spell_fire_blast").get("name"), "Fire Blast")
-	assert_eq(content.get_status_effect("status_road_focus").get("name"), "Road Focus")
 	assert_eq(content.validate_all(), [])
 
 
@@ -141,6 +138,12 @@ func test_all_authored_npc_actors_are_profile_backed_characters() -> void:
 		assert_false(profile_id.is_empty(), "%s should resolve a profile." % entry.get("id", ""))
 		assert_eq(String(entry.get("inventory_owner_id", "")), profile_id)
 		assert_eq(String(entry.get("equipment_owner_id", "")), profile_id)
+		assert_eq(String(entry.get("actor_category", "")), "humanoid")
+		assert_true(bool(entry.get("combat_enabled", false)))
+		assert_false(String(entry.get("brain_id", "")).is_empty())
+		assert_gt(int(entry.get("max_health", 0)), 0)
+		assert_gt(int(entry.get("damage_taken_per_hit", 0)), 0)
+		assert_gte(int(entry.get("attack_damage", -1)), 0)
 
 
 func test_people_default_proportions_apply_without_overwriting_authored_values() -> void:
@@ -581,11 +584,6 @@ func test_seed_equipment_items_declare_avatar_visuals_or_placeholders() -> void:
 		assert_false(
 			String(visual.get("visual_layer_id", "")).is_empty(),
 			"%s should declare visual_layer_id." % item_id
-		)
-		assert_true(
-			bool(visual.get("accepted_placeholder", false))
-			or not String(visual.get("paperdoll_sprite_id", "")).is_empty(),
-			"%s should declare a drawable layer or accepted placeholder." % item_id
 		)
 
 
@@ -1072,22 +1070,17 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 		"npc_harrow_venn_world",
 		"npc_maera_pike_world",
 		"poi_briarwatch_square",
-		"poi_harrow_forge",
-		"poi_maera_stall",
+		"object_harrow_forge_door",
 		"pickup_old_toolbox",
-		"pickup_roadside_draught",
 		"pickup_road_hatchet",
 		"pickup_training_sword",
 		"pickup_test_polearm",
 		"pickup_hunting_bow",
 		"pickup_traveler_buckler",
 		"object_road_cache",
-		"object_warden_cache",
 		"object_sealed_strongbox",
 		"npc_road_thug",
 		"npc_test_raider",
-		"object_north_gate",
-		"object_training_gate",
 		"object_roadside_campfire",
 		"location_briarwatch_crossroads_marker"
 	]
@@ -1100,7 +1093,8 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 			continue
 		var tile_array: Array = entry.get("global_tile", [0, 0])
 		var tile := Vector2i(int(tile_array[0]), int(tile_array[1]))
-		var tile_key := GridMath.tile_key(tile)
+		var world_layer := String(entry.get("world_layer", "surface"))
+		var tile_key := "%s:%s" % [world_layer, GridMath.tile_key(tile)]
 		var world_position := GridMath.tile_to_world(tile) + Vector2.ONE * GridMath.TILE_SIZE * 0.5
 		var distance_from_spawn := spawn_world.distance_to(world_position)
 		if String(entry.get("kind", "")) != "location":
@@ -1108,8 +1102,12 @@ func test_seed_system_fixtures_are_testable_near_spawn() -> void:
 				occupied_tiles.has(tile_key), "%s should not share a spawn test tile." % entity_id
 			)
 			occupied_tiles[tile_key] = true
+		if world_layer != "surface":
+			# Interior fixtures are reached through their structure door, not by a surface path.
+			found_ids.append(entity_id)
+			continue
 		assert_true(
-			_has_walkable_path(chunks, Vector2i.ZERO, tile, 12),
+			_has_walkable_path(chunks, Vector2i.ZERO, tile, 16),
 			"%s should be walkably reachable from spawn." % entity_id
 		)
 		if String(entry.get("kind", "")) == "location":
@@ -1297,7 +1295,7 @@ func test_quest_live_state_sanitizes_malformed_entries_for_summary_and_save() ->
 	assert_true(quests.set_stage("quest_missing_tools", "found_toolbox"))
 	assert_eq(quests.quests["quest_missing_tools"]["state"], "active")
 	assert_eq(quests.quests["quest_missing_tools"]["stage"], "found_toolbox")
-	assert_eq(quests.get_active_objectives_data()[0]["target_id"], "npc_harrow_venn_world")
+	assert_eq(quests.get_active_objectives_data()[0]["target_id"], "object_harrow_forge_door")
 
 
 func test_quest_summary_and_save_regenerate_malformed_live_active_state() -> void:

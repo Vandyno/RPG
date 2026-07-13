@@ -132,24 +132,29 @@ The exact math should be centralized in a world/grid utility rather than duplica
 
 ## World Layers
 
-The first implementation can use a single world layer.
+World layers are implemented as explicit layer IDs, not separate coordinate
+systems. The surface layer is `surface`. Structure interiors use IDs shaped like
+`interior:<structure_id>`.
 
-Future layers may include:
-
-- surface
-- underground
-- interior
-- dungeon
-
-If layers are introduced, they should still use explicit coordinates and chunk-aware loading.
-
-Possible layered coordinate shape:
+Layered coordinate shape:
 
 ```text
 world_layer = "surface"
 global_tile = Vector2i(500, 200)
 chunk_coord = Vector2i(15, 6)
 ```
+
+Streaming keys include the layer, so the same tile/chunk coordinate can exist on
+the surface and inside an interior without sharing terrain or entities.
+
+`WorldQuery` is the read path for tile kind/walkability. It combines authored
+terrain with structure overrides and should be preferred over direct
+`ChunkManager` reads in systems that need layer-aware terrain.
+
+`StructureManager` owns authored structures from `data/world_structures.json`
+and archetype terrain/visual metadata from `data/structure_archetypes.json`.
+This is the current foundation for distinct buildings, interiors, and future
+generated structure layouts.
 
 ---
 
@@ -453,9 +458,9 @@ is separate from world-object `conditions`, which control whether the object
 spawns at all.
 
 Door-like access objects use `kind: "door"` and the same opened-state,
-`open_conditions`, `locked_text`, and `effects_on_open` machinery. This supports
-route gates and locked doors now, while leaving collision/path blocking as a
-later layer on top of the same authored data.
+`open_conditions`, `locked_text`, and `effects_on_open` machinery. Doors can also
+define a `portal` with `target_layer` and `target_tile`, which is used for
+structure entrances/exits such as Harrow's Forge.
 
 Town POIs use `kind: "poi"` for interactable places such as squares, stalls,
 forges, shrines, and job boards. POIs surface authored descriptions in the HUD,
@@ -754,7 +759,7 @@ Expected status effect data:
 {
   "active": [
     {
-      "status_id": "status_road_focus",
+      "status_id": "status_example",
       "charges": 2
     }
   ]
@@ -907,8 +912,8 @@ These shapes are early targets and may evolve.
   "close_hour": 18,
   "stock": [
     {
-      "item_id": "item_roadside_draught",
-      "price": 8
+      "item_id": "item_traveler_buckler",
+      "price": 18
     }
   ]
 }
@@ -1338,3 +1343,43 @@ Follow-up:
 
 - Expand terrain authoring when interiors, dungeons, or larger authored
   landmarks need more tile layers or object palettes.
+## Atlas-Constrained World Authoring
+
+World generation is an offline proposal workflow. It does not add hidden
+runtime randomness or write directly into active `world_*` content.
+
+- `data/world_atlas_proposal.json` owns reviewed continent geometry, named
+  anchors, fixed routes, terrain barriers, zones, and world scale.
+- `data/world_atlas_review.json` is the explicit approval gate. Region and
+  settlement generators refuse an incomplete, stale, rejected, or invalid
+  atlas review.
+- Region proposals use global-tile polygons and editable chunk-cell spans.
+  They preserve atlas constraints and record region ID, seed, template, and
+  generator version on generated terrain, roads, and POIs.
+- Region terrain uses deterministic multi-scale value fields plus explicit
+  settlement, fixed-route, water, and POI affinities. Minor-road connectors
+  attach to the closest point on a fixed-route segment and are distance-limited.
+- Hard separation between regions is atlas-owned geometry, never emergent
+  noise. Barrier paths or polygons block ordinary travel; reviewed passes,
+  bridges, ferries, or special routes define intended crossings.
+- Civilian schedule and brain groundwork is specified in
+  `docs/NPC_BRAIN_AND_SCHEDULE_PLAN.md`. `TimeManager` owns clock truth;
+  schedules select intent; activity packages execute it; movement and portal
+  traversal remain world-runtime concerns.
+- Settlement proposals use the existing surface and
+  `interior:<structure_id>` layer contract. Their proposal-local archetypes
+  match `StructureManager` terrain-row, tile-kind, anchor, and portal shapes.
+- Settlement streets may be authored as thick polylines rasterized identically
+  by generation validation and previews; exterior
+  terrain rows may contain empty cells for L-shaped/chamfered footprints, and
+  defenses may carry a boundary polygon in addition to validation bounds.
+- Proposal validators own geometry, collision, reachability, portal,
+  NPC-home, and service-slot checks before review.
+- Capture tools write previews, validation reports, and summaries. Promotion
+  into runtime content remains a separate manual review action.
+- Northgate seed `2701` is the first explicit promotion. Its reproducible
+  activation tool writes isolated `data/runtime/northgate_*` overlays that
+  `ContentDatabase` merges after base content. Furniture uses non-interactive
+  `fixture` entities so authored interiors render without polluting targeting.
+  Services, quest state, equipment condition, storage, player layer/position,
+  and civilian schedule state use existing manager save providers.

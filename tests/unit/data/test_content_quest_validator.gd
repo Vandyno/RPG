@@ -28,7 +28,8 @@ func test_validate_reports_malformed_quests_factions_dialogues_and_npcs() -> voi
 					{
 						"": "",
 						"find": {"text": "", "target_id": "missing_object"}
-					}
+					},
+					"npc_routines": [{"npc_id": "missing_npc", "destination_id": "missing_dest", "resume_policy": "bad"}]
 				}
 			}
 		}
@@ -80,6 +81,10 @@ func test_validate_reports_malformed_quests_factions_dialogues_and_npcs() -> voi
 	assert_true(joined.contains("objective  is missing text."))
 	assert_true(joined.contains("objective find is missing text."))
 	assert_true(joined.contains("references missing target missing_object"))
+	assert_true(joined.contains("references missing NPC missing_npc"))
+	assert_true(joined.contains("references missing destination missing_dest"))
+	assert_true(joined.contains("is missing action."))
+	assert_true(joined.contains("has invalid resume_policy bad."))
 	assert_true(joined.contains("Faction faction_bad is missing name."))
 	assert_true(joined.contains("Faction faction_bad is missing description."))
 	assert_true(joined.contains("Dialogue dialogue_bad has malformed line."))
@@ -94,6 +99,19 @@ func test_validate_reports_malformed_quests_factions_dialogues_and_npcs() -> voi
 	assert_true(joined.contains("NPC npc_bad references missing dialogue missing_dialogue"))
 	assert_true(joined.contains("NPC npc_bad references missing shop missing_shop"))
 	assert_true(joined.contains("NPC npc_bad references missing character profile missing_profile"))
+
+
+func test_validate_required_npc_ids() -> void:
+	var content := _valid_content()
+	content.quests["quest_tools"]["required_npc_ids"] = ["npc_harrow", "npc_harrow", "", "npc_missing"]
+	var errors: Array[String] = []
+
+	ContentQuestValidator.validate(content, errors)
+	var joined := "\n".join(errors)
+
+	assert_true(joined.contains("duplicate required NPC npc_harrow"))
+	assert_true(joined.contains("invalid required NPC id"))
+	assert_true(joined.contains("missing required NPC npc_missing"))
 
 
 func _valid_content() -> ContentDatabase:

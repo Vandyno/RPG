@@ -1,0 +1,155 @@
+{
+  "npc_northgate_apprentice": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_apprentice",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_apprentice",
+    "location": "northgate",
+    "name": "Northgate Smith Apprentice",
+    "role": "Smith apprentice"
+  },
+  "npc_northgate_clerk": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_clerk",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_clerk",
+    "location": "northgate",
+    "name": "Northgate Clerk",
+    "role": "Town clerk"
+  },
+  "npc_northgate_guard_north": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_guard_north",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_guard_north",
+    "location": "northgate",
+    "name": "Northgate Gate Guard",
+    "role": "Gate guard"
+  },
+  "npc_northgate_innkeeper": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_innkeeper",
+    "dialogue_id": "dialogue_northgate_innkeeper",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_innkeeper",
+    "location": "northgate",
+    "name": "Northgate Innkeeper",
+    "role": "Innkeeper"
+  },
+  "npc_northgate_reeve": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_reeve",
+    "dialogue_id": "dialogue_northgate_reeve",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_reeve",
+    "location": "northgate",
+    "name": "Northgate Reeve",
+    "quest_id": "quest_northgate_missing_manifest",
+    "role": "Town reeve"
+  },
+  "npc_northgate_resident_01": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_resident_01",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_resident_01",
+    "location": "northgate",
+    "name": "Northgate Resident 01",
+    "role": "Resident"
+  },
+  "npc_northgate_resident_02": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_resident_02",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_resident_02",
+    "location": "northgate",
+    "name": "Northgate Resident 02",
+    "role": "Resident"
+  },
+  "npc_northgate_resident_03": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_resident_03",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_resident_03",
+    "location": "northgate",
+    "name": "Northgate Resident 03",
+    "role": "Resident"
+  },
+  "npc_northgate_resident_04": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_resident_04",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_resident_04",
+    "location": "northgate",
+    "name": "Northgate Resident 04",
+    "role": "Resident"
+  },
+  "npc_northgate_resident_05": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_resident_05",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_resident_05",
+    "location": "northgate",
+    "name": "Northgate Resident 05",
+    "role": "Resident"
+  },
+  "npc_northgate_shopkeeper": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_shopkeeper",
+    "dialogue_id": "dialogue_northgate_shopkeeper",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_shopkeeper",
+    "location": "northgate",
+    "name": "Northgate Shopkeeper",
+    "role": "General shopkeeper",
+    "shop_id": "shop_northgate_general"
+  },
+  "npc_northgate_shrine_keeper": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_shrine_keeper",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_shrine_keeper",
+    "location": "northgate",
+    "name": "Northgate Shrine Keeper",
+    "role": "Road shrine keeper"
+  },
+  "npc_northgate_smith": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_smith",
+    "dialogue_id": "dialogue_northgate_smith",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_smith",
+    "location": "northgate",
+    "name": "Northgate Smith",
+    "role": "Town smith",
+    "shop_id": "shop_northgate_smith"
+  },
+  "npc_northgate_stablehand": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_stablehand",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_stablehand",
+    "location": "northgate",
+    "name": "Northgate Stablehand",
+    "role": "Stablehand"
+  },
+  "npc_northgate_storekeeper": {
+    "canon_status": "proposal",
+    "character_profile_id": "char_northgate_storekeeper",
+    "dialogue_id": "dialogue_northgate_resident",
+    "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_storekeeper",
+    "location": "northgate",
+    "name": "Northgate Storekeeper",
+    "role": "Storekeeper"
+  }
+}

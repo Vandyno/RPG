@@ -16,5 +16,24 @@
 		},
 		"range": "6 tiles",
 		"behavior": "Channels a short flamethrower in the aimed direction while held."
+	},
+	"spell_raise_thrall": {
+		"id": "spell_raise_thrall",
+		"name": "Raise Thrall",
+		"school": "Necromancy",
+		"icon": "T",
+		"mana_cost": 18,
+		"charge_seconds": 0.75,
+		"min_charge_ratio": 0.35,
+		"cast_type": "raise_thrall",
+		"attack": {
+			"shape": "thrust",
+			"range_pixels": 80,
+			"width_pixels": 36,
+			"visual": "charge_cast",
+			"visual_tint": [0.72, 0.24, 1.0]
+		},
+		"range": "5 tiles",
+		"behavior": "Hold to charge, then release while aiming at a dead humanoid to raise a loyal thrall."
 	}
 }

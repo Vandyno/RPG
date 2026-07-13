@@ -6,20 +6,22 @@ const DirectionalAttack = preload("res://scripts/core/directional_attack.gd")
 const HumanoidAvatar2D = preload("res://scripts/characters/humanoid_avatar_2d.gd")
 const ActorWeaponAttackAction = preload("res://scripts/world/actor_weapon_attack_action.gd")
 
-const PEOPLE_ORDER := [
-	"people_human",
-	"people_tanglekin",
-	"people_tuskfolk",
-	"people_mirefolk",
-	"people_ravenfolk",
-	"people_rootborn"
-]
 const DIRECTION_LABELS := CaptureSheetHelper.DIRECTION_LABELS
 const SIXTEEN_DIRECTIONS := CaptureSheetHelper.SIXTEEN_DIRECTIONS
+const DEFAULT_OUTPUT_DIR := "res://reports/attack_animation_16dir"
+const DEFAULT_WIDTH := 1440
+const DEFAULT_HEIGHT := 1900
 const PROGRESS_STEPS := [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
 const ATTACK_SHEETS := [
 	{"id": "punch", "title": "Punch", "item_id": ""},
+	{"id": "hatchet", "title": "Road Hatchet", "item_id": "item_road_hatchet"},
 	{"id": "sword", "title": "Training Sword", "item_id": "item_training_sword"},
+	{
+		"id": "sword_buckler",
+		"title": "Training Sword + Buckler",
+		"item_id": "item_training_sword",
+		"offhand_item_id": "item_traveler_buckler"
+	},
 	{"id": "polearm", "title": "Test Polearm", "item_id": "item_test_polearm"},
 	{"id": "bow", "title": "Hunting Bow", "item_id": "item_hunting_bow"}
 ]
@@ -30,12 +32,12 @@ func _initialize() -> void:
 
 
 func _capture() -> void:
-	var args := OS.get_cmdline_user_args()
-	var output_dir := CaptureSheetHelper.string_arg(args, 0, "res://reports/attack_animation_16dir")
-	var width := CaptureSheetHelper.positive_arg(args, 1, 1440)
-	var height := CaptureSheetHelper.positive_arg(args, 2, 1900)
-	var people_filter := CaptureSheetHelper.string_arg(args, 3, "")
-	var attack_filter := CaptureSheetHelper.string_arg(args, 4, "")
+	var config := capture_config(OS.get_cmdline_user_args())
+	var output_dir := String(config["output_dir"])
+	var width := int(config["width"])
+	var height := int(config["height"])
+	var people_filter := String(config["people_filter"])
+	var attack_filter := String(config["attack_filter"])
 
 	var content := ContentDatabase.new()
 	root.add_child(content)
@@ -52,7 +54,7 @@ func _capture() -> void:
 		return
 
 	var wrote_count := 0
-	for people_id in _filtered_people(people_filter):
+	for people_id in CaptureSheetHelper.filtered_people(people_filter):
 		for attack_data in _filtered_attacks(attack_filter):
 			var page := _build_sheet(content, people_id, attack_data, width, height)
 			viewport.add_child(page)
@@ -61,7 +63,7 @@ func _capture() -> void:
 				printerr("Could not capture attack animation image. Run without --headless.")
 				quit(1)
 				return
-			var output_path := absolute_dir.path_join(_sheet_file_name(people_id, attack_data))
+			var output_path := absolute_dir.path_join(sheet_file_name(people_id, attack_data))
 			var error := CaptureSheetHelper.save_png_image(image, output_path)
 			viewport.remove_child(page)
 			page.queue_free()
@@ -75,28 +77,23 @@ func _capture() -> void:
 	quit()
 
 
+static func capture_config(args: Array) -> Dictionary:
+	return CaptureSheetHelper.capture_config(
+		args, DEFAULT_OUTPUT_DIR, DEFAULT_WIDTH, DEFAULT_HEIGHT, ["people_filter", "attack_filter"]
+	)
+
+
 func _build_sheet(
 	content: ContentDatabase, people_id: String, attack_data: Dictionary, width: int, height: int
 ) -> Control:
-	var page := Control.new()
-	page.size = Vector2(width, height)
-	var background := ColorRect.new()
-	background.color = Color(0.10, 0.12, 0.10)
-	background.size = page.size
-	page.add_child(background)
-
+	var page := CaptureSheetHelper.create_page(width, height)
 	var attack := _attack_for_sheet(content, attack_data)
 	var title := (
 		"%s - %s 16-direction attack animation"
-		% [_people_display_name(content, people_id), String(attack_data["title"])]
+		% [CaptureSheetHelper.people_display_name(content, people_id), String(attack_data["title"])]
 	)
 	var note := "Rows are snapped avatar facings. Columns are attack progress 0-100%."
-	CaptureSheetHelper.add_label(
-		page, title, Vector2(34, 22), Vector2(width - 68, 34), 24, Color(0.95, 0.91, 0.78)
-	)
-	CaptureSheetHelper.add_label(
-		page, note, Vector2(36, 58), Vector2(width - 72, 24), 13, Color(0.72, 0.72, 0.62)
-	)
+	CaptureSheetHelper.add_sheet_header(page, title, note, width)
 	CaptureSheetHelper.add_label(
 		page,
 		(
@@ -123,7 +120,7 @@ func _build_sheet(
 		page, left, top, cell_width, cell_height, PROGRESS_STEPS.size(), SIXTEEN_DIRECTIONS.size()
 	)
 	_add_column_labels(page, left, top, cell_width)
-	_add_row_labels(page, top, cell_height)
+	CaptureSheetHelper.add_direction_row_labels(page, top, cell_height)
 	_add_attack_avatars(
 		page, content, people_id, attack_data, attack, left, top, cell_width, cell_height
 	)
@@ -206,14 +203,18 @@ func _attack_for_sheet(content: ContentDatabase, attack_data: Dictionary) -> Dic
 	return DirectionalAttack.weapon_attack_for_item(content, item_id)
 
 
-func _equipment_for_attack(attack_data: Dictionary) -> Dictionary:
+static func _equipment_for_attack(attack_data: Dictionary) -> Dictionary:
 	var item_id := String(attack_data.get("item_id", ""))
 	if item_id.is_empty():
 		return {}
-	return {"right_hand": item_id}
+	var equipment := {"right_hand": item_id}
+	var offhand_item_id := String(attack_data.get("offhand_item_id", ""))
+	if not offhand_item_id.is_empty():
+		equipment["left_hand"] = offhand_item_id
+	return equipment
 
 
-func _add_column_labels(page: Control, left: float, top: float, cell_width: float) -> void:
+static func _add_column_labels(page: Control, left: float, top: float, cell_width: float) -> void:
 	for column in PROGRESS_STEPS.size():
 		var progress := int(round(float(PROGRESS_STEPS[column]) * 100.0))
 		CaptureSheetHelper.add_label(
@@ -227,32 +228,7 @@ func _add_column_labels(page: Control, left: float, top: float, cell_width: floa
 		)
 
 
-func _add_row_labels(page: Control, top: float, cell_height: float) -> void:
-	for row in DIRECTION_LABELS.size():
-		CaptureSheetHelper.add_label(
-			page,
-			"%02d %s" % [row, String(DIRECTION_LABELS[row])],
-			Vector2(18.0, top + float(row) * cell_height + cell_height * 0.36),
-			Vector2(62.0, 20.0),
-			11,
-			Color(0.79, 0.76, 0.63),
-			HORIZONTAL_ALIGNMENT_RIGHT
-		)
-
-
-func _filtered_people(people_filter: String) -> Array[String]:
-	var people: Array[String] = []
-	for people_id in PEOPLE_ORDER:
-		if (
-			people_filter.is_empty()
-			or people_id == people_filter
-			or people_id.ends_with(people_filter)
-		):
-			people.append(people_id)
-	return people
-
-
-func _filtered_attacks(attack_filter: String) -> Array[Dictionary]:
+static func _filtered_attacks(attack_filter: String) -> Array[Dictionary]:
 	var attacks: Array[Dictionary] = []
 	for attack_data in ATTACK_SHEETS:
 		var attack_id := String(attack_data["id"])
@@ -261,13 +237,6 @@ func _filtered_attacks(attack_filter: String) -> Array[Dictionary]:
 	return attacks
 
 
-func _sheet_file_name(people_id: String, attack_data: Dictionary) -> String:
+static func sheet_file_name(people_id: String, attack_data: Dictionary) -> String:
 	var people_name := people_id.replace("people_", "")
 	return "%s_%s_16dir_animation.png" % [people_name, String(attack_data["id"])]
-
-
-func _people_display_name(content: ContentDatabase, people_id: String) -> String:
-	var people: Dictionary = content.get_people(people_id)
-	return String(people.get("display_name", people_id))
-
-

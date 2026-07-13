@@ -47,6 +47,14 @@ func test_handle_routes_target_action_through_main_intent() -> void:
 	assert_eq(main.calls, [])
 
 
+func test_handle_routes_appearance_action_to_main() -> void:
+	var main := AssignSpellMainStub.new()
+
+	MainSystemsActions.handle(MainSystemsActions.systems_context(main), "ui:appearance")
+
+	assert_eq(main.calls, ["appearance"])
+
+
 func test_handle_aim_hold_channels_assigned_spell_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
@@ -68,6 +76,26 @@ func test_handle_aim_release_does_not_recast_channeled_spell() -> void:
 	assert_eq(main.calls, ["refresh"])
 
 
+func test_raise_thrall_charges_with_direction_marker_then_raises_a_corpse() -> void:
+	var main := AimMainStub.new()
+	main.spells.assigned_spell = "spell_raise_thrall"
+	var corpse = main.enemies[1]
+	corpse.data["state"] = "dead"
+
+	MainSystemsActions.handle_aim_held(
+		MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT, 0.75
+	)
+	MainSystemsActions.handle_aim(
+		MainSystemsActions.aim_context(main), "ability_1", Vector2.RIGHT
+	)
+
+	assert_eq(main.companions.raised_entity_id, "actor_east")
+	assert_eq(main.player.mana, 82.0)
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "charge_cast"))
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "direction_indicator"))
+	assert_true(main.effects.any(func(effect): return effect["kind"] == "raise_thrall"))
+
+
 func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	var main := AimMainStub.new()
 
@@ -78,7 +106,7 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	)
 
 
-func test_handle_held_melee_repeats_on_weapon_interval() -> void:
+func test_handle_held_melee_caps_catch_up_after_a_frame_hitch() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_training_sword"
 
@@ -90,8 +118,6 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:actor_west:3",
-			"message:Training Sword hits River Ruffian for 3.",
 			"damage:actor_west:3",
 			"message:Training Sword hits River Ruffian for 3.",
 			"damage:actor_west:3",
@@ -205,6 +231,9 @@ class AssignSpellMainStub:
 	func _refresh_hud() -> void:
 		calls.append("refresh")
 
+	func open_character_appearance() -> void:
+		calls.append("appearance")
+
 class AssignSpellContentStub:
 	extends RefCounted
 
@@ -242,6 +271,9 @@ class AimMainStub:
 	var channeled_spell_damage_bank: Dictionary = {}
 	var channeled_spell_empty_reported: Dictionary = {}
 	var held_weapon_attack_elapsed: Dictionary = {}
+	var held_spell_charge_elapsed: Dictionary = {}
+	var held_spell_charge_visual_elapsed: Dictionary = {}
+	var companions := AimCompanionsStub.new()
 	var effects: Array[Dictionary] = []
 	var enemies := [
 		AimEntityStub.new("actor_west", "River Ruffian", Vector2.LEFT * 28.0),
@@ -265,12 +297,14 @@ class AimMainStub:
 	func _refresh_hud() -> void:
 		calls.append("refresh")
 
-	func apply_effect(_effect: Dictionary, _refresh: bool = true) -> void:
+	func apply_effect(_effect: Dictionary, _emit_feedback: bool = true) -> bool:
 		calls.append("effect")
+		return true
 
 	func add_child(effect: Node) -> void:
 		var effect_record := {
 			"type": effect.get_class(),
+			"kind": effect.get("effect_kind"),
 			"direction":
 			effect.get("direction") if effect.get("direction") is Vector2 else Vector2.ZERO
 		}
@@ -280,9 +314,10 @@ class AimMainStub:
 
 class AimSpellsStub:
 	extends RefCounted
+	var assigned_spell := "spell_fire_blast"
 
 	func get_assigned_spell(slot_id: String) -> String:
-		return "spell_fire_blast" if slot_id == "ability_1" else ""
+		return assigned_spell if slot_id == "ability_1" else ""
 
 
 class AimContentStub:
@@ -303,6 +338,22 @@ class AimContentStub:
 					"width_pixels": 50,
 					"damage_per_second": 1,
 					"visual": "fire_stream"
+				}
+			}
+		if spell_id == "spell_raise_thrall":
+			return {
+				"id": spell_id,
+				"name": "Raise Thrall",
+				"mana_cost": 18,
+				"charge_seconds": 0.75,
+				"min_charge_ratio": 0.35,
+				"cast_type": "raise_thrall",
+				"attack": {
+					"shape": "thrust",
+					"range_pixels": 80,
+					"width_pixels": 36,
+					"visual": "charge_cast",
+					"visual_tint": [0.72, 0.24, 1.0]
 				}
 			}
 		return {}
@@ -414,17 +465,34 @@ class AimPlayerStub:
 		return spent
 
 
+class AimCompanionsStub:
+	extends RefCounted
+	var raised_entity_id := ""
+
+	func resurrect_as_thrall(entity_id: String) -> Dictionary:
+		raised_entity_id = entity_id
+		return {"ok": true, "message": "Raised."}
+
+
 class AimEntityStub:
 	extends RefCounted
 
 	var id: String
 	var display_name: String
 	var global_position: Vector2
+	var data: Dictionary
 
 	func _init(entity_id: String, name: String, position: Vector2) -> void:
 		id = entity_id
 		display_name = name
 		global_position = position
+		data = {
+			"kind": "npc",
+			"actor_category": "humanoid",
+			"hostility": "hostile",
+			"combat_enabled": true,
+			"character_profile_id": "char_%s" % entity_id
+		}
 
 	func get_entity_id() -> String:
 		return id

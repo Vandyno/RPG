@@ -1,0 +1,42 @@
+[
+  {
+    "id": "structure_briarwatch_harrow_forge",
+    "name": "Harrow's Forge",
+    "archetype_id": "archetype_briarwatch_forge_exterior",
+    "world_layer": "surface",
+    "origin_tile": [6, -2],
+    "seed": "briarwatch:harrow_forge:surface"
+  },
+  {
+    "id": "structure_briarwatch_harrow_forge_interior",
+    "name": "Harrow's Forge Interior",
+    "archetype_id": "archetype_briarwatch_forge_interior",
+    "world_layer": "interior:structure_briarwatch_harrow_forge",
+    "origin_tile": [0, 0],
+    "seed": "briarwatch:harrow_forge:interior"
+  },
+  {
+    "id": "structure_briarwatch_maera_shop",
+    "name": "Maera's Shop Front",
+    "archetype_id": "archetype_briarwatch_shop_front",
+    "world_layer": "surface",
+    "origin_tile": [1, -7],
+    "seed": "briarwatch:maera_shop:surface"
+  },
+  {
+    "id": "structure_briarwatch_town_hall",
+    "name": "Briarwatch Town Hall",
+    "archetype_id": "archetype_briarwatch_town_hall_exterior",
+    "world_layer": "surface",
+    "origin_tile": [1, 4],
+    "seed": "briarwatch:town_hall:surface"
+  },
+  {
+    "id": "structure_briarwatch_town_hall_interior",
+    "name": "Briarwatch Town Hall",
+    "archetype_id": "archetype_briarwatch_town_hall_interior",
+    "world_layer": "interior:structure_briarwatch_town_hall",
+    "origin_tile": [0, 0],
+    "seed": "briarwatch:town_hall:interior"
+  }
+]

@@ -6,6 +6,6 @@ const UNCONSCIOUS := "unconscious"
 const DEAD := "dead"
 const DEAD_BODY := "dead_body"
 const DESPAWNED := "despawned"
-const VALID_STATES := [ALIVE, UNCONSCIOUS, DEAD_BODY, DESPAWNED]
+const VALID_STATES := [ALIVE, UNCONSCIOUS, DEAD, DEAD_BODY, DESPAWNED]
 const DEAD_STATES := [DEAD, DEAD_BODY, DESPAWNED]
 const DEFAULT := ALIVE

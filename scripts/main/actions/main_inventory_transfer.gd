@@ -14,6 +14,7 @@ class TransferContext:
 	var hud
 	var inventory
 	var player
+	var npc_perception
 	var active_content_choices: Dictionary
 	var seeded_inventory_owner_ids: Dictionary
 	var _transfer_owner_id: Callable
@@ -33,6 +34,7 @@ class TransferContext:
 		hud = main.hud
 		inventory = main.inventory
 		player = main.player
+		npc_perception = main.get("npc_perception")
 		active_content_choices = main.active_content_choices
 		seeded_inventory_owner_ids = main.seeded_inventory_owner_ids
 		_transfer_owner_id = func() -> String:
@@ -93,12 +95,13 @@ static func context(main) -> TransferContext:
 static func open(ctx: TransferContext, entity: WorldEntity) -> void:
 	var entity_id: String = entity.get_entity_id()
 	var owner_id := _loot_owner_id(entity)
-	var was_open: bool = ctx.chunks.is_object_opened(entity_id, entity.global_tile)
+	var layer := String(entity.world_layer)
+	var was_open := _is_object_opened(ctx.chunks, entity_id, entity.global_tile, layer)
 	var opened: bool = was_open
 	if not was_open:
 		opened = _seed_loot_owner_from_open_effects(ctx, owner_id, entity.data)
 		opened = opened or _owner_has_items(ctx, owner_id)
-		ctx.chunks.mark_object_opened(entity_id, entity.global_tile)
+		_mark_object_opened(ctx.chunks, entity_id, entity.global_tile, layer)
 	ctx.set_transfer(
 		owner_id, entity.get_display_name(), _transfer_source_from_entity(entity, "object")
 	)
@@ -155,6 +158,7 @@ static func take_item(ctx: TransferContext, item_id: String) -> void:
 		_post_message(ctx, "Could not take %s." % item_name)
 		ctx.refresh_hud()
 		return
+	_emit_theft_if_owned(ctx, item_id)
 	_refresh_equipment_for_owner(ctx, owner_id)
 	_post_message(ctx, "Took %s." % item_name)
 	ctx.refresh_hud()
@@ -211,6 +215,30 @@ static func _seed_loot_owner_from_open_effects(
 	return opened
 
 
+static func _is_object_opened(chunks, entity_id: String, tile: Vector2i, layer: String) -> bool:
+	if not chunks:
+		return false
+	if _chunk_method_argument_count(chunks, "is_object_opened") >= 3:
+		return bool(chunks.is_object_opened(entity_id, tile, layer))
+	return bool(chunks.is_object_opened(entity_id, tile))
+
+
+static func _mark_object_opened(chunks, entity_id: String, tile: Vector2i, layer: String) -> void:
+	if not chunks:
+		return
+	if _chunk_method_argument_count(chunks, "mark_object_opened") >= 3:
+		chunks.mark_object_opened(entity_id, tile, layer)
+		return
+	chunks.mark_object_opened(entity_id, tile)
+
+
+static func _chunk_method_argument_count(chunks, method_name: String) -> int:
+	for method in chunks.get_method_list():
+		if String(method.get("name", "")) == method_name:
+			return method.get("args", []).size()
+	return 0
+
+
 static func _loot_owner_id(entity: WorldEntity) -> String:
 	var owner_id := ActorRules.inventory_owner_id(entity.data)
 	if not owner_id.is_empty():
@@ -262,7 +290,11 @@ static func _active_transfer_access_result(ctx: TransferContext, owner_id: Strin
 			if _humanoid_owner_id(entity) != owner_id:
 				return _blocked_transfer("No pockets to pick.")
 			var result := PickpocketRules.access_result(
-				entity, ctx.player.global_position, ctx.player.is_sneaking
+				entity,
+				ctx.player.global_position,
+				ctx.player.is_sneaking,
+				ctx.npc_perception,
+				String(ctx.player.world_layer)
 			)
 			if bool(result.get("allowed", false)):
 				return {"allowed": true, "reason": ""}
@@ -339,6 +371,42 @@ static func _clear_content_choices(ctx: TransferContext) -> void:
 static func _refresh_equipment_for_owner(ctx: TransferContext, owner_id: String) -> void:
 	if ctx.entities and ctx.entities.has_method("refresh_equipment_for_owner"):
 		ctx.entities.refresh_equipment_for_owner(owner_id)
+
+
+static func _emit_theft_if_owned(ctx: TransferContext, item_id: String) -> void:
+	if (
+		not ctx.event_bus
+		or not ctx.event_bus.has_signal("player_crime_committed")
+		or not ctx.player
+	):
+		return
+	var source := ctx.transfer_source()
+	var entity := _transfer_source_entity(ctx, String(source.get("entity_id", "")))
+	if not entity or not (entity.data is Dictionary):
+		return
+	var access_mode := String(source.get("access_mode", ""))
+	var owner_npc_id := String(entity.data.get("owner_npc_id", ""))
+	if access_mode == "pickpocket":
+		owner_npc_id = String(entity.data.get("npc_id", entity.get_entity_id()))
+	if owner_npc_id.is_empty() and String(entity.data.get("owner_faction_id", "")).is_empty():
+		return
+	var profile := ActorRules.profile(entity.data)
+	ctx.event_bus.player_crime_committed.emit(
+		{
+			"kind": "theft",
+			"offender_id": "player",
+			"victim_entity_id": entity.get_entity_id() if access_mode == "pickpocket" else "",
+			"victim_npc_id": owner_npc_id,
+			"victim_faction_id": String(entity.data.get("owner_faction_id", profile.get("faction_id", ""))),
+			"item_id": item_id,
+			"world_position": [ctx.player.global_position.x, ctx.player.global_position.y],
+			"world_layer": String(ctx.player.world_layer),
+			"noise_radius": 24.0,
+			"loudness": "quiet",
+			"visible": true,
+			"target_sneaking": bool(ctx.player.is_sneaking)
+		}
+	)
 
 
 static func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:

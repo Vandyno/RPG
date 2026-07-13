@@ -1,0 +1,34 @@
+[
+  {
+    "global_tile": [-3244, -3954], "id": "portal_northgate_jail_entry", "interaction_radius": 48,
+    "kind": "door", "name": "Northgate Lockup Door", "pick_radius": 12,
+    "portal": {"message": "Entered the Northgate Lockup.", "target_facing": [0, -1], "target_layer": "interior:structure_northgate_jail", "target_tile": [4, 5]},
+    "world_layer": "surface"
+  },
+  {
+    "global_tile": [4, 6], "id": "portal_northgate_jail_exit", "interaction_radius": 48,
+    "jail_exit": true, "kind": "door", "name": "Lockup Door", "pick_radius": 12,
+    "portal": {"message": "Returned to Northgate.", "target_facing": [0, 1], "target_layer": "surface", "target_tile": [-3244, -3953]},
+    "world_layer": "interior:structure_northgate_jail"
+  },
+  {
+    "description": "A hard cot inside the barred holding cell. You can wait out a lawful sentence here.",
+    "global_tile": [2, 2], "id": "poi_northgate_jail_cot", "jail_action": "serve_sentence",
+    "kind": "poi", "name": "Prisoner Cot", "poi_type": "Jail", "summary": "Serve the remaining sentence",
+    "world_layer": "interior:structure_northgate_jail"
+  },
+  {
+    "description": "The lockup ledger records active bounties, fines, sentences, and restitution.",
+    "global_tile": [6, 2], "id": "poi_northgate_jail_ledger", "kind": "poi", "legal_service": true,
+    "name": "Lockup Ledger", "poi_type": "Legal service", "summary": "Pay bounties or make amends",
+    "world_layer": "interior:structure_northgate_jail"
+  },
+  {
+    "authored_purpose": "evidence storage", "global_tile": [7, 4], "id": "container_northgate_jail_evidence",
+    "effects_on_open": [{"flag_id": "flag_northgate_evidence_tampered", "type": "set_flag", "value": true}],
+    "inventory": [{"count": 1, "item_id": "item_gold_coin"}], "inventory_owner_id": "northgate_jail_evidence",
+    "kind": "container", "name": "Evidence Chest", "owner_faction_id": "faction_marches_of_velcor",
+    "private": true, "world_layer": "interior:structure_northgate_jail"
+  },
+  {"global_tile": [4, 3], "id": "fixture_northgate_jail_bars", "kind": "fixture", "name": "Iron Cell Bars", "private": true, "visual_style": "fixture:weapon_rack", "world_layer": "interior:structure_northgate_jail"}
+]

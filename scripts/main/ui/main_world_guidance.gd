@@ -3,6 +3,7 @@ extends RefCounted
 
 const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
 
@@ -196,6 +197,8 @@ static func _hint_text_for_width(
 
 
 static func _action_text(main, entity, selected: bool) -> String:
+	if entity and ActorRules.is_dead_actor_data(entity.data):
+		return "Loot"
 	if selected:
 		var preferred := MainContextActions.preferred_primary(
 			MainContextActions.action_list_context(main), entity
@@ -204,6 +207,10 @@ static func _action_text(main, entity, selected: bool) -> String:
 			return String(
 				preferred.get("text", PrimaryActionTextBuilder.for_kind(entity.get_kind()))
 			)
+	if entity and entity.get_kind() == "npc":
+		var schedule_action := _schedule_action_text(entity)
+		if not schedule_action.is_empty():
+			return schedule_action
 	if entity and ["container", "door"].has(entity.get_kind()):
 		return ObjectInteractionRules.access_action_text(
 			entity, main.chunks, main.condition_evaluator
@@ -211,3 +218,38 @@ static func _action_text(main, entity, selected: bool) -> String:
 	if entity and entity.get_kind() == "poi":
 		return PoiInteraction.primary_action_text(entity)
 	return PrimaryActionTextBuilder.for_kind(entity.get_kind())
+
+
+static func _schedule_action_text(entity) -> String:
+	var status := String(entity.data.get("schedule_activity_status", ""))
+	var action := String(entity.data.get("schedule_activity_action", ""))
+	if status.is_empty() and action.is_empty():
+		return ""
+	match status:
+		"sleeping":
+			return "Sleeping"
+		"eating":
+			return "Eating"
+		"getting_ready":
+			return "Getting Ready"
+		"recovering":
+			return "Recovering"
+		"investigating":
+			return "Investigating"
+		"on_quest":
+			return _humanize_schedule_action(action, "On Quest")
+		"socializing":
+			return _humanize_schedule_action(action, "Socializing")
+		"working":
+			return _humanize_schedule_action(action, "Working")
+		"travelling":
+			return "Travelling"
+		"wandering":
+			return "Wandering"
+	return _humanize_schedule_action(action, status.capitalize())
+
+
+static func _humanize_schedule_action(action: String, fallback: String) -> String:
+	if action.is_empty():
+		return fallback
+	return action.replace("_", " ").capitalize()

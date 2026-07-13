@@ -5,6 +5,8 @@ const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator
 const EventBusScript = preload("res://scripts/core/event_bus.gd")
 const EffectRunnerScript = preload("res://scripts/core/effect_runner.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
+const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const ContentDatabaseScript = preload("res://scripts/data/content_database.gd")
 const WorldStateManagerScript = preload("res://scripts/managers/world/world_state_manager.gd")
 const InventoryManagerScript = preload("res://scripts/managers/actors/inventory_manager.gd")
@@ -17,15 +19,18 @@ const ShopManagerScript = preload("res://scripts/managers/content/shop_manager.g
 const ReadableManagerScript = preload("res://scripts/managers/content/readable_manager.gd")
 const DialogueManagerScript = preload("res://scripts/managers/content/dialogue_manager.gd")
 const ChunkManagerScript = preload("res://scripts/managers/world/chunk_manager.gd")
+const StructureManagerScript = preload("res://scripts/managers/world/structure_manager.gd")
 const WorldStreamingManagerScript = preload(
 	"res://scripts/managers/world/world_streaming_manager.gd"
 )
+const WorldQueryScript = preload("res://scripts/world/world_query.gd")
 const EntityManagerScript = preload("res://scripts/managers/world/entity_manager.gd")
 const CombatManagerScript = preload("res://scripts/managers/actors/combat_manager.gd")
 const EquipmentManagerScript = preload("res://scripts/managers/actors/equipment_manager.gd")
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const SaveManagerScript = preload("res://scripts/managers/persistence/save_manager.gd")
 const RpgHudScript = preload("res://scripts/ui/rpg/rpg_hud.gd")
+const GameStartMenuScript = preload("res://scripts/ui/start/game_start_menu.gd")
 const PrimaryActionTextBuilder = preload("res://scripts/ui/text/primary_action_text_builder.gd")
 const DebugCharacterCreatorScript = preload("res://scripts/ui/debug/debug_character_creator.gd")
 const InteractionTargetSelector = preload("res://scripts/main/input/interaction_target_selector.gd")
@@ -38,8 +43,15 @@ const MainWorldGuidance = preload("res://scripts/main/ui/main_world_guidance.gd"
 const MainContextActions = preload("res://scripts/main/actions/main_context_actions.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
+const MainObjectInteractions = preload("res://scripts/main/actions/main_object_interactions.gd")
 const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framing.gd")
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
+const CivilianScheduleBrain = preload("res://scripts/main/runtime/civilian_schedule_brain.gd")
+const CivilianScheduleManagerScript = preload("res://scripts/managers/content/civilian_schedule_manager.gd")
+const NpcPerceptionManagerScript = preload("res://scripts/managers/content/npc_perception_manager.gd")
+const CrimeManagerScript = preload("res://scripts/managers/content/crime_manager.gd")
+const CompanionManagerScript = preload("res://scripts/managers/content/companion_manager.gd")
+const AllegianceManagerScript = preload("res://scripts/managers/content/allegiance_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -56,6 +68,8 @@ var shops: ShopManager
 var readables: ReadableManager
 var dialogues: DialogueManager
 var chunks: ChunkManager
+var structures: StructureManager
+var world_query: WorldQuery
 var streamer: WorldStreamingManager
 var entities: EntityManager
 var combat: CombatManager
@@ -63,9 +77,16 @@ var equipment: EquipmentManager
 var spells: SpellManager
 var player: PlayerController
 var save_manager: SaveManager
+var civilian_schedules: CivilianScheduleManager
+var npc_perception: NpcPerceptionManager
+var crime: CrimeManager
+var companions
+var allegiances
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
+var start_menu: GameStartMenu
+var game_started := false
 var camera: Camera2D
 var active_interaction_id := ""
 var target_cycle_index := 0
@@ -91,21 +112,54 @@ var active_transfer_access_mode := ""
 var channeled_spell_damage_bank: Dictionary = {}
 var channeled_spell_empty_reported: Dictionary = {}
 var held_weapon_attack_elapsed: Dictionary = {}
+var held_spell_charge_elapsed: Dictionary = {}
+var held_spell_charge_visual_elapsed: Dictionary = {}
+
+
 func _ready() -> void:
 	if _bootstrap():
-		event_bus.post_message("Briarwatch ready. Read, talk, trade, take jobs, save, and load.")
+		if _running_unit_tests():
+			game_started = true
+			start_menu.hide_menu()
+		else:
+			_show_start_menu()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not game_started:
+		return
 	MainInputRouter.handle_event(MainInputRouter.context(self), event)
+
+
 func _process(delta: float) -> void:
 	_sync_camera_to_player()
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
+	if allegiances:
+		allegiances.update(delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
+	CivilianScheduleBrain.update(civilian_schedules, delta)
+	if companions:
+		companions.update(delta)
+	if npc_perception and hud:
+		npc_perception.set_debug_visible(bool(hud.visible_debug))
 	_update_location_discoveries()
 	_update_nearby()
+
+
 func apply_effect(effect: Dictionary, emit_feedback: bool = true) -> bool:
 	return effect_runner.apply(effect, emit_feedback)
+
+
+func clear_target_state() -> void:
+	selected_target_id = ""
+	target_cycle_index = 0
+	manual_target_locked = false
+
+
 func get_hud_state() -> Dictionary:
 	return MainHudState.build(_hud_context())
+
+
 func get_debug_state() -> Dictionary:
 	return MainDebugState.build(self)
 
@@ -114,48 +168,62 @@ func _hud_context() -> MainHudState.HudContext:
 	var nearby := _get_nearby_entity()
 	var auto_target = entities.get_entity(auto_interact_target_id)
 	var nearby_targets := _ranked_nearby_entities()
-	return MainHudState.HudContext.new(
-		{
-			"active_transfer_name": active_transfer_name,
-			"active_transfer_owner_id": active_transfer_owner_id,
-			"auto_interact_target_id": auto_interact_target_id,
-			"auto_move_active": auto_move_active,
-			"chunks": chunks,
-			"condition_evaluator": condition_evaluator,
-			"content": content,
-			"context_actions_context": _action_list_context(),
-			"entities": entities,
-			"equipment": equipment,
-			"factions": factions,
-			"hud_queries": hud_queries,
-			"inventory": inventory,
-			"nearby": nearby,
-			"nearby_targets": hud_queries.nearby_targets_data(
-				nearby_targets, selected_target_id, player.global_position
-			),
-			"player": player,
-			"primary_action": _primary_action_text(nearby, auto_target),
-			"progression": progression,
-			"quests": quests,
-			"shop_id": hud_queries.shop_id_for_entity(nearby),
-			"spells": spells,
-			"statuses": statuses,
-			"time": time,
-			"world_state": world_state
-		}
+	var nearby_target_rows := hud_queries.nearby_targets_data(
+		nearby_targets, selected_target_id, player.global_position
 	)
+	return MainHudState.HudContext.new(
+		MainHudState.HudDataSources.new(
+			content,
+			entities,
+			inventory,
+			equipment,
+			spells,
+			progression,
+			quests,
+			statuses,
+			factions,
+			time,
+			crime,
+			npc_perception
+		),
+		MainHudState.HudUiServices.new(hud_queries, _action_list_context(), world_state),
+		MainHudState.HudSnapshot.new(
+			active_transfer_name,
+			active_transfer_owner_id,
+			auto_interact_target_id,
+			auto_move_active,
+			_current_location_name(),
+			nearby,
+			nearby_target_rows,
+			player,
+			_primary_action_text(nearby, auto_target),
+			hud_queries.shop_id_for_entity(nearby)
+		)
+	)
+
+
+func _current_location_name() -> String:
+	if not player:
+		return ""
+	if player.world_layer == "surface" and entities:
+		for entity in entities.get_entities_world(
+			player.global_position, _max_location_discovery_radius(), "location"
+		):
+			var radius := VariantFields.positive_float_field_at_least(
+				entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
+			)
+			if player.global_position.distance_to(entity.global_position) <= radius:
+				return entity.get_display_name()
+		return ""
+	if player.world_layer.begins_with("interior:") and structures:
+		var structure_id := player.world_layer.trim_prefix("interior:")
+		var structure := structures.get_structure(structure_id)
+		return String(structure.get("name", ""))
+	return player.world_layer
 
 
 func _action_list_context() -> MainContextActions.ActionListContext:
-	return MainContextActions.ActionListContext.new(
-		{
-			"condition_evaluator": condition_evaluator,
-			"content": content,
-			"dialogues": dialogues,
-			"player": player,
-			"world_state": world_state
-		}
-	)
+	return MainContextActions.action_list_context(self)
 
 
 func _preferred_primary_context_action_for(entity) -> Dictionary:
@@ -167,9 +235,34 @@ func _handle_target_entity_intent(entity_id: String) -> void:
 
 
 func _bootstrap() -> bool:
+	_bootstrap_event_bus()
+	if not _bootstrap_content():
+		set_process(false)
+		return false
+	_bootstrap_core_managers()
+	_bootstrap_content_services()
+	_bootstrap_world_runtime()
+	_bootstrap_actor_runtime()
+	_bootstrap_player()
+	_bootstrap_hud_queries()
+	_bootstrap_camera()
+	_bootstrap_save_manager()
+	_bootstrap_hud()
+	_bootstrap_debug_character_creator()
+	_bootstrap_runtime_signals()
+	_bootstrap_start_menu()
+	streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	return true
+
+
+func _bootstrap_event_bus() -> void:
 	event_bus = EventBusScript.new()
 	event_bus.name = "EventBus"
 	add_child(event_bus)
+
+
+func _bootstrap_content() -> bool:
 	content = _create_content_database()
 	content.name = "ContentDatabase"
 	add_child(content)
@@ -178,15 +271,17 @@ func _bootstrap() -> bool:
 		_report_content_bootstrap_errors(
 			content_load_errors, "Content failed to load. Check content file errors."
 		)
-		set_process(false)
 		return false
 	var content_validation_errors: Array[String] = content.validate_all()
 	if not content_validation_errors.is_empty():
 		_report_content_bootstrap_errors(
 			content_validation_errors, "Content failed validation. Check content file errors."
 		)
-		set_process(false)
 		return false
+	return true
+
+
+func _bootstrap_core_managers() -> void:
 	world_state = WorldStateManagerScript.new()
 	world_state.name = "WorldStateManager"
 	add_child(world_state)
@@ -218,6 +313,8 @@ func _bootstrap() -> bool:
 	add_child(time)
 	time.setup(event_bus)
 
+
+func _bootstrap_content_services() -> void:
 	effect_runner = EffectRunnerScript.new()
 	effect_runner.setup(
 		EffectRunnerScript.Dependencies.new(
@@ -260,16 +357,28 @@ func _bootstrap() -> bool:
 	add_child(dialogues)
 	dialogues.setup(content, condition_evaluator, effect_runner)
 
+
+func _bootstrap_world_runtime() -> void:
 	chunks = ChunkManagerScript.new()
 	chunks.name = "ChunkManager"
 	add_child(chunks)
 	chunks.load_world_terrain(content.get_world_terrain())
 
+	structures = StructureManagerScript.new()
+	structures.name = "StructureManager"
+	add_child(structures)
+	structures.setup(content)
+
+	world_query = WorldQueryScript.new()
+	world_query.setup(chunks, structures)
+
 	streamer = WorldStreamingManagerScript.new()
 	streamer.name = "WorldStreamingManager"
 	add_child(streamer)
-	streamer.setup(event_bus, chunks)
+	streamer.setup(event_bus, world_query)
 
+
+func _bootstrap_actor_runtime() -> void:
 	entities = EntityManagerScript.new()
 	entities.name = "EntityManager"
 	add_child(entities)
@@ -279,6 +388,8 @@ func _bootstrap() -> bool:
 	equipment.name = "EquipmentManager"
 	add_child(equipment)
 	equipment.setup(event_bus, content, inventory)
+	if effect_runner:
+		effect_runner.set_equipment(equipment)
 
 	spells = SpellManager.new()
 	spells.name = "SpellManager"
@@ -295,17 +406,75 @@ func _bootstrap() -> bool:
 	add_child(combat)
 	combat.setup(event_bus, equipment, progression, statuses)
 
+	civilian_schedules = CivilianScheduleManagerScript.new()
+	civilian_schedules.name = "CivilianScheduleManager"
+	add_child(civilian_schedules)
+	civilian_schedules.setup(event_bus, content, time, entities, chunks, world_query, combat, quests)
+	npc_perception = NpcPerceptionManagerScript.new()
+	npc_perception.name = "NpcPerceptionManager"
+	add_child(npc_perception)
+	npc_perception.setup(event_bus, entities, world_query, time)
+
+	crime = CrimeManagerScript.new()
+	crime.name = "CrimeManager"
+	add_child(crime)
+	crime.setup(event_bus, entities, npc_perception, time, factions, civilian_schedules, chunks, inventory)
+	allegiances = AllegianceManagerScript.new()
+	allegiances.name = "AllegianceManager"
+	add_child(allegiances)
+	allegiances.setup(event_bus, entities, content)
+	crime.set_allegiance_manager(allegiances)
+	companions = CompanionManagerScript.new()
+	companions.name = "CompanionManager"
+	add_child(companions)
+	companions.setup(event_bus, entities, chunks, combat)
+	shops.set_schedule_manager(civilian_schedules)
+	shops.set_crime_manager(crime)
+
+
+func _bootstrap_player() -> void:
 	player = PlayerControllerScript.new()
 	player.name = "Player"
 	add_child(player)
-	player.setup(event_bus, chunks, Vector2i.ZERO)
+	player.setup(event_bus, world_query, Vector2i.ZERO)
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
+	civilian_schedules.set_player(player)
+	crime.set_player(player)
+	companions.set_player(player)
+	event_bus.player_jailed.connect(_on_player_jailed)
+	event_bus.player_released_from_jail.connect(_on_player_released_from_jail)
 	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
 			player.set_equipped_items(equipped_by_slot, content)
 	)
 
+
+func _on_player_jailed(state: Dictionary) -> void:
+	_transport_player_for_law(state)
+
+
+func _on_player_released_from_jail(state: Dictionary) -> void:
+	_transport_player_for_law(state)
+
+
+func _transport_player_for_law(state: Dictionary) -> void:
+	if not player:
+		return
+	var target_layer := String(state.get("target_layer", "surface"))
+	var target_tile := VariantFields.vector2i_from_pair(
+		state.get("target_tile", []), player.global_tile
+	)
+	player.set_world_layer(target_layer)
+	player.set_global_tile(target_tile)
+	world_query.set_layer(target_layer)
+	streamer.update_center(target_tile, target_layer)
+	clear_target_state()
+	_sync_camera_to_player()
+	_update_nearby()
+
+
+func _bootstrap_hud_queries() -> void:
 	hud_queries = MainHudQueries.new()
 	hud_queries.setup(
 		MainHudQueries.Dependencies.new(
@@ -326,6 +495,8 @@ func _bootstrap() -> bool:
 		)
 	)
 
+
+func _bootstrap_camera() -> void:
 	camera = Camera2D.new()
 	camera.name = "Camera2D"
 	camera.zoom = Vector2(2.0, 2.0)
@@ -334,15 +505,23 @@ func _bootstrap() -> bool:
 	camera.position_smoothing_speed = 8.0
 	add_child(camera)
 
+
+func _bootstrap_save_manager() -> void:
 	save_manager = SaveManagerScript.new()
 	save_manager.name = "SaveManager"
 	add_child(save_manager)
 	save_manager.setup(event_bus, MainSaveProviders.build(self))
 
+
+func _bootstrap_hud() -> void:
 	hud = RpgHudScript.new()
 	hud.name = "RpgHud"
 	add_child(hud)
 	hud.setup(event_bus, Callable(self, "get_hud_state"))
+	_bootstrap_hud_signals()
+
+
+func _bootstrap_hud_signals() -> void:
 	hud.interact_pressed.connect(_handle_interact_requested)
 	hud.cycle_target_pressed.connect(_handle_cycle_target_requested)
 	hud.target_selected.connect(_handle_target_selected)
@@ -352,7 +531,9 @@ func _bootstrap() -> bool:
 	hud.inventory_item_selected.connect(_handle_inventory_item_selected)
 	hud.aim_action_released.connect(
 		func(action_id: String, direction: Vector2) -> void:
-			MainSystemsActions.handle_aim(MainSystemsActions.aim_context(self), action_id, direction)
+			MainSystemsActions.handle_aim(
+				MainSystemsActions.aim_context(self), action_id, direction
+			)
 	)
 	hud.aim_action_held.connect(
 		func(action_id: String, direction: Vector2, delta: float) -> void:
@@ -368,6 +549,8 @@ func _bootstrap() -> bool:
 	hud.systems_panel_closed.connect(_handle_systems_panel_closed)
 	hud.systems_tab_changed.connect(_handle_systems_tab_changed)
 
+
+func _bootstrap_debug_character_creator() -> void:
 	debug_character_creator = DebugCharacterCreatorScript.new()
 	debug_character_creator.name = "DebugCharacterCreator"
 	add_child(debug_character_creator)
@@ -375,16 +558,74 @@ func _bootstrap() -> bool:
 	debug_character_creator.appearance_applied.connect(
 		func(profile: Dictionary) -> void:
 			event_bus.post_message(
-				"Applied %s appearance." % content.get_people(String(profile.get("people_id", ""))).get(
-					"display_name", String(profile.get("people_id", ""))
+				(
+					"Applied %s appearance."
+					% content.get_people(String(profile.get("people_id", ""))).get(
+						"display_name", String(profile.get("people_id", ""))
+					)
 				)
 			)
 			_refresh_hud()
 	)
-	event_bus.player_tile_changed.connect(_on_player_tile_changed)
-	streamer.update_center(player.global_tile)
+	debug_character_creator.creation_confirmed.connect(_on_new_character_confirmed)
+	debug_character_creator.creation_cancelled.connect(_show_start_menu)
+
+
+func _bootstrap_start_menu() -> void:
+	start_menu = GameStartMenuScript.new()
+	start_menu.name = "GameStartMenu"
+	add_child(start_menu)
+	start_menu.setup(FileAccess.file_exists(save_manager.save_path))
+	start_menu.new_game_pressed.connect(begin_new_game)
+	start_menu.continue_pressed.connect(continue_game)
+
+
+func begin_new_game() -> void:
+	if not debug_character_creator:
+		return
+	if start_menu:
+		start_menu.hide_menu()
+	debug_character_creator.begin_new_character()
+
+
+func continue_game() -> void:
+	var result := save_manager.load_game() if save_manager else null
+	if result == null or not result.ok:
+		if start_menu:
+			start_menu.set_status(
+				"Could not load that journey. Start a new one or check the save file."
+			)
+		return
+	game_started = true
+	if start_menu:
+		start_menu.hide_menu()
+	streamer.update_center(player.global_tile, player.world_layer)
 	_sync_camera_to_player()
-	return true
+	event_bus.post_message("Welcome back to Briarwatch.")
+
+
+func _on_new_character_confirmed(_profile: Dictionary) -> void:
+	game_started = true
+	streamer.update_center(player.global_tile, player.world_layer)
+	_sync_camera_to_player()
+	event_bus.post_message("Briarwatch awaits. Read, talk, trade, take jobs, save, and load.")
+
+
+func _show_start_menu() -> void:
+	game_started = false
+	if start_menu:
+		start_menu.show_menu(FileAccess.file_exists(save_manager.save_path))
+
+
+func _running_unit_tests() -> bool:
+	for argument in OS.get_cmdline_args():
+		if String(argument).contains("gut_cmdln.gd"):
+			return true
+	return false
+
+
+func _bootstrap_runtime_signals() -> void:
+	event_bus.player_tile_changed.connect(_on_player_tile_changed)
 
 
 func _create_content_database() -> ContentDatabase:
@@ -399,16 +640,14 @@ func _report_content_bootstrap_errors(errors: Array[String], summary: String) ->
 
 
 func _on_player_tile_changed(global_tile: Vector2i, _chunk_coord: Vector2i) -> void:
-	streamer.update_center(global_tile)
+	streamer.update_center(global_tile, player.world_layer if player else "surface")
+
 
 func _sync_camera_to_player() -> void:
 	if not camera or not player:
 		return
 	camera.global_position = MainCameraFraming.position_for_player(
-		player.global_position,
-		_camera_focus_position(),
-		get_viewport_rect().size,
-		camera.zoom
+		player.global_position, _camera_focus_position(), get_viewport_rect().size, camera.zoom
 	)
 	camera.reset_smoothing()
 
@@ -443,8 +682,8 @@ func _update_location_discoveries() -> void:
 		player.global_position, _max_location_discovery_radius(), "location"
 	):
 		var location_id := String(entity.data.get("location_id", ""))
-		var radius := _positive_float_field(
-			entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+		var radius := VariantFields.positive_float_field_at_least(
+			entity.data, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
 		)
 		if player.global_position.distance_to(entity.global_position) > radius:
 			continue
@@ -458,8 +697,8 @@ func _max_location_discovery_radius() -> float:
 		if String(entry.get("kind", "")) == "location":
 			radius = maxf(
 				radius,
-				_positive_float_field(
-					entry, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS
+				VariantFields.positive_float_field_at_least(
+					entry, "discovery_radius", EntityManagerScript.DEFAULT_INTERACTION_RADIUS_PIXELS, 1.0
 				)
 			)
 	return radius
@@ -512,7 +751,10 @@ func _handle_cycle_target_requested() -> void:
 		event_bus.post_message("No alternate target nearby.")
 		return
 	selected_target_id = InteractionTargetSelector.next_id(
-		nearby_entities, selected_target_id, target_cycle_index, player.global_position,
+		nearby_entities,
+		selected_target_id,
+		target_cycle_index,
+		player.global_position,
 		player.get_facing_direction()
 	)
 	target_cycle_index = _index_of_target_id(nearby_entities, selected_target_id)
@@ -572,6 +814,15 @@ func toggle_debug_character_creator() -> void:
 	debug_character_creator.toggle_open()
 
 
+func open_character_appearance() -> void:
+	if not debug_character_creator:
+		return
+	_close_open_overlay_panel(false)
+	if equipment:
+		debug_character_creator.set_public_preview_equipment(equipment.equipped_by_slot)
+	debug_character_creator.open_character_appearance()
+
+
 func _close_open_overlay_panel(consume_action: bool = true) -> bool:
 	if not hud:
 		return false
@@ -617,17 +868,27 @@ func _interact() -> void:
 	if not entity:
 		event_bus.post_message("Nothing nearby to interact with.")
 		return
+	_interact_entity(entity)
+
+
+func _interact_entity(entity: WorldEntity) -> void:
+	if not entity:
+		event_bus.post_message("Nothing nearby to interact with.")
+		return
+	if ActorRules.is_dead_actor_data(entity.data):
+		MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
+		return
 	match entity.get_kind():
 		"readable":
-			_interact_readable(entity)
+			MainObjectInteractions.interact_readable(MainObjectInteractions.context(self), entity)
 		"pickup":
-			_interact_pickup(entity)
+			MainObjectInteractions.interact_pickup(MainObjectInteractions.context(self), entity)
 		"container":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"body":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"door":
-			_interact_container(entity)
+			MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
 		"poi":
 			PoiInteraction.interact(
 				PoiInteraction.InteractionContext.new(
@@ -643,67 +904,19 @@ func _interact() -> void:
 		"npc":
 			_interact_npc(entity)
 		"rest":
-			_interact_rest(entity)
+			MainObjectInteractions.interact_rest(MainObjectInteractions.context(self), entity)
 		_:
 			event_bus.post_message("You inspect %s." % entity.get_display_name())
 
 
-func _interact_readable(entity: WorldEntity) -> void:
-	var readable_id := String(entity.data.get("readable_id", ""))
-	var readable: Dictionary = readables.read_readable(readable_id)
-	if readable.is_empty():
-		event_bus.post_message("The writing is too weathered to read.")
-		return
-	var title := String(readable.get("title", "Readable"))
-	var body := String(readable.get("body", ""))
-	active_content_choices.clear()
-	if hud:
-		hud.show_content_card(title, body, [], "readable")
-	event_bus.post_message("Read %s." % title)
-
-
-func _interact_pickup(entity: WorldEntity) -> void:
-	var item_id := String(entity.data.get("item_id", ""))
-	var count := _positive_int_field(entity.data, "count", 1)
-	var pickup_effects := _array_field(entity.data.get("effects_on_pickup", []))
-	if not inventory.add_item(item_id, count):
-		event_bus.post_message("Could not pick up %s." % entity.get_display_name())
-		return
-	entities.remove_entity(entity.get_entity_id())
-	var item: Dictionary = content.get_item(item_id)
-	event_bus.post_message("Picked up %s." % String(item.get("name", item_id)))
-	for effect in pickup_effects:
-		if effect is Dictionary:
-			apply_effect(effect)
-	_update_nearby()
-
-
-func _interact_container(entity: WorldEntity) -> void:
-	var entity_id: String = entity.get_entity_id()
-	var locked_text := ObjectInteractionRules.access_locked_text(entity.data, condition_evaluator)
-	if not locked_text.is_empty():
-		event_bus.post_message(locked_text)
-		return
-	if ["container", "body"].has(entity.get_kind()):
-		MainInventoryTransfer.open(MainInventoryTransfer.context(self), entity)
-		return
-	if chunks.is_object_opened(entity_id, entity.global_tile):
-		event_bus.post_message("%s is already open." % entity.get_display_name())
-		return
-	var opened := false
-	for effect in _array_field(entity.data.get("effects_on_open", [])):
-		if effect is Dictionary and apply_effect(effect):
-			opened = true
-	chunks.mark_object_opened(entity_id, entity.global_tile)
-	if opened:
-		event_bus.post_message("Opened %s." % entity.get_display_name())
-	else:
-		event_bus.post_message("%s is empty." % entity.get_display_name())
-	_update_nearby()
-
-
 func _interact_npc(entity: WorldEntity) -> void:
 	var npc_id := String(entity.data.get("npc_id", ""))
+	if civilian_schedules:
+		var blocked_reason := civilian_schedules.dialogue_block_reason(npc_id)
+		if not blocked_reason.is_empty():
+			event_bus.post_message(blocked_reason)
+			_refresh_hud()
+			return
 	var npc: Dictionary = content.get_npc(npc_id)
 	var result: Dictionary = dialogues.resolve_dialogue(
 		String(npc.get("dialogue_id", "")), String(npc.get("name", entity.get_display_name()))
@@ -712,7 +925,13 @@ func _interact_npc(entity: WorldEntity) -> void:
 		event_bus.post_message("%s has nothing to say." % entity.get_display_name())
 		return
 	_show_dialogue_line(result)
+	if bool(result.get("effects_failed", false)):
+		event_bus.post_message("Some dialogue effects could not be applied.")
 	_update_nearby()
+
+
+func _interact_portal(entity: WorldEntity) -> void:
+	MainObjectInteractions.interact_portal(MainObjectInteractions.context(self), entity)
 
 
 func _handle_context_action_selected(action_id: String) -> void:
@@ -724,9 +943,9 @@ func _combat_hit_message(result: Dictionary, counter_damage: int) -> String:
 		"Hit %s for %d. %d/%d HP remains. Took %d."
 		% [
 			result.get("name", "enemy"),
-			_non_negative_int_value(result.get("damage", 0), 0),
-			_non_negative_int_value(result.get("health", 0), 0),
-			_positive_int_value(result.get("max_health", 1), 1),
+			VariantFields.non_negative_int(result.get("damage", 0), 0),
+			VariantFields.non_negative_int(result.get("health", 0), 0),
+			VariantFields.positive_int(result.get("max_health", 1), 1),
 			counter_damage
 		]
 	)
@@ -743,28 +962,6 @@ func _handle_player_defeated(source_name: String) -> void:
 	selected_target_id = ""
 	manual_target_locked = false
 	event_bus.post_message("You fall to %s, then recover at the bridge campfire." % source_name)
-
-
-func _interact_rest(entity: WorldEntity) -> void:
-	var before: int = player.health
-	var heal_amount := _positive_int_field(entity.data, "heal_amount", player.max_health)
-	var rest_hours := _positive_int_field(entity.data, "rest_hours", 8)
-	player.heal(heal_amount)
-	var time_summary := "now"
-	if time:
-		time.advance_hours(rest_hours)
-		time_summary = time.get_summary()
-	if player.health == before:
-		event_bus.post_message(
-			"%s is warm. You rest until %s." % [entity.get_display_name(), time_summary]
-		)
-		return
-	event_bus.post_message(
-		(
-			"Rested at %s until %s. Health %d/%d."
-			% [entity.get_display_name(), time_summary, player.health, player.max_health]
-		)
-	)
 
 
 func _show_dialogue_line(line: Dictionary) -> void:
@@ -789,6 +986,16 @@ func _handle_content_choice_selected(choice_id: String) -> void:
 	var choice: Dictionary = active_content_choices[choice_id]
 	active_content_choices.clear()
 	var result: Dictionary = dialogues.apply_choice(choice)
+	if bool(result.get("effects_failed", false)):
+		event_bus.post_message("Some dialogue effects could not be applied.")
+	var open_shop_id := String(result.get("open_shop_id", ""))
+	if not open_shop_id.is_empty():
+		if hud:
+			hud.hide_content_card()
+			hud.show_systems_panel("trade")
+		event_bus.post_message("Trading.")
+		_update_nearby()
+		return
 	var response := String(result.get("response", ""))
 	if response.is_empty():
 		if hud:
@@ -821,7 +1028,7 @@ func _handle_systems_action_result(result: Dictionary) -> void:
 
 func _dialogue_choices(line: Dictionary) -> Array[Dictionary]:
 	var choices: Array[Dictionary] = []
-	for choice in _array_field(line.get("choices", [])):
+	for choice in VariantFields.array(line.get("choices", [])):
 		if choice is Dictionary:
 			choices.append(choice)
 	return choices
@@ -846,13 +1053,16 @@ func _get_nearby_entity() -> WorldEntity:
 func _get_nearby_entities() -> Array:
 	return entities.get_interactables_world(player.global_position)
 
+
 func _ranked_nearby_entities() -> Array:
 	return InteractionTargetSelector.ranked_targets(
 		_get_nearby_entities(), player.global_position, player.get_facing_direction()
 	)
 
+
 func _current_shop_id() -> String:
 	return _shop_id_for_entity(_get_nearby_entity())
+
 
 func _shop_id_for_entity(entity: WorldEntity) -> String:
 	return hud_queries.shop_id_for_entity(entity)
@@ -861,13 +1071,13 @@ func _shop_id_for_entity(entity: WorldEntity) -> String:
 func _primary_action_text(nearby, auto_target) -> String:
 	if auto_move_active or auto_target:
 		return "Stop"
+	if nearby and ActorRules.is_dead_actor_data(nearby.data):
+		return "Loot"
 	var preferred := _preferred_primary_context_action_for(nearby)
 	if not preferred.is_empty():
 		return String(preferred.get("text", "Interact"))
 	if nearby and ["container", "door"].has(nearby.get_kind()):
-		return ObjectInteractionRules.access_action_text(
-			nearby, chunks, condition_evaluator
-		)
+		return ObjectInteractionRules.access_action_text(nearby, chunks, condition_evaluator)
 	if nearby and nearby.get_kind() == "poi":
 		return PoiInteraction.primary_action_text(nearby)
 	return PrimaryActionTextBuilder.for_kind(nearby.get_kind()) if nearby else "Explore"
@@ -881,40 +1091,7 @@ func _index_of_target_id(nearby_entities: Array, entity_id: String) -> int:
 			return index
 	return -1
 
-func _array_field(value: Variant) -> Array:
-	return value if value is Array else []
-
-
-func _positive_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	return _positive_int_value(source.get(field_id, fallback), fallback)
-
-func _positive_int_value(value: Variant, fallback: int) -> int:
-	if not _is_number(value):
-		return maxi(1, fallback)
-	return maxi(1, int(value))
-
-
-func _non_negative_int_field(source: Dictionary, field_id: String, fallback: int) -> int:
-	return _non_negative_int_value(source.get(field_id, fallback), fallback)
-
-
-func _non_negative_int_value(value: Variant, fallback: int) -> int:
-	if not _is_number(value):
-		return maxi(0, fallback)
-	return maxi(0, int(value))
-
-
-func _positive_float_field(source: Dictionary, field_id: String, fallback: float) -> float:
-	var value: Variant = source.get(field_id, fallback)
-	if not _is_number(value):
-		return maxf(1.0, fallback)
-	return maxf(1.0, float(value))
-
 
 func _refresh_hud() -> void:
 	if hud:
 		hud.refresh()
-
-
-func _is_number(value: Variant) -> bool:
-	return value is int or value is float

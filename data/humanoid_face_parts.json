@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "people": {
+    "people_human": {
+      "parts": {
+        "eyes": {"default": "eyes_human_dark", "ids": ["eyes_human_dark", "eyes_human_soft", "eyes_human_sharp", "eyes_human_sleepy"]},
+        "brows": {"default": "brows_human_straight", "ids": ["brows_human_straight", "brows_human_arched", "brows_human_heavy"]},
+        "noses": {"default": "nose_human_small", "ids": ["nose_human_small", "nose_human_broad"]},
+        "mouths": {"default": "mouth_human_neutral", "ids": ["mouth_human_neutral", "mouth_human_smile", "mouth_human_grim"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_human_freckles", "face_mark_human_scar"]}
+      }
+    },
+    "people_tanglekin": {
+      "parts": {
+        "eyes": {"default": "eyes_tanglekin_amber", "ids": ["eyes_tanglekin_amber", "eyes_tanglekin_dark"]},
+        "brows": {"default": "brows_tanglekin_tufted", "ids": ["brows_tanglekin_tufted", "brows_tanglekin_flat"]},
+        "noses": {"default": "nose_tanglekin_muzzle_round", "ids": ["nose_tanglekin_muzzle_round", "nose_tanglekin_muzzle_long"]},
+        "mouths": {"default": "mouth_tanglekin_short", "ids": ["mouth_tanglekin_short", "mouth_tanglekin_grin"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_tanglekin_cheeks", "face_mark_tanglekin_brow"]}
+      }
+    },
+    "people_tuskfolk": {
+      "parts": {
+        "eyes": {"default": "eyes_tuskfolk_dark", "ids": ["eyes_tuskfolk_dark", "eyes_tuskfolk_narrow", "eyes_tuskfolk_amber"]},
+        "brows": {"default": "brows_tuskfolk_heavy", "ids": ["brows_tuskfolk_heavy", "brows_tuskfolk_split"]},
+        "noses": {"default": "nose_tuskfolk_broad", "ids": ["nose_tuskfolk_broad", "nose_tuskfolk_flat"]},
+        "mouths": {"default": "mouth_tuskfolk_grim", "ids": ["mouth_tuskfolk_grim", "mouth_tuskfolk_neutral"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_tuskfolk_snout", "face_mark_tuskfolk_scar"]}
+      }
+    },
+    "people_mirefolk": {
+      "parts": {
+        "eyes": {"default": "eyes_mirefolk_high", "ids": ["eyes_mirefolk_high", "eyes_mirefolk_narrow"]},
+        "brows": {"default": "brows_mirefolk_none", "ids": ["brows_mirefolk_none", "brows_mirefolk_ridge"]},
+        "noses": {"default": "nose_mirefolk_slits", "ids": ["nose_mirefolk_slits", "nose_mirefolk_flat"]},
+        "mouths": {"default": "mouth_mirefolk_wide", "ids": ["mouth_mirefolk_wide", "mouth_mirefolk_short"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_mirefolk_spots", "face_mark_mirefolk_reed"]}
+      }
+    },
+    "people_ravenfolk": {
+      "parts": {
+        "eyes": {"default": "eyes_ravenfolk_gold", "ids": ["eyes_ravenfolk_gold", "eyes_ravenfolk_pale"]},
+        "brows": {"default": "brows_ravenfolk_none", "ids": ["brows_ravenfolk_none", "brows_ravenfolk_quill"]},
+        "noses": {"default": "nose_ravenfolk_beak_short", "ids": ["nose_ravenfolk_beak_short", "nose_ravenfolk_beak_long"]},
+        "mouths": {"default": "mouth_ravenfolk_beak", "ids": ["mouth_ravenfolk_beak", "mouth_ravenfolk_hooked"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_ravenfolk_cheek", "face_mark_ravenfolk_quills"]}
+      }
+    },
+    "people_rootborn": {
+      "parts": {
+        "eyes": {"default": "eyes_rootborn_moss", "ids": ["eyes_rootborn_moss", "eyes_rootborn_lichen"]},
+        "brows": {"default": "brows_rootborn_bark", "ids": ["brows_rootborn_bark", "brows_rootborn_leaf"]},
+        "noses": {"default": "nose_rootborn_knot", "ids": ["nose_rootborn_knot", "nose_rootborn_flat"]},
+        "mouths": {"default": "mouth_rootborn_groove", "ids": ["mouth_rootborn_groove", "mouth_rootborn_soft"]},
+        "facial_marks": {"default": "", "ids": ["face_mark_rootborn_rings", "face_mark_rootborn_lichen"]}
+      }
+    }
+  }
+}

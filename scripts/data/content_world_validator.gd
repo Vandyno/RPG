@@ -7,6 +7,8 @@ const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 static func validate(content: ContentDatabase, errors: Array[String]) -> void:
 	_validate_locations(content, errors)
+	_validate_structure_archetypes(content, errors)
+	_validate_world_structures(content, errors)
 	_validate_world_objects(content, errors)
 	_validate_world_terrain(content, errors)
 
@@ -44,6 +46,9 @@ static func _validate_world_objects(content: ContentDatabase, errors: Array[Stri
 		Schema.validate_optional_positive_number(
 			entry, "interaction_radius", "World object %s" % object_id, errors
 		)
+		Schema.validate_optional_positive_number(
+			entry, "pick_radius", "World object %s" % object_id, errors
+		)
 		_validate_world_object_kind(content, entry, object_id, errors)
 		Schema.validate_effect_list(
 			content, entry, "effects_on_pickup", "world object %s" % object_id, errors
@@ -77,6 +82,7 @@ static func _validate_world_object_kind(
 			Schema.validate_effect_list(
 				content, entry, "effects_on_open", "world object %s" % object_id, errors
 			)
+			_validate_portal(entry, "World object %s portal" % object_id, errors)
 		"enemy":
 			errors.append(
 				"World object %s uses legacy kind enemy; use kind npc with hostility hostile."
@@ -88,6 +94,10 @@ static func _validate_world_object_kind(
 			_validate_poi_object(content, entry, object_id, errors)
 		"location":
 			_validate_location_object(content, entry, object_id, errors)
+		"fixture":
+			pass
+		"surface_detail":
+			pass
 		_:
 			errors.append("World object %s has unsupported kind %s." % [object_id, kind])
 
@@ -193,6 +203,123 @@ static func _validate_location_object(
 	Schema.validate_optional_positive_number(
 		entry, "discovery_radius", "Location object %s" % object_id, errors
 	)
+
+
+static func _validate_structure_archetypes(content: ContentDatabase, errors: Array[String]) -> void:
+	for archetype_id in content.structure_archetype_ids():
+		var archetype: Dictionary = content.get_structure_archetype(archetype_id)
+		Schema.validate_keyed_id(archetype, String(archetype_id), "Structure archetype", errors)
+		if String(archetype.get("name", "")).is_empty():
+			errors.append("Structure archetype %s is missing name." % archetype_id)
+		if String(archetype.get("visual_style", "")).is_empty():
+			errors.append("Structure archetype %s is missing visual_style." % archetype_id)
+		Schema.validate_positive_pair(
+			archetype.get("size", []), "Structure archetype %s size" % archetype_id, errors
+		)
+		_validate_structure_rows(content, archetype, archetype_id, errors)
+		_validate_anchor_dictionary(
+			archetype.get("anchors", {}), "Structure archetype %s anchors" % archetype_id, errors
+		)
+
+
+static func _validate_structure_rows(
+	_content: ContentDatabase, archetype: Dictionary, archetype_id: String, errors: Array[String]
+) -> void:
+	var rows_value: Variant = archetype.get("terrain_rows", [])
+	var rows: Array = Schema.array_field(rows_value)
+	if rows_value == null or rows.is_empty():
+		return
+	var size_value: Variant = archetype.get("size", [])
+	if not size_value is Array or size_value.size() < 2:
+		return
+	var width := int(size_value[0])
+	var height := int(size_value[1])
+	if rows.size() != height:
+		errors.append(
+			"Structure archetype %s terrain_rows height must match size." % archetype_id
+		)
+	var tile_kinds := Schema.dictionary_field(archetype.get("tile_kinds", {}))
+	for y in range(rows.size()):
+		var row := String(rows[y])
+		if row.length() != width:
+			errors.append(
+				"Structure archetype %s terrain row %d width must match size."
+				% [archetype_id, y]
+			)
+		for x in range(row.length()):
+			var code := row.substr(x, 1)
+			if code == ".":
+				continue
+			if not tile_kinds.has(code):
+				errors.append(
+					"Structure archetype %s terrain code %s has no tile kind."
+					% [archetype_id, code]
+				)
+				continue
+			var kind := String(tile_kinds.get(code, ""))
+			if not Schema.supported_terrain_kinds().has(kind):
+				errors.append(
+					"Structure archetype %s terrain code %s has unsupported kind %s."
+					% [archetype_id, code, kind]
+				)
+
+
+static func _validate_world_structures(content: ContentDatabase, errors: Array[String]) -> void:
+	var seen_ids: Dictionary = {}
+	for entry_value in content.world_structure_entries():
+		if not entry_value is Dictionary:
+			errors.append("World structure has malformed entry.")
+			continue
+		var entry: Dictionary = entry_value
+		var structure_id := String(entry.get("id", ""))
+		if structure_id.is_empty():
+			errors.append("World structure is missing id.")
+			continue
+		if seen_ids.has(structure_id):
+			errors.append("Duplicate world structure id %s." % structure_id)
+		seen_ids[structure_id] = true
+		if String(entry.get("name", "")).is_empty():
+			errors.append("World structure %s is missing name." % structure_id)
+		var archetype_id := String(entry.get("archetype_id", ""))
+		if not content.has_structure_archetype(archetype_id):
+			errors.append(
+				"World structure %s references missing archetype %s."
+				% [structure_id, archetype_id]
+			)
+		if String(entry.get("world_layer", "")).is_empty():
+			errors.append("World structure %s is missing world_layer." % structure_id)
+		Schema.validate_numeric_pair(
+			entry.get("origin_tile", []), "World structure %s origin_tile" % structure_id, errors
+		)
+
+
+static func _validate_portal(entry: Dictionary, owner: String, errors: Array[String]) -> void:
+	if not entry.has("portal"):
+		return
+	var portal := Schema.dictionary_field(entry.get("portal", {}))
+	if portal.is_empty():
+		errors.append("%s must be a dictionary." % owner)
+		return
+	var target_layer := String(portal.get("target_layer", ""))
+	if target_layer.is_empty():
+		errors.append("%s is missing target_layer." % owner)
+	Schema.validate_numeric_pair(portal.get("target_tile", []), "%s target_tile" % owner, errors)
+	if portal.has("target_facing"):
+		Schema.validate_numeric_pair(
+			portal.get("target_facing", []), "%s target_facing" % owner, errors
+		)
+
+
+static func _validate_anchor_dictionary(
+	value: Variant, owner: String, errors: Array[String]
+) -> void:
+	var anchors := Schema.dictionary_field(value)
+	for anchor_id in anchors:
+		var key := String(anchor_id)
+		if key.is_empty():
+			errors.append("%s has blank anchor id." % owner)
+			continue
+		Schema.validate_numeric_pair(anchors[anchor_id], "%s anchor %s" % [owner, key], errors)
 
 
 static func _validate_actor_world_object(

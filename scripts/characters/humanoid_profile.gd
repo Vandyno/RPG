@@ -21,6 +21,10 @@ const DEFAULT_PALETTE_ID := "palette_human_warm_brown"
 const DEFAULT_HAIR_ID := "hair_short_waves"
 const DEFAULT_HAIR_COLOR_ID := "hair_black"
 const DEFAULT_EYE_ID := "eyes_dark"
+const DEFAULT_BROW_ID := ""
+const DEFAULT_NOSE_ID := ""
+const DEFAULT_MOUTH_ID := ""
+const DEFAULT_FACIAL_MARK_ID := ""
 const DEFAULT_BASE_CLOTHING_ID := ""
 const DEFAULT_PROPORTIONS := {
 	"body_height": 1.0,
@@ -74,6 +78,11 @@ static func appearance_from_data(
 		"hair_id": _string_or_default(data.get("hair_id", ""), DEFAULT_HAIR_ID),
 		"hair_color_id": _string_or_default(data.get("hair_color_id", ""), DEFAULT_HAIR_COLOR_ID),
 		"eye_id": _string_or_default(data.get("eye_id", ""), DEFAULT_EYE_ID),
+		"brow_id": _string_or_default(data.get("brow_id", ""), DEFAULT_BROW_ID),
+		"nose_id": _string_or_default(data.get("nose_id", ""), DEFAULT_NOSE_ID),
+		"mouth_id": _string_or_default(data.get("mouth_id", ""), DEFAULT_MOUTH_ID),
+		"facial_mark_id":
+		_string_or_default(data.get("facial_mark_id", ""), DEFAULT_FACIAL_MARK_ID),
 		"marking_id": _string_or_default(data.get("marking_id", ""), ""),
 		"feature_ids": string_array(data.get("feature_ids", [])),
 		"visual_model_id": _string_or_default(data.get("visual_model_id", ""), ""),

@@ -2,6 +2,8 @@ extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 func test_quest_feedback_reports_start_stage_and_completion_rewards() -> void:
@@ -9,20 +11,20 @@ func test_quest_feedback_reports_start_stage_and_completion_rewards() -> void:
 	add_child_autofree(main)
 
 	_select_entity(main, "npc_harrow_venn_world")
-	main._handle_interact_requested()
-	_choose_content(main, "I'll find it.")
+	MainFlowInputHelper.interact_action(main)
+	await _choose_content(main, "I'll find it.")
 
 	assert_true(main.hud.log_label.text.contains("Quest started: The Missing Tools."))
 
 	main.hud.hide_content_card()
 	_select_entity(main, "pickup_old_toolbox")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_true(main.hud.log_label.text.contains("Picked up Old Toolbox"))
 	assert_true(main.hud.log_label.text.contains("Quest updated: The Missing Tools."))
 
 	_select_entity(main, "npc_harrow_venn_world")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_true(main.hud.log_label.text.contains("Quest complete: The Missing Tools."))
 	assert_true(main.hud.log_label.text.contains("Gold Coin x25"))
@@ -35,7 +37,7 @@ func test_container_feedback_reports_rewards_before_open_confirmation_scrolls_aw
 	add_child_autofree(main)
 
 	_select_entity(main, "object_road_cache")
-	main._handle_interact_requested()
+	MainFlowInputHelper.interact_action(main)
 
 	assert_true(main.hud.log_label.text.contains("XP +2."))
 	assert_true(main.hud.log_label.text.contains("Opened Roadside Cache."))
@@ -54,6 +56,12 @@ func test_combat_defeat_feedback_keeps_defeat_and_reward_summary_visible() -> vo
 
 func _select_entity(main, entity_id: String) -> void:
 	var target = main.entities.get_entity(entity_id)
+	if not target:
+		if entity_id == "npc_harrow_venn_world":
+			MainFlowInputHelper.enter_forge_direct(main)
+		elif main.player.world_layer != "surface":
+			MainFlowInputHelper.exit_forge_direct(main)
+		target = main.entities.get_entity(entity_id)
 	if target:
 		main.player.set_world_position(target.global_position + Vector2(-8.0, 0.0))
 		main.player.set_facing_direction(Vector2.RIGHT)
@@ -62,14 +70,14 @@ func _select_entity(main, entity_id: String) -> void:
 		var entity = main._get_nearby_entity()
 		if entity and entity.get_entity_id() == entity_id:
 			return
-		main._handle_cycle_target_requested()
+		MainFlowInputHelper.cycle_target_action(main)
 	fail_test("Could not select nearby entity: %s" % entity_id)
 
 
 func _choose_content(main, text: String) -> void:
 	var button := _button_containing(main.hud.content_choice_list, text)
 	assert_not_null(button)
-	button.pressed.emit()
+	await MainFlowInputHelper.click(button, get_tree())
 
 
 func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
@@ -80,7 +88,8 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _i in range(8):
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-		if not main.entities.get_entity(entity_id):
+		var actor = main.entities.get_entity(entity_id)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 	fail_test("Hostile actor was not defeated: %s" % entity_id)
 
