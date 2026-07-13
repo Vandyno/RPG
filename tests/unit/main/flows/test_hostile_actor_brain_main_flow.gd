@@ -189,6 +189,12 @@ func test_hostile_does_not_detect_player_behind_it_but_investigates_noise() -> v
 	actor.data["hearing_radius"] = 180.0
 	actor.set_facing_direction(Vector2.RIGHT)
 	main.player.set_world_position(actor.global_position + Vector2(-64.0, 0.0))
+	actor = main.entities.get_entity("npc_people_test_human")
+	assert_not_null(actor)
+	actor.data["vision_degrees"] = 90.0
+	actor.data["vision_distance"] = 180.0
+	actor.data["hearing_radius"] = 180.0
+	actor.set_facing_direction(Vector2.RIGHT)
 	var start_position: Vector2 = actor.global_position
 
 	HostileActorBrain.update(main, 0.1)
@@ -218,17 +224,28 @@ func test_attacking_neutral_in_view_of_guard_creates_live_report_and_bounty() ->
 	add_child_autofree(main)
 	main.set_process(false)
 	var victim = main.entities.get_entity("npc_maera_pike_world")
-	var guard = main.entities.get_entity("npc_people_test_ravenfolk")
 	assert_not_null(victim)
-	assert_not_null(guard)
-	guard.data["role"] = "guard"
-	guard.data["npc_id"] = "npc_test_guard"
-	guard.data["vision_degrees"] = 360.0
-	guard.data["vision_distance"] = 200.0
-	guard.set_actor_state("alive")
-	guard.set_world_position(victim.global_position + Vector2(0.0, 32.0))
 	main.player.set_world_position(victim.global_position + Vector2(-8.0, 0.0))
 	main.player.set_facing_direction(Vector2.RIGHT)
+	victim = main.entities.get_entity("npc_maera_pike_world")
+	assert_not_null(victim)
+	var guard := WorldEntity.new()
+	add_child_autofree(guard)
+	guard.setup(
+		{
+			"id": "npc_test_guard_world",
+			"npc_id": "npc_test_guard",
+			"kind": "npc",
+			"role": "guard",
+			"world_layer": "surface",
+			"global_tile": [0, 0],
+			"vision_degrees": 360.0,
+			"vision_distance": 200.0,
+			"character_profile": {"character_id": "char_test_guard", "state": "alive"}
+		}
+	)
+	guard.set_world_position(victim.global_position + Vector2(0.0, 16.0))
+	main.entities.entities_by_id[guard.get_entity_id()] = guard
 
 	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 

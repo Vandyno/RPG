@@ -1102,7 +1102,7 @@
     "kind": "fixture",
     "name": "Guest Bed",
     "structure_id": "structure_northgate_inn_plot",
-    "visual_style": "fixture:guest_bed",
+    "visual_style": "hidden",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -1116,7 +1116,7 @@
     "kind": "fixture",
     "name": "Pantry Shelf",
     "structure_id": "structure_northgate_inn_plot",
-    "visual_style": "fixture:pantry_shelf",
+    "visual_style": "hidden",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -1158,7 +1158,7 @@
     "kind": "fixture",
     "name": "Ale Barrels",
     "structure_id": "structure_northgate_inn_plot",
-    "visual_style": "fixture:ale_barrels",
+    "visual_style": "fixture:guest_trunk",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -1169,7 +1169,7 @@
     "kind": "fixture",
     "name": "West Bar Counter",
     "structure_id": "structure_northgate_inn_plot",
-    "visual_style": "fixture:bar_counter",
+    "visual_style": "hidden",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -1241,7 +1241,7 @@
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
-    "global_tile": [12.0, 7.0],
+    "global_tile": [11.0, 8.0],
     "id": "fixture_slot_northgate_inn_plot_stool_southeast",
     "kind": "fixture",
     "name": "Guest Trunk",
@@ -1252,7 +1252,7 @@
   {
     "authored_purpose": "domestic",
     "canon_status": "proposal",
-    "global_tile": [11.0, 7.0],
+    "global_tile": [10.0, 7.0],
     "id": "fixture_slot_northgate_inn_plot_guest_partition",
     "kind": "fixture",
     "name": "Guest Nook Partition",
@@ -2493,7 +2493,7 @@
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
-    "global_tile": [-3251, -3947],
+    "global_tile": [-3251, -3946],
     "id": "detail_northgate_inn_rain_barrel",
     "kind": "surface_detail",
     "name": "Inn Rain Barrel",
@@ -3691,7 +3691,7 @@
   {
     "global_tile": [
       12,
-      8
+      7
     ],
     "heal_amount": 999,
     "id": "object_northgate_inn_bed",
