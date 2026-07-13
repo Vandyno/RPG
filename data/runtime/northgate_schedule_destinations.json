@@ -75,8 +75,8 @@
   },
   "northgate_guard_gate_runtime": {
     "global_tile": [
-      -3261,
-      -3992
+      -3263,
+      -3955
     ],
     "kind": "guard.patrol",
     "world_layer": "surface"
@@ -214,8 +214,8 @@
       ]
     ],
     "global_tile": [
-      6,
-      2
+      9,
+      5
     ],
     "kind": "inn.table",
     "world_layer": "interior:structure_northgate_inn_plot"
@@ -224,22 +224,22 @@
     "activity_cycle_minutes": 60,
     "activity_tiles": [
       [
-        2,
-        2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        2,
+        6,
         3
+      ],
+      [
+        7,
+        3
+      ],
+      [
+        6,
+        4
       ]
     ],
     "exclusive": true,
     "global_tile": [
-      2,
-      2
+      6,
+      3
     ],
     "kind": "shop.counter",
     "reservation_minutes": 90,
@@ -306,22 +306,22 @@
     "activity_cycle_minutes": 45,
     "activity_tiles": [
       [
-        2,
-        2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        2,
+        5,
         3
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        5,
+        4
       ]
     ],
     "exclusive": true,
     "global_tile": [
-      2,
-      2
+      5,
+      3
     ],
     "kind": "smith.anvil",
     "reservation_minutes": 90,
@@ -347,25 +347,41 @@
     "activity_cycle_minutes": 45,
     "activity_tiles": [
       [
-        -3272,
-        -3940
+        -3263,
+        -3944
       ],
       [
-        -3270,
-        -3940
+        -3261,
+        -3944
       ],
       [
-        -3268,
-        -3940
+        -3259,
+        -3944
       ],
       [
-        -3270,
-        -3938
+        -3257,
+        -3944
+      ],
+      [
+        -3263,
+        -3941
+      ],
+      [
+        -3261,
+        -3941
+      ],
+      [
+        -3259,
+        -3941
+      ],
+      [
+        -3257,
+        -3941
       ]
     ],
     "global_tile": [
-      -3270,
-      -3940
+      -3260,
+      -3943
     ],
     "kind": "town.square",
     "world_layer": "surface"

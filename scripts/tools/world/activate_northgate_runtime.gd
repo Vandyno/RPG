@@ -2,6 +2,35 @@ extends SceneTree
 
 const PROPOSAL_PATH := "res://data/proposals/settlement_northgate_seed_2701.json"
 const OUTPUT_DIR := "res://data/runtime"
+const RUNTIME_REAUTHOR_OFFSETS := {
+	"structure_northgate_shrine_plot": [2, 4],
+	"structure_northgate_guard_plot": [1, 5],
+	"structure_northgate_hall_plot": [1, 0],
+	"structure_northgate_inn_plot": [0, 0],
+	"structure_northgate_stable_plot": [-2, 2],
+	"structure_northgate_shop_plot": [2, -1],
+	"structure_northgate_store_plot": [0, -5],
+	"structure_northgate_west_home_plot": [3, -4],
+	"structure_northgate_south_home_plot": [0, -10],
+	"structure_northgate_smith_plot": [0, 0],
+	"structure_northgate_east_home_plot": [-2, -1],
+	"structure_northgate_southeast_home_plot": [0, -4],
+	"structure_northgate_far_east_home_plot": [-1, -4]
+}
+const RUNTIME_BOUNDARY := [
+	[-3274, -3957], [-3259, -3958], [-3245, -3957], [-3232, -3954],
+	[-3229, -3945], [-3229, -3940], [-3232, -3927], [-3244, -3922],
+	[-3260, -3921], [-3275, -3924], [-3280, -3933], [-3281, -3941],
+	[-3278, -3951]
+]
+const RUNTIME_GATES := [
+	{"id": "north_gate", "global_tile": [-3260, -3958]},
+	{"id": "east_gate", "global_tile": [-3229, -3940]},
+	{"id": "south_gate", "global_tile": [-3260, -3921]},
+	{"id": "west_gate", "global_tile": [-3281, -3941]}
+]
+
+var _layout_offsets: Dictionary = {}
 
 
 func _init() -> void:
@@ -10,6 +39,8 @@ func _init() -> void:
 		push_error("Northgate proposal is missing or invalid")
 		quit(1)
 		return
+	_layout_offsets = proposal.get("runtime_reauthor_offsets", {}).duplicate(true)
+	_layout_offsets.merge(RUNTIME_REAUTHOR_OFFSETS, true)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_DIR))
 	_write_json("%s/northgate_terrain.json" % OUTPUT_DIR, _terrain(proposal))
 	_write_json(
@@ -44,8 +75,26 @@ func _init() -> void:
 
 
 func _terrain(proposal: Dictionary) -> Dictionary:
-	var bounds := _rect(proposal.get("bounds", {}))
 	var regions: Array[Dictionary] = []
+	var defenses: Dictionary = _runtime_defenses(proposal)
+	# Plot-authored yard surfaces are laid first. Streets and footpaths follow so
+	# access always wins where a garden or work yard meets a route.
+	for plot in proposal.get("plots", []):
+		var zone_index := 0
+		var plot_offset := _compact_offset_for_structure(String(plot.get("structure_id", "")))
+		for zone in plot.get("yard_zones", []):
+			var yard_rect: Dictionary = zone.get("rect", {}).duplicate(true)
+			if yard_rect.has("position"):
+				var yard_position := _pair(yard_rect["position"]) + plot_offset
+				yard_rect["position"] = [yard_position.x, yard_position.y]
+			regions.append({
+				"id": "runtime_%s_yard_%02d" % [String(plot.get("id", "plot")), zone_index],
+				"kind": String(zone.get("kind", "soil")),
+				"rect": yard_rect
+			})
+			zone_index += 1
+	for worn_yard in _runtime_worn_yards():
+		regions.append(worn_yard)
 	for street in _runtime_streets(proposal):
 		var region := {
 			"id": "runtime_%s" % String(street.get("id", "street")),
@@ -61,31 +110,40 @@ func _terrain(proposal: Dictionary) -> Dictionary:
 				_add_thick_segment(tiles, _pair(path[index]), _pair(path[index + 1]), radius)
 			region["tiles"] = _sorted_pairs(tiles)
 		regions.append(region)
-	var defense: Dictionary = proposal.get("defenses", {})
 	var wall_tiles := {}
-	var boundary: Array = defense.get("boundary_polygon", [])
+	var boundary: Array = defenses.get("boundary_polygon", [])
+	var bank_tiles := {}
 	for index in boundary.size():
+		var start := _pair(boundary[index])
+		var finish := _pair(boundary[(index + 1) % boundary.size()])
 		_add_thick_segment(
-			wall_tiles, _pair(boundary[index]), _pair(boundary[(index + 1) % boundary.size()]), 0
+			bank_tiles, start, finish, 1
 		)
-	var gate_width := int(defense.get("gate_width", 7))
-	for gate in defense.get("gates", []):
+		_add_thick_segment(
+			wall_tiles, start, finish, 0
+		)
+	regions.append({
+		"id": "runtime_northgate_defense_bank", "kind": "hill",
+		"tiles": _sorted_pairs(bank_tiles)
+	})
+	var gate_width := int(defenses.get("gate_width", 5))
+	for gate in defenses.get("gates", []):
 		var gate_tile := _pair(gate.get("global_tile", [0, 0]))
 		for tile in wall_tiles.keys():
 			if (tile as Vector2i).distance_to(gate_tile) <= float(gate_width) * 0.55:
 				wall_tiles.erase(tile)
 	regions.append({
-		"id": "runtime_northgate_palisade", "kind": "wood_wall",
+		"id": "runtime_northgate_palisade", "kind": "palisade",
 		"tiles": _sorted_pairs(wall_tiles)
 	})
 	var gate_roads := {}
 	var anchor := _pair(proposal.get("anchor_global_tile", [0, 0]))
-	for gate in defense.get("gates", []):
+	for gate in defenses.get("gates", []):
 		var gate_tile := _pair(gate.get("global_tile", [0, 0]))
 		var outward := Vector2i(signi(gate_tile.x - anchor.x), signi(gate_tile.y - anchor.y))
 		if outward.x != 0 and outward.y != 0:
 			outward = Vector2i(outward.x, 0) if absi(gate_tile.x - anchor.x) > absi(gate_tile.y - anchor.y) else Vector2i(0, outward.y)
-		_add_thick_segment(gate_roads, gate_tile - outward * 2, gate_tile + outward * 14, 3)
+		_add_thick_segment(gate_roads, gate_tile - outward * 2, gate_tile + outward * 14, 2)
 	regions.append({
 		"id": "runtime_northgate_gate_approaches", "kind": "road",
 		"tiles": _sorted_pairs(gate_roads)
@@ -96,10 +154,7 @@ func _terrain(proposal: Dictionary) -> Dictionary:
 		{
 			"id": "area_northgate_runtime",
 			"name": "Northgate",
-			"bounds": {
-				"min": [bounds.position.x - 16, bounds.position.y - 16],
-				"max": [bounds.end.x + 15, bounds.end.y + 15]
-			},
+			"bounds": {"min": [-3300, -3980], "max": [-3200, -3880]},
 			"default_kind": "grass",
 			"regions": regions
 		},
@@ -117,229 +172,123 @@ func _terrain(proposal: Dictionary) -> Dictionary:
 	]}
 
 
+func _runtime_worn_yards() -> Array[Dictionary]:
+	return [
+		{
+			"id": "runtime_northgate_market_wear",
+			"kind": "worn_ground",
+			"tiles": _worn_patch_tiles(Rect2i(-3276, -3942, 13, 10), 3)
+		},
+		{
+			"id": "runtime_northgate_coach_yard_wear",
+			"kind": "worn_ground",
+			"tiles": _worn_patch_tiles(Rect2i(-3245, -3949, 16, 11), 7)
+		},
+		{
+			"id": "runtime_northgate_smith_yard_wear",
+			"kind": "worn_ground",
+			"tiles": _worn_patch_tiles(Rect2i(-3255, -3938, 14, 10), 11)
+		}
+	]
+
+
+func _worn_patch_tiles(rect: Rect2i, edge_seed: int) -> Array:
+	var tiles := {}
+	for y in range(rect.position.y, rect.end.y):
+		for x in range(rect.position.x, rect.end.x):
+			var on_edge := (
+				x == rect.position.x
+				or x == rect.end.x - 1
+				or y == rect.position.y
+				or y == rect.end.y - 1
+			)
+			if on_edge and posmod(x * 17 + y * 31 + edge_seed, 5) < 2:
+				continue
+			tiles[Vector2i(x, y)] = true
+	return _sorted_pairs(tiles)
+
+
 func _runtime_streets(proposal: Dictionary) -> Array:
-	var streets: Array = proposal.get("streets", []).duplicate(true)
-	var entries := {}
-	for structure in proposal.get("structures", []):
-		if String(structure.get("world_layer", "")) == "surface":
-			var structure_id := String(structure.get("id", ""))
-			entries[structure_id] = _pair(_runtime_entry(structure_id, structure.get("entry_global_tile", [])))
-	var compact_paths := {
-		"street_northgate_north_road": [[-3260, -3955], [-3260, -3940]],
-		"street_northgate_south_road": [[-3260, -3940], [-3260, -3915]],
-		"street_northgate_west_road": [[-3260, -3940], [-3284, -3938]],
-		"street_northgate_east_road": [[-3260, -3940], [-3230, -3938]],
-		"street_northgate_smith_lane": [[-3255, -3928], [-3245, -3918]]
-	}
-	for street_index in streets.size():
-		var street: Dictionary = streets[street_index]
-		var street_id := String(street.get("id", ""))
-		if compact_paths.has(street_id):
-			street["path"] = compact_paths[street_id]
-			street["width"] = 3
-			streets[street_index] = street
+	var result: Array = proposal.get("streets", []).duplicate(true)
+	for street in result:
+		match String(street.get("id", "")):
+			"street_northgate_north_road":
+				street["path"] = [[-3260, -3958], [-3261, -3951], [-3259, -3946], [-3260, -3942]]
+			"street_northgate_junction_square":
+				street["rect"] = {"position": [-3265, -3946], "size": [10, 7]}
+			"street_northgate_south_road":
+				street["path"] = [[-3260, -3942], [-3259, -3936], [-3261, -3930], [-3260, -3921]]
+			"street_northgate_west_road":
+				street["path"] = [[-3260, -3942], [-3267, -3941], [-3274, -3943], [-3281, -3941]]
+			"street_northgate_east_road":
+				street["path"] = [[-3260, -3942], [-3252, -3941], [-3244, -3943], [-3237, -3940], [-3229, -3940]]
+		var offset := _compact_offset_for_structure(String(street.get("connects_structure_id", "")))
+		if offset == Vector2i.ZERO or not street.has("path"):
 			continue
-		if street_id == "street_northgate_junction_square":
-			street["rect"] = {"position": [-3265, -3944], "size": [10, 7]}
-			streets[street_index] = street
-			continue
-		var structure_id := String(street.get("connects_structure_id", ""))
-		if structure_id.is_empty() or not entries.has(structure_id):
-			continue
-		var entry: Vector2i = entries[structure_id]
-		var target := Vector2i(-3260, -3940)
-		if entry.y < -3950:
-			target = Vector2i(entry.x, -3940)
-		elif entry.y > -3920:
-			target = Vector2i(entry.x, -3910)
-		elif entry.x < -3275:
-			target = Vector2i(-3270, entry.y)
-		elif entry.x > -3240:
-			target = Vector2i(-3240, entry.y)
-		street["path"] = [[entry.x, entry.y], [target.x, target.y]]
-		street["width"] = 1
-		streets[street_index] = street
-	return streets
+		var shifted_path := []
+		for point in street["path"]:
+			var shifted := _pair(point) + offset
+			shifted_path.append([shifted.x, shifted.y])
+		street["path"] = shifted_path
+	return result
 
 
 func _runtime_archetypes(proposal: Dictionary) -> Dictionary:
 	var result := {}
 	for archetype_id in proposal.get("structure_archetypes", {}):
 		var source: Dictionary = proposal["structure_archetypes"][archetype_id]
-		var terrain_rows: Array = source.get("terrain_rows", []).duplicate(true)
-		var anchors: Dictionary = source.get("anchors", {}).duplicate(true)
-		if String(source.get("role", "")) == "surface_exterior":
-			terrain_rows = _compact_exterior_rows(source)
-			anchors["entry"] = _runtime_surface_entry(source)
+		var role := String(source.get("role", "interior_room"))
+		var tile_kinds: Dictionary = source.get("tile_kinds", {}).duplicate(true)
+		if role == "surface_exterior":
+			# Exterior collision stays aligned to the authored footprint, but its
+			# generated wall/floor tiles must not show through the facade art.
+			tile_kinds["w"] = "structure_blocker"
+			tile_kinds["f"] = "grass"
+			tile_kinds["d"] = "grass"
 		result[String(archetype_id)] = {
 			"id": String(source.get("id", archetype_id)),
 			"name": String(source.get("name", archetype_id)),
-			"role": String(source.get("role", "interior_room")),
-			"size": _compact_surface_size(source) if String(source.get("role", "")) == "surface_exterior" else source.get("size", []).duplicate(true),
-			"terrain_rows": terrain_rows,
-			"tile_kinds": source.get("tile_kinds", {}).duplicate(true),
+			"role": role,
+			"size": source.get("size", []).duplicate(true),
+			"terrain_rows": source.get("terrain_rows", []).duplicate(true),
+			"tile_kinds": tile_kinds,
 			"visual_style": String(source.get("visual_style", "northgate_timber")),
-			"anchors": anchors
+			"anchors": source.get("anchors", {}).duplicate(true)
 		}
 	return result
-
-
-func _compact_surface_size(source: Dictionary) -> Array:
-	var style := String(source.get("visual_style", ""))
-	if style.contains("coaching_inn"):
-		return [11, 6]
-	if style.contains("stable") or style.contains("hall"):
-		return [9, 6]
-	if style.contains("shrine") or style.contains("guard"):
-		return [7, 5]
-	if style.contains("timber_home"):
-		return [7, 5]
-	return [8, 5]
-
-
-func _compact_exterior_rows(source: Dictionary) -> Array:
-	var size: Array = _compact_surface_size(source)
-	var width := maxi(int(size[0]), 1)
-	var height := maxi(int(size[1]), 1)
-	var rows: Array = []
-	for _y in height:
-		rows.append(".".repeat(width))
-	var template := String(source.get("template", ""))
-	var style := String(source.get("visual_style", ""))
-	var facade_width := 6
-	var facade_height := 3
-	if style.contains("coaching_inn"):
-		facade_width = 10
-		facade_height = 5
-	elif style.contains("stable"):
-		facade_width = 8
-		facade_height = 5
-	elif style.contains("hall"):
-		facade_width = 8
-		facade_height = 4
-	elif style.contains("shop") or style.contains("storehouse") or style.contains("smithy"):
-		facade_width = 7
-		facade_height = 4
-	elif style.contains("timber_home") or style.contains("guard") or style.contains("shrine"):
-		facade_width = 6
-		facade_height = 3
-	facade_width = mini(facade_width, width)
-	facade_height = mini(facade_height, height)
-	var entry_value: Array = _runtime_surface_entry(source)
-	var entry := Vector2i(
-		clampi(int(entry_value[0]), 0, width - 1),
-		clampi(int(entry_value[1]), 0, height - 1)
-	)
-	var left := clampi(entry.x - facade_width / 2, 0, width - facade_width)
-	var top := clampi(entry.y - facade_height / 2, 0, height - facade_height)
-	if entry.y == 0:
-		top = 0
-	elif entry.y == height - 1:
-		top = height - facade_height
-	elif entry.x == 0:
-		left = 0
-	elif entry.x == width - 1:
-		left = width - facade_width
-	for y in range(top, top + facade_height):
-		var chars := (".".repeat(width)).split("")
-		for x in range(left, left + facade_width):
-			var border := x == left or x == left + facade_width - 1 or y == top or y == top + facade_height - 1
-			chars[x] = "w" if border else "f"
-		rows[y] = "".join(chars)
-	var entry_row: String = rows[entry.y]
-	var entry_chars := entry_row.split("")
-	if entry.x >= 0 and entry.x < entry_chars.size():
-		entry_chars[entry.x] = "d"
-		rows[entry.y] = "".join(entry_chars)
-	return rows
-
-
-func _runtime_surface_entry(source: Dictionary) -> Array:
-	var source_id := String(source.get("id", ""))
-	var structure_id := source_id.trim_prefix("archetype_").trim_suffix("_exterior")
-	var layout: Dictionary = _runtime_layout().get(structure_id, {})
-	if not layout.is_empty():
-		var origin := _pair(layout.get("origin", [0, 0]))
-		var entry := _pair(layout.get("entry", [origin.x, origin.y]))
-		return [entry.x - origin.x, entry.y - origin.y]
-	var compact_size := _compact_surface_size(source)
-	var authored_entry: Variant = source.get("anchors", {}).get("entry", [0, int(compact_size[1]) - 1])
-	return authored_entry.duplicate(true) if authored_entry is Array else [0, 0]
 
 
 func _runtime_structures(proposal: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for source in proposal.get("structures", []):
 		var structure_id := String(source.get("id", ""))
+		var origin := _pair(source.get("origin_tile", [0, 0]))
+		origin += _compact_offset_for_structure(structure_id)
 		result.append({
 			"id": structure_id,
 			"name": String(source.get("name", "Northgate Building")),
 			"archetype_id": String(source.get("archetype_id", "")),
 			"world_layer": String(source.get("world_layer", "surface")),
-			"origin_tile": _runtime_origin(structure_id, source.get("origin_tile", [])),
+			"origin_tile": [origin.x, origin.y],
 			"seed": "northgate:2701:%s" % structure_id
 		})
 	return result
 
 
-func _runtime_layout() -> Dictionary:
-	return {
-		"structure_northgate_shrine_plot": {"origin": [-3268, -3953], "entry": [-3265, -3949]},
-		"structure_northgate_guard_plot": {"origin": [-3260, -3953], "entry": [-3257, -3949]},
-		"structure_northgate_hall_plot": {"origin": [-3271, -3947], "entry": [-3267, -3942]},
-		"structure_northgate_inn_plot": {"origin": [-3250, -3950], "entry": [-3245, -3945]},
-		"structure_northgate_stable_plot": {"origin": [-3239, -3949], "entry": [-3235, -3944]},
-		"structure_northgate_shop_plot": {"origin": [-3272, -3936], "entry": [-3268, -3932]},
-		"structure_northgate_store_plot": {"origin": [-3263, -3936], "entry": [-3259, -3932]},
-		"structure_northgate_west_home_plot": {"origin": [-3274, -3928], "entry": [-3270, -3924]},
-		"structure_northgate_south_home_plot": {"origin": [-3265, -3927], "entry": [-3261, -3923]},
-		"structure_northgate_smith_plot": {"origin": [-3251, -3933], "entry": [-3247, -3929]},
-		"structure_northgate_east_home_plot": {"origin": [-3241, -3929], "entry": [-3237, -3925]},
-		"structure_northgate_southeast_home_plot": {"origin": [-3250, -3919], "entry": [-3246, -3915]},
-		"structure_northgate_far_east_home_plot": {"origin": [-3239, -3919], "entry": [-3235, -3915]}
-	}
-
-
-func _runtime_origin(structure_id: String, fallback: Variant) -> Array:
-	var layout: Dictionary = _runtime_layout().get(structure_id, {})
-	return layout.get("origin", fallback).duplicate(true)
-
-
-func _runtime_entry(structure_id: String, fallback: Variant) -> Array:
-	var layout: Dictionary = _runtime_layout().get(structure_id, {})
-	return layout.get("entry", fallback).duplicate(true)
-
-
-func _runtime_defenses() -> Dictionary:
-	return {
-		"gate_width": 5,
-		"boundary_polygon": [
-			[-3278, -3962], [-3258, -3962], [-3230, -3956], [-3225, -3946],
-			[-3225, -3925], [-3232, -3908], [-3258, -3905], [-3278, -3908],
-			[-3282, -3925], [-3282, -3948]
-		],
-		"gates": [
-			{"id": "north_gate", "global_tile": [-3260, -3962]},
-			{"id": "east_gate", "global_tile": [-3225, -3938]},
-			{"id": "south_gate", "global_tile": [-3260, -3905]},
-			{"id": "west_gate", "global_tile": [-3282, -3938]}
-		]
-	}
-
-
 func _portal_and_place_objects(proposal: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for source in proposal.get("portals", []):
-		var portal_id := String(source.get("id", ""))
 		var entering := String(source.get("world_layer", "")) == "surface"
-		var structure_id := portal_id.trim_prefix("portal_").trim_suffix("_entry").trim_suffix("_exit")
+		var portal_offset := _compact_offset_for_portal(String(source.get("id", "")))
 		var runtime_tile: Variant = source.get("global_tile", []).duplicate(true)
 		var runtime_target: Variant = source.get("target_tile", []).duplicate(true)
 		if entering:
-			runtime_tile = _runtime_entry(structure_id, runtime_tile)
+			var shifted_tile := _pair(runtime_tile) + portal_offset
+			runtime_tile = [shifted_tile.x, shifted_tile.y]
 		elif String(source.get("target_layer", "")) == "surface":
-			runtime_target = _runtime_entry(structure_id, runtime_target)
-		result.append({
+			var shifted_target := _pair(runtime_target) + portal_offset
+			runtime_target = [shifted_target.x, shifted_target.y]
+		var portal_entry := {
 			"id": String(source.get("id", "")),
 			"name": "Northgate Building Door" if entering else "Exit to Northgate",
 			"kind": "door",
@@ -353,7 +302,10 @@ func _portal_and_place_objects(proposal: Dictionary) -> Array[Dictionary]:
 				"target_facing": source.get("target_facing", [0, 1]).duplicate(true),
 				"message": "Entered a Northgate building." if entering else "Returned to Northgate."
 			}
-		})
+		}
+		if String(source.get("id", "")).contains("northgate_inn_plot"):
+			portal_entry["visual_style"] = "hidden"
+		result.append(portal_entry)
 	var anchor: Array = proposal.get("anchor_global_tile", [0, 0])
 	result.append({
 		"id": "location_northgate_runtime_marker",
@@ -364,21 +316,27 @@ func _portal_and_place_objects(proposal: Dictionary) -> Array[Dictionary]:
 		"discovery_radius": 1024,
 		"location_id": "location_northgate"
 	})
-	for gate in proposal.get("defenses", {}).get("gates", []):
+	var anchor_tile := _pair(anchor)
+	for gate in _runtime_defenses(proposal).get("gates", []):
+		var gate_tile := _pair(gate.get("global_tile", [0, 0]))
 		result.append({
 			"id": "poi_northgate_%s_route" % String(gate.get("id", "gate")),
 			"name": String(gate.get("id", "Town Gate")).replace("_", " ").capitalize(),
 			"kind": "poi",
-			"global_tile": gate.get("global_tile", []).duplicate(true),
+			"global_tile": _pair_data(_route_sign_tile(gate_tile, anchor_tile)),
 			"interaction_radius": 96,
+			"visual_style": "sign",
 			"poi_type": "Town Route",
 			"summary": "arrival and departure road",
 			"description": "The road continues beyond Northgate into the Marches."
 		})
-	var northgate_arrival := _pair(anchor) + Vector2i(8, 8)
+	# Coach yard sits on the east road between the inn and stable. Keeping it out
+	# of the civic core prevents the coach action from stealing nearby building
+	# doors and gives arrivals an immediate view of both road services.
+	var northgate_arrival := Vector2i(-3237, -3940)
 	result.append({
 		"id": "object_briarwatch_northgate_coach", "name": "Coach to Northgate",
-		"kind": "door", "global_tile": [10, 8], "interaction_radius": 96,
+		"kind": "door", "global_tile": [12, 6], "interaction_radius": 96,
 		"pick_radius": 14, "canon_status": "proposal",
 		"portal": {
 			"target_layer": "surface",
@@ -415,67 +373,185 @@ func _fixture_objects(proposal: Dictionary) -> Array[Dictionary]:
 			"canon_status": "proposal"
 		})
 	for detail in _surface_detail_slots():
-		result.append({
+		var runtime_detail := {
 			"id": String(detail.get("id", "")),
 			"name": String(detail.get("name", "Northgate detail")),
 			"kind": "surface_detail",
 			"world_layer": "surface",
-			"global_tile": _runtime_detail_tile(detail),
+			"global_tile": _runtime_detail_tile(detail, proposal),
 			"visual_style": "fixture:%s" % String(detail.get("fixture", "yard_detail")),
 			"authored_purpose": "Northgate visual dressing",
 			"canon_status": "proposal"
-		})
+		}
+		if String(detail.get("id", "")) == "detail_northgate_inn_sign":
+			runtime_detail["visual_style"] = "hidden"
+		result.append(runtime_detail)
 	return result
 
 
-func _runtime_detail_tile(detail: Dictionary) -> Array:
+func _runtime_detail_tile(detail: Dictionary, proposal: Dictionary) -> Array:
 	var detail_id := String(detail.get("id", ""))
 	var position := _pair(detail.get("global_tile", [0, 0]))
-	if detail_id.contains("north_gate"):
-		position = Vector2i(-3263, -3961) if detail_id.contains("west") else Vector2i(-3257, -3961)
-	elif detail_id.contains("south_gate"):
-		position = Vector2i(-3263, -3906) if detail_id.contains("west") else Vector2i(-3257, -3906)
-	elif detail_id.contains("west_gate"):
-		position = Vector2i(-3281, -3941) if detail_id.contains("north") else Vector2i(-3281, -3935)
-	elif detail_id.contains("east_gate"):
-		position = Vector2i(-3226, -3941) if detail_id.contains("north") else Vector2i(-3226, -3935)
+	if detail_id.contains("_gate_post_"):
+		position = _gate_tower_tile(detail_id, proposal)
+	elif detail_id.contains("square_notice"):
+		position = Vector2i(-3257, -3942)
+	elif detail_id.contains("square_lantern_north"):
+		position = Vector2i(-3263, -3947)
+	elif detail_id.contains("market_stall_west"):
+		position = Vector2i(-3269, -3940)
+	elif detail_id.contains("market_stall_south"):
+		position = Vector2i(-3268, -3938)
+	elif detail_id.contains("inn_hitching"):
+		position = Vector2i(-3249, -3946)
+	elif detail_id.contains("stable_hitching"):
+		position = Vector2i(-3232, -3941)
+	elif detail_id.contains("stable_water"):
+		position = Vector2i(-3230, -3941)
+	elif detail_id.contains("square_edge_stones"):
+		position = Vector2i(-3267, -3944) if detail_id.contains("west") else Vector2i(-3251, -3943)
 	elif detail_id.contains("inn_sign"):
-		position = Vector2i(-3245, -3947)
+		position = Vector2i(-3254, -3949)
 	elif detail_id.contains("inn_barrel"):
-		position = Vector2i(-3242, -3945) if detail_id.ends_with("01") else Vector2i(-3241, -3945)
+		position = Vector2i(-3242, -3949) if detail_id.ends_with("01") else Vector2i(-3242, -3948)
+	elif detail_id.contains("inn_woodpile"):
+		position = Vector2i(-3242, -3947)
+	elif detail_id.contains("inn_yard_bench"):
+		position = Vector2i(-3245, -3946)
+	elif detail_id.contains("inn_yard_cart"):
+		position = Vector2i(-3246, -3944)
+	elif detail_id.contains("inn_rain_barrel"):
+		position = Vector2i(-3251, -3947)
 	elif detail_id.contains("stable_hay"):
-		position = Vector2i(-3233, -3944) if detail_id.ends_with("01") else Vector2i(-3232, -3944)
+		position = Vector2i(-3235, -3942) if detail_id.ends_with("01") else Vector2i(-3234, -3942)
 	elif detail_id.contains("stable_cart"):
-		position = Vector2i(-3231, -3943)
+		position = Vector2i(-3231, -3942)
 	elif detail_id.contains("smith_coal"):
 		position = Vector2i(-3244, -3928)
 	elif detail_id.contains("smith_wood"):
 		position = Vector2i(-3243, -3928)
 	elif detail_id.contains("smith_water"):
-		position = Vector2i(-3242, -3928)
+		position = Vector2i(-3244, -3930)
 	elif detail_id.contains("shop_crate"):
 		position = Vector2i(-3266, -3931) if detail_id.ends_with("01") else Vector2i(-3265, -3931)
 	elif detail_id.contains("shop_sign"):
-		position = Vector2i(-3268, -3933)
+		position = Vector2i(-3274, -3939)
 	elif detail_id.contains("store_barrels"):
-		position = Vector2i(-3257, -3931)
+		position = Vector2i(-3261, -3927)
 	elif detail_id.contains("store_crates"):
-		position = Vector2i(-3256, -3931)
+		position = Vector2i(-3261, -3926)
 	elif detail_id.contains("shrine_"):
-		position = Vector2i(-3265, -3950) if detail_id.contains("candle") else Vector2i(-3264, -3950)
+		position = Vector2i(-3269, -3952) if detail_id.contains("candle") else Vector2i(-3261, -3951)
 	elif detail_id.contains("west_home"):
-		position = Vector2i(-3272, -3925) if detail_id.contains("wash") else Vector2i(-3273, -3925)
+		if detail_id.contains("wash"):
+			position = Vector2i(-3281, -3922)
+		elif detail_id.contains("planter"):
+			position = Vector2i(-3274, -3925)
+		else:
+			position = Vector2i(-3274, -3922)
 	elif detail_id.contains("south_home"):
-		position = Vector2i(-3264, -3923) if detail_id.contains("wood") else Vector2i(-3263, -3923)
-	elif detail_id.contains("east_home"):
-		position = Vector2i(-3239, -3925) if detail_id.contains("herbs") else Vector2i(-3239, -3924)
+		if detail_id.contains("wood"):
+			position = Vector2i(-3270, -3914)
+		elif detail_id.contains("bench"):
+			position = Vector2i(-3261, -3915)
+		else:
+			position = Vector2i(-3269, -3914)
 	elif detail_id.contains("southeast_home"):
-		position = Vector2i(-3248, -3915) if detail_id.contains("basket") else Vector2i(-3247, -3915)
+		if detail_id.contains("basket"):
+			position = Vector2i(-3255, -3923)
+		elif detail_id.contains("bench"):
+			position = Vector2i(-3247, -3924)
+		else:
+			position = Vector2i(-3255, -3921)
 	elif detail_id.contains("far_east_home"):
-		position = Vector2i(-3237, -3915) if detail_id.contains("fence") else Vector2i(-3236, -3915)
+		if detail_id.contains("fence"):
+			position = Vector2i(-3242, -3923)
+		elif detail_id.contains("tree"):
+			position = Vector2i(-3233, -3925)
+		else:
+			position = Vector2i(-3233, -3924)
+	elif detail_id.contains("east_home"):
+		if detail_id.contains("herbs"):
+			position = Vector2i(-3234, -3934)
+		elif detail_id.contains("wash"):
+			position = Vector2i(-3233, -3936)
+		else:
+			position = Vector2i(-3235, -3932)
 	elif detail_id.contains("road_tree"):
-		position = Vector2i(-3278, -3958) if detail_id.contains("west") else Vector2i(-3230, -3957)
+		if detail_id.contains("west_road"):
+			position = Vector2i(-3278, -3958)
+		elif detail_id.contains("east_road"):
+			position = Vector2i(-3226, -3947)
+		elif detail_id.contains("south_road"):
+			position = Vector2i(-3272, -3917)
+		else:
+			position = Vector2i(-3268, -3961)
+	position += _compact_offset_for_detail(detail_id)
 	return [position.x, position.y]
+
+
+func _compact_offset_for_structure(structure_id: String) -> Vector2i:
+	return _pair(_layout_offsets.get(structure_id, [0, 0]))
+
+
+func _compact_offset_for_portal(portal_id: String) -> Vector2i:
+	for structure_id in [
+		"structure_northgate_shrine_plot",
+		"structure_northgate_guard_plot",
+		"structure_northgate_hall_plot",
+		"structure_northgate_inn_plot",
+		"structure_northgate_stable_plot",
+		"structure_northgate_shop_plot",
+		"structure_northgate_store_plot",
+		"structure_northgate_west_home_plot",
+		"structure_northgate_south_home_plot",
+		"structure_northgate_smith_plot",
+		"structure_northgate_east_home_plot",
+		"structure_northgate_southeast_home_plot",
+		"structure_northgate_far_east_home_plot"
+	]:
+		if portal_id.contains(structure_id):
+			return _compact_offset_for_structure(structure_id)
+	return Vector2i.ZERO
+
+
+func _compact_offset_for_detail(detail_id: String) -> Vector2i:
+	if detail_id.contains("west_home"):
+		return _compact_offset_for_structure("structure_northgate_west_home_plot")
+	if detail_id.contains("south_home") and not detail_id.contains("southeast_home"):
+		return _compact_offset_for_structure("structure_northgate_south_home_plot")
+	if detail_id.contains("southeast_home"):
+		return _compact_offset_for_structure("structure_northgate_southeast_home_plot")
+	if detail_id.contains("far_east_home"):
+		return _compact_offset_for_structure("structure_northgate_far_east_home_plot")
+	return Vector2i.ZERO
+
+
+func _gate_tower_tile(detail_id: String, proposal: Dictionary) -> Vector2i:
+	var gate_direction := ""
+	for direction in ["north", "east", "south", "west"]:
+		if detail_id.contains("_%s_gate_" % direction):
+			gate_direction = direction
+			break
+	var gate_tile := _pair(proposal.get("anchor_global_tile", [0, 0]))
+	for gate in _runtime_defenses(proposal).get("gates", []):
+		if String(gate.get("id", "")) == "%s_gate" % gate_direction:
+			gate_tile = _pair(gate.get("global_tile", []))
+			break
+	var outward := _cardinal_outward(gate_tile, _pair(proposal.get("anchor_global_tile", [0, 0])))
+	var lateral := Vector2i.ZERO
+	if gate_direction in ["north", "south"]:
+		lateral = Vector2i.LEFT * 3 if detail_id.ends_with("_west") else Vector2i.RIGHT * 3
+	else:
+		lateral = Vector2i.UP * 3 if detail_id.ends_with("_north") else Vector2i.DOWN * 3
+	return gate_tile + outward + lateral
+
+
+func _runtime_defenses(proposal: Dictionary) -> Dictionary:
+	var defenses: Dictionary = proposal.get("defenses", {}).duplicate(true)
+	defenses["boundary_polygon"] = RUNTIME_BOUNDARY.duplicate(true)
+	defenses["gates"] = RUNTIME_GATES.duplicate(true)
+	return defenses
 
 
 func _surface_detail_slots() -> Array[Dictionary]:
@@ -485,17 +561,37 @@ func _surface_detail_slots() -> Array[Dictionary]:
 		{"id": "detail_northgate_square_bench_east", "name": "Square Bench", "fixture": "bench", "global_tile": [-3257, -3941]},
 		{"id": "detail_northgate_square_lantern_north", "name": "Square Lantern", "fixture": "lantern_post", "global_tile": [-3266, -3949]},
 		{"id": "detail_northgate_square_lantern_south", "name": "Square Lantern", "fixture": "lantern_post", "global_tile": [-3255, -3931]},
-		{"id": "detail_northgate_north_gate_post_west", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3267, -3991]},
-		{"id": "detail_northgate_north_gate_post_east", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3255, -3991]},
-		{"id": "detail_northgate_south_gate_post_west", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3262, -3890]},
-		{"id": "detail_northgate_south_gate_post_east", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3250, -3890]},
-		{"id": "detail_northgate_west_gate_post_north", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3313, -3944]},
-		{"id": "detail_northgate_west_gate_post_south", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3313, -3932]},
-		{"id": "detail_northgate_east_gate_post_north", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3208, -3944]},
-		{"id": "detail_northgate_east_gate_post_south", "name": "Gate Marker", "fixture": "road_post", "global_tile": [-3208, -3932]},
+		{"id": "detail_northgate_square_notice_kiosk", "name": "Road Notice Kiosk", "fixture": "notice_kiosk", "global_tile": [-3260, -3947]},
+		{"id": "detail_northgate_market_stall_west", "name": "West Market Stall", "fixture": "market_stall", "global_tile": [-3275, -3937]},
+		{"id": "detail_northgate_market_stall_south", "name": "Produce Stall", "fixture": "market_stall", "global_tile": [-3270, -3933]},
+		{"id": "detail_northgate_inn_hitching_post", "name": "Inn Hitching Rail", "fixture": "hitching_post", "global_tile": [-3244, -3951]},
+		{"id": "detail_northgate_stable_hitching_post", "name": "Stable Hitching Rail", "fixture": "hitching_post", "global_tile": [-3223, -3952]},
+		{"id": "detail_northgate_stable_water_trough", "name": "Horse Trough", "fixture": "water_trough", "global_tile": [-3220, -3952]},
+		{"id": "detail_northgate_square_edge_stones_west", "name": "Drainage Stones", "fixture": "stone_marker", "global_tile": [-3272, -3947]},
+		{"id": "detail_northgate_square_edge_stones_east", "name": "Drainage Stones", "fixture": "stone_marker", "global_tile": [-3251, -3944]},
+		{"id": "detail_northgate_north_gate_post_west", "name": "North Gate Tower", "fixture": "gate_tower", "global_tile": [-3267, -3991]},
+		{"id": "detail_northgate_north_gate_post_east", "name": "North Gate Tower", "fixture": "gate_tower", "global_tile": [-3255, -3991]},
+		{"id": "detail_northgate_south_gate_post_west", "name": "South Gate Tower", "fixture": "gate_tower", "global_tile": [-3262, -3890]},
+		{"id": "detail_northgate_south_gate_post_east", "name": "South Gate Tower", "fixture": "gate_tower", "global_tile": [-3250, -3890]},
+		{"id": "detail_northgate_west_gate_post_north", "name": "West Gate Tower", "fixture": "gate_tower", "global_tile": [-3313, -3944]},
+		{"id": "detail_northgate_west_gate_post_south", "name": "West Gate Tower", "fixture": "gate_tower", "global_tile": [-3313, -3932]},
+		{"id": "detail_northgate_east_gate_post_north", "name": "East Gate Tower", "fixture": "gate_tower", "global_tile": [-3208, -3944]},
+		{"id": "detail_northgate_east_gate_post_south", "name": "East Gate Tower", "fixture": "gate_tower", "global_tile": [-3208, -3932]},
 		{"id": "detail_northgate_inn_sign", "name": "Coaching Inn Sign", "fixture": "hanging_sign", "global_tile": [-3242, -3960]},
-		{"id": "detail_northgate_inn_barrel_01", "name": "Inn Barrel", "fixture": "barrel_stack", "global_tile": [-3237, -3961]},
+		{"id": "detail_northgate_inn_barrel_01", "name": "Inn Yard Basket", "fixture": "basket", "global_tile": [-3237, -3961]},
 		{"id": "detail_northgate_inn_barrel_02", "name": "Inn Barrel", "fixture": "barrel_stack", "global_tile": [-3235, -3961]},
+		{"id": "detail_northgate_inn_woodpile", "name": "Inn Firewood", "fixture": "woodpile", "global_tile": [-3241, -3947]},
+		{"id": "detail_northgate_inn_yard_bench", "name": "Inn Yard Bench", "fixture": "bench", "global_tile": [-3248, -3944]},
+		{"id": "detail_northgate_inn_yard_cart", "name": "Inn Yard Cart", "fixture": "cart", "global_tile": [-3246, -3944]},
+		{"id": "detail_northgate_inn_rain_barrel", "name": "Inn Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3251, -3947]},
+		{"id": "detail_northgate_guard_crates", "name": "Guard Stores", "fixture": "crate_stack", "global_tile": [-3257, -3952]},
+		{"id": "detail_northgate_guard_bench", "name": "Guard Bench", "fixture": "bench", "global_tile": [-3247, -3952]},
+		{"id": "detail_northgate_hall_barrels", "name": "Hall Rain Barrels", "fixture": "barrel_stack", "global_tile": [-3272, -3944]},
+		{"id": "detail_northgate_hall_bench", "name": "Petitioners Bench", "fixture": "bench", "global_tile": [-3270, -3943]},
+		{"id": "detail_northgate_north_altar_bench", "name": "Pilgrim Bench", "fixture": "bench", "global_tile": [-3271, -3951]},
+		{"id": "detail_northgate_north_yard_fence_west", "name": "North Yard Fence", "fixture": "fence", "global_tile": [-3276, -3951]},
+		{"id": "detail_northgate_north_yard_fence_east", "name": "North Yard Fence", "fixture": "fence", "global_tile": [-3240, -3953]},
+		{"id": "detail_northgate_north_yard_crates", "name": "Road Stores", "fixture": "crate_stack", "global_tile": [-3240, -3949]},
 		{"id": "detail_northgate_stable_hay_01", "name": "Stable Hay", "fixture": "hay_bale", "global_tile": [-3214, -3960]},
 		{"id": "detail_northgate_stable_hay_02", "name": "Stable Hay", "fixture": "hay_bale", "global_tile": [-3212, -3960]},
 		{"id": "detail_northgate_stable_cart", "name": "Stable Cart", "fixture": "cart", "global_tile": [-3209, -3959]},
@@ -509,16 +605,21 @@ func _surface_detail_slots() -> Array[Dictionary]:
 		{"id": "detail_northgate_store_crates", "name": "Storehouse Crates", "fixture": "crate_stack", "global_tile": [-3279, -3920]},
 		{"id": "detail_northgate_shrine_candle", "name": "Road Candle", "fixture": "candle_cluster", "global_tile": [-3305, -3978]},
 		{"id": "detail_northgate_shrine_stones", "name": "Offering Stones", "fixture": "stone_marker", "global_tile": [-3302, -3978]},
-		{"id": "detail_northgate_west_home_wash", "name": "Wash Line", "fixture": "wash_line", "global_tile": [-3299, -3902]},
-		{"id": "detail_northgate_west_home_planter", "name": "Window Planter", "fixture": "planter", "global_tile": [-3301, -3900]},
-		{"id": "detail_northgate_south_home_wood", "name": "Firewood", "fixture": "woodpile", "global_tile": [-3285, -3901]},
-		{"id": "detail_northgate_south_home_bench", "name": "Door Bench", "fixture": "bench", "global_tile": [-3279, -3901]},
-		{"id": "detail_northgate_east_home_herbs", "name": "Herb Bed", "fixture": "planter", "global_tile": [-3219, -3924]},
-		{"id": "detail_northgate_east_home_rain", "name": "Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3219, -3921]},
-		{"id": "detail_northgate_southeast_home_basket", "name": "Market Basket", "fixture": "basket", "global_tile": [-3244, -3900]},
-		{"id": "detail_northgate_southeast_home_bench", "name": "Door Bench", "fixture": "bench", "global_tile": [-3240, -3900]},
-		{"id": "detail_northgate_far_east_home_fence", "name": "Garden Fence", "fixture": "fence", "global_tile": [-3217, -3901]},
-		{"id": "detail_northgate_far_east_home_tree", "name": "Apple Tree", "fixture": "tree", "global_tile": [-3213, -3900]},
+		{"id": "detail_northgate_west_home_wash", "name": "Wash Line", "fixture": "wash_line", "global_tile": [-3281, -3922]},
+		{"id": "detail_northgate_west_home_planter", "name": "Window Planter", "fixture": "planter", "global_tile": [-3273, -3922]},
+		{"id": "detail_northgate_west_home_wood", "name": "Craft Firewood", "fixture": "woodpile", "global_tile": [-3273, -3925]},
+		{"id": "detail_northgate_south_home_wood", "name": "Firewood", "fixture": "woodpile", "global_tile": [-3269, -3913]},
+		{"id": "detail_northgate_south_home_bench", "name": "Door Bench", "fixture": "bench", "global_tile": [-3261, -3914]},
+		{"id": "detail_northgate_south_home_planter", "name": "Family Garden", "fixture": "planter", "global_tile": [-3269, -3915]},
+		{"id": "detail_northgate_east_home_herbs", "name": "Herb Bed", "fixture": "planter", "global_tile": [-3241, -3930]},
+		{"id": "detail_northgate_east_home_rain", "name": "Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3232, -3932]},
+		{"id": "detail_northgate_east_home_wash", "name": "Courier Drying Line", "fixture": "wash_line", "global_tile": [-3233, -3930]},
+		{"id": "detail_northgate_southeast_home_basket", "name": "Market Basket", "fixture": "basket", "global_tile": [-3255, -3919]},
+		{"id": "detail_northgate_southeast_home_bench", "name": "Door Bench", "fixture": "bench", "global_tile": [-3246, -3919]},
+		{"id": "detail_northgate_southeast_home_planter", "name": "Kitchen Garden", "fixture": "planter", "global_tile": [-3255, -3917]},
+		{"id": "detail_northgate_far_east_home_fence", "name": "Garden Fence", "fixture": "fence", "global_tile": [-3243, -3917]},
+		{"id": "detail_northgate_far_east_home_tree", "name": "Apple Tree", "fixture": "tree", "global_tile": [-3233, -3918]},
+		{"id": "detail_northgate_far_east_home_rain", "name": "Lodger Rain Barrel", "fixture": "rain_barrel", "global_tile": [-3232, -3921]},
 		{"id": "detail_northgate_west_road_tree", "name": "Road Tree", "fixture": "tree", "global_tile": [-3309, -3955]},
 		{"id": "detail_northgate_east_road_tree", "name": "Road Tree", "fixture": "tree", "global_tile": [-3211, -3951]},
 		{"id": "detail_northgate_south_road_tree", "name": "Road Tree", "fixture": "tree", "global_tile": [-3290, -3898]},
@@ -600,7 +701,9 @@ func _runtime_content(proposal: Dictionary) -> Dictionary:
 			"actor_category": "humanoid",
 			"hostility": "neutral",
 			"combat_enabled": true,
-			"brain_id": "civilian_schedule" if short_id == "shopkeeper" else "hostile_basic",
+			# Every bound civilian starts in schedule control. Combat may interrupt
+			# that brain temporarily, then the schedule manager resumes it.
+			"brain_id": "civilian_schedule",
 			"behavior_state": "idle",
 			"max_health": 14 + index % 5,
 			"damage_taken_per_hit": 4,
@@ -648,7 +751,7 @@ func _runtime_content(proposal: Dictionary) -> Dictionary:
 		"id": "object_northgate_inn_bed", "name": "Northgate Inn Bed",
 		"kind": "rest", "world_layer": "interior:%s" % inn,
 		"global_tile": [bed_tile.x, bed_tile.y], "interaction_radius": 96,
-		"heal_amount": 999, "rest_hours": 8
+		"heal_amount": 999, "rest_hours": 8, "visual_style": "fixture:guest_bed"
 	})
 	var storage_tile := _fixture_tile(proposal, storehouse, "locked_store", Vector2i(4, 4))
 	objects.append({
@@ -685,9 +788,31 @@ func _runtime_content(proposal: Dictionary) -> Dictionary:
 	return result
 
 
-func _append_northgate_schedule_coverage(result: Dictionary) -> void:
+func _append_northgate_schedule_coverage(result: Dictionary, proposal: Dictionary) -> void:
 	var bindings: Dictionary = result["bindings"]
 	var destinations: Dictionary = result["destinations"]
+	var north_gate_tile := Vector2i(-3260, -3962)
+	for gate in proposal.get("defenses", {}).get("gates", []):
+		if String(gate.get("id", "")) == "north_gate":
+			north_gate_tile = _pair(gate.get("global_tile", [north_gate_tile.x, north_gate_tile.y]))
+			break
+	var north_guard_patrol := north_gate_tile + Vector2i(-3, 3)
+	var square_rect := Rect2i(Vector2i(-3265, -3946), Vector2i(10, 7))
+	for street in proposal.get("streets", []):
+		if String(street.get("kind", "")) == "public_square" and street.has("rect"):
+			square_rect = _rect(street.get("rect", {}))
+			break
+	var square_center := square_rect.position + square_rect.size / 2
+	var square_activity_tiles := [
+		[square_rect.position.x + 2, square_rect.position.y + 2],
+		[square_rect.position.x + 4, square_rect.position.y + 2],
+		[square_rect.position.x + 6, square_rect.position.y + 2],
+		[square_rect.end.x - 2, square_rect.position.y + 2],
+		[square_rect.position.x + 2, square_rect.end.y - 2],
+		[square_rect.position.x + 4, square_rect.end.y - 2],
+		[square_rect.position.x + 6, square_rect.end.y - 2],
+		[square_rect.end.x - 2, square_rect.end.y - 2]
+	]
 	var home_layers := {
 		"west": "interior:structure_northgate_west_home_plot",
 		"south": "interior:structure_northgate_south_home_plot",
@@ -700,14 +825,14 @@ func _append_northgate_schedule_coverage(result: Dictionary) -> void:
 			"world_layer": home_layers[home_id], "global_tile": [6, 2], "kind": "home.personal"
 		}
 	destinations["northgate_square_runtime"] = {
-		"world_layer": "surface", "global_tile": [-3270, -3940], "kind": "town.square",
-		"activity_tiles": [[-3272, -3940], [-3270, -3940], [-3268, -3940], [-3270, -3938]],
+		"world_layer": "surface", "global_tile": [square_center.x, square_center.y], "kind": "town.square",
+		"activity_tiles": square_activity_tiles,
 		"activity_cycle_minutes": 45
 	}
 	destinations.merge(
 		{
 			"northgate_inn_service_runtime": {"world_layer": "interior:structure_northgate_inn_plot", "global_tile": [2, 2], "kind": "inn.bar", "activity_tiles": [[2, 2], [3, 2], [4, 2]], "activity_cycle_minutes": 45, "exclusive": true, "reservation_minutes": 90},
-			"northgate_smith_service_runtime": {"world_layer": "interior:structure_northgate_smith_plot", "global_tile": [2, 2], "kind": "smith.anvil", "activity_tiles": [[2, 2], [3, 2], [2, 3]], "activity_cycle_minutes": 45, "exclusive": true, "reservation_minutes": 90},
+			"northgate_smith_service_runtime": {"world_layer": "interior:structure_northgate_smith_plot", "global_tile": [5, 3], "kind": "smith.anvil", "activity_tiles": [[5, 3], [6, 3], [5, 4]], "activity_cycle_minutes": 45, "exclusive": true, "reservation_minutes": 90},
 			"northgate_smith_anvil_runtime": {"world_layer": "interior:structure_northgate_smith_plot", "global_tile": [3, 5], "kind": "smith.anvil", "activity_tiles": [[3, 5], [4, 5], [3, 6]], "activity_cycle_minutes": 45},
 			"northgate_smith_break_runtime": {"world_layer": "interior:structure_northgate_smith_plot", "global_tile": [10, 7], "kind": "smith.break"},
 			"northgate_inn_break_runtime": {"world_layer": "interior:structure_northgate_inn_plot", "global_tile": [15, 9], "kind": "inn.break"},
@@ -721,7 +846,7 @@ func _append_northgate_schedule_coverage(result: Dictionary) -> void:
 			"northgate_stable_break_runtime": {"world_layer": "interior:structure_northgate_stable_plot", "global_tile": [6, 8], "kind": "stable.break"},
 			"northgate_guard_watch_runtime": {"world_layer": "interior:structure_northgate_guard_plot", "global_tile": [8, 2], "kind": "guard.watch", "activity_tiles": [[8, 2], [7, 2], [8, 3]], "activity_cycle_minutes": 60, "exclusive": true, "reservation_minutes": 90},
 			"northgate_guard_break_runtime": {"world_layer": "interior:structure_northgate_guard_plot", "global_tile": [8, 5], "kind": "guard.break"},
-			"northgate_guard_gate_runtime": {"world_layer": "surface", "global_tile": [-3261, -3992], "kind": "guard.patrol"},
+			"northgate_guard_gate_runtime": {"world_layer": "surface", "global_tile": [north_guard_patrol.x, north_guard_patrol.y], "kind": "guard.patrol"},
 			"northgate_shrine_service_runtime": {"world_layer": "interior:structure_northgate_shrine_plot", "global_tile": [2, 2], "kind": "shrine.service", "exclusive": true, "reservation_minutes": 90},
 			"northgate_shrine_break_runtime": {"world_layer": "interior:structure_northgate_shrine_plot", "global_tile": [6, 5], "kind": "shrine.break"}
 		}
@@ -826,7 +951,7 @@ func _runtime_readables() -> Dictionary:
 
 
 func _runtime_quests() -> Dictionary:
-	return {"quest_northgate_missing_manifest": {"id": "quest_northgate_missing_manifest", "title": "The Missing Manifest", "description": "Northgate's trade manifest has gone missing inside the storehouse.", "initial_state": "inactive", "start_stage": "search", "canon_status": "proposal", "stages": {"search": {"objectives": {"find": {"text": "Find the missing trade manifest in Northgate's storehouse.", "target_id": "pickup_northgate_missing_manifest"}}, "npc_routines": [{"npc_id": "npc_northgate_storekeeper", "routine_id": "search_missing_manifest", "destination_id": "northgate_store_ledger_runtime", "action": "search the ledger desk", "reason": "quest duty"}]}, "found": {"objectives": {"return": {"text": "Return the manifest to Northgate's notice board.", "target_id": "poi_northgate_notice_board"}}}}, "rewards": [{"type": "add_item", "item_id": "item_gold_coin", "count": 12}, {"type": "change_reputation", "faction_id": "faction_marches_of_velcor", "amount": 2}, {"type": "add_experience", "amount": 10}]}}
+	return {"quest_northgate_missing_manifest": {"id": "quest_northgate_missing_manifest", "title": "The Missing Manifest", "description": "Northgate's trade manifest has gone missing inside the storehouse.", "initial_state": "inactive", "required_npc_ids": ["npc_northgate_storekeeper"], "start_stage": "search", "canon_status": "proposal", "stages": {"search": {"objectives": {"find": {"text": "Find the missing trade manifest in Northgate's storehouse.", "target_id": "pickup_northgate_missing_manifest"}}, "npc_routines": [{"npc_id": "npc_northgate_storekeeper", "routine_id": "search_missing_manifest", "destination_id": "northgate_store_ledger_runtime", "action": "search the ledger desk", "reason": "quest duty"}]}, "found": {"objectives": {"return": {"text": "Return the manifest to Northgate's notice board.", "target_id": "poi_northgate_notice_board"}}}}, "rewards": [{"type": "add_item", "item_id": "item_gold_coin", "count": 12}, {"type": "change_reputation", "faction_id": "faction_marches_of_velcor", "amount": 2}, {"type": "add_experience", "amount": 10}]}}
 
 
 func _runtime_dialogues() -> Dictionary:
@@ -940,7 +1065,7 @@ func _schedule_runtime(proposal: Dictionary) -> Dictionary:
 			"inventory": []
 		}]
 	}
-	_append_northgate_schedule_coverage(result)
+	_append_northgate_schedule_coverage(result, proposal)
 	return result
 
 
@@ -979,6 +1104,27 @@ func _write_json(path: String, value: Variant) -> void:
 
 func _rect(value: Dictionary) -> Rect2i:
 	return Rect2i(_pair(value.get("position", [0, 0])), _pair(value.get("size", [0, 0])))
+
+
+func _route_sign_tile(gate_tile: Vector2i, anchor: Vector2i) -> Vector2i:
+	var outward := _cardinal_outward(gate_tile, anchor)
+	var roadside := Vector2i(outward.y, -outward.x)
+	return gate_tile + outward * 3 + roadside * 4
+
+
+func _cardinal_outward(gate_tile: Vector2i, anchor: Vector2i) -> Vector2i:
+	var outward := Vector2i(signi(gate_tile.x - anchor.x), signi(gate_tile.y - anchor.y))
+	if outward.x != 0 and outward.y != 0:
+		outward = (
+			Vector2i(outward.x, 0)
+			if absi(gate_tile.x - anchor.x) > absi(gate_tile.y - anchor.y)
+			else Vector2i(0, outward.y)
+		)
+	return outward
+
+
+func _pair_data(value: Vector2i) -> Array:
+	return [value.x, value.y]
 
 
 func _pair(value: Array) -> Vector2i:

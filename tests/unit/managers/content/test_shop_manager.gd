@@ -9,6 +9,17 @@ const ShopManager = preload("res://scripts/managers/content/shop_manager.gd")
 const TimeManager = preload("res://scripts/managers/content/time_manager.gd")
 
 
+class CrimeStub:
+	var disposition := -20
+	var reported := true
+
+	func get_disposition(_npc_id: String) -> int:
+		return disposition
+
+	func has_active_report_for_faction(_faction_id: String) -> bool:
+		return reported
+
+
 func test_shop_buys_and_sells_with_gold_and_item_caps() -> void:
 	var systems := _make_systems()
 	var inventory: InventoryManager = systems["inventory"]
@@ -80,6 +91,20 @@ func test_shop_hours_gate_buy_sell_actions() -> void:
 	assert_false(shops.sell_item("shop_crossroads_peddler", "item_road_hatchet"))
 	assert_false(shops.get_stock_entries("shop_crossroads_peddler").is_empty())
 	assert_true(shops.get_sellable_entries("shop_crossroads_peddler").is_empty())
+
+
+func test_crime_disposition_changes_prices_then_causes_service_refusal() -> void:
+	var systems := _make_systems()
+	var shops: ShopManager = systems["shops"]
+	var crime := CrimeStub.new()
+	shops.set_crime_manager(crime)
+
+	assert_eq(shops.buy_price("shop_northgate_general", "item_traveler_buckler"), 23)
+	assert_true(shops.is_shop_open("shop_northgate_general"))
+
+	crime.disposition = -50
+	assert_false(shops.is_shop_open("shop_northgate_general"))
+	assert_true(shops.shop_unavailable_reason("shop_northgate_general").contains("refuses"))
 
 
 func test_hud_queries_build_shop_presentation_rows_and_actions() -> void:

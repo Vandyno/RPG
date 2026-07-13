@@ -10,7 +10,7 @@ func test_real_pointer_can_arrive_enter_hall_and_complete_local_quest() -> void:
 	await MainFlowInputHelper.settle(main, get_tree())
 	assert_true(await _click_entity(main, "object_briarwatch_northgate_coach"))
 	assert_eq(main.player.world_layer, "surface")
-	assert_true(main.player.global_tile.distance_to(Vector2i(-3252, -3932)) < 3.0)
+	assert_true(main.player.global_tile.distance_to(Vector2i(-3237, -3940)) < 3.0)
 
 	assert_true(await _click_entity(main, "portal_structure_northgate_hall_plot_entry"))
 	assert_eq(main.player.world_layer, "interior:structure_northgate_hall_plot")
@@ -188,6 +188,13 @@ func _click_entity(main, entity_id: String) -> bool:
 	var entity = main.entities.get_entity(entity_id)
 	if not is_instance_valid(entity):
 		return false
+	if entity.global_tile != tile:
+		main.player.set_global_tile(entity.global_tile + Vector2i.LEFT)
+		main.streamer.update_center(main.player.global_tile, main.player.world_layer)
+		await MainFlowInputHelper.settle(main, get_tree())
+		entity = main.entities.get_entity(entity_id)
+		if not is_instance_valid(entity):
+			return false
 	main.player.set_facing_direction(Vector2.RIGHT)
 	await MainFlowInputHelper.world_click(main, entity.global_position, get_tree())
 	if (

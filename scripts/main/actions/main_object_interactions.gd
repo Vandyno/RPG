@@ -2,6 +2,7 @@ class_name MainObjectInteractions
 extends RefCounted
 
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
@@ -106,7 +107,7 @@ static func interact_container(ctx: InteractionContext, entity: WorldEntity) -> 
 	if not locked_text.is_empty():
 		ctx.event_bus.post_message(locked_text)
 		return
-	if ["container", "body"].has(entity.get_kind()):
+	if ["container", "body"].has(entity.get_kind()) or ActorRules.is_dead_actor_data(entity.data):
 		MainInventoryTransfer.open(ctx.inventory_transfer_context, entity)
 		return
 	if entity.get_kind() == "door" and not VariantFields.portal_data(entity).is_empty():

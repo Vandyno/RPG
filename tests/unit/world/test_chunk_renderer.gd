@@ -58,9 +58,11 @@ func test_renderer_draws_all_seed_material_kinds() -> void:
 		"bridge",
 		"stone_wall",
 		"wood_wall",
+		"palisade",
 		"wood_floor",
 		"forest",
-		"hill"
+		"hill",
+		"soil"
 	]
 	var tiles: Array[Dictionary] = []
 	for index in range(kinds.size()):
@@ -72,3 +74,4 @@ func test_renderer_draws_all_seed_material_kinds() -> void:
 
 	assert_eq(renderer.chunk_data.get("tiles", []).size(), kinds.size())
 	assert_eq(renderer._color_for_kind("bridge"), Color(0.50, 0.35, 0.20))
+	assert_eq(renderer._color_for_kind("soil"), Color(0.39, 0.29, 0.17))

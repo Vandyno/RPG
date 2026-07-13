@@ -30,6 +30,7 @@ class BrainContext:
 	var content
 	var chunks
 	var event_bus
+	var perception
 	var _add_effect_child: Callable
 	var _player_defeated: Callable
 	var _refresh_hud: Callable
@@ -40,6 +41,7 @@ class BrainContext:
 		content = values.get("content")
 		chunks = values.get("chunks")
 		event_bus = values.get("event_bus")
+		perception = values.get("perception")
 		_add_effect_child = values.get("add_effect_child", Callable())
 		_player_defeated = values.get("player_defeated", Callable())
 		_refresh_hud = values.get("refresh_hud", Callable())
@@ -70,6 +72,7 @@ static func context(main) -> BrainContext:
 			"content": main.get("content"),
 			"chunks": main.get("chunks"),
 			"event_bus": main.get("event_bus"),
+			"perception": main.get("npc_perception"),
 			"add_effect_child": Callable(main, "add_child"),
 			"player_defeated": Callable(main, "_handle_player_defeated"),
 			"refresh_hud": Callable(main, "_refresh_hud")
@@ -95,6 +98,9 @@ static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 	_tick_cooldown(actor.data, delta)
 	var to_player: Vector2 = ctx.player.global_position - actor.global_position
 	var distance: float = to_player.length()
+	var awareness_state := "detected"
+	if ctx.perception and ctx.perception.has_method("update_awareness_of_target"):
+		awareness_state = String(ctx.perception.update_awareness_of_target(actor, ctx.player))
 	var aggro_radius: float = VariantFields.positive_float_field(
 		actor.data, "aggro_radius", DEFAULT_AGGRO_RADIUS
 	)
@@ -107,6 +113,12 @@ static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 	var home_position: Vector2 = _home_position(actor.data)
 	var home_distance: float = actor.global_position.distance_to(home_position)
 	var mode := String(actor.data.get("_brain_mode", "idle"))
+	if mode != "engaged" and awareness_state == "unaware":
+		_idle_or_return_home(ctx, actor, home_position, delta)
+		return
+	if mode != "engaged" and awareness_state == "suspicious":
+		_investigate_last_stimulus(ctx, actor, delta)
+		return
 	if mode == "returning":
 		if distance <= aggro_radius and home_distance <= leash_radius:
 			actor.data["_brain_mode"] = "engaged"
@@ -142,6 +154,22 @@ static func _update_actor(ctx: BrainContext, actor, delta: float) -> void:
 	var move_target := _next_path_target(
 		ctx, actor, ctx.player.global_position, stop_distance, true
 	)
+	if actor.has_method("try_move"):
+		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
+
+
+static func _investigate_last_stimulus(ctx: BrainContext, actor, delta: float) -> void:
+	var npc_id := String(actor.data.get("npc_id", actor.get_entity_id()))
+	var awareness: Dictionary = ctx.perception.get_awareness(npc_id)
+	var destination := VariantFields.vector2_from_pair(
+		awareness.get("last_world_position", []), actor.global_position
+	)
+	actor.data["_brain_mode"] = "investigating"
+	_set_behavior_state(actor, "investigating")
+	if actor.has_method("set_facing_direction"):
+		actor.set_facing_direction(destination - actor.global_position)
+	var move_speed := VariantFields.positive_float_field(actor.data, "move_speed", DEFAULT_MOVE_SPEED)
+	var move_target := _next_path_target(ctx, actor, destination, HOME_ARRIVAL_DISTANCE, false)
 	if actor.has_method("try_move"):
 		actor.try_move(move_target - actor.global_position, delta, ctx.chunks, move_speed)
 

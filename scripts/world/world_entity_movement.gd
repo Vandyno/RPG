@@ -35,7 +35,9 @@ static func try_move(
 static func _try_move_step(entity, motion: Vector2, chunk_manager = null) -> bool:
 	var next_position: Vector2 = entity.position + motion
 	var layer := "surface"
-	if entity and entity.has_method("get_entity_id") and entity.data is Dictionary:
+	if entity and entity.has_method("get_world_layer"):
+		layer = String(entity.get_world_layer())
+	elif entity and entity.has_method("get_entity_id") and entity.data is Dictionary:
 		layer = String(entity.data.get("world_layer", "surface"))
 	if can_stand_at(next_position, chunk_manager, layer):
 		entity.set_world_position(next_position)

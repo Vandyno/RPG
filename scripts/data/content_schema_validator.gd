@@ -395,9 +395,13 @@ static func supported_terrain_kinds() -> Array[String]:
 		"bridge",
 		"stone_wall",
 		"wood_wall",
+		"palisade",
+		"structure_blocker",
 		"wood_floor",
 		"forest",
 		"hill",
+		"soil",
+		"worn_ground",
 		"road"
 	]
 

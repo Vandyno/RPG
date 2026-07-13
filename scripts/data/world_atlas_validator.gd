@@ -25,6 +25,7 @@ static func validate(atlas: Dictionary) -> PackedStringArray:
 		errors.append("Atlas proposal_status must be proposal")
 	var bounds := _bounds_rect(atlas.get("continent_bounds", {}), errors)
 	_validate_generator_scale(atlas, errors)
+	_validate_authoring_policy(atlas, errors)
 	_validate_polygon("coastline", atlas.get("coastline", []), bounds, errors)
 	var ids := {}
 	for collection_name in COLLECTIONS_WITH_IDS:
@@ -49,6 +50,51 @@ static func validate(atlas: Dictionary) -> PackedStringArray:
 		if not ids.has(String(required_id)):
 			errors.append("Missing required named location %s" % String(required_id))
 	return errors
+
+
+static func build_report(atlas: Dictionary) -> Dictionary:
+	var errors := validate(atlas)
+	var review_items: Array[Dictionary] = []
+	for collection_name in ["settlements", "landmarks"]:
+		for entry in atlas.get(collection_name, []):
+			var review_status := String(entry.get("review_status", ""))
+			if review_status != "aligned":
+				review_items.append(
+					{
+						"collection": collection_name,
+						"id": String(entry.get("id", "")),
+						"name": String(entry.get("name", "")),
+						"review_status": review_status
+					}
+				)
+	var traversal: Dictionary = atlas.get("traversal_target", {})
+	var crossing_minutes := (
+		float(traversal.get("scaled_land_width_tiles", 0.0))
+		/ maxf(float(traversal.get("baseline_tiles_per_second", 1.0)), 0.01)
+		/ 60.0
+	)
+	return {
+		"atlas_id": String(atlas.get("atlas_id", "")),
+		"schema_version": String(atlas.get("schema_version", "")),
+		"proposal_status": String(atlas.get("proposal_status", "")),
+		"validation_status": "pass" if errors.is_empty() else "fail",
+		"approval_status": "pending_review" if not review_items.is_empty() else "ready_for_approval",
+		"validation_errors": Array(errors),
+		"review_items": review_items,
+		"counts": {
+			"regions": atlas.get("regions", []).size(),
+			"settlements": atlas.get("settlements", []).size(),
+			"routes": atlas.get("routes", []).size(),
+			"terrain_features": atlas.get("terrain_features", []).size(),
+			"zones": atlas.get("zones", []).size(),
+			"landmarks": atlas.get("landmarks", []).size()
+		},
+		"world_scale": {
+			"global_tile_bounds": atlas.get("generator_coordinate_space", {}).get("global_tile_bounds", {}),
+			"global_tiles_per_atlas_unit": atlas.get("generator_coordinate_space", {}).get("global_tiles_per_atlas_unit", 0),
+			"baseline_crossing_minutes": snappedf(crossing_minutes, 0.1)
+		}
+	}
 
 
 static func atlas_to_global_tile(atlas: Dictionary, atlas_point: Vector2) -> Vector2i:
@@ -77,6 +123,19 @@ static func _validate_generator_scale(atlas: Dictionary, errors: PackedStringArr
 		< float(target.get("target_route_tiles", 0.0))
 	):
 		errors.append("scaled land width is shorter than the traversal target")
+
+
+static func _validate_authoring_policy(atlas: Dictionary, errors: PackedStringArray) -> void:
+	var policy: Variant = atlas.get("authoring_policy", {})
+	if not policy is Dictionary:
+		errors.append("authoring_policy must be an object")
+		return
+	if String(policy.get("terrain_palette", "")) != "extensible":
+		errors.append("authoring_policy must keep the terrain palette extensible")
+	if not bool(policy.get("may_add_tile_kinds", false)):
+		errors.append("authoring_policy must allow purposeful new tile kinds")
+	if not policy.get("requirements", []) is Array or policy.get("requirements", []).is_empty():
+		errors.append("authoring_policy must define constraints for new tile kinds")
 
 
 static func _require_text(

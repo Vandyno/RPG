@@ -3,15 +3,16 @@ extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const VerifyInputHelper = preload("res://scripts/tools/verify/verify_input_helper.gd")
 
 const VERIFY_SIZE := Vector2i(1152, 648)
 const TRANSFER_OFFSET := Vector2(-8.0, 0.0)
 const ROAD_THUG_ID := "npc_road_thug"
-const ROAD_THUG_BODY_ID := "body_npc_road_thug"
+const ROAD_THUG_BODY_ID := ROAD_THUG_ID
 const ROAD_CACHE_ID := "object_road_cache"
 const PEOPLE_TEST_ID := "npc_people_test_human"
-const PEOPLE_TEST_BODY_ID := "body_npc_people_test_human"
+const PEOPLE_TEST_BODY_ID := PEOPLE_TEST_ID
 const TAKE_BOW_BUTTON := "TransferTake_ItemHuntingBow"
 const PUT_BOW_BUTTON := "TransferPut_ItemHuntingBow"
 const TAKE_GOLD_BUTTON := "TransferTake_ItemGoldCoin"
@@ -199,7 +200,8 @@ func _open_body_transfer(main) -> void:
 	main.player.set_world_position(enemy.global_position + TRANSFER_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity(ROAD_THUG_ID):
+		var actor = main.entities.get_entity(ROAD_THUG_ID)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 	_open_transfer_target(main, main.entities.get_entity(ROAD_THUG_BODY_ID), root.size)
@@ -214,7 +216,8 @@ func _open_people_body_transfer(main) -> void:
 	main.player.set_world_position(enemy.global_position + TRANSFER_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity(PEOPLE_TEST_ID):
+		var actor = main.entities.get_entity(PEOPLE_TEST_ID)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			break
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 	_open_transfer_target(main, main.entities.get_entity(PEOPLE_TEST_BODY_ID), root.size)

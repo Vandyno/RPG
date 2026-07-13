@@ -1,0 +1,47 @@
+{
+  "catalog_version": "marches_region_templates_v3",
+  "terrain_templates_by_biome": {
+    "grassland": ["march_meadow", "wildflower_down"],
+    "farmland": ["red_loam_field", "fallow_field", "orchard_edge"],
+    "managed_woodland": ["managed_oak_copse", "hedgerow_lane"],
+    "hills": ["rolling_stone_hill", "chalk_rise"],
+    "fallback": ["march_meadow"]
+  },
+  "terrain_templates": {
+    "march_meadow": {"tile_kind": "meadow_grass", "base_kind": "grass", "visual_style": "long grass broken by old cart ruts", "walkable": true, "collision": "none", "movement_cost": 1.0},
+    "wildflower_down": {"tile_kind": "wildflower_down", "base_kind": "grass", "visual_style": "wind-bent flowers and pale seed heads", "walkable": true, "collision": "none", "movement_cost": 1.05},
+    "red_loam_field": {"tile_kind": "red_loam_field", "base_kind": "grass", "visual_style": "worked red soil with strong furrow direction", "walkable": true, "collision": "none", "movement_cost": 1.12},
+    "fallow_field": {"tile_kind": "fallow_field", "base_kind": "grass", "visual_style": "stubble, volunteer grain, and low field stones", "walkable": true, "collision": "none", "movement_cost": 1.08},
+    "orchard_edge": {"tile_kind": "orchard_edge", "base_kind": "forest", "visual_style": "managed fruit trees, windfalls, and boundary walls", "walkable": true, "collision": "sparse_trunks", "movement_cost": 1.18},
+    "managed_oak_copse": {"tile_kind": "managed_oak_copse", "base_kind": "forest", "visual_style": "pollarded oaks, coppice stools, and legal cut marks", "walkable": true, "collision": "sparse_trunks", "movement_cost": 1.22},
+    "hedgerow_lane": {"tile_kind": "hedgerow_lane", "base_kind": "forest", "visual_style": "deep green hedges around a narrow worn lane", "walkable": true, "collision": "edge_hedges", "movement_cost": 1.1},
+    "rolling_stone_hill": {"tile_kind": "rolling_stone_hill", "base_kind": "hill", "visual_style": "rounded slopes with exposed old road stone", "walkable": true, "collision": "scattered_rocks", "movement_cost": 1.28},
+    "chalk_rise": {"tile_kind": "chalk_rise", "base_kind": "hill", "visual_style": "pale cuts, short turf, and distant sight lines", "walkable": true, "collision": "scattered_rocks", "movement_cost": 1.25}
+  },
+  "poi_templates_by_biome": {
+    "grassland": ["road_camp", "wayside_shrine", "weathered_ruin"],
+    "farmland": ["working_farm", "field_shrine", "abandoned_granary"],
+    "managed_woodland": ["coppice_camp", "woodland_shrine", "watchtower"],
+    "hills": ["shallow_cave", "watchtower", "weathered_ruin"],
+    "fallback": ["road_camp", "wayside_shrine"]
+  },
+  "poi_templates_by_context": {
+    "roadside": ["road_camp", "wayside_shrine", "working_farm", "field_shrine", "watchtower"],
+    "riverside": ["reed_fisher_camp", "river_watch", "weathered_ruin", "woodland_shrine"],
+    "settlement_hinterland": ["working_farm", "field_shrine", "abandoned_granary", "wayside_shrine"]
+  },
+  "poi_templates": {
+    "road_camp": {"visual_style": "canvas shelter, banked fire, wagon scars", "slots": {"interaction": 1, "service": 0, "loot": 1, "quest_hooks": 1}, "encounter": "traveller_or_road_threat"},
+    "wayside_shrine": {"visual_style": "old road stones, offerings, rain-dark wood", "slots": {"interaction": 1, "service": 0, "loot": 0, "quest_hooks": 1}, "encounter": "quiet_or_devotional"},
+    "weathered_ruin": {"visual_style": "low walls reused by shepherds and travellers", "slots": {"interaction": 1, "service": 0, "loot": 2, "quest_hooks": 1}, "encounter": "wildlife_or_squatters"},
+    "working_farm": {"visual_style": "field walls, byre yard, water trough, working clutter", "slots": {"interaction": 2, "service": 1, "loot": 1, "quest_hooks": 2}, "encounter": "civilian_with_local_pressure"},
+    "field_shrine": {"visual_style": "harvest ribbons and a stone worn by hands", "slots": {"interaction": 1, "service": 0, "loot": 0, "quest_hooks": 1}, "encounter": "quiet_or_contested"},
+    "abandoned_granary": {"visual_style": "collapsed loft, split bins, vermin trails", "slots": {"interaction": 1, "service": 0, "loot": 2, "quest_hooks": 1}, "encounter": "vermin_bandit_or_cult_pressure"},
+    "coppice_camp": {"visual_style": "charcoal clamp, cut stools, tagged timber stacks", "slots": {"interaction": 2, "service": 1, "loot": 1, "quest_hooks": 2}, "encounter": "workers_treaty_or_trespass"},
+    "woodland_shrine": {"visual_style": "living bough marker with treaty stones", "slots": {"interaction": 1, "service": 0, "loot": 0, "quest_hooks": 2}, "encounter": "rootborn_human_tension"},
+    "watchtower": {"visual_style": "roadward stone tower with a broad sight line", "slots": {"interaction": 1, "service": 0, "loot": 2, "quest_hooks": 1}, "encounter": "guard_bandit_or_abandoned"},
+    "shallow_cave": {"visual_style": "chalk mouth, animal tracks, old tool cuts", "slots": {"interaction": 1, "service": 0, "loot": 2, "quest_hooks": 1}, "encounter": "beast_smuggler_or_empty"},
+    "reed_fisher_camp": {"visual_style": "reed shelters, pulled-up skiffs, fish racks", "slots": {"interaction": 2, "service": 1, "loot": 1, "quest_hooks": 1}, "encounter": "fisher_traveller_or_smuggler"},
+    "river_watch": {"visual_style": "raised timber platform overlooking a ford or bend", "slots": {"interaction": 1, "service": 0, "loot": 1, "quest_hooks": 1}, "encounter": "watch_patrol_or_abandoned"}
+  }
+}

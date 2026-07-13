@@ -9,7 +9,7 @@ class BodyStub:
 	extends RefCounted
 
 	var global_position := Vector2(40, 50)
-	var entity_id := "body_npc_road_thug"
+	var entity_id := "npc_road_thug"
 
 	func get_entity_id() -> String:
 		return entity_id
@@ -91,7 +91,7 @@ func test_position_player_for_body_loot_targets_body_and_opens_inventory_transfe
 
 	assert_eq(main.player.world_positions, [body.global_position + Vector2(-8, 0)])
 	assert_eq(main.player.facing_values, [Vector2.RIGHT])
-	assert_eq(main.selected_target_id, "body_npc_road_thug")
+	assert_eq(main.selected_target_id, "npc_road_thug")
 	assert_true(main.manual_target_locked)
 	assert_eq(main.update_nearby_calls, 1)
 	assert_eq(main.interact_calls, 1)

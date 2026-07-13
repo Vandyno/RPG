@@ -8,7 +8,9 @@ const KIND_BODY := "body"
 const CATEGORY_HUMANOID := "humanoid"
 const HOSTILITY_HOSTILE := "hostile"
 const STATE_ALIVE := ActorState.ALIVE
+const STATE_DEAD := ActorState.DEAD
 const STATE_DEAD_BODY := ActorState.DEAD_BODY
+const VALID_STATES := ActorState.VALID_STATES
 const DEAD_STATES := ActorState.DEAD_STATES
 
 
@@ -48,6 +50,8 @@ static func is_actor_data(data: Dictionary) -> bool:
 		return true
 	if String(data.get("kind", "")) == KIND_NPC:
 		return true
+	if not String(data.get("npc_id", "")).is_empty():
+		return true
 	return _has_humanoid_identity(data)
 
 
@@ -61,6 +65,10 @@ static func is_living_actor_data(data: Dictionary) -> bool:
 	if String(data.get("kind", "")) == KIND_BODY:
 		return false
 	return not DEAD_STATES.has(actor_state(data))
+
+
+static func is_dead_actor_data(data: Dictionary) -> bool:
+	return is_actor_data(data) and DEAD_STATES.has(actor_state(data))
 
 
 static func is_living_humanoid_data(data: Dictionary) -> bool:

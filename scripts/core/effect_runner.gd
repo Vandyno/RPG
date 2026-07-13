@@ -13,6 +13,7 @@ var player
 var time
 var statuses
 var event_bus
+var equipment
 var feedback_suppression_depth := 0
 
 
@@ -27,6 +28,7 @@ class Dependencies:
 	var time
 	var statuses
 	var event_bus
+	var equipment
 
 	func _init(values: Dictionary = {}) -> void:
 		world_state = values.get("world_state")
@@ -39,6 +41,7 @@ class Dependencies:
 		time = values.get("time")
 		statuses = values.get("statuses")
 		event_bus = values.get("event_bus")
+		equipment = values.get("equipment")
 
 
 func setup(dependencies: Dependencies) -> void:
@@ -52,6 +55,11 @@ func setup(dependencies: Dependencies) -> void:
 	time = dependencies.time
 	statuses = dependencies.statuses
 	event_bus = dependencies.event_bus
+	equipment = dependencies.equipment
+
+
+func set_equipment(equipment_manager) -> void:
+	equipment = equipment_manager
 
 
 func set_player(player_node) -> void:
@@ -89,6 +97,8 @@ func apply(effect: Dictionary, emit_feedback: bool = true) -> bool:
 			applied = _apply_advance_time(effect)
 		"apply_status":
 			applied = _apply_status(effect)
+		"repair_equipment":
+			applied = _apply_repair_equipment(effect)
 	if applied and _should_emit_feedback(emit_feedback):
 		_post_effect_feedback(effect, before)
 	return applied
@@ -217,6 +227,19 @@ func _apply_status(effect: Dictionary) -> bool:
 	return statuses.apply_status(status_id, charges)
 
 
+func _apply_repair_equipment(effect: Dictionary) -> bool:
+	if not equipment or not inventory or not equipment.has_method("repair_equipped"):
+		return false
+	var cost := VariantFields.positive_int_field(effect, "cost", 0)
+	if cost <= 0 or equipment.damaged_equipped_count() <= 0:
+		return false
+	if not inventory.has_item("item_gold_coin", cost):
+		return false
+	if not inventory.remove_item("item_gold_coin", cost):
+		return false
+	return int(equipment.repair_equipped()) > 0
+
+
 func _apply_quest_rewards(quest_id: String) -> void:
 	if not content:
 		return
@@ -262,6 +285,8 @@ func _feedback_text(effect: Dictionary, before: Dictionary) -> String:
 			text = _effect_description(effect)
 		"add_experience":
 			text = _experience_feedback(effect, before)
+		"repair_equipment":
+			text = "Equipped gear repaired."
 	return text
 
 

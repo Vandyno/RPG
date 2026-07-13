@@ -114,6 +114,27 @@ func test_item_count_removed_unequips_item_and_clears_last_mainhand_weapon() -> 
 	assert_eq(equipment.last_mainhand_weapon_id, "")
 
 
+func test_equipment_condition_damage_repair_and_save_round_trip() -> void:
+	var systems := _systems(["item_road_hatchet", "item_traveler_buckler"])
+	var equipment: EquipmentManager = systems["equipment"]
+	assert_true(equipment.equip_item("item_road_hatchet"))
+	assert_true(equipment.equip_item("item_traveler_buckler"))
+
+	assert_eq(equipment.damage_equipped(12), 2)
+	assert_eq(equipment.get_condition("item_road_hatchet"), 88)
+	assert_eq(equipment.get_condition("item_traveler_buckler"), 88)
+	assert_eq(equipment.damaged_equipped_count(), 2)
+	var saved := equipment.get_save_data()
+
+	var loaded_systems := _systems(["item_road_hatchet", "item_traveler_buckler"])
+	var loaded: EquipmentManager = loaded_systems["equipment"]
+	loaded.load_save_data(saved)
+	assert_eq(loaded.get_condition("item_road_hatchet"), 88)
+	assert_eq(loaded.repair_equipped(), 2)
+	assert_eq(loaded.get_condition("item_road_hatchet"), 100)
+	assert_eq(loaded.damaged_equipped_count(), 0)
+
+
 func _systems(item_ids: Array[String]) -> Dictionary:
 	var bus := EventBus.new()
 	add_child_autofree(bus)

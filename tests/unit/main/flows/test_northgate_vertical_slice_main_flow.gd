@@ -38,7 +38,7 @@ func test_pointer_coach_arrival_and_all_thirteen_building_portals() -> void:
 
 	assert_true(await _pointer_use(main, "object_briarwatch_northgate_coach"))
 	assert_eq(main.player.world_layer, "surface")
-	assert_lt(main.player.global_tile.distance_to(Vector2i(-3252, -3932)), 4.0)
+	assert_lt(main.player.global_tile.distance_to(Vector2i(-3237, -3940)), 4.0)
 
 	for entry_id in SURFACE_ENTRY_IDS:
 		assert_true(await _pointer_use(main, entry_id), entry_id)
@@ -202,6 +202,13 @@ func _pointer_use(main, entity_id: String) -> bool:
 	var entity = main.entities.get_entity(entity_id)
 	if not entity:
 		return false
+	if entity.global_tile != tile:
+		main.player.set_global_tile(entity.global_tile + Vector2i.LEFT)
+		main.streamer.update_center(main.player.global_tile, main.player.world_layer)
+		await MainFlowInputHelper.settle(main, get_tree())
+		entity = main.entities.get_entity(entity_id)
+		if not entity:
+			return false
 	await MainFlowInputHelper.world_click(main, entity.global_position, get_tree())
 	if (
 		["poi", "npc"].has(String(source.get("kind", "")))

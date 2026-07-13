@@ -9,6 +9,8 @@ var quests: Dictionary = {}
 func setup(bus: EventBus, content_database: ContentDatabase) -> void:
 	event_bus = bus
 	content = content_database
+	if event_bus and event_bus.actor_state_changed.is_connected(_on_actor_state_changed) == false:
+		event_bus.actor_state_changed.connect(_on_actor_state_changed)
 
 
 func start_quest(quest_id: String) -> bool:
@@ -259,6 +261,19 @@ func _objective_target_id(value: Variant) -> String:
 func _emit_quest_changed(quest_id: String) -> void:
 	if event_bus:
 		event_bus.quest_changed.emit(quest_id, quests[quest_id].duplicate(true))
+
+
+func _on_actor_state_changed(entity_id: String, npc_id: String, state: String) -> void:
+	if state != "dead":
+		return
+	for quest_id in quests.keys():
+		var key := String(quest_id)
+		if get_quest_state(key) != "active":
+			continue
+		var definition: Dictionary = content.get_quest(key)
+		var required: Variant = definition.get("required_npc_ids", [])
+		if required is Array and (required as Array).has(npc_id):
+			fail_quest(key)
 
 
 func _dictionary_field(value: Variant) -> Dictionary:

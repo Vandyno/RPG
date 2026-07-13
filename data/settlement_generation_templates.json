@@ -1,0 +1,67 @@
+{
+  "catalog_version": "settlement_templates_v6",
+  "settlement_roles": {
+    "northern_road_junction": {
+      "template_id": "northgate_road_junction",
+      "bounds_local": {"position": [-24, -22], "size": [60, 54]},
+      "districts": [
+        {"id": "north_road", "role": "guards_and_arrivals", "rect": {"position": [-16, -21], "size": [37, 19]}},
+        {"id": "west_market", "role": "shops_and_shrine", "rect": {"position": [-22, -2], "size": [22, 31]}},
+        {"id": "east_coach", "role": "inn_stables_and_craft", "rect": {"position": [2, -14], "size": [32, 43]}},
+        {"id": "junction_square", "role": "public_crossroads", "rect": {"position": [-7, -7], "size": [15, 12]}}
+      ],
+      "streets": [
+        {"id": "north_road", "kind": "major_road", "path": [[0,-22],[0,-2]], "width": 3},
+        {"id": "junction_square", "kind": "public_square", "rect": {"position": [-5, -6], "size": [10, 7]}},
+        {"id": "south_road", "kind": "major_road", "path": [[0,-2],[0,31]], "width": 3},
+        {"id": "west_road", "kind": "major_road", "path": [[0,-2],[-24,0]], "width": 3},
+        {"id": "east_road", "kind": "major_road", "path": [[0,-2],[35,0]], "width": 3},
+        {"id": "smith_lane", "kind": "minor_road", "path": [[0,8],[4,8],[4,12],[8,12],[8,16],[12,16],[12,20],[15,20]], "width": 1}
+      ],
+      "defense": {
+        "kind": "partial_palisade", "gate_width": 5,
+        "visual_style": "low timber roadward palisade following bank, ditch, and property edges",
+        "boundary_polygon_local": [[-18,-21],[-1,-22],[11,-21],[29,-18],[34,-8],[35,0],[33,13],[30,28],[12,30],[0,31],[-20,27],[-23,14],[-24,0],[-21,-13]],
+        "gates_local": [{"id":"north_gate","tile":[0,-22]},{"id":"east_gate","tile":[35,0]},{"id":"south_gate","tile":[0,31]},{"id":"west_gate","tile":[-24,0]}]
+      },
+      "plots": [
+        {"id": "shrine_plot", "building_role": "road_shrine", "entry_side": "south", "rect": {"position": [-13, -20], "size": [11, 9]}, "footprint": {"position": [3, 3], "size": [6, 3]}},
+        {"id": "guard_plot", "building_role": "guard_post", "entry_side": "south", "rect": {"position": [2, -21], "size": [12, 8]}, "footprint": {"position": [2, 2], "size": [7, 3]}},
+        {"id": "hall_plot", "building_role": "town_hall", "entry_side": "east", "rect": {"position": [-15, -11], "size": [14, 9]}, "footprint": {"position": [3, 2], "size": [8, 4]}},
+        {"id": "inn_plot", "building_role": "coaching_inn", "entry_side": "west", "rect": {"position": [4, -13], "size": [17, 10]}, "footprint": {"position": [4, 3], "size": [10, 3]}},
+        {"id": "stable_plot", "building_role": "stable", "entry_side": "south", "rect": {"position": [21, -13], "size": [12, 14]}, "footprint": {"position": [2, 3], "size": [7, 6]}},
+        {"id": "shop_plot", "building_role": "general_shop", "entry_side": "north", "rect": {"position": [-18, 1], "size": [12, 10]}, "footprint": {"position": [3, 3], "size": [7, 4]}},
+        {"id": "store_plot", "building_role": "storehouse", "entry_side": "east", "rect": {"position": [-10, 11], "size": [10, 10]}, "footprint": {"position": [1, 2], "size": [7, 4]}},
+        {"id": "west_home_plot", "building_role": "home", "entry_side": "north", "interior_variant": "quiet_craft_household", "rect": {"position": [-22, 11], "size": [11, 10]}, "footprint": {"position": [2, 2], "size": [6, 3]}, "yard_zones": [{"kind": "soil", "rect": {"position": [1, 6], "size": [4, 3]}}]},
+        {"id": "south_home_plot", "building_role": "home", "entry_side": "east", "interior_variant": "multigenerational_household", "rect": {"position": [-10, 21], "size": [11, 8]}, "footprint": {"position": [2, 2], "size": [6, 3]}, "yard_zones": [{"kind": "soil", "rect": {"position": [1, 5], "size": [4, 2]}}, {"kind": "soil", "rect": {"position": [6, 5], "size": [3, 2]}}]},
+        {"id": "smith_plot", "building_role": "smithy", "entry_side": "north", "rect": {"position": [4, 1], "size": [14, 12]}, "footprint": {"position": [3, 3], "size": [8, 5]}},
+        {"id": "east_home_plot", "building_role": "home", "entry_side": "north", "interior_variant": "courier_household", "rect": {"position": [18, 2], "size": [11, 9]}, "footprint": {"position": [2, 2], "size": [6, 3]}, "yard_zones": [{"kind": "soil", "rect": {"position": [1, 6], "size": [4, 2]}}]},
+        {"id": "southeast_home_plot", "building_role": "home", "entry_side": "west", "interior_variant": "kitchen_garden_household", "rect": {"position": [4, 13], "size": [12, 11]}, "footprint": {"position": [2, 3], "size": [6, 3]}, "yard_zones": [{"kind": "soil", "rect": {"position": [1, 7], "size": [4, 3]}}, {"kind": "soil", "rect": {"position": [7, 7], "size": [3, 2]}}]},
+        {"id": "far_east_home_plot", "building_role": "home", "entry_side": "west", "interior_variant": "lodger_household", "rect": {"position": [16, 14], "size": [13, 10]}, "footprint": {"position": [3, 2], "size": [7, 3]}, "yard_zones": [{"kind": "soil", "rect": {"position": [1, 6], "size": [4, 3]}}, {"kind": "soil", "rect": {"position": [8, 5], "size": [3, 3]}}]}
+      ]
+    }
+  },
+  "building_profiles": {
+    "road_shrine": {"visual_style": "road_stone_shrine", "interior_size": [9, 8], "npc_roles": ["shrine_keeper"], "services": ["blessing"], "fixtures": ["road_altar", "offering_bowl", "pilgrim_bench", "candle_cluster", "reliquary_shelf", "stone_marker"], "fixture_positions": {"road_altar": [4,2], "offering_bowl": [4,3], "pilgrim_bench": [2,5], "candle_cluster": [2,2], "reliquary_shelf": [6,2], "stone_marker": [6,5]}, "public": true},
+    "guard_post": {"visual_style": "timber_guard_post", "interior_size": [11, 8], "npc_roles": ["watch_sergeant", "gate_guard"], "services": ["road_report"], "fixtures": ["watch_desk", "weapon_rack", "guard_bunk", "spare_bed", "road_map", "mess_table", "records_chest"], "fixture_positions": {"watch_desk": [3,3], "weapon_rack": [8,2], "guard_bunk": [2,5], "spare_bed": [8,5], "road_map": [5,2], "mess_table": [5,5], "records_chest": [9,6]}, "public": true},
+    "town_hall": {"visual_style": "junction_hall", "interior_size": [14, 10], "npc_roles": ["reeve", "clerk"], "services": ["notices"], "fixtures": ["notice_board", "reeve_desk", "records_shelf", "petition_bench", "waiting_bench", "clerk_desk", "seal_chest", "meeting_table"], "fixture_positions": {"notice_board": [2,2], "reeve_desk": [10,3], "records_shelf": [12,2], "petition_bench": [3,5], "waiting_bench": [3,7], "clerk_desk": [9,7], "seal_chest": [12,7], "meeting_table": [7,5]}, "public": true},
+    "coaching_inn": {"visual_style": "deep_eaved_coaching_inn", "interior_size": [14, 10], "npc_roles": ["innkeeper", "cook", "traveller"], "services": ["inn", "food", "rumours"], "fixtures": ["hearth", "west_bar_counter", "bar_counter", "east_bar_counter", "common_table", "side_table", "guest_bed", "west_backbar_shelf", "pantry_shelf", "east_backbar_shelf", "fireside_bench", "traveller_bench", "ale_barrels", "west_bar_stool", "east_bar_stool", "table_stool", "guest_trunk", "guest_partition"], "fixture_positions": {"hearth": [12,2], "west_bar_counter": [2,3], "bar_counter": [4,3], "east_bar_counter": [6,3], "common_table": [8,5], "side_table": [11,5], "guest_bed": [12,8], "west_backbar_shelf": [3,2], "pantry_shelf": [2,2], "east_backbar_shelf": [6,2], "fireside_bench": [10,3], "traveller_bench": [7,7], "ale_barrels": [2,7], "west_bar_stool": [3,4], "east_bar_stool": [5,4], "table_stool": [10,6], "guest_trunk": [12,7], "guest_partition": [11,7]}, "public": true},
+    "stable": {"visual_style": "road_junction_stable", "interior_size": [13, 11], "npc_roles": ["stablehand"], "services": ["stabling"], "fixtures": ["west_horse_stall", "center_horse_stall", "east_horse_stall", "tack_rack", "feed_bin", "hay_bale", "grooming_bench"], "fixture_positions": {"west_horse_stall": [2,2], "center_horse_stall": [5,2], "east_horse_stall": [8,2], "tack_rack": [11,2], "feed_bin": [2,7], "hay_bale": [5,7], "grooming_bench": [9,7]}, "public": true},
+    "general_shop": {"visual_style": "shuttered_crossroads_shop", "interior_size": [12, 9], "npc_roles": ["shopkeeper"], "services": ["general_trade"], "fixtures": ["trade_counter", "west_goods_shelf", "east_goods_shelf", "provisions_shelf", "locked_chest", "display_table", "packing_crate"], "fixture_positions": {"trade_counter": [6,3], "west_goods_shelf": [2,2], "east_goods_shelf": [9,2], "provisions_shelf": [9,6], "locked_chest": [2,6], "display_table": [6,6], "packing_crate": [3,7]}, "public": true},
+    "storehouse": {"visual_style": "raised_trade_storehouse", "interior_size": [12, 9], "npc_roles": ["storekeeper"], "services": ["storage"], "fixtures": ["north_crate_stack", "east_crate_stack", "trade_barrels", "grain_barrels", "ledger_desk", "locked_store", "weighing_table"], "fixture_positions": {"north_crate_stack": [2,2], "east_crate_stack": [9,2], "trade_barrels": [2,5], "grain_barrels": [5,6], "ledger_desk": [8,5], "locked_store": [10,7], "weighing_table": [5,3]}, "public": false},
+    "smithy": {"visual_style": "open_front_road_smithy", "interior_size": [13, 10], "npc_roles": ["smith", "apprentice"], "services": ["smithing", "repair"], "fixtures": ["forge_hearth", "anvil", "workbench", "quench_trough", "tool_rack", "coal_stack", "tool_chest"], "fixture_positions": {"forge_hearth": [10,2], "anvil": [7,4], "workbench": [3,2], "quench_trough": [9,6], "tool_rack": [2,6], "coal_stack": [4,7], "tool_chest": [7,7]}, "public": true},
+    "home": {
+      "visual_style": "northgate_timber_home", "interior_size": [10, 8],
+      "npc_roles": ["resident"], "services": [],
+      "fixtures": ["hearth", "family_table", "bed", "storage_chest"], "public": false,
+      "fixture_positions": {"hearth": [2,2], "family_table": [4,4], "bed": [7,2], "storage_chest": [8,5]},
+      "interior_variants": {
+        "quiet_craft_household": {"visual_story": "A careful solitary household with daily handwork kept beside the fire.", "fixtures": ["mending_stool", "work_basket", "finished_goods_shelf"], "fixture_positions": {"hearth": [2,2], "family_table": [4,3], "bed": [7,2], "storage_chest": [8,6], "mending_stool": [3,5], "work_basket": [2,5], "finished_goods_shelf": [7,6]}},
+        "multigenerational_household": {"visual_story": "Several generations share meals, sleep, childcare, and accumulated family possessions.", "fixtures": ["cradle", "elder_chair", "family_mementos"], "fixture_positions": {"hearth": [2,2], "family_table": [5,4], "bed": [2,5], "storage_chest": [8,5], "cradle": [7,2], "elder_chair": [3,4], "family_mementos": [8,2]}},
+        "courier_household": {"visual_story": "A road-working household organized around wet cloaks, boots, letters, and irregular arrivals.", "fixtures": ["boot_rack", "drying_cloak", "letter_chest"], "fixture_positions": {"hearth": [2,3], "family_table": [6,4], "bed": [8,3], "storage_chest": [8,6], "boot_rack": [2,6], "drying_cloak": [7,2], "letter_chest": [6,2]}},
+        "kitchen_garden_household": {"visual_story": "Food growing and preserving shapes the room, with herbs, jars, and muddy tools close at hand.", "fixtures": ["herb_rack", "preserve_jars", "garden_tools"], "fixture_positions": {"hearth": [2,2], "family_table": [5,4], "bed": [2,5], "storage_chest": [8,6], "herb_rack": [7,2], "preserve_jars": [7,5], "garden_tools": [3,6]}},
+        "lodger_household": {"visual_story": "A compact family home earning extra coin from a traveller's bed and lockable trunk space.", "fixtures": ["spare_bed", "privacy_screen", "travel_trunk"], "fixture_positions": {"hearth": [2,2], "family_table": [4,4], "bed": [2,5], "storage_chest": [4,6], "spare_bed": [8,3], "privacy_screen": [6,3], "travel_trunk": [8,6]}}
+      }
+    }
+  }
+}

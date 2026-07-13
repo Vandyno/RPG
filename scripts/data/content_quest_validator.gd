@@ -27,7 +27,31 @@ static func _validate_quests(content: ContentDatabase, errors: Array[String]) ->
 		elif not stages.has(start_stage):
 			errors.append("Quest %s references missing start_stage %s." % [quest_id, start_stage])
 		_validate_quest_stages(content, String(quest_id), stages, errors)
+		_validate_required_npcs(content, String(quest_id), quest, errors)
 		Schema.validate_effect_list(content, quest, "rewards", "quest %s" % quest_id, errors)
+
+
+static func _validate_required_npcs(
+	content: ContentDatabase, quest_id: String, quest: Dictionary, errors: Array[String]
+) -> void:
+	if not quest.has("required_npc_ids"):
+		return
+	var required_value: Variant = quest.get("required_npc_ids", [])
+	if not required_value is Array:
+		errors.append("Quest %s required_npc_ids must be an array." % quest_id)
+		return
+	var seen: Dictionary = {}
+	for npc_value in required_value:
+		if not npc_value is String or String(npc_value).strip_edges().is_empty():
+			errors.append("Quest %s has invalid required NPC id." % quest_id)
+			continue
+		var npc_id := String(npc_value)
+		if seen.has(npc_id):
+			errors.append("Quest %s has duplicate required NPC %s." % [quest_id, npc_id])
+			continue
+		seen[npc_id] = true
+		if not content.has_npc(npc_id):
+			errors.append("Quest %s references missing required NPC %s." % [quest_id, npc_id])
 
 
 static func _validate_quest_stages(
@@ -43,6 +67,52 @@ static func _validate_quest_stages(
 			errors.append("%s must be a dictionary." % stage_owner)
 			continue
 		_validate_quest_objectives(content, stage_value, stage_owner, errors)
+		_validate_npc_routines(content, stage_value, stage_owner, errors)
+
+
+static func _validate_npc_routines(
+	content: ContentDatabase, stage: Dictionary, stage_owner: String, errors: Array[String]
+) -> void:
+	if not stage.has("npc_routines") and not stage.has("schedule_routines"):
+		return
+	var routines_value: Variant = stage.get("npc_routines", stage.get("schedule_routines", []))
+	if not routines_value is Array:
+		errors.append("%s npc_routines must be an array." % stage_owner)
+		return
+	var seen_npcs: Dictionary = {}
+	var seen_routine_ids: Dictionary = {}
+	for routine_value in routines_value:
+		if not routine_value is Dictionary:
+			errors.append("%s has malformed npc routine." % stage_owner)
+			continue
+		var routine: Dictionary = routine_value
+		var routine_id := String(routine.get("routine_id", routine.get("id", "")))
+		var owner := "%s NPC routine %s" % [stage_owner, routine_id]
+		if routine_id.is_empty():
+			errors.append("%s has routine with missing id." % stage_owner)
+		elif seen_routine_ids.has(routine_id):
+			errors.append("%s has duplicate routine id %s." % [stage_owner, routine_id])
+		seen_routine_ids[routine_id] = true
+		var npc_id := String(routine.get("npc_id", ""))
+		if npc_id.is_empty():
+			errors.append("%s is missing npc_id." % owner)
+		elif not content.has_npc(npc_id):
+			errors.append("%s references missing NPC %s." % [owner, npc_id])
+		elif seen_npcs.has(npc_id):
+			errors.append("%s assigns NPC %s more than once." % [stage_owner, npc_id])
+		seen_npcs[npc_id] = true
+		if not npc_id.is_empty() and content.get_schedule_binding_for_npc(npc_id).is_empty():
+			errors.append("%s references unscheduled NPC %s." % [owner, npc_id])
+		var destination_id := String(routine.get("destination_id", routine.get("destination", "")))
+		if destination_id.is_empty():
+			errors.append("%s is missing destination_id." % owner)
+		elif not content.schedule_destinations.has(destination_id):
+			errors.append("%s references missing destination %s." % [owner, destination_id])
+		if String(routine.get("action", "")).is_empty():
+			errors.append("%s is missing action." % owner)
+		var resume_policy := String(routine.get("resume_policy", "advance_to_current_block"))
+		if not ["advance_to_current_block", "resume_current"].has(resume_policy):
+			errors.append("%s has invalid resume_policy %s." % [owner, resume_policy])
 
 
 static func _validate_quest_objectives(

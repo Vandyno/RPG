@@ -4,6 +4,9 @@
     "description": "Northgate's trade manifest has gone missing inside the storehouse.",
     "id": "quest_northgate_missing_manifest",
     "initial_state": "inactive",
+    "required_npc_ids": [
+      "npc_northgate_storekeeper"
+    ],
     "rewards": [
       {
         "count": 12,

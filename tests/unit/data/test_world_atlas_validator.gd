@@ -21,6 +21,20 @@ func test_atlas_scale_produces_roughly_half_hour_world() -> void:
 	assert_true(float(east.x - west.x) / 13.75 / 60.0 >= 30.0)
 
 
+func test_report_separates_validation_from_pending_canon_review() -> void:
+	var atlas := WorldAtlasValidator.load_atlas(ATLAS_PATH)
+	var report := WorldAtlasValidator.build_report(atlas)
+
+	assert_eq(report["validation_status"], "pass")
+	assert_eq(report["approval_status"], "pending_review")
+	assert_almost_eq(float(report["world_scale"]["baseline_crossing_minutes"]), 30.7, 0.01)
+	assert_eq(report["counts"]["regions"], 11)
+	assert_true(report["review_items"].any(func(item): return item["id"] == "last_perch"))
+	assert_true(report["review_items"].any(func(item): return item["id"] == "saltspring"))
+	assert_true(atlas["authoring_policy"]["may_add_tile_kinds"])
+	assert_eq(atlas["authoring_policy"]["terrain_palette"], "extensible")
+
+
 func test_validator_reports_duplicate_invalid_geometry_and_missing_required_place() -> void:
 	var atlas := WorldAtlasValidator.load_atlas(ATLAS_PATH).duplicate(true)
 	atlas["regions"].append(atlas["regions"][0].duplicate(true))

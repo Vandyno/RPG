@@ -5,6 +5,7 @@ const ConditionEvaluatorScript = preload("res://scripts/core/condition_evaluator
 const EventBusScript = preload("res://scripts/core/event_bus.gd")
 const EffectRunnerScript = preload("res://scripts/core/effect_runner.gd")
 const ObjectInteractionRules = preload("res://scripts/core/object_interaction_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const VariantFields = preload("res://scripts/core/variant_fields.gd")
 const ContentDatabaseScript = preload("res://scripts/data/content_database.gd")
 const WorldStateManagerScript = preload("res://scripts/managers/world/world_state_manager.gd")
@@ -47,6 +48,8 @@ const MainCameraFraming = preload("res://scripts/main/runtime/main_camera_framin
 const HostileActorBrain = preload("res://scripts/main/runtime/hostile_actor_brain.gd")
 const CivilianScheduleBrain = preload("res://scripts/main/runtime/civilian_schedule_brain.gd")
 const CivilianScheduleManagerScript = preload("res://scripts/managers/content/civilian_schedule_manager.gd")
+const NpcPerceptionManagerScript = preload("res://scripts/managers/content/npc_perception_manager.gd")
+const CrimeManagerScript = preload("res://scripts/managers/content/crime_manager.gd")
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 var event_bus: EventBus
 var condition_evaluator: ConditionEvaluator
@@ -73,6 +76,8 @@ var spells: SpellManager
 var player: PlayerController
 var save_manager: SaveManager
 var civilian_schedules: CivilianScheduleManager
+var npc_perception: NpcPerceptionManager
+var crime: CrimeManager
 var hud: RpgHud
 var hud_queries: MainHudQueries
 var debug_character_creator: DebugCharacterCreator
@@ -391,7 +396,17 @@ func _bootstrap_actor_runtime() -> void:
 	civilian_schedules.name = "CivilianScheduleManager"
 	add_child(civilian_schedules)
 	civilian_schedules.setup(event_bus, content, time, entities, chunks, world_query, combat, quests)
+	npc_perception = NpcPerceptionManagerScript.new()
+	npc_perception.name = "NpcPerceptionManager"
+	add_child(npc_perception)
+	npc_perception.setup(event_bus, entities, world_query, time)
+
+	crime = CrimeManagerScript.new()
+	crime.name = "CrimeManager"
+	add_child(crime)
+	crime.setup(event_bus, entities, npc_perception, time, factions, civilian_schedules, chunks, inventory)
 	shops.set_schedule_manager(civilian_schedules)
+	shops.set_crime_manager(crime)
 
 
 func _bootstrap_player() -> void:
@@ -401,6 +416,7 @@ func _bootstrap_player() -> void:
 	player.setup(event_bus, world_query, Vector2i.ZERO)
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
 	civilian_schedules.set_player(player)
+	crime.set_player(player)
 	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
@@ -809,6 +825,9 @@ func _interact_entity(entity: WorldEntity) -> void:
 	if not entity:
 		event_bus.post_message("Nothing nearby to interact with.")
 		return
+	if ActorRules.is_dead_actor_data(entity.data):
+		MainObjectInteractions.interact_container(MainObjectInteractions.context(self), entity)
+		return
 	match entity.get_kind():
 		"readable":
 			MainObjectInteractions.interact_readable(MainObjectInteractions.context(self), entity)
@@ -1002,6 +1021,8 @@ func _shop_id_for_entity(entity: WorldEntity) -> String:
 func _primary_action_text(nearby, auto_target) -> String:
 	if auto_move_active or auto_target:
 		return "Stop"
+	if nearby and ActorRules.is_dead_actor_data(nearby.data):
+		return "Loot"
 	var preferred := _preferred_primary_context_action_for(nearby)
 	if not preferred.is_empty():
 		return String(preferred.get("text", "Interact"))

@@ -12,7 +12,13 @@ func test_actor_state_constants_keep_shared_state_contract() -> void:
 	assert_eq(ActorState.DEFAULT, ActorState.ALIVE)
 	assert_eq(
 		ActorState.VALID_STATES,
-		[ActorState.ALIVE, ActorState.UNCONSCIOUS, ActorState.DEAD_BODY, ActorState.DESPAWNED]
+		[
+			ActorState.ALIVE,
+			ActorState.UNCONSCIOUS,
+			ActorState.DEAD,
+			ActorState.DEAD_BODY,
+			ActorState.DESPAWNED
+		]
 	)
 	assert_eq(
 		ActorState.DEAD_STATES,

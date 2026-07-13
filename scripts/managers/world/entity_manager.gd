@@ -16,6 +16,7 @@ var inventory: InventoryManager
 var entities_by_id: Dictionary = {}
 var runtime_entities_by_id: Dictionary = {}
 var entity_runtime_state_by_id: Dictionary = {}
+var actor_life_state_by_id: Dictionary = {}
 var highlighted_entity_id := ""
 var active_chunk_keys: Dictionary = {}
 var has_active_chunk_filter := false
@@ -78,14 +79,92 @@ func add_runtime_entity(entry: Dictionary) -> WorldEntity:
 	return entities_by_id.get(entity_id) as WorldEntity
 
 
-func create_body_for_defeated_actor(entity) -> WorldEntity:
+func set_scheduled_entity_location(
+	entity_id: String, tile: Vector2i, layer: String
+) -> void:
+	if entity_id.is_empty():
+		return
+	var resolved_layer := "surface" if layer.is_empty() else layer
+	var state: Dictionary = _dictionary_field(
+		entity_runtime_state_by_id.get(entity_id, {})
+	).duplicate(true)
+	var world_position := GridMath.tile_to_world(tile) + Vector2.ONE * float(GridMath.TILE_SIZE) * 0.5
+	state["global_tile"] = [tile.x, tile.y]
+	state["world_position"] = [world_position.x, world_position.y]
+	state["world_layer"] = resolved_layer
+	state["behavior_state"] = "scheduled"
+	entity_runtime_state_by_id[entity_id] = state
+	_queue_respawn()
+
+
+func transition_actor_to_dead(entity) -> WorldEntity:
 	if not entity or not (entity.data is Dictionary):
 		return null
-	var body_entry := _defeated_actor_body_entry(entity)
-	if body_entry.is_empty():
+	if not ActorRules.is_actor_data(entity.data):
 		return null
-	_seed_body_inventory(ActorRules.inventory_owner_id(entity.data), entity.data)
-	return add_runtime_entity(body_entry)
+	var entity_id: String = entity.get_entity_id()
+	var previous: Dictionary = _dictionary_field(actor_life_state_by_id.get(entity_id, {}))
+	if not bool(previous.get("inventory_seeded", false)):
+		_seed_actor_inventory(ActorRules.inventory_owner_id(entity.data), entity.data)
+	entity.set_actor_state(ActorRules.STATE_DEAD)
+	actor_life_state_by_id[entity_id] = _actor_life_state_snapshot(entity, true)
+	_emit_actor_state_changed(entity)
+	return entity
+
+
+func set_actor_alive(entity_id: String) -> WorldEntity:
+	var entity := get_entity(entity_id)
+	if not entity:
+		return null
+	var previous: Dictionary = _dictionary_field(actor_life_state_by_id.get(entity_id, {}))
+	entity.set_actor_state(ActorRules.STATE_ALIVE)
+	actor_life_state_by_id[entity_id] = _actor_life_state_snapshot(
+		entity, bool(previous.get("inventory_seeded", false))
+	)
+	_emit_actor_state_changed(entity)
+	return entity
+
+
+func get_actor_state(entity_id: String) -> String:
+	var entity := get_entity(entity_id)
+	if entity:
+		return ActorRules.actor_state(entity.data)
+	var saved: Dictionary = _dictionary_field(actor_life_state_by_id.get(entity_id, {}))
+	return String(saved.get("state", ActorRules.STATE_ALIVE))
+
+
+func is_npc_dead(npc_id: String) -> bool:
+	if npc_id.is_empty():
+		return false
+	for entity in entities_by_id.values():
+		if String(entity.data.get("npc_id", "")) == npc_id:
+			return ActorRules.is_dead_actor_data(entity.data)
+	for saved in actor_life_state_by_id.values():
+		if saved is Dictionary and String(saved.get("npc_id", "")) == npc_id:
+			return ActorRules.DEAD_STATES.has(String(saved.get("state", "")))
+	return false
+
+
+func get_save_data() -> Dictionary:
+	_capture_live_runtime_state()
+	return {"actor_life_states": actor_life_state_by_id.duplicate(true)}
+
+
+func load_save_data(data: Dictionary) -> void:
+	actor_life_state_by_id.clear()
+	var saved_states: Variant = data.get("actor_life_states", {})
+	if saved_states is Dictionary:
+		for entity_id in saved_states:
+			var saved: Variant = saved_states[entity_id]
+			if not saved is Dictionary:
+				continue
+			var state := String(saved.get("state", ""))
+			if not ActorRules.VALID_STATES.has(state):
+				continue
+			actor_life_state_by_id[String(entity_id)] = saved.duplicate(true)
+	_clear_spawned_entities()
+	entities_by_id.clear()
+	spawn_all()
 
 
 func remove_entity(entity_id: String) -> void:
@@ -285,10 +364,12 @@ func _clear_spawned_entities() -> void:
 
 
 func _spawn_entry(entry: Dictionary) -> void:
-	if not _conditions_pass(entry):
-		return
 	var entity_id := String(entry.get("id", ""))
+	var has_saved_life_state := actor_life_state_by_id.has(entity_id)
+	if not has_saved_life_state and not _conditions_pass(entry):
+		return
 	var spawn_entry := _entry_with_runtime_state(entity_id, entry)
+	spawn_entry = _entry_with_actor_life_state(entity_id, spawn_entry)
 	var tile := _tile_from_entry(spawn_entry)
 	var layer := _world_layer_from_entry(spawn_entry)
 	if not _is_in_active_chunk_window(tile, layer):
@@ -378,6 +459,14 @@ func _capture_live_runtime_state() -> void:
 		var entity = entities_by_id[entity_id]
 		if not entity or not (entity.data is Dictionary):
 			continue
+		if ActorRules.is_dead_actor_data(entity.data) or actor_life_state_by_id.has(String(entity_id)):
+			var previous: Dictionary = _dictionary_field(
+				actor_life_state_by_id.get(String(entity_id), {})
+			)
+			actor_life_state_by_id[String(entity_id)] = _actor_life_state_snapshot(
+				entity, bool(previous.get("inventory_seeded", false))
+			)
+			continue
 		if not _should_capture_runtime_state(entity.data):
 			continue
 		var state := {
@@ -404,6 +493,17 @@ func _entry_with_runtime_state(entity_id: String, entry: Dictionary) -> Dictiona
 	var next_entry := entry.duplicate(true)
 	for key in state:
 		next_entry[key] = state[key]
+	return next_entry
+
+
+func _entry_with_actor_life_state(entity_id: String, entry: Dictionary) -> Dictionary:
+	var saved := _dictionary_field(actor_life_state_by_id.get(entity_id, {}))
+	if saved.is_empty():
+		return entry
+	var next_entry := entry.duplicate(true)
+	for key in ["state", "global_tile", "world_position", "world_layer", "facing_direction"]:
+		if saved.has(key):
+			next_entry[key] = saved[key]
 	return next_entry
 
 
@@ -456,31 +556,22 @@ func _entry_with_schedule_binding(entry: Dictionary) -> Dictionary:
 	return next_entry
 
 
-func _defeated_actor_body_entry(entity) -> Dictionary:
-	var profile: Dictionary = ActorRules.profile(entity.data)
-	var owner_id := ActorRules.inventory_owner_id(entity.data)
-	if profile.is_empty() or owner_id.is_empty():
-		return {}
-	var body_profile := profile.duplicate(true)
-	body_profile["state"] = ActorRules.STATE_DEAD_BODY
-	var entity_id: String = entity.get_entity_id()
-	return {
-		"id": "body_%s" % entity_id,
-		"name": "%s Body" % entity.get_display_name(),
-		"kind": "body",
+func _actor_life_state_snapshot(entity, inventory_seeded: bool) -> Dictionary:
+	var state := {
+		"state": ActorRules.actor_state(entity.data),
+		"npc_id": String(entity.data.get("npc_id", "")),
 		"global_tile": [entity.global_tile.x, entity.global_tile.y],
-		"interaction_radius": 128,
-		"character_id": String(profile.get("character_id", "")),
-		"character_profile_id": String(entity.data.get("character_profile_id", "")),
-		"character_profile": body_profile,
-		"inventory_owner_id": owner_id,
-		"equipment_owner_id": ActorRules.equipment_owner_id(entity.data),
-		"equipped_items": _dictionary_field(entity.data.get("equipped_items", {})),
-		"collapsed_pose_id": "pose_fallen_side"
+		"world_position": [entity.global_position.x, entity.global_position.y],
+		"world_layer": _world_layer_from_entry(entity.data),
+		"inventory_seeded": inventory_seeded
 	}
+	if entity.has_method("get_facing_direction"):
+		var facing: Vector2 = entity.get_facing_direction()
+		state["facing_direction"] = [facing.x, facing.y]
+	return state
 
 
-func _seed_body_inventory(owner_id: String, data: Dictionary) -> void:
+func _seed_actor_inventory(owner_id: String, data: Dictionary) -> void:
 	if owner_id.is_empty() or not inventory:
 		return
 	for entry in _array_field(data.get("inventory", [])):
@@ -493,6 +584,16 @@ func _seed_body_inventory(owner_id: String, data: Dictionary) -> void:
 		var item_id := String(item_id_value)
 		if not item_id.is_empty():
 			inventory.add_item_to_owner(owner_id, item_id, 1)
+
+
+func _emit_actor_state_changed(entity) -> void:
+	if not event_bus or not event_bus.has_signal("actor_state_changed") or not entity:
+		return
+	event_bus.actor_state_changed.emit(
+		entity.get_entity_id(),
+		String(entity.data.get("npc_id", entity.get_entity_id())),
+		ActorRules.actor_state(entity.data)
+	)
 
 
 func _entry_with_filtered_equipment(entry: Dictionary) -> Dictionary:

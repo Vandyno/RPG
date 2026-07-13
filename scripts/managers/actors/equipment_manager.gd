@@ -14,6 +14,7 @@ var content: ContentDatabase
 var inventory: InventoryManager
 var equipped_by_slot: Dictionary = {}
 var last_mainhand_weapon_id := ""
+var condition_by_item: Dictionary = {}
 
 
 func setup(
@@ -102,6 +103,57 @@ func guarded_counter_multiplier(base_multiplier: float) -> float:
 	return multiplier
 
 
+func get_condition(item_id: String) -> int:
+	return clampi(int(condition_by_item.get(item_id, 100)), 0, 100)
+
+
+func damage_equipped(amount: int = 1) -> int:
+	if amount <= 0:
+		return 0
+	var changed := 0
+	var seen := {}
+	for item_id_value in equipped_by_slot.values():
+		var item_id := String(item_id_value)
+		if item_id.is_empty() or seen.has(item_id):
+			continue
+		seen[item_id] = true
+		var before := get_condition(item_id)
+		var after := maxi(0, before - amount)
+		if after < before:
+			condition_by_item[item_id] = after
+			changed += 1
+	if changed > 0:
+		_emit_changed()
+	return changed
+
+
+func repair_equipped() -> int:
+	var repaired := 0
+	var seen := {}
+	for item_id_value in equipped_by_slot.values():
+		var item_id := String(item_id_value)
+		if item_id.is_empty() or seen.has(item_id):
+			continue
+		seen[item_id] = true
+		if get_condition(item_id) < 100:
+			condition_by_item[item_id] = 100
+			repaired += 1
+	if repaired > 0:
+		_emit_changed()
+	return repaired
+
+
+func damaged_equipped_count() -> int:
+	var count := 0
+	var seen := {}
+	for item_id_value in equipped_by_slot.values():
+		var item_id := String(item_id_value)
+		if not item_id.is_empty() and not seen.has(item_id) and get_condition(item_id) < 100:
+			seen[item_id] = true
+			count += 1
+	return count
+
+
 func get_summary() -> String:
 	var lines: Array[String] = []
 	for entry in SUMMARY_SLOTS:
@@ -126,7 +178,14 @@ func get_save_data() -> Dictionary:
 			and EquipmentSlots.accepts(slot, _item_slot(item_id))
 		):
 			equipped[EquipmentSlots.normalize(slot)] = item_id
+	var conditions := {}
+	for item_id in condition_by_item:
+		var condition := get_condition(String(item_id))
+		if condition < 100 and _has_item(String(item_id)):
+			conditions[String(item_id)] = condition
 	var data := {"equipped": equipped}
+	if not conditions.is_empty():
+		data["condition_by_item"] = conditions
 	if (
 		_is_valid_mainhand_weapon(last_mainhand_weapon_id)
 		and last_mainhand_weapon_id != get_equipped_item("right_hand")
@@ -137,6 +196,7 @@ func get_save_data() -> Dictionary:
 
 func load_save_data(data: Dictionary) -> void:
 	equipped_by_slot.clear()
+	condition_by_item.clear()
 	var equipped := _dictionary_field(data.get("equipped", {}))
 	for slot_id in equipped:
 		var slot := EquipmentSlots.normalize_loaded_slot(String(slot_id))
@@ -151,6 +211,12 @@ func load_save_data(data: Dictionary) -> void:
 	last_mainhand_weapon_id = last_weapon if _is_valid_mainhand_weapon(last_weapon) else ""
 	if last_mainhand_weapon_id == get_equipped_item("right_hand"):
 		last_mainhand_weapon_id = ""
+	var loaded_conditions := _dictionary_field(data.get("condition_by_item", {}))
+	for item_id in loaded_conditions:
+		var key := String(item_id)
+		var value: Variant = loaded_conditions[item_id]
+		if _has_item(key) and _is_number(value):
+			condition_by_item[key] = clampi(int(value), 0, 100)
 	_emit_changed()
 
 
@@ -168,6 +234,7 @@ func _on_item_count_changed(item_id: String, count: int) -> void:
 	if last_mainhand_weapon_id == item_id:
 		last_mainhand_weapon_id = ""
 		last_cleared = true
+	condition_by_item.erase(item_id)
 	if removed or last_cleared:
 		_emit_changed()
 

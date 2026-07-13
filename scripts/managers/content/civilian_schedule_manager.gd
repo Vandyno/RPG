@@ -2,6 +2,7 @@ class_name CivilianScheduleManager
 extends Node
 
 const GridMath = preload("res://scripts/core/grid_math.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const ScheduleResolver = preload("res://scripts/core/schedule_resolver.gd")
 const ScheduleDestinationRegistry = preload("res://scripts/core/schedule_destination_registry.gd")
 const ScheduleReservationManager = preload("res://scripts/managers/content/schedule_reservation_manager.gd")
@@ -480,6 +481,8 @@ func _sync_npc(npc_id: String, apply_loaded_position: bool) -> void:
 
 func _sync_binding(binding: Dictionary, apply_loaded_position: bool) -> void:
 	var npc_id := String(binding.get("npc_id", ""))
+	if entities and entities.has_method("is_npc_dead") and entities.is_npc_dead(npc_id):
+		return
 	var profile: Dictionary = profiles.get(String(binding.get("schedule_id", "")), {})
 	if npc_id.is_empty() or not profile is Dictionary or profile.is_empty():
 		return
@@ -622,6 +625,20 @@ func _sync_binding(binding: Dictionary, apply_loaded_position: bool) -> void:
 	if actor and apply_loaded_position:
 		_apply_saved_position(actor, state)
 	state_by_npc_id[npc_id] = state
+	if (
+		actor == null
+		and entities
+		and entities.has_method("set_scheduled_entity_location")
+		and _valid_tile(destination_tile)
+	):
+		# Streamed-out civilians do not walk frame-by-frame. Move their runtime
+		# spawn record to the resolved schedule destination so they materialize
+		# when that layer/chunk enters the active window.
+		entities.set_scheduled_entity_location(
+			"%s_world" % npc_id,
+			Vector2i(int(destination_tile[0]), int(destination_tile[1])),
+			String(state.get("destination_layer", "surface"))
+		)
 	_write_state_to_actor(npc_id, state)
 
 
@@ -791,6 +808,8 @@ func _service_state_is_present(npc_id: String, state: Dictionary) -> bool:
 func _actor_is_unavailable(actor) -> bool:
 	if not actor or not actor.data is Dictionary:
 		return true
+	if not ActorRules.is_living_actor_data(actor.data):
+		return true
 	if bool(actor.data.get("dead", false)) or bool(actor.data.get("incapacitated", false)):
 		return true
 	var health: Variant = actor.data.get("health", null)
@@ -855,6 +874,8 @@ func _npc_id_for_actor(actor) -> String:
 
 func _is_scheduled_actor(actor) -> bool:
 	if not actor or not actor.data is Dictionary:
+		return false
+	if not ActorRules.is_living_actor_data(actor.data):
 		return false
 	if String(actor.data.get("brain_id", "")) != BRAIN_ID:
 		return false
@@ -927,7 +948,32 @@ func _record_trespass_reaction(actor) -> void:
 	if not _player_is_trespassing_in_home(actor, npc_id):
 		return
 	_record_player_incident(npc_id, "trespass")
+	_emit_trespass_crime(actor, npc_id)
 	_begin_trespass_reaction(actor, npc_id)
+
+
+func _emit_trespass_crime(actor, npc_id: String) -> void:
+	if not event_bus or not actor or not player:
+		return
+	var profile := ActorRules.profile(actor.data)
+	var target_sneaking := false
+	var sneaking_value: Variant = player.get("is_sneaking")
+	if sneaking_value is bool:
+		target_sneaking = sneaking_value
+	event_bus.player_crime_committed.emit(
+		{
+			"kind": "trespass",
+			"offender_id": "player",
+			"victim_entity_id": actor.get_entity_id(),
+			"victim_npc_id": npc_id,
+			"victim_faction_id": String(profile.get("faction_id", actor.data.get("faction_id", ""))),
+			"world_position": [player.global_position.x, player.global_position.y],
+			"world_layer": String(player.world_layer),
+			"noise_radius": 0.0,
+			"visible": true,
+			"target_sneaking": target_sneaking
+		}
+	)
 
 
 func _player_is_trespassing_in_home(actor, npc_id: String) -> bool:

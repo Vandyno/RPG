@@ -3,6 +3,7 @@ extends GutTest
 const PlayerController = preload("res://scripts/player/player_controller.gd")
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const FacingBuckets = preload("res://scripts/core/facing_buckets.gd")
+const EventBus = preload("res://scripts/core/event_bus.gd")
 
 
 class BlockingChunks:
@@ -13,6 +14,27 @@ class BlockingChunks:
 
 	func is_walkable(tile: Vector2i) -> bool:
 		return not blocked_tiles.has("%d:%d" % [tile.x, tile.y])
+
+
+func test_footsteps_emit_quieter_smaller_noise_while_sneaking() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var noises: Array[Dictionary] = []
+	bus.noise_emitted.connect(func(noise: Dictionary) -> void: noises.append(noise))
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(bus, null, Vector2i.ZERO)
+
+	player._tick_footstep_noise(0.1)
+	player.set_sneaking(true)
+	player.footstep_cooldown = 0.0
+	player._tick_footstep_noise(0.1)
+
+	assert_eq(noises.size(), 2)
+	assert_eq(noises[0]["kind"], "footstep")
+	assert_eq(noises[0]["loudness"], "normal")
+	assert_eq(noises[1]["loudness"], "quiet")
+	assert_lt(float(noises[1]["noise_radius"]), float(noises[0]["noise_radius"]))
 
 
 func test_world_position_can_move_inside_tile_without_snapping() -> void:

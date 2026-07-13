@@ -4,7 +4,9 @@ extends Node
 const GridMath = preload("res://scripts/core/grid_math.gd")
 const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
-const BLOCKED_TILE_KINDS := ["water", "stone_wall", "wood_wall"]
+const BLOCKED_TILE_KINDS := [
+	"water", "stone_wall", "wood_wall", "palisade", "structure_blocker"
+]
 
 var archetypes: Dictionary = {}
 var structures: Array[Dictionary] = []

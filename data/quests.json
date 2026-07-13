@@ -37,6 +37,7 @@
     "title": "The Missing Tools",
     "description": "Harrow Venn's tools were stolen near Briarwatch's west road.",
     "initial_state": "inactive",
+    "required_npc_ids": ["npc_harrow_venn"],
     "start_stage": "started",
     "stages": {
       "started": {

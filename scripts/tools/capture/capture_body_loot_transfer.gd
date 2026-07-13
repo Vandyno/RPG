@@ -2,13 +2,14 @@ extends SceneTree
 
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const CaptureSheetHelper = preload("res://scripts/tools/capture/capture_sheet_helper.gd")
 
 const DEFAULT_WIDTH := 1152
 const DEFAULT_HEIGHT := 648
 const DEFAULT_OUTPUT_PATH := "res://reports/body_loot_transfer.png"
 const HOSTILE_ID := "npc_road_thug"
-const BODY_ID := "body_npc_road_thug"
+const BODY_ID := HOSTILE_ID
 const BODY_INTERACTION_OFFSET := Vector2(-8.0, 0.0)
 
 
@@ -70,6 +71,7 @@ static func defeat_hostile_actor(main) -> void:
 	main.player.set_world_position(actor.global_position + BODY_INTERACTION_OFFSET)
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _index in range(8):
-		if not main.entities.get_entity(HOSTILE_ID):
+		actor = main.entities.get_entity(HOSTILE_ID)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)

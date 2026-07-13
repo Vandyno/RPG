@@ -1,0 +1,6536 @@
+{
+  "activation_status": "review_required",
+  "anchor_global_tile": [
+    -3260,
+    -3940
+  ],
+  "atlas_approval": {
+    "reviewed_at_utc": "2026-07-11T03:08:35Z",
+    "reviewed_by": "user",
+    "status": "approved"
+  },
+  "atlas_id": "velcor_continent_proposal_v1",
+  "atlas_region_id": "region_marches_velcor",
+  "atlas_settlement_id": "northgate",
+  "bounds": {
+    "position": [
+      -3284,
+      -3962
+    ],
+    "size": [
+      60,
+      54
+    ]
+  },
+  "runtime_reauthor_offsets": {
+    "structure_northgate_shrine_plot": [2, 4],
+    "structure_northgate_guard_plot": [1, 5],
+    "structure_northgate_hall_plot": [1, 0],
+    "structure_northgate_inn_plot": [0, 0],
+    "structure_northgate_stable_plot": [-2, 2],
+    "structure_northgate_shop_plot": [2, -1],
+    "structure_northgate_store_plot": [0, -5],
+    "structure_northgate_west_home_plot": [3, -4],
+    "structure_northgate_south_home_plot": [0, -10],
+    "structure_northgate_smith_plot": [0, 0],
+    "structure_northgate_east_home_plot": [-2, -1],
+    "structure_northgate_southeast_home_plot": [0, -4],
+    "structure_northgate_far_east_home_plot": [-1, -4]
+  },
+  "defenses": {
+    "atlas_region_id": "region_marches_velcor",
+    "atlas_settlement_id": "northgate",
+    "boundary_polygon": [
+      [-3274, -3957],
+      [-3259, -3958],
+      [-3245, -3957],
+      [-3232, -3954],
+      [-3229, -3945],
+      [-3229, -3940],
+      [-3232, -3927],
+      [-3244, -3922],
+      [-3260, -3921],
+      [-3275, -3924],
+      [-3280, -3933],
+      [-3281, -3941],
+      [-3278, -3951]
+    ],
+    "bounds": {
+      "position": [
+        -3284,
+        -3962
+      ],
+      "size": [
+        60,
+        54
+      ]
+    },
+    "collision": "blocks_except_gates",
+    "gate_width": 5,
+    "gates": [
+      {
+        "global_tile": [-3260, -3958],
+        "id": "north_gate"
+      },
+      {
+        "global_tile": [-3229, -3940],
+        "id": "east_gate"
+      },
+      {
+        "global_tile": [-3260, -3921],
+        "id": "south_gate"
+      },
+      {
+        "global_tile": [-3281, -3941],
+        "id": "west_gate"
+      }
+    ],
+    "generator_version": "world_settlement_v6",
+    "id": "defense_northgate",
+    "kind": "partial_palisade",
+    "seed": 2701,
+    "street_ids": [
+      "street_northgate_north_road",
+      "street_northgate_junction_square",
+      "street_northgate_south_road",
+      "street_northgate_west_road",
+      "street_northgate_east_road",
+      "street_northgate_smith_lane",
+      "street_northgate_to_structure_northgate_shrine_plot",
+      "street_northgate_to_structure_northgate_guard_plot",
+      "street_northgate_to_structure_northgate_hall_plot",
+      "street_northgate_to_structure_northgate_inn_plot",
+      "street_northgate_to_structure_northgate_stable_plot",
+      "street_northgate_to_structure_northgate_shop_plot",
+      "street_northgate_to_structure_northgate_store_plot",
+      "street_northgate_to_structure_northgate_west_home_plot",
+      "street_northgate_to_structure_northgate_south_home_plot",
+      "street_northgate_to_structure_northgate_smith_plot",
+      "street_northgate_to_structure_northgate_east_home_plot",
+      "street_northgate_to_structure_northgate_southeast_home_plot",
+      "street_northgate_to_structure_northgate_far_east_home_plot"
+    ],
+    "template": "partial_palisade",
+    "visual_style": "low timber roadward palisade following bank, ditch, and property edges"
+  },
+  "districts": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "district_northgate_north_road",
+      "rect": {
+        "position": [
+          -3276,
+          -3961
+        ],
+        "size": [
+          37,
+          19
+        ]
+      },
+      "role": "guards_and_arrivals",
+      "seed": 2701,
+      "template": "district_guards_and_arrivals"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "district_northgate_west_market",
+      "rect": {
+        "position": [
+          -3282,
+          -3942
+        ],
+        "size": [
+          22,
+          31
+        ]
+      },
+      "role": "shops_and_shrine",
+      "seed": 2701,
+      "template": "district_shops_and_shrine"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "district_northgate_east_coach",
+      "rect": {
+        "position": [
+          -3258,
+          -3954
+        ],
+        "size": [
+          32,
+          43
+        ]
+      },
+      "role": "inn_stables_and_craft",
+      "seed": 2701,
+      "template": "district_inn_stables_and_craft"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "district_northgate_junction_square",
+      "rect": {
+        "position": [
+          -3267,
+          -3947
+        ],
+        "size": [
+          15,
+          12
+        ]
+      },
+      "role": "public_crossroads",
+      "seed": 2701,
+      "template": "district_public_crossroads"
+    }
+  ],
+  "encounter_zones": [
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3284,
+          -3962
+        ],
+        "size": [
+          60,
+          54
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "encounter_northgate_gates",
+      "kind": "travel_arrival",
+      "seed": 2701,
+      "street_ids": [
+        "street_northgate_north_road",
+        "street_northgate_junction_square",
+        "street_northgate_south_road",
+        "street_northgate_west_road",
+        "street_northgate_east_road",
+        "street_northgate_smith_lane",
+        "street_northgate_to_structure_northgate_shrine_plot",
+        "street_northgate_to_structure_northgate_guard_plot",
+        "street_northgate_to_structure_northgate_hall_plot",
+        "street_northgate_to_structure_northgate_inn_plot",
+        "street_northgate_to_structure_northgate_stable_plot",
+        "street_northgate_to_structure_northgate_shop_plot",
+        "street_northgate_to_structure_northgate_store_plot",
+        "street_northgate_to_structure_northgate_west_home_plot",
+        "street_northgate_to_structure_northgate_south_home_plot",
+        "street_northgate_to_structure_northgate_smith_plot",
+        "street_northgate_to_structure_northgate_east_home_plot",
+        "street_northgate_to_structure_northgate_southeast_home_plot",
+        "street_northgate_to_structure_northgate_far_east_home_plot"
+      ],
+      "template": "gate_arrivals"
+    }
+  ],
+  "generator_version": "world_settlement_v6",
+  "id": "proposal_northgate_seed_2701",
+  "interior_fixture_slots": [
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "road_altar",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        2
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_00",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_road_altar",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "offering_bowl",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        3
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_01",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_offering_bowl",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "pilgrim_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_pilgrim_bench",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "candle_cluster",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_candle_cluster",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "reliquary_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        2
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_reliquary_shelf",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "stone_marker",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        5
+      ],
+      "id": "fixture_slot_northgate_shrine_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "interior_fixture_stone_marker",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "watch_desk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        3
+      ],
+      "id": "fixture_slot_northgate_guard_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_watch_desk",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "weapon_rack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        2
+      ],
+      "id": "fixture_slot_northgate_guard_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_weapon_rack",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "guard_bunk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_guard_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_guard_bunk",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "spare_bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        5
+      ],
+      "id": "fixture_slot_northgate_guard_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_spare_bed",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "road_map",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        2
+      ],
+      "id": "fixture_slot_northgate_guard_plot_04",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_road_map",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "mess_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        5
+      ],
+      "id": "fixture_slot_northgate_guard_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_mess_table",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "records_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        6
+      ],
+      "id": "fixture_slot_northgate_guard_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "interior_fixture_records_chest",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "notice_board",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_hall_plot_00",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_notice_board",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "reeve_desk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        10,
+        3
+      ],
+      "id": "fixture_slot_northgate_hall_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_reeve_desk",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "records_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        12,
+        2
+      ],
+      "id": "fixture_slot_northgate_hall_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_records_shelf",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "petition_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        5
+      ],
+      "id": "fixture_slot_northgate_hall_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_petition_bench",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "waiting_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        7
+      ],
+      "id": "fixture_slot_northgate_hall_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_waiting_bench",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "clerk_desk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        7
+      ],
+      "id": "fixture_slot_northgate_hall_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_clerk_desk",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "seal_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        12,
+        7
+      ],
+      "id": "fixture_slot_northgate_hall_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_seal_chest",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "meeting_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        5
+      ],
+      "id": "fixture_slot_northgate_hall_plot_07",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "interior_fixture_meeting_table",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        15,
+        2
+      ],
+      "id": "fixture_slot_northgate_inn_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "bar_counter",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        3
+      ],
+      "id": "fixture_slot_northgate_inn_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_bar_counter",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "common_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        5
+      ],
+      "id": "fixture_slot_northgate_inn_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_common_table",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "side_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        13,
+        6
+      ],
+      "id": "fixture_slot_northgate_inn_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_side_table",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "guest_bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        15,
+        9
+      ],
+      "id": "fixture_slot_northgate_inn_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_guest_bed",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "pantry_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_inn_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_pantry_shelf",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "fireside_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        12,
+        3
+      ],
+      "id": "fixture_slot_northgate_inn_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_fireside_bench",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "traveller_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        8
+      ],
+      "id": "fixture_slot_northgate_inn_plot_07",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_traveller_bench",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "ale_barrels",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        8
+      ],
+      "id": "fixture_slot_northgate_inn_plot_08",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "interior_fixture_ale_barrels",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "west_horse_stall",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_stable_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_west_horse_stall",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "center_horse_stall",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        2
+      ],
+      "id": "fixture_slot_northgate_stable_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_center_horse_stall",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "east_horse_stall",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        2
+      ],
+      "id": "fixture_slot_northgate_stable_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_east_horse_stall",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "tack_rack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        11,
+        2
+      ],
+      "id": "fixture_slot_northgate_stable_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_tack_rack",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "feed_bin",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        7
+      ],
+      "id": "fixture_slot_northgate_stable_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_feed_bin",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "hay_bale",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "fixture_slot_northgate_stable_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_hay_bale",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "grooming_bench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        7
+      ],
+      "id": "fixture_slot_northgate_stable_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "interior_fixture_grooming_bench",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "trade_counter",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        3
+      ],
+      "id": "fixture_slot_northgate_shop_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_trade_counter",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "west_goods_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_shop_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_west_goods_shelf",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "east_goods_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        2
+      ],
+      "id": "fixture_slot_northgate_shop_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_east_goods_shelf",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "provisions_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        6
+      ],
+      "id": "fixture_slot_northgate_shop_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_provisions_shelf",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "locked_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        6
+      ],
+      "id": "fixture_slot_northgate_shop_plot_04",
+      "interaction_slot": true,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_locked_chest",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "display_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        6
+      ],
+      "id": "fixture_slot_northgate_shop_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_display_table",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "packing_crate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        7
+      ],
+      "id": "fixture_slot_northgate_shop_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "interior_fixture_packing_crate",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "north_crate_stack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_store_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_north_crate_stack",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "east_crate_stack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        2
+      ],
+      "id": "fixture_slot_northgate_store_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_east_crate_stack",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "trade_barrels",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_store_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_trade_barrels",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "grain_barrels",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        6
+      ],
+      "id": "fixture_slot_northgate_store_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_grain_barrels",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "ledger_desk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        5
+      ],
+      "id": "fixture_slot_northgate_store_plot_04",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_ledger_desk",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "locked_store",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        10,
+        7
+      ],
+      "id": "fixture_slot_northgate_store_plot_05",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_locked_store",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "weighing_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        3
+      ],
+      "id": "fixture_slot_northgate_store_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "interior_fixture_weighing_table",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        3
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_family_table",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        2
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_bed",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "storage_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        6
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_03",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_storage_chest",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "mending_stool",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        5
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_mending_stool",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "work_basket",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_work_basket",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "finished_goods_shelf",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        6
+      ],
+      "id": "fixture_slot_northgate_west_home_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "interior_fixture_finished_goods_shelf",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        4
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_family_table",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_bed",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "storage_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        5
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_03",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_storage_chest",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "cradle",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        2
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_cradle",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "elder_chair",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        4
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_elder_chair",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_mementos",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        2
+      ],
+      "id": "fixture_slot_northgate_south_home_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "interior_fixture_family_mementos",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "forge_hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        10,
+        2
+      ],
+      "id": "fixture_slot_northgate_smith_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_forge_hearth",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "anvil",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        4
+      ],
+      "id": "fixture_slot_northgate_smith_plot_01",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_anvil",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "workbench",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        2
+      ],
+      "id": "fixture_slot_northgate_smith_plot_02",
+      "interaction_slot": true,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_workbench",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "quench_trough",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        9,
+        6
+      ],
+      "id": "fixture_slot_northgate_smith_plot_03",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_quench_trough",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "tool_rack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        6
+      ],
+      "id": "fixture_slot_northgate_smith_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_tool_rack",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "coal_stack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        7
+      ],
+      "id": "fixture_slot_northgate_smith_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_coal_stack",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "operational",
+      "fixture": "tool_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        7
+      ],
+      "id": "fixture_slot_northgate_smith_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "interior_fixture_tool_chest",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        3
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        4
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_family_table",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        3
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_bed",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "storage_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        6
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_03",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_storage_chest",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "boot_rack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        6
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_boot_rack",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "drying_cloak",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        2
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_drying_cloak",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "letter_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        2
+      ],
+      "id": "fixture_slot_northgate_east_home_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "interior_fixture_letter_chest",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        4
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_family_table",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_bed",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "storage_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        6
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_03",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_storage_chest",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "herb_rack",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        2
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_herb_rack",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "preserve_jars",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        5
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_preserve_jars",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "garden_tools",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        3,
+        6
+      ],
+      "id": "fixture_slot_northgate_southeast_home_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "interior_fixture_garden_tools",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "hearth",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        2
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_00",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_hearth",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "family_table",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        4
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_01",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_family_table",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        2,
+        5
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_02",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_bed",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "storage_chest",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        6
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_03",
+      "interaction_slot": false,
+      "loot_slot": true,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_storage_chest",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "spare_bed",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        3
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_04",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_spare_bed",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "privacy_screen",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        3
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_05",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_privacy_screen",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "authored_purpose": "personal",
+      "fixture": "travel_trunk",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        8,
+        6
+      ],
+      "id": "fixture_slot_northgate_far_east_home_plot_06",
+      "interaction_slot": false,
+      "loot_slot": false,
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "interior_fixture_travel_trunk",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    }
+  ],
+  "npc_role_slots": [
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_shrine_plot",
+      "home_structure_id": "structure_northgate_shrine_plot",
+      "home_tile": [
+        6,
+        2
+      ],
+      "id": "npc_slot_northgate_shrine_plot_00",
+      "role": "shrine_keeper",
+      "seed": 2701,
+      "template": "npc_role_shrine_keeper"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_guard_plot",
+      "home_structure_id": "structure_northgate_guard_plot",
+      "home_tile": [
+        8,
+        2
+      ],
+      "id": "npc_slot_northgate_guard_plot_00",
+      "role": "watch_sergeant",
+      "seed": 2701,
+      "template": "npc_role_watch_sergeant"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_guard_plot",
+      "home_structure_id": "structure_northgate_guard_plot",
+      "home_tile": [
+        9,
+        2
+      ],
+      "id": "npc_slot_northgate_guard_plot_01",
+      "role": "gate_guard",
+      "seed": 2701,
+      "template": "npc_role_gate_guard"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_hall_plot",
+      "home_structure_id": "structure_northgate_hall_plot",
+      "home_tile": [
+        11,
+        2
+      ],
+      "id": "npc_slot_northgate_hall_plot_00",
+      "role": "reeve",
+      "seed": 2701,
+      "template": "npc_role_reeve"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_hall_plot",
+      "home_structure_id": "structure_northgate_hall_plot",
+      "home_tile": [
+        12,
+        2
+      ],
+      "id": "npc_slot_northgate_hall_plot_01",
+      "role": "clerk",
+      "seed": 2701,
+      "template": "npc_role_clerk"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_inn_plot",
+      "home_structure_id": "structure_northgate_inn_plot",
+      "home_tile": [
+        15,
+        2
+      ],
+      "id": "npc_slot_northgate_inn_plot_00",
+      "role": "innkeeper",
+      "seed": 2701,
+      "template": "npc_role_innkeeper"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_inn_plot",
+      "home_structure_id": "structure_northgate_inn_plot",
+      "home_tile": [
+        16,
+        2
+      ],
+      "id": "npc_slot_northgate_inn_plot_01",
+      "role": "cook",
+      "seed": 2701,
+      "template": "npc_role_cook"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_inn_plot",
+      "home_structure_id": "structure_northgate_inn_plot",
+      "home_tile": [
+        15,
+        2
+      ],
+      "id": "npc_slot_northgate_inn_plot_02",
+      "role": "traveller",
+      "seed": 2701,
+      "template": "npc_role_traveller"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_stable_plot",
+      "home_structure_id": "structure_northgate_stable_plot",
+      "home_tile": [
+        10,
+        2
+      ],
+      "id": "npc_slot_northgate_stable_plot_00",
+      "role": "stablehand",
+      "seed": 2701,
+      "template": "npc_role_stablehand"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_shop_plot",
+      "home_structure_id": "structure_northgate_shop_plot",
+      "home_tile": [
+        9,
+        2
+      ],
+      "id": "npc_slot_northgate_shop_plot_00",
+      "role": "shopkeeper",
+      "seed": 2701,
+      "template": "npc_role_shopkeeper"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_store_plot",
+      "home_structure_id": "structure_northgate_store_plot",
+      "home_tile": [
+        9,
+        2
+      ],
+      "id": "npc_slot_northgate_store_plot_00",
+      "role": "storekeeper",
+      "seed": 2701,
+      "template": "npc_role_storekeeper"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_west_home_plot",
+      "home_structure_id": "structure_northgate_west_home_plot",
+      "home_tile": [
+        7,
+        2
+      ],
+      "id": "npc_slot_northgate_west_home_plot_00",
+      "role": "resident",
+      "seed": 2701,
+      "template": "npc_role_resident"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_south_home_plot",
+      "home_structure_id": "structure_northgate_south_home_plot",
+      "home_tile": [
+        7,
+        2
+      ],
+      "id": "npc_slot_northgate_south_home_plot_00",
+      "role": "resident",
+      "seed": 2701,
+      "template": "npc_role_resident"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_smith_plot",
+      "home_structure_id": "structure_northgate_smith_plot",
+      "home_tile": [
+        10,
+        2
+      ],
+      "id": "npc_slot_northgate_smith_plot_00",
+      "role": "smith",
+      "seed": 2701,
+      "template": "npc_role_smith"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_smith_plot",
+      "home_structure_id": "structure_northgate_smith_plot",
+      "home_tile": [
+        11,
+        2
+      ],
+      "id": "npc_slot_northgate_smith_plot_01",
+      "role": "apprentice",
+      "seed": 2701,
+      "template": "npc_role_apprentice"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_east_home_plot",
+      "home_structure_id": "structure_northgate_east_home_plot",
+      "home_tile": [
+        7,
+        2
+      ],
+      "id": "npc_slot_northgate_east_home_plot_00",
+      "role": "resident",
+      "seed": 2701,
+      "template": "npc_role_resident"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_southeast_home_plot",
+      "home_structure_id": "structure_northgate_southeast_home_plot",
+      "home_tile": [
+        7,
+        2
+      ],
+      "id": "npc_slot_northgate_southeast_home_plot_00",
+      "role": "resident",
+      "seed": 2701,
+      "template": "npc_role_resident"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "home_layer": "interior:structure_northgate_far_east_home_plot",
+      "home_structure_id": "structure_northgate_far_east_home_plot",
+      "home_tile": [
+        7,
+        2
+      ],
+      "id": "npc_slot_northgate_far_east_home_plot_00",
+      "role": "resident",
+      "seed": 2701,
+      "template": "npc_role_resident"
+    }
+  ],
+  "plots": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "road_shrine",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_shrine_plot",
+      "rect": {
+        "position": [
+          -3273,
+          -3960
+        ],
+        "size": [
+          11,
+          9
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "plot_road_shrine",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "guard_post",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_guard_plot",
+      "rect": {
+        "position": [
+          -3258,
+          -3961
+        ],
+        "size": [
+          12,
+          8
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "plot_guard_post",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "town_hall",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_hall_plot",
+      "rect": {
+        "position": [
+          -3275,
+          -3951
+        ],
+        "size": [
+          14,
+          9
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "plot_town_hall",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "coaching_inn",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_inn_plot",
+      "rect": {
+        "position": [
+          -3256,
+          -3953
+        ],
+        "size": [
+          17,
+          10
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "plot_coaching_inn",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "stable",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_stable_plot",
+      "rect": {
+        "position": [
+          -3239,
+          -3953
+        ],
+        "size": [
+          12,
+          14
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "plot_stable",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "general_shop",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_shop_plot",
+      "rect": {
+        "position": [
+          -3278,
+          -3939
+        ],
+        "size": [
+          12,
+          10
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "plot_general_shop",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "storehouse",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_store_plot",
+      "rect": {
+        "position": [
+          -3270,
+          -3929
+        ],
+        "size": [
+          10,
+          10
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_store_plot",
+      "template": "plot_storehouse",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "home",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_west_home_plot",
+      "rect": {
+        "position": [
+          -3282,
+          -3929
+        ],
+        "size": [
+          11,
+          10
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_west_home_plot",
+      "template": "plot_home",
+      "yard_zones": [
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3281,
+              -3923
+            ],
+            "size": [
+              4,
+              3
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "home",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_south_home_plot",
+      "rect": {
+        "position": [
+          -3270,
+          -3919
+        ],
+        "size": [
+          11,
+          8
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_south_home_plot",
+      "template": "plot_home",
+      "yard_zones": [
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3269,
+              -3914
+            ],
+            "size": [
+              4,
+              2
+            ]
+          }
+        },
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3264,
+              -3914
+            ],
+            "size": [
+              3,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "smithy",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_smith_plot",
+      "rect": {
+        "position": [
+          -3256,
+          -3939
+        ],
+        "size": [
+          14,
+          12
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "plot_smithy",
+      "yard_zones": []
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "home",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_east_home_plot",
+      "rect": {
+        "position": [
+          -3242,
+          -3938
+        ],
+        "size": [
+          11,
+          9
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_east_home_plot",
+      "template": "plot_home",
+      "yard_zones": [
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3241,
+              -3932
+            ],
+            "size": [
+              4,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "home",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_southeast_home_plot",
+      "rect": {
+        "position": [
+          -3256,
+          -3927
+        ],
+        "size": [
+          12,
+          11
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_southeast_home_plot",
+      "template": "plot_home",
+      "yard_zones": [
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3255,
+              -3920
+            ],
+            "size": [
+              4,
+              3
+            ]
+          }
+        },
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3249,
+              -3920
+            ],
+            "size": [
+              3,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "building_role": "home",
+      "editable": true,
+      "generator_version": "world_settlement_v6",
+      "id": "plot_northgate_far_east_home_plot",
+      "rect": {
+        "position": [
+          -3244,
+          -3926
+        ],
+        "size": [
+          13,
+          10
+        ]
+      },
+      "seed": 2701,
+      "structure_id": "structure_northgate_far_east_home_plot",
+      "template": "plot_home",
+      "yard_zones": [
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3243,
+              -3920
+            ],
+            "size": [
+              4,
+              3
+            ]
+          }
+        },
+        {
+          "kind": "soil",
+          "rect": {
+            "position": [
+              -3236,
+              -3921
+            ],
+            "size": [
+              3,
+              3
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "portals": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3267,
+        -3955
+      ],
+      "id": "portal_structure_northgate_shrine_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_shrine_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_shrine_plot",
+      "target_tile": [
+        4,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        4,
+        7
+      ],
+      "id": "portal_structure_northgate_shrine_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_shrine_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3267,
+        -3954
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3253,
+        -3957
+      ],
+      "id": "portal_structure_northgate_guard_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_guard_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_guard_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_guard_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_guard_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3253,
+        -3956
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3265,
+        -3947
+      ],
+      "id": "portal_structure_northgate_hall_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_hall_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_hall_plot",
+      "target_tile": [
+        7,
+        5
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        9
+      ],
+      "id": "portal_structure_northgate_hall_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_hall_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3264,
+        -3947
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3252,
+        -3949
+      ],
+      "id": "portal_structure_northgate_inn_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_inn_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_inn_plot",
+      "target_tile": [
+        7,
+        5
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        7,
+        9
+      ],
+      "id": "portal_structure_northgate_inn_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_inn_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        -1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3253,
+        -3949
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3234,
+        -3945
+      ],
+      "id": "portal_structure_northgate_stable_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_stable_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_stable_plot",
+      "target_tile": [
+        6,
+        6
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        10
+      ],
+      "id": "portal_structure_northgate_stable_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_stable_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3234,
+        -3944
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3272,
+        -3936
+      ],
+      "id": "portal_structure_northgate_shop_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_shop_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_shop_plot",
+      "target_tile": [
+        6,
+        4
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        8
+      ],
+      "id": "portal_structure_northgate_shop_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_shop_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3272,
+        -3937
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3263,
+        -3925
+      ],
+      "id": "portal_structure_northgate_store_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_store_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_store_plot",
+      "target_tile": [
+        6,
+        4
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        8
+      ],
+      "id": "portal_structure_northgate_store_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_store_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3262,
+        -3925
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3277,
+        -3927
+      ],
+      "id": "portal_structure_northgate_west_home_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_west_home_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_west_home_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_west_home_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_west_home_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3277,
+        -3928
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3263,
+        -3916
+      ],
+      "id": "portal_structure_northgate_south_home_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_south_home_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_south_home_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_south_home_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_south_home_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3262,
+        -3916
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3249,
+        -3936
+      ],
+      "id": "portal_structure_northgate_smith_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_smith_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_smith_plot",
+      "target_tile": [
+        6,
+        5
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        6,
+        9
+      ],
+      "id": "portal_structure_northgate_smith_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_smith_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3249,
+        -3937
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3237,
+        -3936
+      ],
+      "id": "portal_structure_northgate_east_home_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_east_home_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_east_home_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_east_home_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_east_home_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3237,
+        -3937
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3254,
+        -3923
+      ],
+      "id": "portal_structure_northgate_southeast_home_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_southeast_home_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_southeast_home_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_southeast_home_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_southeast_home_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        -1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3255,
+        -3923
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        -3241,
+        -3923
+      ],
+      "id": "portal_structure_northgate_far_east_home_plot_entry",
+      "reciprocal_portal_id": "portal_structure_northgate_far_east_home_plot_exit",
+      "seed": 2701,
+      "target_facing": [
+        0,
+        -1
+      ],
+      "target_layer": "interior:structure_northgate_far_east_home_plot",
+      "target_tile": [
+        5,
+        3
+      ],
+      "template": "structure_entry_portal",
+      "world_layer": "surface"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "global_tile": [
+        5,
+        7
+      ],
+      "id": "portal_structure_northgate_far_east_home_plot_exit",
+      "reciprocal_portal_id": "portal_structure_northgate_far_east_home_plot_entry",
+      "seed": 2701,
+      "target_facing": [
+        -1,
+        0
+      ],
+      "target_layer": "surface",
+      "target_tile": [
+        -3242,
+        -3923
+      ],
+      "template": "structure_exit_portal",
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    }
+  ],
+  "proposal_status": "proposal",
+  "public_spaces": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_junction_square",
+      "kind": "public_square",
+      "rect": {
+        "position": [
+          -3265,
+          -3946
+        ],
+        "size": [
+          10,
+          7
+        ]
+      },
+      "seed": 2701,
+      "template": "street_public_square"
+    }
+  ],
+  "quest_hook_slots": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_shrine_plot",
+      "role_context": "road_shrine",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_guard_plot",
+      "role_context": "guard_post",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_hall_plot",
+      "role_context": "town_hall",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_inn_plot",
+      "role_context": "coaching_inn",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_stable_plot",
+      "role_context": "stable",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_shop_plot",
+      "role_context": "general_shop",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "settlement_role_hook"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "quest_hook_northgate_smith_plot",
+      "role_context": "smithy",
+      "seed": 2701,
+      "status": "proposal_slot",
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "settlement_role_hook"
+    }
+  ],
+  "review": {
+    "atlas_approval_verified": true,
+    "canon_status": "proposal",
+    "required_artifacts": [
+      "overview_screenshot",
+      "structure_screenshot",
+      "interior_screenshot",
+      "validation_report"
+    ]
+  },
+  "schema_version": "1.0.0",
+  "seed": 2701,
+  "service_slots": [
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_shrine_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "blessing",
+      "structure_id": "structure_northgate_shrine_plot",
+      "template": "service_blessing",
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_guard_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "road_report",
+      "structure_id": "structure_northgate_guard_plot",
+      "template": "service_road_report",
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_hall_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "notices",
+      "structure_id": "structure_northgate_hall_plot",
+      "template": "service_notices",
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_inn_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "inn",
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "service_inn",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_inn_plot_01",
+      "interaction_tile": [
+        3,
+        2
+      ],
+      "seed": 2701,
+      "service": "food",
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "service_food",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_inn_plot_02",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "rumours",
+      "structure_id": "structure_northgate_inn_plot",
+      "template": "service_rumours",
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_stable_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "stabling",
+      "structure_id": "structure_northgate_stable_plot",
+      "template": "service_stabling",
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_shop_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "general_trade",
+      "structure_id": "structure_northgate_shop_plot",
+      "template": "service_general_trade",
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_store_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "storage",
+      "structure_id": "structure_northgate_store_plot",
+      "template": "service_storage",
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_smith_plot_00",
+      "interaction_tile": [
+        2,
+        2
+      ],
+      "seed": 2701,
+      "service": "smithing",
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "service_smithing",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "service_slot_northgate_smith_plot_01",
+      "interaction_tile": [
+        3,
+        2
+      ],
+      "seed": 2701,
+      "service": "repair",
+      "structure_id": "structure_northgate_smith_plot",
+      "template": "service_repair",
+      "world_layer": "interior:structure_northgate_smith_plot"
+    }
+  ],
+  "settlement_name": "Northgate",
+  "settlement_role": "northern_road_junction",
+  "streets": [
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_north_road",
+      "kind": "major_road",
+      "path": [
+        [
+          -3260,
+          -3962
+        ],
+        [
+          -3260,
+          -3942
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_major_road",
+      "width": 3.0
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_junction_square",
+      "kind": "public_square",
+      "rect": {
+        "position": [
+          -3265,
+          -3946
+        ],
+        "size": [
+          10,
+          7
+        ]
+      },
+      "seed": 2701,
+      "template": "street_public_square"
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_south_road",
+      "kind": "major_road",
+      "path": [
+        [
+          -3260,
+          -3942
+        ],
+        [
+          -3260,
+          -3914
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_major_road",
+      "width": 3.0
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_west_road",
+      "kind": "major_road",
+      "path": [
+        [
+          -3260,
+          -3942
+        ],
+        [
+          -3284,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_major_road",
+      "width": 3.0
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_east_road",
+      "kind": "major_road",
+      "path": [
+        [
+          -3260,
+          -3942
+        ],
+        [
+          -3225,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_major_road",
+      "width": 3.0
+    },
+    {
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_smith_lane",
+      "kind": "minor_road",
+      "path": [
+        [
+          -3260,
+          -3932
+        ],
+        [
+          -3256,
+          -3932
+        ],
+        [
+          -3256,
+          -3928
+        ],
+        [
+          -3252,
+          -3928
+        ],
+        [
+          -3252,
+          -3924
+        ],
+        [
+          -3248,
+          -3924
+        ],
+        [
+          -3248,
+          -3920
+        ],
+        [
+          -3245,
+          -3920
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_minor_road",
+      "width": 1.0
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_shrine_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_shrine_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3267,
+          -3955
+        ],
+        [
+          -3267,
+          -3954
+        ],
+        [
+          -3266,
+          -3954
+        ],
+        [
+          -3265,
+          -3954
+        ],
+        [
+          -3264,
+          -3954
+        ],
+        [
+          -3263,
+          -3954
+        ],
+        [
+          -3262,
+          -3954
+        ],
+        [
+          -3261,
+          -3954
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_guard_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_guard_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3253,
+          -3957
+        ],
+        [
+          -3253,
+          -3956
+        ],
+        [
+          -3254,
+          -3956
+        ],
+        [
+          -3255,
+          -3956
+        ],
+        [
+          -3256,
+          -3956
+        ],
+        [
+          -3257,
+          -3956
+        ],
+        [
+          -3258,
+          -3956
+        ],
+        [
+          -3259,
+          -3956
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_hall_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_hall_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3265,
+          -3947
+        ],
+        [
+          -3264,
+          -3947
+        ],
+        [
+          -3264,
+          -3946
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_inn_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_inn_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3252,
+          -3948
+        ],
+        [
+          -3253,
+          -3948
+        ],
+        [
+          -3254,
+          -3948
+        ],
+        [
+          -3255,
+          -3948
+        ],
+        [
+          -3256,
+          -3948
+        ],
+        [
+          -3256,
+          -3947
+        ],
+        [
+          -3256,
+          -3946
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_stable_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_stable_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3234,
+          -3945
+        ],
+        [
+          -3234,
+          -3944
+        ],
+        [
+          -3234,
+          -3943
+        ],
+        [
+          -3234,
+          -3942
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_shop_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_shop_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3272,
+          -3936
+        ],
+        [
+          -3272,
+          -3937
+        ],
+        [
+          -3272,
+          -3938
+        ],
+        [
+          -3272,
+          -3939
+        ],
+        [
+          -3272,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_store_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_store_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3263,
+          -3925
+        ],
+        [
+          -3262,
+          -3925
+        ],
+        [
+          -3261,
+          -3925
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_west_home_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_west_home_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3277,
+          -3927
+        ],
+        [
+          -3277,
+          -3928
+        ],
+        [
+          -3277,
+          -3929
+        ],
+        [
+          -3277,
+          -3930
+        ],
+        [
+          -3277,
+          -3931
+        ],
+        [
+          -3277,
+          -3932
+        ],
+        [
+          -3277,
+          -3933
+        ],
+        [
+          -3277,
+          -3934
+        ],
+        [
+          -3277,
+          -3935
+        ],
+        [
+          -3277,
+          -3936
+        ],
+        [
+          -3277,
+          -3937
+        ],
+        [
+          -3277,
+          -3938
+        ],
+        [
+          -3277,
+          -3939
+        ],
+        [
+          -3277,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_south_home_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_south_home_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3263,
+          -3916
+        ],
+        [
+          -3262,
+          -3916
+        ],
+        [
+          -3261,
+          -3916
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_smith_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_smith_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3249,
+          -3936
+        ],
+        [
+          -3249,
+          -3937
+        ],
+        [
+          -3249,
+          -3938
+        ],
+        [
+          -3249,
+          -3939
+        ],
+        [
+          -3249,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_east_home_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_east_home_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3237,
+          -3936
+        ],
+        [
+          -3237,
+          -3937
+        ],
+        [
+          -3237,
+          -3938
+        ],
+        [
+          -3237,
+          -3939
+        ],
+        [
+          -3237,
+          -3940
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_southeast_home_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_southeast_home_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3254,
+          -3923
+        ],
+        [
+          -3255,
+          -3923
+        ],
+        [
+          -3256,
+          -3923
+        ],
+        [
+          -3257,
+          -3923
+        ],
+        [
+          -3258,
+          -3923
+        ],
+        [
+          -3259,
+          -3923
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    },
+    {
+      "activation_status": "review_required",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "connects_structure_id": "structure_northgate_far_east_home_plot",
+      "generator_version": "world_settlement_v6",
+      "id": "street_northgate_to_structure_northgate_far_east_home_plot",
+      "kind": "building_footpath",
+      "path": [
+        [
+          -3241,
+          -3923
+        ],
+        [
+          -3242,
+          -3923
+        ],
+        [
+          -3243,
+          -3923
+        ],
+        [
+          -3244,
+          -3923
+        ],
+        [
+          -3245,
+          -3923
+        ],
+        [
+          -3246,
+          -3923
+        ],
+        [
+          -3247,
+          -3923
+        ],
+        [
+          -3248,
+          -3923
+        ]
+      ],
+      "seed": 2701,
+      "template": "street_building_footpath",
+      "width": 1
+    }
+  ],
+  "structure_archetypes": {
+    "archetype_structure_northgate_east_home_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          0
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_2",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_east_home_plot_exterior",
+      "name": "Home Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        6,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwdww",
+        "wfffww",
+        "wwww.."
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "northgate_timber_home"
+    },
+    "archetype_structure_northgate_east_home_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          7,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          7,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_east_home_plot_interior",
+      "interior_identity": "courier_household",
+      "name": "Home Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        10,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wwwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "A road-working household organized around wet cloaks, boots, letters, and irregular arrivals.",
+      "visual_style": "northgate_timber_home_courier_household_interior"
+    },
+    "archetype_structure_northgate_far_east_home_plot_exterior": {
+      "anchors": {
+        "entry": [
+          0,
+          1
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_0",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_far_east_home_plot_exterior",
+      "name": "Home Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        7,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwww..",
+        "dffffww",
+        "wwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "northgate_timber_home"
+    },
+    "archetype_structure_northgate_far_east_home_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          7,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          7,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_far_east_home_plot_interior",
+      "interior_identity": "lodger_household",
+      "name": "Home Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        10,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wwwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "A compact family home earning extra coin from a traveller's bed and lockable trunk space.",
+      "visual_style": "northgate_timber_home_lodger_household_interior"
+    },
+    "archetype_structure_northgate_guard_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          2
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_3",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_guard_plot_exterior",
+      "name": "Guard Post Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        7,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwwwww",
+        "wwffffw",
+        "..wdwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "timber_guard_post"
+    },
+    "archetype_structure_northgate_guard_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          8,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          8,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_guard_plot_interior",
+      "interior_identity": "guard_post_purpose",
+      "name": "Guard Post Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        11,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwww",
+        "wfffffffffw",
+        "wfffffffffw",
+        "wfffffffffw",
+        "wfffffffffw",
+        "wfffffffffw",
+        "wfffffffffw",
+        "wwwwwdwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built guard post interior.",
+      "visual_style": "timber_guard_post_interior"
+    },
+    "archetype_structure_northgate_hall_plot_exterior": {
+      "anchors": {
+        "entry": [
+          7,
+          2
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_2",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_hall_plot_exterior",
+      "name": "Town Hall Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        8,
+        4
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwwwwww",
+        "wffffffw",
+        "wfffffwd",
+        "wwwwww.."
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "junction_hall"
+    },
+    "archetype_structure_northgate_hall_plot_interior": {
+      "anchors": {
+        "exit": [
+          7,
+          9
+        ],
+        "home": [
+          11,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          11,
+          7
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_hall_plot_interior",
+      "interior_identity": "town_hall_purpose",
+      "name": "Town Hall Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        14,
+        10
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwwwww",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wwwwwwwdwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built town hall interior.",
+      "visual_style": "junction_hall_interior"
+    },
+    "archetype_structure_northgate_inn_plot_exterior": {
+      "anchors": {
+        "entry": [
+          0,
+          1
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_2",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_inn_plot_exterior",
+      "name": "Coaching Inn Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        10,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "dffffffffw",
+        "wwwwwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "deep_eaved_coaching_inn"
+    },
+    "archetype_structure_northgate_inn_plot_interior": {
+      "anchors": {
+        "exit": [
+          7,
+          9
+        ],
+        "home": [
+          4,
+          4
+        ],
+        "service": [
+          4,
+          4
+        ],
+        "storage": [
+          12,
+          8
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_inn_plot_interior",
+      "interior_identity": "coaching_inn_purpose",
+      "name": "Coaching Inn Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        14,
+        10
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwwwww",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wffffffffffffw",
+        "wwwwwwwdwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built coaching inn interior.",
+      "visual_style": "deep_eaved_coaching_inn_interior"
+    },
+    "archetype_structure_northgate_shop_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          0
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_3",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_shop_plot_exterior",
+      "name": "General Shop Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        7,
+        4
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwdwww",
+        "wfffffw",
+        "wwffffw",
+        "..wwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "shuttered_crossroads_shop"
+    },
+    "archetype_structure_northgate_shop_plot_interior": {
+      "anchors": {
+        "exit": [
+          6,
+          8
+        ],
+        "home": [
+          9,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          9,
+          6
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_shop_plot_interior",
+      "interior_identity": "general_shop_purpose",
+      "name": "General Shop Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        12,
+        9
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwww",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wwwwwwdwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built general shop interior.",
+      "visual_style": "shuttered_crossroads_shop_interior"
+    },
+    "archetype_structure_northgate_shrine_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          2
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_3",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_shrine_plot_exterior",
+      "name": "Road Shrine Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        6,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwwww",
+        "wwfffw",
+        "..wdww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "road_stone_shrine"
+    },
+    "archetype_structure_northgate_shrine_plot_interior": {
+      "anchors": {
+        "exit": [
+          4,
+          7
+        ],
+        "home": [
+          6,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          6,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_shrine_plot_interior",
+      "interior_identity": "road_shrine_purpose",
+      "name": "Road Shrine Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        9,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwww",
+        "wfffffffw",
+        "wfffffffw",
+        "wfffffffw",
+        "wfffffffw",
+        "wfffffffw",
+        "wfffffffw",
+        "wwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built road shrine interior.",
+      "visual_style": "road_stone_shrine_interior"
+    },
+    "archetype_structure_northgate_smith_plot_exterior": {
+      "anchors": {
+        "entry": [
+          4,
+          0
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_1",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_smith_plot_exterior",
+      "name": "Smithy Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        8,
+        5
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "..wwdwww",
+        "wwfffffw",
+        "wffffffw",
+        "wffffffw",
+        "wwwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "open_front_road_smithy"
+    },
+    "archetype_structure_northgate_smith_plot_interior": {
+      "anchors": {
+        "exit": [
+          6,
+          9
+        ],
+        "home": [
+          10,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          10,
+          7
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_smith_plot_interior",
+      "interior_identity": "smithy_purpose",
+      "name": "Smithy Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        13,
+        10
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwwww",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wwwwwwdwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built smithy interior.",
+      "visual_style": "open_front_road_smithy_interior"
+    },
+    "archetype_structure_northgate_south_home_plot_exterior": {
+      "anchors": {
+        "entry": [
+          5,
+          1
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_1",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_south_home_plot_exterior",
+      "name": "Home Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        6,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "..wwww",
+        "wwfffd",
+        "wwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "northgate_timber_home"
+    },
+    "archetype_structure_northgate_south_home_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          7,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          7,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_south_home_plot_interior",
+      "interior_identity": "multigenerational_household",
+      "name": "Home Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        10,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wwwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Several generations share meals, sleep, childcare, and accumulated family possessions.",
+      "visual_style": "northgate_timber_home_multigenerational_household_interior"
+    },
+    "archetype_structure_northgate_southeast_home_plot_exterior": {
+      "anchors": {
+        "entry": [
+          0,
+          1
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_1",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_southeast_home_plot_exterior",
+      "name": "Home Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        6,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "..wwww",
+        "dwfffw",
+        "wwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "northgate_timber_home"
+    },
+    "archetype_structure_northgate_southeast_home_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          7,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          7,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_southeast_home_plot_interior",
+      "interior_identity": "kitchen_garden_household",
+      "name": "Home Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        10,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wwwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Food growing and preserving shapes the room, with herbs, jars, and muddy tools close at hand.",
+      "visual_style": "northgate_timber_home_kitchen_garden_household_interior"
+    },
+    "archetype_structure_northgate_stable_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_0",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_stable_plot_exterior",
+      "name": "Stable Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        7,
+        6
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwww..",
+        "wfffw..",
+        "wffffww",
+        "wfffffw",
+        "wfffffw",
+        "wwwdwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "road_junction_stable"
+    },
+    "archetype_structure_northgate_stable_plot_interior": {
+      "anchors": {
+        "exit": [
+          6,
+          10
+        ],
+        "home": [
+          10,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          10,
+          8
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_stable_plot_interior",
+      "interior_identity": "stable_purpose",
+      "name": "Stable Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        13,
+        11
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwwww",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wfffffffffffw",
+        "wwwwwwdwwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built stable interior.",
+      "visual_style": "road_junction_stable_interior"
+    },
+    "archetype_structure_northgate_store_plot_exterior": {
+      "anchors": {
+        "entry": [
+          6,
+          2
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_2",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_store_plot_exterior",
+      "name": "Storehouse Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        7,
+        4
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwwwww",
+        "wfffffw",
+        "wffffwd",
+        "wwwww.."
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "raised_trade_storehouse"
+    },
+    "archetype_structure_northgate_store_plot_interior": {
+      "anchors": {
+        "exit": [
+          6,
+          8
+        ],
+        "home": [
+          9,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          9,
+          6
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_store_plot_interior",
+      "interior_identity": "storehouse_purpose",
+      "name": "Storehouse Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        12,
+        9
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwwwww",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wffffffffffw",
+        "wwwwwwdwwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "Purpose-built storehouse interior.",
+      "visual_style": "raised_trade_storehouse_interior"
+    },
+    "archetype_structure_northgate_west_home_plot_exterior": {
+      "anchors": {
+        "entry": [
+          3,
+          0
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "footprint_shape": "irregular_2",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_west_home_plot_exterior",
+      "name": "Home Exterior",
+      "role": "surface_exterior",
+      "seed": 2701,
+      "size": [
+        6,
+        3
+      ],
+      "template": "structure_archetype_exterior",
+      "terrain_rows": [
+        "wwwdww",
+        "wfffww",
+        "wwww.."
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_wall",
+        "w": "wood_wall"
+      },
+      "visual_style": "northgate_timber_home"
+    },
+    "archetype_structure_northgate_west_home_plot_interior": {
+      "anchors": {
+        "exit": [
+          5,
+          7
+        ],
+        "home": [
+          7,
+          2
+        ],
+        "service": [
+          2,
+          2
+        ],
+        "storage": [
+          7,
+          5
+        ]
+      },
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "generator_version": "world_settlement_v6",
+      "id": "archetype_structure_northgate_west_home_plot_interior",
+      "interior_identity": "quiet_craft_household",
+      "name": "Home Interior",
+      "role": "interior_room",
+      "seed": 2701,
+      "size": [
+        10,
+        8
+      ],
+      "template": "structure_archetype_interior",
+      "terrain_rows": [
+        "wwwwwwwwww",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wffffffffw",
+        "wwwwwdwwww"
+      ],
+      "tile_kinds": {
+        "d": "wood_floor",
+        "f": "wood_floor",
+        "w": "wood_wall"
+      },
+      "visual_story": "A careful solitary household with daily handwork kept beside the fire.",
+      "visual_style": "northgate_timber_home_quiet_craft_household_interior"
+    }
+  },
+  "structures": [
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3267,
+          -3955
+        ],
+        [
+          -3267,
+          -3954
+        ],
+        [
+          -3266,
+          -3954
+        ],
+        [
+          -3265,
+          -3954
+        ],
+        [
+          -3264,
+          -3954
+        ],
+        [
+          -3263,
+          -3954
+        ],
+        [
+          -3262,
+          -3954
+        ],
+        [
+          -3261,
+          -3954
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_shrine_plot",
+      "archetype_id": "archetype_structure_northgate_shrine_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3270,
+          -3957
+        ],
+        "size": [
+          6,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3267,
+        -3955
+      ],
+      "entry_side": "south",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_shrine_plot",
+      "interior_identity": "road_shrine_purpose",
+      "interior_structure_id": "structure_northgate_shrine_plot_interior",
+      "name": "Northgate Road Shrine",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3270,
+        -3957
+      ],
+      "plot_id": "plot_northgate_shrine_plot",
+      "seed": 2701,
+      "template": "road_shrine",
+      "variation_key": 3149,
+      "visual_story": "Purpose-built road shrine interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_shrine_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          9,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_shrine_plot_interior",
+      "name": "Northgate Road Shrine Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_shrine_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_shrine_plot",
+      "template": "road_shrine_interior",
+      "variation_key": 2971,
+      "world_layer": "interior:structure_northgate_shrine_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3253,
+          -3957
+        ],
+        [
+          -3253,
+          -3956
+        ],
+        [
+          -3254,
+          -3956
+        ],
+        [
+          -3255,
+          -3956
+        ],
+        [
+          -3256,
+          -3956
+        ],
+        [
+          -3257,
+          -3956
+        ],
+        [
+          -3258,
+          -3956
+        ],
+        [
+          -3259,
+          -3956
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_guard_plot",
+      "archetype_id": "archetype_structure_northgate_guard_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3256,
+          -3959
+        ],
+        "size": [
+          7,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3253,
+        -3957
+      ],
+      "entry_side": "south",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_guard_plot",
+      "interior_identity": "guard_post_purpose",
+      "interior_structure_id": "structure_northgate_guard_plot_interior",
+      "name": "Northgate Guard Post",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3256,
+        -3959
+      ],
+      "plot_id": "plot_northgate_guard_plot",
+      "seed": 2701,
+      "template": "guard_post",
+      "variation_key": 9240,
+      "visual_story": "Purpose-built guard post interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_guard_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          11,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_guard_plot_interior",
+      "name": "Northgate Guard Post Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_guard_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_guard_plot",
+      "template": "guard_post_interior",
+      "variation_key": 9068,
+      "world_layer": "interior:structure_northgate_guard_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3265,
+          -3947
+        ],
+        [
+          -3264,
+          -3947
+        ],
+        [
+          -3264,
+          -3946
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_hall_plot",
+      "archetype_id": "archetype_structure_northgate_hall_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3272,
+          -3949
+        ],
+        "size": [
+          8,
+          4
+        ]
+      },
+      "entry_global_tile": [
+        -3265,
+        -3947
+      ],
+      "entry_side": "east",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_hall_plot",
+      "interior_identity": "town_hall_purpose",
+      "interior_structure_id": "structure_northgate_hall_plot_interior",
+      "name": "Northgate Town Hall",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3272,
+        -3949
+      ],
+      "plot_id": "plot_northgate_hall_plot",
+      "seed": 2701,
+      "template": "town_hall",
+      "variation_key": 5518,
+      "visual_story": "Purpose-built town hall interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_hall_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          14,
+          10
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_hall_plot_interior",
+      "name": "Northgate Town Hall Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_hall_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_hall_plot",
+      "template": "town_hall_interior",
+      "variation_key": 5352,
+      "world_layer": "interior:structure_northgate_hall_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3252,
+          -3948
+        ],
+        [
+          -3253,
+          -3948
+        ],
+        [
+          -3254,
+          -3948
+        ],
+        [
+          -3255,
+          -3948
+        ],
+        [
+          -3256,
+          -3948
+        ],
+        [
+          -3256,
+          -3947
+        ],
+        [
+          -3256,
+          -3946
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_inn_plot",
+      "archetype_id": "archetype_structure_northgate_inn_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3252,
+          -3950
+        ],
+        "size": [
+          10,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3252,
+        -3949
+      ],
+      "entry_side": "west",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_inn_plot",
+      "interior_identity": "coaching_inn_purpose",
+      "interior_structure_id": "structure_northgate_inn_plot_interior",
+      "name": "Northgate Coaching Inn",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3252,
+        -3950
+      ],
+      "plot_id": "plot_northgate_inn_plot",
+      "seed": 2701,
+      "template": "coaching_inn",
+      "variation_key": 2257,
+      "visual_story": "Purpose-built coaching inn interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_inn_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          18,
+          12
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_inn_plot_interior",
+      "name": "Northgate Coaching Inn Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_inn_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_inn_plot",
+      "template": "coaching_inn_interior",
+      "variation_key": 2097,
+      "world_layer": "interior:structure_northgate_inn_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3234,
+          -3945
+        ],
+        [
+          -3234,
+          -3944
+        ],
+        [
+          -3234,
+          -3943
+        ],
+        [
+          -3234,
+          -3942
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_stable_plot",
+      "archetype_id": "archetype_structure_northgate_stable_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3237,
+          -3950
+        ],
+        "size": [
+          7,
+          6
+        ]
+      },
+      "entry_global_tile": [
+        -3234,
+        -3945
+      ],
+      "entry_side": "south",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_stable_plot",
+      "interior_identity": "stable_purpose",
+      "interior_structure_id": "structure_northgate_stable_plot_interior",
+      "name": "Northgate Stable",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3237,
+        -3950
+      ],
+      "plot_id": "plot_northgate_stable_plot",
+      "seed": 2701,
+      "template": "stable",
+      "variation_key": 2874,
+      "visual_story": "Purpose-built stable interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_stable_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          13,
+          11
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_stable_plot_interior",
+      "name": "Northgate Stable Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_stable_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_stable_plot",
+      "template": "stable_interior",
+      "variation_key": 2696,
+      "world_layer": "interior:structure_northgate_stable_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3272,
+          -3936
+        ],
+        [
+          -3272,
+          -3937
+        ],
+        [
+          -3272,
+          -3938
+        ],
+        [
+          -3272,
+          -3939
+        ],
+        [
+          -3272,
+          -3940
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_shop_plot",
+      "archetype_id": "archetype_structure_northgate_shop_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3275,
+          -3936
+        ],
+        "size": [
+          7,
+          4
+        ]
+      },
+      "entry_global_tile": [
+        -3272,
+        -3936
+      ],
+      "entry_side": "north",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_shop_plot",
+      "interior_identity": "general_shop_purpose",
+      "interior_structure_id": "structure_northgate_shop_plot_interior",
+      "name": "Northgate General Shop",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3275,
+        -3936
+      ],
+      "plot_id": "plot_northgate_shop_plot",
+      "seed": 2701,
+      "template": "general_shop",
+      "variation_key": 5943,
+      "visual_story": "Purpose-built general shop interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_shop_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          12,
+          9
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_shop_plot_interior",
+      "name": "Northgate General Shop Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_shop_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_shop_plot",
+      "template": "general_shop_interior",
+      "variation_key": 5777,
+      "world_layer": "interior:structure_northgate_shop_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3263,
+          -3925
+        ],
+        [
+          -3262,
+          -3925
+        ],
+        [
+          -3261,
+          -3925
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_store_plot",
+      "archetype_id": "archetype_structure_northgate_store_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3269,
+          -3927
+        ],
+        "size": [
+          7,
+          4
+        ]
+      },
+      "entry_global_tile": [
+        -3263,
+        -3925
+      ],
+      "entry_side": "east",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_store_plot",
+      "interior_identity": "storehouse_purpose",
+      "interior_structure_id": "structure_northgate_store_plot_interior",
+      "name": "Northgate Storehouse",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3269,
+        -3927
+      ],
+      "plot_id": "plot_northgate_store_plot",
+      "seed": 2701,
+      "template": "storehouse",
+      "variation_key": 9687,
+      "visual_story": "Purpose-built storehouse interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_store_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          12,
+          9
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_store_plot_interior",
+      "name": "Northgate Storehouse Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_store_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_store_plot",
+      "template": "storehouse_interior",
+      "variation_key": 9515,
+      "world_layer": "interior:structure_northgate_store_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3277,
+          -3927
+        ],
+        [
+          -3277,
+          -3928
+        ],
+        [
+          -3277,
+          -3929
+        ],
+        [
+          -3277,
+          -3930
+        ],
+        [
+          -3277,
+          -3931
+        ],
+        [
+          -3277,
+          -3932
+        ],
+        [
+          -3277,
+          -3933
+        ],
+        [
+          -3277,
+          -3934
+        ],
+        [
+          -3277,
+          -3935
+        ],
+        [
+          -3277,
+          -3936
+        ],
+        [
+          -3277,
+          -3937
+        ],
+        [
+          -3277,
+          -3938
+        ],
+        [
+          -3277,
+          -3939
+        ],
+        [
+          -3277,
+          -3940
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_west_home_plot",
+      "archetype_id": "archetype_structure_northgate_west_home_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3280,
+          -3927
+        ],
+        "size": [
+          6,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3277,
+        -3927
+      ],
+      "entry_side": "north",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_west_home_plot",
+      "interior_identity": "quiet_craft_household",
+      "interior_structure_id": "structure_northgate_west_home_plot_interior",
+      "name": "Northgate Home 08",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3280,
+        -3927
+      ],
+      "plot_id": "plot_northgate_west_home_plot",
+      "seed": 2701,
+      "template": "home",
+      "variation_key": 4971,
+      "visual_story": "A careful solitary household with daily handwork kept beside the fire.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_west_home_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          10,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_west_home_plot_interior",
+      "name": "Northgate Home 08 Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_west_home_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_west_home_plot",
+      "template": "home_interior",
+      "variation_key": 4775,
+      "world_layer": "interior:structure_northgate_west_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3263,
+          -3916
+        ],
+        [
+          -3262,
+          -3916
+        ],
+        [
+          -3261,
+          -3916
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_south_home_plot",
+      "archetype_id": "archetype_structure_northgate_south_home_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3268,
+          -3917
+        ],
+        "size": [
+          6,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3263,
+        -3916
+      ],
+      "entry_side": "east",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_south_home_plot",
+      "interior_identity": "multigenerational_household",
+      "interior_structure_id": "structure_northgate_south_home_plot_interior",
+      "name": "Northgate Home 09",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3268,
+        -3917
+      ],
+      "plot_id": "plot_northgate_south_home_plot",
+      "seed": 2701,
+      "template": "home",
+      "variation_key": 9195,
+      "visual_story": "Several generations share meals, sleep, childcare, and accumulated family possessions.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_south_home_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          10,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_south_home_plot_interior",
+      "name": "Northgate Home 09 Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_south_home_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_south_home_plot",
+      "template": "home_interior",
+      "variation_key": 8993,
+      "world_layer": "interior:structure_northgate_south_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3249,
+          -3936
+        ],
+        [
+          -3249,
+          -3937
+        ],
+        [
+          -3249,
+          -3938
+        ],
+        [
+          -3249,
+          -3939
+        ],
+        [
+          -3249,
+          -3940
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_smith_plot",
+      "archetype_id": "archetype_structure_northgate_smith_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3253,
+          -3936
+        ],
+        "size": [
+          8,
+          5
+        ]
+      },
+      "entry_global_tile": [
+        -3249,
+        -3936
+      ],
+      "entry_side": "north",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_smith_plot",
+      "interior_identity": "smithy_purpose",
+      "interior_structure_id": "structure_northgate_smith_plot_interior",
+      "name": "Northgate Smithy",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3253,
+        -3936
+      ],
+      "plot_id": "plot_northgate_smith_plot",
+      "seed": 2701,
+      "template": "smithy",
+      "variation_key": 9558,
+      "visual_story": "Purpose-built smithy interior.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_smith_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          13,
+          10
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_smith_plot_interior",
+      "name": "Northgate Smithy Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_smith_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_smith_plot",
+      "template": "smithy_interior",
+      "variation_key": 9386,
+      "world_layer": "interior:structure_northgate_smith_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3237,
+          -3936
+        ],
+        [
+          -3237,
+          -3937
+        ],
+        [
+          -3237,
+          -3938
+        ],
+        [
+          -3237,
+          -3939
+        ],
+        [
+          -3237,
+          -3940
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_east_home_plot",
+      "archetype_id": "archetype_structure_northgate_east_home_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3240,
+          -3936
+        ],
+        "size": [
+          6,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3237,
+        -3936
+      ],
+      "entry_side": "north",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_east_home_plot",
+      "interior_identity": "courier_household",
+      "interior_structure_id": "structure_northgate_east_home_plot_interior",
+      "name": "Northgate Home 11",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3240,
+        -3936
+      ],
+      "plot_id": "plot_northgate_east_home_plot",
+      "seed": 2701,
+      "template": "home",
+      "variation_key": 4615,
+      "visual_story": "A road-working household organized around wet cloaks, boots, letters, and irregular arrivals.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_east_home_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          10,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_east_home_plot_interior",
+      "name": "Northgate Home 11 Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_east_home_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_east_home_plot",
+      "template": "home_interior",
+      "variation_key": 4419,
+      "world_layer": "interior:structure_northgate_east_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3254,
+          -3923
+        ],
+        [
+          -3255,
+          -3923
+        ],
+        [
+          -3256,
+          -3923
+        ],
+        [
+          -3257,
+          -3923
+        ],
+        [
+          -3258,
+          -3923
+        ],
+        [
+          -3259,
+          -3923
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_southeast_home_plot",
+      "archetype_id": "archetype_structure_northgate_southeast_home_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3254,
+          -3924
+        ],
+        "size": [
+          6,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3254,
+        -3923
+      ],
+      "entry_side": "west",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_southeast_home_plot",
+      "interior_identity": "kitchen_garden_household",
+      "interior_structure_id": "structure_northgate_southeast_home_plot_interior",
+      "name": "Northgate Home 12",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3254,
+        -3924
+      ],
+      "plot_id": "plot_northgate_southeast_home_plot",
+      "seed": 2701,
+      "template": "home",
+      "variation_key": 6887,
+      "visual_story": "Food growing and preserving shapes the room, with herbs, jars, and muddy tools close at hand.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_southeast_home_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          10,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_southeast_home_plot_interior",
+      "name": "Northgate Home 12 Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_southeast_home_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_southeast_home_plot",
+      "template": "home_interior",
+      "variation_key": 6661,
+      "world_layer": "interior:structure_northgate_southeast_home_plot"
+    },
+    {
+      "activation_status": "review_required",
+      "approach_path": [
+        [
+          -3241,
+          -3923
+        ],
+        [
+          -3242,
+          -3923
+        ],
+        [
+          -3243,
+          -3923
+        ],
+        [
+          -3244,
+          -3923
+        ],
+        [
+          -3245,
+          -3923
+        ],
+        [
+          -3246,
+          -3923
+        ],
+        [
+          -3247,
+          -3923
+        ],
+        [
+          -3248,
+          -3923
+        ]
+      ],
+      "approach_street_id": "street_northgate_to_structure_northgate_far_east_home_plot",
+      "archetype_id": "archetype_structure_northgate_far_east_home_plot_exterior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          -3241,
+          -3924
+        ],
+        "size": [
+          7,
+          3
+        ]
+      },
+      "entry_global_tile": [
+        -3241,
+        -3923
+      ],
+      "entry_side": "west",
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_far_east_home_plot",
+      "interior_identity": "lodger_household",
+      "interior_structure_id": "structure_northgate_far_east_home_plot_interior",
+      "name": "Northgate Home 13",
+      "occupant_binding_status": "proposal_slot",
+      "origin_tile": [
+        -3241,
+        -3924
+      ],
+      "plot_id": "plot_northgate_far_east_home_plot",
+      "seed": 2701,
+      "template": "home",
+      "variation_key": 1477,
+      "visual_story": "A compact family home earning extra coin from a traveller's bed and lockable trunk space.",
+      "world_layer": "surface"
+    },
+    {
+      "activation_status": "review_required",
+      "archetype_id": "archetype_structure_northgate_far_east_home_plot_interior",
+      "atlas_region_id": "region_marches_velcor",
+      "atlas_settlement_id": "northgate",
+      "bounds": {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          10,
+          8
+        ]
+      },
+      "generator_version": "world_settlement_v6",
+      "id": "structure_northgate_far_east_home_plot_interior",
+      "name": "Northgate Home 13 Interior",
+      "origin_tile": [
+        0,
+        0
+      ],
+      "plot_id": "plot_northgate_far_east_home_plot",
+      "seed": 2701,
+      "surface_structure_id": "structure_northgate_far_east_home_plot",
+      "template": "home_interior",
+      "variation_key": 1257,
+      "world_layer": "interior:structure_northgate_far_east_home_plot"
+    }
+  ],
+  "template": "northgate_road_junction",
+  "template_catalog_version": "settlement_templates_v6",
+  "world_layer": "surface"
+}

@@ -4,6 +4,7 @@ extends RefCounted
 const PoiInteraction = preload("res://scripts/main/actions/poi_interaction.gd")
 const MainInventoryTransfer = preload("res://scripts/main/actions/main_inventory_transfer.gd")
 const PickpocketRules = preload("res://scripts/core/pickpocket_rules.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 class ActionListContext:
@@ -13,6 +14,8 @@ class ActionListContext:
 	var player
 	var world_state
 	var civilian_schedules
+	var npc_perception
+	var crime
 
 	func _init(main) -> void:
 		condition_evaluator = main.condition_evaluator
@@ -21,6 +24,8 @@ class ActionListContext:
 		player = main.player
 		world_state = main.world_state
 		civilian_schedules = main.get("civilian_schedules")
+		npc_perception = main.get("npc_perception")
+		crime = main.get("crime")
 
 
 class ActionHandleContext:
@@ -32,6 +37,7 @@ class ActionHandleContext:
 	var inventory_transfer_context
 	var player
 	var civilian_schedules
+	var crime
 	var _apply_effect: Callable
 	var _get_nearby_entity: Callable
 	var _interact_npc: Callable
@@ -47,6 +53,7 @@ class ActionHandleContext:
 		inventory_transfer_context = MainInventoryTransfer.context(main)
 		player = main.player
 		civilian_schedules = main.get("civilian_schedules")
+		crime = main.get("crime")
 		_apply_effect = Callable(main, "apply_effect")
 		_get_nearby_entity = Callable(main, "_get_nearby_entity")
 		_interact_npc = Callable(main, "_interact_npc")
@@ -68,6 +75,8 @@ static func handle_context(main) -> ActionHandleContext:
 
 static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 	var actions: Array[Dictionary] = []
+	if entity and ActorRules.is_dead_actor_data(entity.data):
+		return actions
 	if entity and entity.get_kind() == "poi":
 		for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
 			actions.append(
@@ -76,6 +85,19 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		if _poi_should_offer_inspect(ctx, entity):
 			actions.append({"id": "inspect:%s" % entity.get_entity_id(), "text": "Inspect"})
 	if entity and entity.get_kind() == "npc":
+		var guard_response: Dictionary = (
+			ctx.crime.get_guard_response(String(entity.data.get("npc_id", "")))
+			if ctx.crime
+			else {}
+		)
+		if String(guard_response.get("state", "")) == "confronting":
+			var guard_npc_id := String(entity.data.get("npc_id", ""))
+			if String(guard_response.get("action", "")) == "fine":
+				actions.append({"id": "guard:pay_fine:%s" % guard_npc_id, "text": "Pay Fine"})
+			elif String(guard_response.get("action", "")) == "arrest":
+				actions.append({"id": "guard:submit:%s" % guard_npc_id, "text": "Submit to Arrest"})
+			actions.append({"id": "guard:resist:%s" % guard_npc_id, "text": "Resist"})
+			return actions
 		var npc: Dictionary = _npc_for_entity(ctx, entity)
 		if ctx.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
 			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
@@ -155,6 +177,8 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_poi_inspect_selected(ctx, String(parsed.get("id", "")))
 		"pickpocket":
 			_handle_pickpocket_selected(ctx, String(parsed.get("id", "")))
+		"guard":
+			_handle_guard_response(ctx, String(parsed.get("id", "")))
 		_:
 			ctx.event_bus.post_message("Unknown action.")
 
@@ -317,13 +341,29 @@ static func _handle_pickpocket_selected(ctx: ActionHandleContext, entity_id: Str
 		ctx._refresh_hud.call()
 		return
 	var result := PickpocketRules.access_result(
-		entity, ctx.player.global_position, ctx.player.is_sneaking
+		entity,
+		ctx.player.global_position,
+		ctx.player.is_sneaking,
+		ctx.actions.npc_perception,
+		String(ctx.player.world_layer)
 	)
 	if not bool(result.get("allowed", false)):
 		ctx.event_bus.post_message(String(result.get("reason", "Cannot pickpocket.")))
 		ctx._refresh_hud.call()
 		return
 	MainInventoryTransfer.open_pickpocket(ctx.inventory_transfer_context, entity)
+
+
+static func _handle_guard_response(ctx: ActionHandleContext, response_id: String) -> void:
+	var separator := response_id.find(":")
+	if separator < 0 or not ctx.crime:
+		ctx.event_bus.post_message("No guard response is available.")
+		return
+	var response := response_id.substr(0, separator)
+	var npc_id := response_id.substr(separator + 1)
+	var result: Dictionary = ctx.crime.resolve_guard_response(npc_id, response)
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
 
 
 static func _apply_choice_action(ctx: ActionHandleContext, action: Dictionary) -> void:

@@ -22,7 +22,7 @@ func test_container_world_hint_updates_after_opening() -> void:
 	assert_true(main.get_debug_state()["target_detail"].contains("Container: opened"))
 
 
-func test_hostile_actor_defeat_does_not_leave_selected_interaction_target() -> void:
+func test_hostile_actor_death_turns_same_selected_target_into_loot() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	_equip_hatchet(main)
@@ -34,8 +34,12 @@ func test_hostile_actor_defeat_does_not_leave_selected_interaction_target() -> v
 	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
 
-	assert_null(main.entities.get_entity("npc_road_thug"))
-	assert_ne(main.selected_target_id, "npc_road_thug")
+	var corpse = main.entities.get_entity("npc_road_thug")
+	assert_not_null(corpse)
+	assert_eq(corpse.data.get("state", ""), "dead")
+	main._update_nearby()
+	assert_eq(main.selected_target_id, "npc_road_thug")
+	assert_eq(corpse.action_hint_text, "Loot Road Thug")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
 
 

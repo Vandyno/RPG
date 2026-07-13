@@ -429,7 +429,7 @@ func test_shop_service_requires_the_scheduled_worker_to_be_present() -> void:
 	assert_true(shops.is_shop_open("shop_northgate_proposal"))
 
 
-func test_shop_service_closes_for_incapacitated_or_hostile_worker() -> void:
+func test_shop_service_closes_for_dead_incapacitated_or_hostile_worker() -> void:
 	var fixture := _fixture()
 	var manager: CivilianScheduleManager = fixture["manager"]
 	var shopkeeper: WorldEntity = fixture["entities"].entities_by_id["northgate_shopkeeper_actor"]
@@ -439,6 +439,9 @@ func test_shop_service_closes_for_incapacitated_or_hostile_worker() -> void:
 	shopkeeper.data["incapacitated"] = true
 	assert_false(manager.is_service_available("service_northgate_general_shop"))
 	shopkeeper.data["incapacitated"] = false
+	shopkeeper.data["state"] = "dead"
+	assert_false(manager.is_service_available("service_northgate_general_shop"))
+	shopkeeper.data["state"] = "alive"
 	shopkeeper.data["hostility"] = "hostile"
 	assert_false(manager.is_service_available("service_northgate_general_shop"))
 

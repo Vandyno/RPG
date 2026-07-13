@@ -1591,7 +1591,7 @@ Marches v2 uses multi-scale coherent terrain fields instead of large hash
 blocks. Every terrain cell records its settlement, route, or water influence;
 every minor POI records its biome and distance context. Road connectors join
 the nearest fixed-route segment and are limited to genuinely roadside POIs.
-Northgate v4 keeps its authored roles while using rasterized thick road paths,
+Northgate v6 keeps its authored roles while using rasterized thick road paths,
 offset plots, irregular exterior terrain rows, and a non-rectangular palisade.
 
 Northgate runtime files live under `data/runtime/northgate_*.json` and are

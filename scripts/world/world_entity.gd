@@ -44,6 +44,7 @@ func setup(entity_data: Dictionary, content = null) -> void:
 	data["global_tile"] = [global_tile.x, global_tile.y]
 	name = String(data.get("id", "entity"))
 	_setup_humanoid_avatar(content)
+	_apply_actor_state_visual()
 	queue_redraw()
 
 
@@ -75,6 +76,12 @@ func is_combat_target() -> bool:
 	return ActorRules.is_combat_target_data(data)
 
 
+func set_actor_state(state: String) -> void:
+	data["state"] = state
+	_apply_actor_state_visual()
+	queue_redraw()
+
+
 func set_global_tile(tile: Vector2i) -> void:
 	set_world_position(_center_of_tile(tile))
 
@@ -83,6 +90,10 @@ func set_world_layer(layer: String) -> void:
 	world_layer = "surface" if layer.is_empty() else layer
 	data["world_layer"] = world_layer
 	queue_redraw()
+
+
+func get_world_layer() -> String:
+	return world_layer
 
 
 func set_world_position(world_position: Vector2) -> void:
@@ -218,7 +229,8 @@ func _draw() -> void:
 		get_kind(),
 		is_combat_target(),
 		get_pickup_item_visual_state(),
-		String(data.get("visual_style", ""))
+		String(data.get("visual_style", "")),
+		data
 	)
 
 
@@ -322,3 +334,16 @@ func _setup_humanoid_avatar(content = null) -> void:
 		humanoid_avatar.rotation = PI * 0.5
 		humanoid_avatar.position = Vector2(2.0, 4.0)
 		humanoid_avatar.scale = Vector2(0.88, 0.88)
+
+
+func _apply_actor_state_visual() -> void:
+	if not humanoid_avatar:
+		return
+	if ActorRules.is_dead_actor_data(data) or get_kind() == "body":
+		humanoid_avatar.rotation = PI * 0.5
+		humanoid_avatar.position = Vector2(2.0, 4.0)
+		humanoid_avatar.scale = Vector2(0.88, 0.88)
+		return
+	humanoid_avatar.rotation = 0.0
+	humanoid_avatar.position = Vector2.ZERO
+	humanoid_avatar.scale = Vector2.ONE

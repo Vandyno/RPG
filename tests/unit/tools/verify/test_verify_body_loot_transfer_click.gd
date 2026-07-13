@@ -9,7 +9,7 @@ class EntityStub:
 	extends RefCounted
 
 	var global_position := Vector2(30, 40)
-	var entity_id := "body_npc_road_thug"
+	var entity_id := "npc_road_thug"
 
 	func get_entity_id() -> String:
 		return entity_id
@@ -61,10 +61,10 @@ class MainStub:
 func test_body_loot_transfer_verifier_keeps_viewport_target_and_button_contract() -> void:
 	assert_eq(VerifyBodyLootTransferClick.VERIFY_SIZE, Vector2i(1152, 648))
 	assert_eq(VerifyBodyLootTransferClick.ROAD_THUG_ID, "npc_road_thug")
-	assert_eq(VerifyBodyLootTransferClick.ROAD_THUG_BODY_ID, "body_npc_road_thug")
+	assert_eq(VerifyBodyLootTransferClick.ROAD_THUG_BODY_ID, "npc_road_thug")
 	assert_eq(VerifyBodyLootTransferClick.ROAD_CACHE_ID, "object_road_cache")
 	assert_eq(VerifyBodyLootTransferClick.PEOPLE_TEST_ID, "npc_people_test_human")
-	assert_eq(VerifyBodyLootTransferClick.PEOPLE_TEST_BODY_ID, "body_npc_people_test_human")
+	assert_eq(VerifyBodyLootTransferClick.PEOPLE_TEST_BODY_ID, "npc_people_test_human")
 	assert_eq(
 		VerifyBodyLootTransferClick.expected_transfer_button_names(),
 		[
@@ -85,7 +85,7 @@ func test_open_transfer_target_positions_player_locks_target_and_opens_inventory
 
 	assert_eq(main.player.world_positions, [entity.global_position + Vector2(-8, 0)])
 	assert_eq(main.player.facing_values, [Vector2.RIGHT])
-	assert_eq(main.selected_target_id, "body_npc_road_thug")
+	assert_eq(main.selected_target_id, "npc_road_thug")
 	assert_true(main.manual_target_locked)
 	assert_eq(main.update_nearby_calls, 1)
 	assert_eq(main.interact_calls, 1)

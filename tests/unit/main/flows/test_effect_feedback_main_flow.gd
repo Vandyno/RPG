@@ -3,6 +3,7 @@ extends GutTest
 const Main = preload("res://scripts/main/main.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 
 
 func test_quest_feedback_reports_start_stage_and_completion_rewards() -> void:
@@ -87,7 +88,8 @@ func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	main.player.set_facing_direction(Vector2.RIGHT)
 	for _i in range(8):
 		MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
-		if not main.entities.get_entity(entity_id):
+		var actor = main.entities.get_entity(entity_id)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 	fail_test("Hostile actor was not defeated: %s" % entity_id)
 

@@ -101,6 +101,19 @@ func test_validate_reports_malformed_quests_factions_dialogues_and_npcs() -> voi
 	assert_true(joined.contains("NPC npc_bad references missing character profile missing_profile"))
 
 
+func test_validate_required_npc_ids() -> void:
+	var content := _valid_content()
+	content.quests["quest_tools"]["required_npc_ids"] = ["npc_harrow", "npc_harrow", "", "npc_missing"]
+	var errors: Array[String] = []
+
+	ContentQuestValidator.validate(content, errors)
+	var joined := "\n".join(errors)
+
+	assert_true(joined.contains("duplicate required NPC npc_harrow"))
+	assert_true(joined.contains("invalid required NPC id"))
+	assert_true(joined.contains("missing required NPC npc_missing"))
+
+
 func _valid_content() -> ContentDatabase:
 	var content := ContentDatabase.new()
 	add_child_autofree(content)

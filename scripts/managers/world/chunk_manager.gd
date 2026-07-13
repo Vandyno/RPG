@@ -5,7 +5,9 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 const VariantFields = preload("res://scripts/core/variant_fields.gd")
 
 const AUTHORED_TERRAIN_PATH := "res://data/world_terrain.json"
-const BLOCKED_TILE_KINDS := ["water", "stone_wall", "wood_wall"]
+const BLOCKED_TILE_KINDS := [
+	"water", "stone_wall", "wood_wall", "palisade", "structure_blocker"
+]
 
 var authored_areas: Array[Dictionary] = []
 var modified_chunks: Dictionary = {}

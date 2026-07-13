@@ -34,6 +34,25 @@ class ChunkStub:
 		return not blocked.has("%s,%s" % [tile.x, tile.y])
 
 
+class LayeredEntityStub:
+	extends EntityStub
+
+	var world_layer := "interior:structure_test"
+
+	func get_world_layer() -> String:
+		return world_layer
+
+
+class LayerQueryStub:
+	extends RefCounted
+
+	var checked_layers: Array[String] = []
+
+	func can_stand_at(_world_position: Vector2, layer: String) -> bool:
+		checked_layers.append(layer)
+		return layer.begins_with("interior:")
+
+
 func test_try_move_rejects_zero_or_invalid_motion_and_stops_locomotion() -> void:
 	var entity := EntityStub.new()
 
@@ -83,6 +102,14 @@ func test_try_move_step_returns_false_when_full_and_axis_steps_are_blocked() -> 
 
 	assert_false(WorldEntityMovement._try_move_step(entity, Vector2(32, 32), chunk))
 	assert_eq(entity.world_positions, [])
+
+
+func test_try_move_step_uses_the_entity_world_layer_for_collision() -> void:
+	var entity := LayeredEntityStub.new()
+	var query := LayerQueryStub.new()
+
+	assert_true(WorldEntityMovement._try_move_step(entity, Vector2.RIGHT * 4.0, query))
+	assert_eq(query.checked_layers, ["interior:structure_test"])
 
 
 func test_can_stand_at_samples_collision_radius_against_chunk_walkability() -> void:

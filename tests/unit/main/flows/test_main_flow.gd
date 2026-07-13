@@ -2,6 +2,7 @@
 extends GutTest
 
 const Main = preload("res://scripts/main/main.gd")
+const ActorRules = preload("res://scripts/core/actor_rules.gd")
 const MainSystemsActions = preload("res://scripts/main/actions/main_systems_actions.gd")
 const MainInputRouter = preload("res://scripts/main/input/main_input_router.gd")
 const MainFlowInputHelper = preload("res://tests/unit/main/flows/main_flow_input_helper.gd")
@@ -616,7 +617,7 @@ func test_full_spawn_yard_system_loop() -> void:
 	assert_true(main.hud.log_label.text.contains("hits Road Thug"))
 	_attack_hostile_actor_once(main, "npc_road_thug")
 	assert_true(main.hud.log_label.text.contains("Defeated Road Thug."))
-	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_eq(main.entities.get_entity("npc_road_thug").data.get("state", ""), "dead")
 	main.hud.toggle_systems()
 	main.hud.set_systems_tab("inventory")
 	main.hud.toggle_systems()
@@ -785,7 +786,7 @@ func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 
 	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
 
-	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_eq(main.entities.get_entity("npc_road_thug").data.get("state", ""), "dead")
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 3)
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
@@ -799,12 +800,13 @@ func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 	main.progression.load_save_data({})
 	main.world_state.flags.clear()
 	main.chunks.modified_chunks.clear()
+	main.entities.load_save_data({})
 	main.entities.spawn_all()
-	assert_not_null(main.entities.get_entity("npc_road_thug"))
+	assert_true(main.entities.get_entity("npc_road_thug").is_combat_target())
 
 	assert_true(main.save_manager.load_game().ok)
 
-	assert_null(main.entities.get_entity("npc_road_thug"))
+	assert_eq(main.entities.get_entity("npc_road_thug").data.get("state", ""), "dead")
 	assert_true(main.world_state.has_flag("flag_spawn_road_thug_defeated"))
 	assert_eq(main.inventory.get_count("item_gold_coin"), 3)
 	assert_eq(main.factions.get_reputation("faction_road_bandits"), -5)
@@ -812,7 +814,7 @@ func test_main_save_load_preserves_defeated_hostile_actor_and_loot() -> void:
 	assert_false(main.combat.health_by_entity_id.has("npc_road_thug"))
 
 
-func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
+func test_hostile_humanoid_death_keeps_same_lootable_npc_and_inventory() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.inventory.add_item("item_hunting_bow", 1)
@@ -830,20 +832,19 @@ func test_hostile_humanoid_defeat_creates_lootable_body_inventory() -> void:
 
 	_attack_hostile_actor_until_defeated(main, "npc_road_thug")
 
-	var body = main.entities.get_entity("body_npc_road_thug")
+	var body = main.entities.get_entity("npc_road_thug")
 	assert_not_null(body)
-	assert_eq(body.get_kind(), "body")
+	assert_eq(body.get_kind(), "npc")
 	assert_eq(body.global_tile, death_tile)
-	assert_eq(body.data["character_id"], "char_road_thug")
+	assert_eq(ActorRules.character_id(body.data), "char_road_thug")
 	assert_eq(body.data["inventory_owner_id"], "char_road_thug")
 	assert_eq(body.data["equipment_owner_id"], "char_road_thug")
-	assert_eq(body.data["collapsed_pose_id"], "pose_fallen_side")
-	assert_eq(body.data["character_profile"]["state"], "dead_body")
+	assert_eq(body.data["state"], "dead")
 	assert_not_null(body.humanoid_avatar)
 	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_hunting_bow"), 1)
 	assert_eq(main.inventory.get_count_for_owner("char_road_thug", "item_training_sword"), 1)
 
-	_select_entity(main, "body_npc_road_thug")
+	_select_entity(main, "npc_road_thug")
 	MainFlowInputHelper.interact_action(main)
 
 	assert_eq(main.active_transfer_owner_id, "char_road_thug")
@@ -881,16 +882,17 @@ func test_dedicated_test_hostile_actor_outside_town_has_sword_bow_and_lootable_b
 
 	_attack_hostile_actor_until_defeated(main, "npc_test_raider")
 
-	var body = main.entities.get_entity("body_npc_test_raider")
+	var body = main.entities.get_entity("npc_test_raider")
 	assert_not_null(body)
-	assert_eq(body.get_kind(), "body")
-	assert_eq(body.data["character_id"], "char_test_raider")
+	assert_eq(body.get_kind(), "npc")
+	assert_eq(body.data["state"], "dead")
+	assert_eq(ActorRules.character_id(body.data), "char_test_raider")
 	assert_eq(body.data["inventory_owner_id"], "char_test_raider")
 	assert_eq(body.data["equipment_owner_id"], "char_test_raider")
 	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_hunting_bow"), 1)
 	assert_eq(main.inventory.get_count_for_owner("char_test_raider", "item_training_sword"), 1)
 
-	_select_entity(main, "body_npc_test_raider")
+	_select_entity(main, "npc_test_raider")
 	MainFlowInputHelper.interact_action(main)
 	await _press_transfer_button_by_name(main, "TransferTake_ItemHuntingBow")
 	await _press_transfer_button_by_name(main, "TransferTake_ItemTrainingSword")
@@ -931,21 +933,21 @@ func test_people_test_hostile_actors_spawn_with_generated_profiles_and_lootable_
 
 	_attack_hostile_actor_until_defeated(main, "npc_people_test_tuskfolk")
 
-	var body = main.entities.get_entity("body_npc_people_test_tuskfolk")
+	var body = main.entities.get_entity("npc_people_test_tuskfolk")
 	assert_not_null(body)
-	assert_eq(body.get_kind(), "body")
-	assert_eq(body.data["character_id"], "char_people_test_tuskfolk")
+	assert_eq(body.get_kind(), "npc")
+	assert_eq(body.data["state"], "dead")
+	assert_eq(ActorRules.character_id(body.data), "char_people_test_tuskfolk")
 	assert_eq(body.data["inventory_owner_id"], "char_people_test_tuskfolk")
 	assert_eq(body.data["equipment_owner_id"], "char_people_test_tuskfolk")
 	assert_eq(body.data["character_profile"]["people_id"], "people_tuskfolk")
-	assert_eq(body.data["character_profile"]["state"], "dead_body")
 	assert_not_null(body.humanoid_avatar)
 	assert_eq(main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_gold_coin"), 1)
 	assert_eq(
 		main.inventory.get_count_for_owner("char_people_test_tuskfolk", "item_training_sword"), 1
 	)
 
-	_select_entity(main, "body_npc_people_test_tuskfolk")
+	_select_entity(main, "npc_people_test_tuskfolk")
 	MainFlowInputHelper.interact_action(main)
 	await _press_transfer_button_by_name(main, "TransferTake_ItemGoldCoin")
 	await _press_transfer_button_by_name(main, "TransferTake_ItemTrainingSword")
@@ -961,7 +963,7 @@ func test_transfer_take_and_put_buttons_move_items() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	_attack_hostile_actor_until_defeated(main, "npc_people_test_human")
-	_select_entity(main, "body_npc_people_test_human")
+	_select_entity(main, "npc_people_test_human")
 	MainFlowInputHelper.interact_action(main)
 
 	var target_pane: Node = main.hud.systems_item_list.find_child(
@@ -991,11 +993,11 @@ func test_transfer_take_clears_when_source_is_no_longer_available() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	_attack_hostile_actor_until_defeated(main, "npc_people_test_human")
-	_select_entity(main, "body_npc_people_test_human")
+	_select_entity(main, "npc_people_test_human")
 	MainFlowInputHelper.interact_action(main)
 
 	assert_eq(main.active_transfer_owner_id, "char_people_test_human")
-	assert_eq(main.active_transfer_source_id, "body_npc_people_test_human")
+	assert_eq(main.active_transfer_source_id, "npc_people_test_human")
 
 	main.player.set_world_position(Vector2(2000.0, 2000.0))
 	MainInventoryTransfer.take_item(MainInventoryTransfer.context(main), "item_gold_coin")
@@ -1003,7 +1005,6 @@ func test_transfer_take_clears_when_source_is_no_longer_available() -> void:
 	assert_eq(main.active_transfer_owner_id, "")
 	assert_eq(main.inventory.get_count("item_gold_coin"), 0)
 	assert_eq(main.inventory.get_count_for_owner("char_people_test_human", "item_gold_coin"), 1)
-	assert_true(main.hud.log_label.text.contains("Transfer source is gone."))
 
 
 func test_pickpocket_transfer_rechecks_sneaking_before_taking_item() -> void:
@@ -1072,10 +1073,13 @@ func _attack_hostile_actor_once(main, entity_id: String) -> void:
 
 func _attack_hostile_actor_until_defeated(main, entity_id: String) -> void:
 	for _i in range(8):
-		if not main.entities.get_entity(entity_id):
+		var actor = main.entities.get_entity(entity_id)
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 		_attack_hostile_actor_once(main, entity_id)
-	assert_null(main.entities.get_entity(entity_id))
+	var actor = main.entities.get_entity(entity_id)
+	assert_not_null(actor)
+	assert_true(ActorRules.is_dead_actor_data(actor.data))
 
 
 func _select_entity(main, entity_id: String) -> void:

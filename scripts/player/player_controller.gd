@@ -16,6 +16,10 @@ const DEFAULT_MAX_HEALTH := 100
 const DEFAULT_MAX_MANA := 100.0
 const SNEAK_SPEED_MULTIPLIER := 0.45
 const MOVE_INPUT_THRESHOLD := 0.01
+const FOOTSTEP_INTERVAL_SECONDS := 0.42
+const SNEAK_FOOTSTEP_INTERVAL_SECONDS := 0.70
+const FOOTSTEP_NOISE_RADIUS := 88.0
+const SNEAK_FOOTSTEP_NOISE_RADIUS := 30.0
 
 var event_bus: EventBus
 var chunk_manager
@@ -32,6 +36,7 @@ var facing_direction := Vector2.DOWN
 var humanoid_profile: Dictionary = HumanoidProfile.from_data({"character_id": "char_player"})
 var humanoid_avatar: HumanoidAvatar2D
 var is_sneaking := false
+var footstep_cooldown := 0.0
 
 
 func setup(bus: EventBus, chunks, start_tile: Vector2i = Vector2i.ZERO) -> void:
@@ -50,6 +55,9 @@ func _process(delta: float) -> void:
 		humanoid_avatar.set_locomotion(is_moving, is_sneaking, delta)
 	if is_moving:
 		try_move(direction, delta)
+		_tick_footstep_noise(delta)
+	else:
+		footstep_cooldown = 0.0
 
 
 func try_move(direction: Vector2, delta: float = 1.0) -> void:
@@ -97,6 +105,10 @@ func set_world_layer(layer: String) -> void:
 	_apply_query_layer()
 	if event_bus:
 		event_bus.player_tile_changed.emit(global_tile, GridMath.tile_to_chunk(global_tile))
+
+
+func get_world_layer() -> String:
+	return world_layer
 
 
 func get_save_data() -> Dictionary:
@@ -214,6 +226,31 @@ func set_sneaking(value: bool) -> bool:
 	if humanoid_avatar:
 		humanoid_avatar.set_sneaking(is_sneaking)
 	return is_sneaking
+
+
+func _tick_footstep_noise(delta: float) -> void:
+	footstep_cooldown -= delta
+	if footstep_cooldown > 0.0:
+		return
+	footstep_cooldown = (
+		SNEAK_FOOTSTEP_INTERVAL_SECONDS if is_sneaking else FOOTSTEP_INTERVAL_SECONDS
+	)
+	if not event_bus or not event_bus.has_signal("noise_emitted"):
+		return
+	event_bus.noise_emitted.emit(
+		{
+			"kind": "footstep",
+			"source_id": "player",
+			"world_position": [global_position.x, global_position.y],
+			"world_layer": world_layer,
+			"noise_radius": (
+				SNEAK_FOOTSTEP_NOISE_RADIUS if is_sneaking else FOOTSTEP_NOISE_RADIUS
+			),
+			"loudness": "quiet" if is_sneaking else "normal",
+			"visible": false,
+			"target_sneaking": is_sneaking
+		}
+	)
 
 
 func set_facing_direction(value: Vector2) -> void:

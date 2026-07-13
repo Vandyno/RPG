@@ -43,6 +43,13 @@ func test_northgate_schedule_bindings_and_farm_remain_review_gated() -> void:
 		content.get_schedule_binding("binding_northgate_guard_north"), "patrol", 1, 0
 	)
 	assert_eq(guard_destination["id"], "northgate_guard_gate_runtime")
+	assert_eq(
+		Vector2i(
+			int(guard_destination["global_tile"][0]),
+			int(guard_destination["global_tile"][1])
+		),
+		Vector2i(-3263, -3955)
+	)
 	var resident_one := content.get_schedule_binding("binding_northgate_resident_01")
 	assert_eq(resident_one["visit_target_npc_ids"], ["npc_northgate_resident_02"])
 	assert_eq(

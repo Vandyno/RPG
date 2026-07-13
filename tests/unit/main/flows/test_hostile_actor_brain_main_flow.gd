@@ -177,7 +177,69 @@ func test_attack_against_neutral_npc_makes_them_hostile_and_able_to_attack() -> 
 	assert_eq(maera.data["behavior_state"], "attacking")
 
 
-func test_neutral_npc_defeat_creates_lootable_body() -> void:
+func test_hostile_does_not_detect_player_behind_it_but_investigates_noise() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.set_process(false)
+	var actor = main.entities.get_entity("npc_people_test_human")
+	assert_not_null(actor)
+	_keep_only_brain(main, actor.get_entity_id())
+	actor.data["vision_degrees"] = 90.0
+	actor.data["vision_distance"] = 180.0
+	actor.data["hearing_radius"] = 180.0
+	actor.set_facing_direction(Vector2.RIGHT)
+	main.player.set_world_position(actor.global_position + Vector2(-64.0, 0.0))
+	var start_position: Vector2 = actor.global_position
+
+	HostileActorBrain.update(main, 0.1)
+
+	assert_eq(actor.data["behavior_state"], "idle")
+	assert_eq(actor.global_position, start_position)
+	main.event_bus.noise_emitted.emit(
+		{
+			"kind": "test_noise",
+			"source_id": "player",
+			"world_position": [main.player.global_position.x, main.player.global_position.y],
+			"world_layer": main.player.world_layer,
+			"noise_radius": 180.0,
+			"loudness": 1.0,
+			"visible": false
+		}
+	)
+	HostileActorBrain.update(main, 0.1)
+
+	assert_eq(main.npc_perception.get_awareness_state(String(actor.data.get("npc_id", actor.get_entity_id()))), "suspicious")
+	assert_eq(actor.data["behavior_state"], "investigating")
+	assert_gt(actor.global_position.distance_to(start_position), 0.0)
+
+
+func test_attacking_neutral_in_view_of_guard_creates_live_report_and_bounty() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	main.set_process(false)
+	var victim = main.entities.get_entity("npc_maera_pike_world")
+	var guard = main.entities.get_entity("npc_people_test_ravenfolk")
+	assert_not_null(victim)
+	assert_not_null(guard)
+	guard.data["role"] = "guard"
+	guard.data["npc_id"] = "npc_test_guard"
+	guard.data["vision_degrees"] = 360.0
+	guard.data["vision_distance"] = 200.0
+	guard.set_actor_state("alive")
+	guard.set_world_position(victim.global_position + Vector2(0.0, 32.0))
+	main.player.set_world_position(victim.global_position + Vector2(-8.0, 0.0))
+	main.player.set_facing_direction(Vector2.RIGHT)
+
+	MainSystemsActions.handle_aim(MainSystemsActions.aim_context(main), "attack", Vector2.RIGHT)
+
+	assert_eq(main.crime.crimes.size(), 1)
+	assert_eq(main.crime.crimes[0]["kind"], "assault")
+	assert_eq(main.crime.crimes[0]["status"], "reported")
+	assert_eq(main.crime.reports[0]["witness_npc_id"], "npc_test_guard")
+	assert_eq(main.crime.bounty, 25)
+
+
+func test_neutral_npc_death_keeps_same_lootable_actor() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.set_process(false)
@@ -188,15 +250,14 @@ func test_neutral_npc_defeat_creates_lootable_body() -> void:
 
 	_attack_actor_until_defeated(main, "npc_maera_pike_world")
 
-	assert_null(main.entities.get_entity("npc_maera_pike_world"))
-	var body = main.entities.get_entity("body_npc_maera_pike_world")
+	var body = main.entities.get_entity("npc_maera_pike_world")
 	assert_not_null(body)
-	assert_eq(body.get_kind(), "body")
+	assert_eq(body.get_kind(), "npc")
 	assert_eq(body.global_tile, death_tile)
-	assert_eq(body.data["character_id"], "char_maera_pike")
+	assert_eq(body.data["state"], "dead")
+	assert_eq(ActorRules.character_id(body.data), "char_maera_pike")
 	assert_eq(body.data["inventory_owner_id"], "char_maera_pike")
 	assert_eq(body.data["equipment_owner_id"], "char_maera_pike")
-	assert_eq(body.data["character_profile"]["state"], "dead_body")
 	assert_eq(main.inventory.get_count_for_owner("char_maera_pike", "item_gold_coin"), 2)
 
 
@@ -287,7 +348,7 @@ func test_moved_hostile_actor_keeps_position_after_entity_refresh() -> void:
 	assert_lt(actor.global_position.distance_to(moved_position), 0.01)
 
 
-func test_moved_hostile_actor_defeat_stays_removed_from_authored_spawn() -> void:
+func test_moved_hostile_actor_death_stays_at_death_location_after_refresh() -> void:
 	var main := Main.new()
 	add_child_autofree(main)
 	main.set_process(false)
@@ -301,10 +362,16 @@ func test_moved_hostile_actor_defeat_stays_removed_from_authored_spawn() -> void
 
 	_attack_actor_until_defeated(main, "npc_people_test_human")
 
-	assert_null(main.entities.get_entity("npc_people_test_human"))
-	assert_true(main.chunks.is_entity_removed("npc_people_test_human", spawn_tile))
+	actor = main.entities.get_entity("npc_people_test_human")
+	assert_not_null(actor)
+	assert_eq(actor.data.get("state", ""), "dead")
+	var death_position: Vector2 = actor.global_position
+	assert_false(main.chunks.is_entity_removed("npc_people_test_human", spawn_tile))
 	main.entities.spawn_all()
-	assert_null(main.entities.get_entity("npc_people_test_human"))
+	actor = main.entities.get_entity("npc_people_test_human")
+	assert_not_null(actor)
+	assert_eq(actor.data.get("state", ""), "dead")
+	assert_eq(actor.global_position, death_position)
 
 
 func _place_player_by_actor(main, entity_id: String, offset: Vector2):
@@ -314,6 +381,7 @@ func _place_player_by_actor(main, entity_id: String, offset: Vector2):
 	main.player.set_world_position(player_position)
 	actor = main.entities.get_entity(entity_id)
 	assert_not_null(actor)
+	actor.set_facing_direction(main.player.global_position - actor.global_position)
 	return actor
 
 
@@ -328,7 +396,7 @@ func _keep_only_brain(main, kept_entity_id: String) -> void:
 func _attack_actor_until_defeated(main, entity_id: String) -> void:
 	for _i in range(8):
 		var actor = main.entities.get_entity(entity_id)
-		if not actor:
+		if actor and ActorRules.is_dead_actor_data(actor.data):
 			return
 		var actor_position: Vector2 = actor.global_position
 		main.player.set_world_position(actor_position + Vector2(-8.0, 0.0))

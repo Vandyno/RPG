@@ -426,6 +426,7 @@ static func _perform_weapon_attack(
 		attack["charge_ratio"] = safe_charge_ratio
 		attack["released"] = true
 		damage = maxi(1, int(round(float(full_damage) * safe_charge_ratio)))
+	_emit_player_attack_noise(ctx, attack)
 	_spawn_weapon_action(ctx, attack, direction, damage, String(attack.get("item_name", "Attack")))
 
 
@@ -484,14 +485,69 @@ static func _damage_targets(
 static func _damage_target(ctx: AimCombatContext, entity, damage: int, source_name: String) -> void:
 	if not ActorRules.is_damageable_actor_entity(entity):
 		return
+	var was_hostile := ActorRules.is_hostile_to_player_data(entity.data)
 	_aggravate_attacked_actor(ctx, entity)
 	var result: Dictionary = ctx.combat.damage_entity(entity, damage, false)
+	if not was_hostile:
+		_emit_player_violent_crime(ctx, entity, bool(result.get("defeated", false)))
 	if bool(result.get("defeated", false)):
 		_defeat_actor(ctx, entity, result)
 	else:
 		ctx.event_bus.post_message(
 			"%s hits %s for %d." % [source_name, entity.get_display_name(), damage]
 		)
+
+
+static func _emit_player_attack_noise(ctx: AimCombatContext, attack: Dictionary) -> void:
+	if not ctx.event_bus or not ctx.player or not ctx.event_bus.has_signal("noise_emitted"):
+		return
+	var shape := String(attack.get("shape", "swing"))
+	var radius := 48.0 if shape == "punch" else 96.0
+	if shape in ["projectile", "cone", "stream"]:
+		radius = 160.0
+	ctx.event_bus.noise_emitted.emit(
+		{
+			"kind": "weapon_attack",
+			"source_id": "player",
+			"world_position": [ctx.player.global_position.x, ctx.player.global_position.y],
+			"world_layer": _actor_world_layer(ctx.player),
+			"noise_radius": radius,
+			"loudness": "loud",
+			"visible": false
+		}
+	)
+
+
+static func _actor_world_layer(actor) -> String:
+	if actor and actor.has_method("get_world_layer"):
+		return String(actor.get_world_layer())
+	var value: Variant = actor.get("world_layer") if actor else null
+	return String(value) if value is String and not String(value).is_empty() else "surface"
+
+
+static func _emit_player_violent_crime(ctx: AimCombatContext, victim, defeated: bool) -> void:
+	if (
+		not ctx.event_bus
+		or not ctx.event_bus.has_signal("player_crime_committed")
+		or not victim
+		or not (victim.data is Dictionary)
+	):
+		return
+	var profile := ActorRules.profile(victim.data)
+	ctx.event_bus.player_crime_committed.emit(
+		{
+			"kind": "murder" if defeated else "assault",
+			"offender_id": "player",
+			"victim_entity_id": victim.get_entity_id(),
+			"victim_npc_id": String(victim.data.get("npc_id", victim.get_entity_id())),
+			"victim_faction_id": String(profile.get("faction_id", victim.data.get("faction_id", ""))),
+			"world_position": [victim.global_position.x, victim.global_position.y],
+			"world_layer": String(victim.data.get("world_layer", "surface")),
+			"noise_radius": 160.0,
+			"loudness": "loud",
+			"visible": true
+		}
+	)
 
 
 static func _aggravate_attacked_actor(ctx: AimCombatContext, entity) -> void:
@@ -533,10 +589,9 @@ static func _defeat_actor(ctx: AimCombatContext, entity, result: Dictionary) -> 
 	var defeat_effects := []
 	if entity and entity.data is Dictionary:
 		defeat_effects = entity.data.get("effects_on_defeat", [])
-	if ctx.entities.has_method("create_body_for_defeated_actor"):
-		ctx.entities.create_body_for_defeated_actor(entity)
+	if ctx.entities.has_method("transition_actor_to_dead"):
+		ctx.entities.transition_actor_to_dead(entity)
 	ctx.combat.clear_entity(entity.get_entity_id())
-	ctx.entities.remove_entity(entity.get_entity_id())
 	ctx.event_bus.post_message("Defeated %s." % result.get("name", "hostile actor"))
 	var effects_failed := _apply_effects(defeat_effects, ctx, false)
 	if effects_failed:

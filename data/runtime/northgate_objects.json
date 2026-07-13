@@ -2,7 +2,7 @@
   {
     "global_tile": [
       -3265,
-      -3949
+      -3951
     ],
     "id": "portal_structure_northgate_shrine_plot_entry",
     "interaction_radius": 96,
@@ -18,7 +18,7 @@
       "target_layer": "interior:structure_northgate_shrine_plot",
       "target_tile": [
         4.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -36,21 +36,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        1.0,
-        0.0
+        0.0,
+        1.0
       ],
       "target_layer": "surface",
       "target_tile": [
         -3265,
-        -3949
+        -3950
       ]
     },
     "world_layer": "interior:structure_northgate_shrine_plot"
   },
   {
     "global_tile": [
-      -3257,
-      -3949
+      -3252,
+      -3952
     ],
     "id": "portal_structure_northgate_guard_plot_entry",
     "interaction_radius": 96,
@@ -66,7 +66,7 @@
       "target_layer": "interior:structure_northgate_guard_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -89,16 +89,16 @@
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3257,
-        -3949
+        -3252,
+        -3951
       ]
     },
     "world_layer": "interior:structure_northgate_guard_plot"
   },
   {
     "global_tile": [
-      -3267,
-      -3942
+      -3264,
+      -3947
     ],
     "id": "portal_structure_northgate_hall_plot_entry",
     "interaction_radius": 96,
@@ -114,7 +114,7 @@
       "target_layer": "interior:structure_northgate_hall_plot",
       "target_tile": [
         7.0,
-        7.0
+        5.0
       ]
     },
     "world_layer": "surface"
@@ -132,21 +132,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        0.0,
-        1.0
+        1.0,
+        0.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3267,
-        -3942
+        -3263,
+        -3947
       ]
     },
     "world_layer": "interior:structure_northgate_hall_plot"
   },
   {
     "global_tile": [
-      -3245,
-      -3945
+      -3252,
+      -3949
     ],
     "id": "portal_structure_northgate_inn_plot_entry",
     "interaction_radius": 96,
@@ -161,16 +161,17 @@
       ],
       "target_layer": "interior:structure_northgate_inn_plot",
       "target_tile": [
-        9.0,
-        9.0
+        7.0,
+        5.0
       ]
     },
+    "visual_style": "hidden",
     "world_layer": "surface"
   },
   {
     "global_tile": [
-      9.0,
-      11.0
+      7.0,
+      9.0
     ],
     "id": "portal_structure_northgate_inn_plot_exit",
     "interaction_radius": 48,
@@ -185,16 +186,17 @@
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3245,
-        -3945
+        -3253,
+        -3949
       ]
     },
+    "visual_style": "hidden",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
     "global_tile": [
-      -3235,
-      -3944
+      -3236,
+      -3943
     ],
     "id": "portal_structure_northgate_stable_plot_entry",
     "interaction_radius": 96,
@@ -210,7 +212,7 @@
       "target_layer": "interior:structure_northgate_stable_plot",
       "target_tile": [
         6.0,
-        8.0
+        6.0
       ]
     },
     "world_layer": "surface"
@@ -228,21 +230,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        -1.0,
-        0.0
+        0.0,
+        1.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3235,
-        -3944
+        -3236,
+        -3942
       ]
     },
     "world_layer": "interior:structure_northgate_stable_plot"
   },
   {
     "global_tile": [
-      -3268,
-      -3932
+      -3270,
+      -3937
     ],
     "id": "portal_structure_northgate_shop_plot_entry",
     "interaction_radius": 96,
@@ -258,7 +260,7 @@
       "target_layer": "interior:structure_northgate_shop_plot",
       "target_tile": [
         6.0,
-        6.0
+        4.0
       ]
     },
     "world_layer": "surface"
@@ -276,21 +278,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        1.0,
-        0.0
+        0.0,
+        -1.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3268,
-        -3932
+        -3270,
+        -3938
       ]
     },
     "world_layer": "interior:structure_northgate_shop_plot"
   },
   {
     "global_tile": [
-      -3259,
-      -3932
+      -3263,
+      -3930
     ],
     "id": "portal_structure_northgate_store_plot_entry",
     "interaction_radius": 96,
@@ -306,7 +308,7 @@
       "target_layer": "interior:structure_northgate_store_plot",
       "target_tile": [
         6.0,
-        6.0
+        4.0
       ]
     },
     "world_layer": "surface"
@@ -324,21 +326,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        0.0,
-        -1.0
+        1.0,
+        0.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3259,
-        -3932
+        -3262,
+        -3930
       ]
     },
     "world_layer": "interior:structure_northgate_store_plot"
   },
   {
     "global_tile": [
-      -3270,
-      -3924
+      -3274,
+      -3931
     ],
     "id": "portal_structure_northgate_west_home_plot_entry",
     "interaction_radius": 96,
@@ -354,7 +356,7 @@
       "target_layer": "interior:structure_northgate_west_home_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -372,21 +374,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        1.0,
-        0.0
+        0.0,
+        -1.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3270,
-        -3924
+        -3274,
+        -3932
       ]
     },
     "world_layer": "interior:structure_northgate_west_home_plot"
   },
   {
     "global_tile": [
-      -3261,
-      -3923
+      -3263,
+      -3926
     ],
     "id": "portal_structure_northgate_south_home_plot_entry",
     "interaction_radius": 96,
@@ -402,7 +404,7 @@
       "target_layer": "interior:structure_northgate_south_home_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -420,21 +422,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        0.0,
-        -1.0
+        1.0,
+        0.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3261,
-        -3923
+        -3262,
+        -3926
       ]
     },
     "world_layer": "interior:structure_northgate_south_home_plot"
   },
   {
     "global_tile": [
-      -3247,
-      -3929
+      -3249,
+      -3936
     ],
     "id": "portal_structure_northgate_smith_plot_entry",
     "interaction_radius": 96,
@@ -450,7 +452,7 @@
       "target_layer": "interior:structure_northgate_smith_plot",
       "target_tile": [
         6.0,
-        7.0
+        5.0
       ]
     },
     "world_layer": "surface"
@@ -468,21 +470,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        -1.0,
-        0.0
+        0.0,
+        -1.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3247,
-        -3929
+        -3249,
+        -3937
       ]
     },
     "world_layer": "interior:structure_northgate_smith_plot"
   },
   {
     "global_tile": [
-      -3237,
-      -3925
+      -3239,
+      -3937
     ],
     "id": "portal_structure_northgate_east_home_plot_entry",
     "interaction_radius": 96,
@@ -498,7 +500,7 @@
       "target_layer": "interior:structure_northgate_east_home_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -516,21 +518,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        -1.0,
-        0.0
+        0.0,
+        -1.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3237,
-        -3925
+        -3239,
+        -3938
       ]
     },
     "world_layer": "interior:structure_northgate_east_home_plot"
   },
   {
     "global_tile": [
-      -3246,
-      -3915
+      -3254,
+      -3927
     ],
     "id": "portal_structure_northgate_southeast_home_plot_entry",
     "interaction_radius": 96,
@@ -546,7 +548,7 @@
       "target_layer": "interior:structure_northgate_southeast_home_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -564,21 +566,21 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        0.0,
-        -1.0
+        -1.0,
+        0.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3246,
-        -3915
+        -3255,
+        -3927
       ]
     },
     "world_layer": "interior:structure_northgate_southeast_home_plot"
   },
   {
     "global_tile": [
-      -3235,
-      -3915
+      -3242,
+      -3927
     ],
     "id": "portal_structure_northgate_far_east_home_plot_entry",
     "interaction_radius": 96,
@@ -594,7 +596,7 @@
       "target_layer": "interior:structure_northgate_far_east_home_plot",
       "target_tile": [
         5.0,
-        5.0
+        3.0
       ]
     },
     "world_layer": "surface"
@@ -612,13 +614,13 @@
     "portal": {
       "message": "Returned to Northgate.",
       "target_facing": [
-        0.0,
-        -1.0
+        -1.0,
+        0.0
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3235,
-        -3915
+        -3243,
+        -3927
       ]
     },
     "world_layer": "interior:structure_northgate_far_east_home_plot"
@@ -638,60 +640,64 @@
   {
     "description": "The road continues beyond Northgate into the Marches.",
     "global_tile": [
-      -3261.0,
-      -3992.0
+      -3264,
+      -3961
     ],
     "id": "poi_northgate_north_gate_route",
     "interaction_radius": 96,
     "kind": "poi",
     "name": "North Gate",
     "poi_type": "Town Route",
-    "summary": "arrival and departure road"
+    "summary": "arrival and departure road",
+    "visual_style": "sign"
   },
   {
     "description": "The road continues beyond Northgate into the Marches.",
     "global_tile": [
-      -3207.0,
-      -3938.0
+      -3226,
+      -3944
     ],
     "id": "poi_northgate_east_gate_route",
     "interaction_radius": 96,
     "kind": "poi",
     "name": "East Gate",
     "poi_type": "Town Route",
-    "summary": "arrival and departure road"
+    "summary": "arrival and departure road",
+    "visual_style": "sign"
   },
   {
     "description": "The road continues beyond Northgate into the Marches.",
     "global_tile": [
-      -3256.0,
-      -3889.0
+      -3256,
+      -3918
     ],
     "id": "poi_northgate_south_gate_route",
     "interaction_radius": 96,
     "kind": "poi",
     "name": "South Gate",
     "poi_type": "Town Route",
-    "summary": "arrival and departure road"
+    "summary": "arrival and departure road",
+    "visual_style": "sign"
   },
   {
     "description": "The road continues beyond Northgate into the Marches.",
     "global_tile": [
-      -3314.0,
-      -3938.0
+      -3284,
+      -3937
     ],
     "id": "poi_northgate_west_gate_route",
     "interaction_radius": 96,
     "kind": "poi",
     "name": "West Gate",
     "poi_type": "Town Route",
-    "summary": "arrival and departure road"
+    "summary": "arrival and departure road",
+    "visual_style": "sign"
   },
   {
     "canon_status": "proposal",
     "global_tile": [
-      10,
-      8
+      12,
+      6
     ],
     "id": "object_briarwatch_northgate_coach",
     "interaction_radius": 96,
@@ -706,16 +712,16 @@
       ],
       "target_layer": "surface",
       "target_tile": [
-        -3252,
-        -3932
+        -3237,
+        -3940
       ]
     }
   },
   {
     "canon_status": "proposal",
     "global_tile": [
-      -3251,
-      -3932
+      -3236,
+      -3940
     ],
     "id": "object_northgate_briarwatch_coach",
     "interaction_radius": 96,
@@ -739,7 +745,7 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
+      4.0,
       2.0
     ],
     "id": "fixture_slot_northgate_shrine_plot_00",
@@ -754,7 +760,7 @@
     "canon_status": "proposal",
     "global_tile": [
       4.0,
-      2.0
+      3.0
     ],
     "id": "fixture_slot_northgate_shrine_plot_01",
     "kind": "fixture",
@@ -767,8 +773,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_shrine_plot_02",
     "kind": "fixture",
@@ -784,6 +790,48 @@
       2.0,
       2.0
     ],
+    "id": "fixture_slot_northgate_shrine_plot_03",
+    "kind": "fixture",
+    "name": "Candle Cluster",
+    "structure_id": "structure_northgate_shrine_plot",
+    "visual_style": "fixture:candle_cluster",
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      6.0,
+      2.0
+    ],
+    "id": "fixture_slot_northgate_shrine_plot_04",
+    "kind": "fixture",
+    "name": "Reliquary Shelf",
+    "structure_id": "structure_northgate_shrine_plot",
+    "visual_style": "fixture:reliquary_shelf",
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      6.0,
+      5.0
+    ],
+    "id": "fixture_slot_northgate_shrine_plot_05",
+    "kind": "fixture",
+    "name": "Stone Marker",
+    "structure_id": "structure_northgate_shrine_plot",
+    "visual_style": "fixture:stone_marker",
+    "world_layer": "interior:structure_northgate_shrine_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      3.0,
+      3.0
+    ],
     "id": "fixture_slot_northgate_guard_plot_00",
     "kind": "fixture",
     "name": "Watch Desk",
@@ -795,7 +843,7 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      8.0,
       2.0
     ],
     "id": "fixture_slot_northgate_guard_plot_01",
@@ -809,14 +857,14 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_guard_plot_02",
     "kind": "fixture",
-    "name": "Bunk",
+    "name": "Guard Bunk",
     "structure_id": "structure_northgate_guard_plot",
-    "visual_style": "fixture:bunk",
+    "visual_style": "fixture:guard_bunk",
     "world_layer": "interior:structure_northgate_guard_plot"
   },
   {
@@ -824,13 +872,55 @@
     "canon_status": "proposal",
     "global_tile": [
       8.0,
-      2.0
+      5.0
     ],
     "id": "fixture_slot_northgate_guard_plot_03",
+    "kind": "fixture",
+    "name": "Spare Bed",
+    "structure_id": "structure_northgate_guard_plot",
+    "visual_style": "fixture:spare_bed",
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      5.0,
+      2.0
+    ],
+    "id": "fixture_slot_northgate_guard_plot_04",
     "kind": "fixture",
     "name": "Road Map",
     "structure_id": "structure_northgate_guard_plot",
     "visual_style": "fixture:road_map",
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      5.0,
+      5.0
+    ],
+    "id": "fixture_slot_northgate_guard_plot_05",
+    "kind": "fixture",
+    "name": "Mess Table",
+    "structure_id": "structure_northgate_guard_plot",
+    "visual_style": "fixture:mess_table",
+    "world_layer": "interior:structure_northgate_guard_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      9.0,
+      6.0
+    ],
+    "id": "fixture_slot_northgate_guard_plot_06",
+    "kind": "fixture",
+    "name": "Records Chest",
+    "structure_id": "structure_northgate_guard_plot",
+    "visual_style": "fixture:records_chest",
     "world_layer": "interior:structure_northgate_guard_plot"
   },
   {
@@ -851,8 +941,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
-      2.0
+      10.0,
+      3.0
     ],
     "id": "fixture_slot_northgate_hall_plot_01",
     "kind": "fixture",
@@ -865,7 +955,7 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
+      12.0,
       2.0
     ],
     "id": "fixture_slot_northgate_hall_plot_02",
@@ -879,8 +969,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      3.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_hall_plot_03",
     "kind": "fixture",
@@ -893,7 +983,63 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
+      3.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_hall_plot_04",
+    "kind": "fixture",
+    "name": "Waiting Bench",
+    "structure_id": "structure_northgate_hall_plot",
+    "visual_style": "fixture:waiting_bench",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      9.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_hall_plot_05",
+    "kind": "fixture",
+    "name": "Clerk Desk",
+    "structure_id": "structure_northgate_hall_plot",
+    "visual_style": "fixture:clerk_desk",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      12.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_hall_plot_06",
+    "kind": "fixture",
+    "name": "Seal Chest",
+    "structure_id": "structure_northgate_hall_plot",
+    "visual_style": "fixture:seal_chest",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      7.0,
+      5.0
+    ],
+    "id": "fixture_slot_northgate_hall_plot_07",
+    "kind": "fixture",
+    "name": "Meeting Table",
+    "structure_id": "structure_northgate_hall_plot",
+    "visual_style": "fixture:meeting_table",
+    "world_layer": "interior:structure_northgate_hall_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      12.0,
       2.0
     ],
     "id": "fixture_slot_northgate_inn_plot_00",
@@ -908,7 +1054,7 @@
     "canon_status": "proposal",
     "global_tile": [
       4.0,
-      2.0
+      3.0
     ],
     "id": "fixture_slot_northgate_inn_plot_01",
     "kind": "fixture",
@@ -921,8 +1067,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
-      2.0
+      8.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_inn_plot_02",
     "kind": "fixture",
@@ -935,10 +1081,24 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      11.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_inn_plot_03",
+    "kind": "fixture",
+    "name": "Side Table",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:side_table",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      12.0,
+      8.0
+    ],
+    "id": "fixture_slot_northgate_inn_plot_04",
     "kind": "fixture",
     "name": "Guest Bed",
     "structure_id": "structure_northgate_inn_plot",
@@ -949,14 +1109,155 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      10.0,
+      2.0,
       2.0
     ],
-    "id": "fixture_slot_northgate_inn_plot_04",
+    "id": "fixture_slot_northgate_inn_plot_05",
     "kind": "fixture",
     "name": "Pantry Shelf",
     "structure_id": "structure_northgate_inn_plot",
     "visual_style": "fixture:pantry_shelf",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      10.0,
+      3.0
+    ],
+    "id": "fixture_slot_northgate_inn_plot_06",
+    "kind": "fixture",
+    "name": "Fireside Bench",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:fireside_bench",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      7.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_inn_plot_07",
+    "kind": "fixture",
+    "name": "Traveller Bench",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:traveller_bench",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      2.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_inn_plot_08",
+    "kind": "fixture",
+    "name": "Ale Barrels",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:ale_barrels",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [2.0, 3.0],
+    "id": "fixture_slot_northgate_inn_plot_bar_west",
+    "kind": "fixture",
+    "name": "West Bar Counter",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:bar_counter",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [6.0, 3.0],
+    "id": "fixture_slot_northgate_inn_plot_bar_east",
+    "kind": "fixture",
+    "name": "East Bar Counter",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:bar_counter",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "domestic",
+    "canon_status": "proposal",
+    "global_tile": [3.0, 2.0],
+    "id": "fixture_slot_northgate_inn_plot_backbar_west",
+    "kind": "fixture",
+    "name": "West Backbar Shelf",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:pantry_shelf",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "domestic",
+    "canon_status": "proposal",
+    "global_tile": [6.0, 2.0],
+    "id": "fixture_slot_northgate_inn_plot_backbar_east",
+    "kind": "fixture",
+    "name": "East Backbar Shelf",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:pantry_shelf",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [3.0, 4.0],
+    "id": "fixture_slot_northgate_inn_plot_bar_stool_west",
+    "kind": "fixture",
+    "name": "West Bar Stool",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:stool",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [5.0, 4.0],
+    "id": "fixture_slot_northgate_inn_plot_bar_stool_east",
+    "kind": "fixture",
+    "name": "East Bar Stool",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:stool",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [10.0, 6.0],
+    "id": "fixture_slot_northgate_inn_plot_stool_northeast",
+    "kind": "fixture",
+    "name": "Traveller Stool",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:stool",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [12.0, 7.0],
+    "id": "fixture_slot_northgate_inn_plot_stool_southeast",
+    "kind": "fixture",
+    "name": "Guest Trunk",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:guest_trunk",
+    "world_layer": "interior:structure_northgate_inn_plot"
+  },
+  {
+    "authored_purpose": "domestic",
+    "canon_status": "proposal",
+    "global_tile": [11.0, 7.0],
+    "id": "fixture_slot_northgate_inn_plot_guest_partition",
+    "kind": "fixture",
+    "name": "Guest Nook Partition",
+    "structure_id": "structure_northgate_inn_plot",
+    "visual_style": "fixture:partition",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -968,33 +1269,47 @@
     ],
     "id": "fixture_slot_northgate_stable_plot_00",
     "kind": "fixture",
-    "name": "Horse Stall",
+    "name": "West Horse Stall",
     "structure_id": "structure_northgate_stable_plot",
-    "visual_style": "fixture:horse_stall",
+    "visual_style": "fixture:west_horse_stall",
     "world_layer": "interior:structure_northgate_stable_plot"
   },
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      5.0,
       2.0
     ],
     "id": "fixture_slot_northgate_stable_plot_01",
     "kind": "fixture",
-    "name": "Horse Stall",
+    "name": "Center Horse Stall",
     "structure_id": "structure_northgate_stable_plot",
-    "visual_style": "fixture:horse_stall",
+    "visual_style": "fixture:center_horse_stall",
     "world_layer": "interior:structure_northgate_stable_plot"
   },
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
+      8.0,
       2.0
     ],
     "id": "fixture_slot_northgate_stable_plot_02",
+    "kind": "fixture",
+    "name": "East Horse Stall",
+    "structure_id": "structure_northgate_stable_plot",
+    "visual_style": "fixture:east_horse_stall",
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      11.0,
+      2.0
+    ],
+    "id": "fixture_slot_northgate_stable_plot_03",
     "kind": "fixture",
     "name": "Tack Rack",
     "structure_id": "structure_northgate_stable_plot",
@@ -1005,10 +1320,10 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      2.0,
+      7.0
     ],
-    "id": "fixture_slot_northgate_stable_plot_03",
+    "id": "fixture_slot_northgate_stable_plot_04",
     "kind": "fixture",
     "name": "Feed Bin",
     "structure_id": "structure_northgate_stable_plot",
@@ -1019,8 +1334,36 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
-      2.0
+      5.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_stable_plot_05",
+    "kind": "fixture",
+    "name": "Hay Bale",
+    "structure_id": "structure_northgate_stable_plot",
+    "visual_style": "fixture:hay_bale",
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      9.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_stable_plot_06",
+    "kind": "fixture",
+    "name": "Grooming Bench",
+    "structure_id": "structure_northgate_stable_plot",
+    "visual_style": "fixture:grooming_bench",
+    "world_layer": "interior:structure_northgate_stable_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      6.0,
+      3.0
     ],
     "id": "fixture_slot_northgate_shop_plot_00",
     "kind": "fixture",
@@ -1033,14 +1376,56 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      2.0,
       2.0
     ],
     "id": "fixture_slot_northgate_shop_plot_01",
     "kind": "fixture",
-    "name": "Goods Shelf",
+    "name": "West Goods Shelf",
     "structure_id": "structure_northgate_shop_plot",
-    "visual_style": "fixture:goods_shelf",
+    "visual_style": "fixture:west_goods_shelf",
+    "world_layer": "interior:structure_northgate_shop_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      9.0,
+      2.0
+    ],
+    "id": "fixture_slot_northgate_shop_plot_02",
+    "kind": "fixture",
+    "name": "East Goods Shelf",
+    "structure_id": "structure_northgate_shop_plot",
+    "visual_style": "fixture:east_goods_shelf",
+    "world_layer": "interior:structure_northgate_shop_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      9.0,
+      6.0
+    ],
+    "id": "fixture_slot_northgate_shop_plot_03",
+    "kind": "fixture",
+    "name": "Provisions Shelf",
+    "structure_id": "structure_northgate_shop_plot",
+    "visual_style": "fixture:provisions_shelf",
+    "world_layer": "interior:structure_northgate_shop_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      2.0,
+      6.0
+    ],
+    "id": "fixture_slot_northgate_shop_plot_04",
+    "kind": "fixture",
+    "name": "Locked Chest",
+    "structure_id": "structure_northgate_shop_plot",
+    "visual_style": "fixture:locked_chest",
     "world_layer": "interior:structure_northgate_shop_plot"
   },
   {
@@ -1048,27 +1433,27 @@
     "canon_status": "proposal",
     "global_tile": [
       6.0,
-      2.0
+      6.0
     ],
-    "id": "fixture_slot_northgate_shop_plot_02",
+    "id": "fixture_slot_northgate_shop_plot_05",
     "kind": "fixture",
-    "name": "Goods Shelf",
+    "name": "Display Table",
     "structure_id": "structure_northgate_shop_plot",
-    "visual_style": "fixture:goods_shelf",
+    "visual_style": "fixture:display_table",
     "world_layer": "interior:structure_northgate_shop_plot"
   },
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      3.0,
+      7.0
     ],
-    "id": "fixture_slot_northgate_shop_plot_03",
+    "id": "fixture_slot_northgate_shop_plot_06",
     "kind": "fixture",
-    "name": "Locked Chest",
+    "name": "Packing Crate",
     "structure_id": "structure_northgate_shop_plot",
-    "visual_style": "fixture:locked_chest",
+    "visual_style": "fixture:packing_crate",
     "world_layer": "interior:structure_northgate_shop_plot"
   },
   {
@@ -1080,33 +1465,61 @@
     ],
     "id": "fixture_slot_northgate_store_plot_00",
     "kind": "fixture",
-    "name": "Crate Stack",
+    "name": "North Crate Stack",
     "structure_id": "structure_northgate_store_plot",
-    "visual_style": "fixture:crate_stack",
+    "visual_style": "fixture:north_crate_stack",
     "world_layer": "interior:structure_northgate_store_plot"
   },
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      9.0,
       2.0
     ],
     "id": "fixture_slot_northgate_store_plot_01",
     "kind": "fixture",
-    "name": "Barrel Stack",
+    "name": "East Crate Stack",
     "structure_id": "structure_northgate_store_plot",
-    "visual_style": "fixture:barrel_stack",
+    "visual_style": "fixture:east_crate_stack",
     "world_layer": "interior:structure_northgate_store_plot"
   },
   {
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_store_plot_02",
+    "kind": "fixture",
+    "name": "Trade Barrels",
+    "structure_id": "structure_northgate_store_plot",
+    "visual_style": "fixture:trade_barrels",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      5.0,
+      6.0
+    ],
+    "id": "fixture_slot_northgate_store_plot_03",
+    "kind": "fixture",
+    "name": "Grain Barrels",
+    "structure_id": "structure_northgate_store_plot",
+    "visual_style": "fixture:grain_barrels",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      8.0,
+      5.0
+    ],
+    "id": "fixture_slot_northgate_store_plot_04",
     "kind": "fixture",
     "name": "Ledger Desk",
     "structure_id": "structure_northgate_store_plot",
@@ -1117,14 +1530,28 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      10.0,
+      7.0
     ],
-    "id": "fixture_slot_northgate_store_plot_03",
+    "id": "fixture_slot_northgate_store_plot_05",
     "kind": "fixture",
     "name": "Locked Store",
     "structure_id": "structure_northgate_store_plot",
     "visual_style": "fixture:locked_store",
+    "world_layer": "interior:structure_northgate_store_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      5.0,
+      3.0
+    ],
+    "id": "fixture_slot_northgate_store_plot_06",
+    "kind": "fixture",
+    "name": "Weighing Table",
+    "structure_id": "structure_northgate_store_plot",
+    "visual_style": "fixture:weighing_table",
     "world_layer": "interior:structure_northgate_store_plot"
   },
   {
@@ -1146,7 +1573,7 @@
     "canon_status": "proposal",
     "global_tile": [
       4.0,
-      4.0
+      3.0
     ],
     "id": "fixture_slot_northgate_west_home_plot_01",
     "kind": "fixture",
@@ -1174,7 +1601,7 @@
     "canon_status": "proposal",
     "global_tile": [
       8.0,
-      5.0
+      6.0
     ],
     "id": "fixture_slot_northgate_west_home_plot_03",
     "kind": "fixture",
@@ -1243,7 +1670,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      5.0,
       4.0
     ],
     "id": "fixture_slot_northgate_south_home_plot_01",
@@ -1257,8 +1684,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_south_home_plot_02",
     "kind": "fixture",
@@ -1286,7 +1713,7 @@
     "canon_status": "proposal",
     "global_tile": [
       7.0,
-      4.0
+      2.0
     ],
     "id": "fixture_slot_northgate_south_home_plot_04",
     "kind": "fixture",
@@ -1299,8 +1726,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
-      5.0
+      3.0,
+      4.0
     ],
     "id": "fixture_slot_northgate_south_home_plot_05",
     "kind": "fixture",
@@ -1313,8 +1740,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      6.0
+      8.0,
+      2.0
     ],
     "id": "fixture_slot_northgate_south_home_plot_06",
     "kind": "fixture",
@@ -1327,7 +1754,7 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
+      10.0,
       2.0
     ],
     "id": "fixture_slot_northgate_smith_plot_00",
@@ -1341,8 +1768,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
-      2.0
+      7.0,
+      4.0
     ],
     "id": "fixture_slot_northgate_smith_plot_01",
     "kind": "fixture",
@@ -1355,7 +1782,7 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      6.0,
+      3.0,
       2.0
     ],
     "id": "fixture_slot_northgate_smith_plot_02",
@@ -1369,8 +1796,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      2.0
+      9.0,
+      6.0
     ],
     "id": "fixture_slot_northgate_smith_plot_03",
     "kind": "fixture",
@@ -1383,8 +1810,8 @@
     "authored_purpose": "operational",
     "canon_status": "proposal",
     "global_tile": [
-      10.0,
-      2.0
+      2.0,
+      6.0
     ],
     "id": "fixture_slot_northgate_smith_plot_04",
     "kind": "fixture",
@@ -1394,11 +1821,39 @@
     "world_layer": "interior:structure_northgate_smith_plot"
   },
   {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      4.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_smith_plot_05",
+    "kind": "fixture",
+    "name": "Coal Stack",
+    "structure_id": "structure_northgate_smith_plot",
+    "visual_style": "fixture:coal_stack",
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  {
+    "authored_purpose": "operational",
+    "canon_status": "proposal",
+    "global_tile": [
+      7.0,
+      7.0
+    ],
+    "id": "fixture_slot_northgate_smith_plot_06",
+    "kind": "fixture",
+    "name": "Tool Chest",
+    "structure_id": "structure_northgate_smith_plot",
+    "visual_style": "fixture:tool_chest",
+    "world_layer": "interior:structure_northgate_smith_plot"
+  },
+  {
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
       2.0,
-      2.0
+      3.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_00",
     "kind": "fixture",
@@ -1411,7 +1866,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      6.0,
       4.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_01",
@@ -1425,8 +1880,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      2.0
+      8.0,
+      3.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_02",
     "kind": "fixture",
@@ -1440,7 +1895,7 @@
     "canon_status": "proposal",
     "global_tile": [
       8.0,
-      5.0
+      6.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_03",
     "kind": "fixture",
@@ -1467,7 +1922,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
+      7.0,
       2.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_05",
@@ -1481,8 +1936,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      5.0
+      6.0,
+      2.0
     ],
     "id": "fixture_slot_northgate_east_home_plot_06",
     "kind": "fixture",
@@ -1509,7 +1964,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      4.0,
+      5.0,
       4.0
     ],
     "id": "fixture_slot_northgate_southeast_home_plot_01",
@@ -1523,8 +1978,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_southeast_home_plot_02",
     "kind": "fixture",
@@ -1538,7 +1993,7 @@
     "canon_status": "proposal",
     "global_tile": [
       8.0,
-      5.0
+      6.0
     ],
     "id": "fixture_slot_northgate_southeast_home_plot_03",
     "kind": "fixture",
@@ -1551,7 +2006,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
+      7.0,
       2.0
     ],
     "id": "fixture_slot_northgate_southeast_home_plot_04",
@@ -1579,7 +2034,7 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      2.0,
+      3.0,
       6.0
     ],
     "id": "fixture_slot_northgate_southeast_home_plot_06",
@@ -1621,8 +2076,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      2.0
+      2.0,
+      5.0
     ],
     "id": "fixture_slot_northgate_far_east_home_plot_02",
     "kind": "fixture",
@@ -1635,8 +2090,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      8.0,
-      5.0
+      4.0,
+      6.0
     ],
     "id": "fixture_slot_northgate_far_east_home_plot_03",
     "kind": "fixture",
@@ -1649,8 +2104,8 @@
     "authored_purpose": "personal",
     "canon_status": "proposal",
     "global_tile": [
-      7.0,
-      4.0
+      8.0,
+      3.0
     ],
     "id": "fixture_slot_northgate_far_east_home_plot_04",
     "kind": "fixture",
@@ -1664,7 +2119,7 @@
     "canon_status": "proposal",
     "global_tile": [
       6.0,
-      4.0
+      3.0
     ],
     "id": "fixture_slot_northgate_far_east_home_plot_05",
     "kind": "fixture",
@@ -1730,8 +2185,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3266,
-      -3949
+      -3263,
+      -3947
     ],
     "id": "detail_northgate_square_lantern_north",
     "kind": "surface_detail",
@@ -1756,13 +2211,117 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
+      -3257,
+      -3942
+    ],
+    "id": "detail_northgate_square_notice_kiosk",
+    "kind": "surface_detail",
+    "name": "Road Notice Kiosk",
+    "visual_style": "fixture:notice_kiosk",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3269,
+      -3940
+    ],
+    "id": "detail_northgate_market_stall_west",
+    "kind": "surface_detail",
+    "name": "West Market Stall",
+    "visual_style": "fixture:market_stall",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3268,
+      -3938
+    ],
+    "id": "detail_northgate_market_stall_south",
+    "kind": "surface_detail",
+    "name": "Produce Stall",
+    "visual_style": "fixture:market_stall",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3249,
+      -3946
+    ],
+    "id": "detail_northgate_inn_hitching_post",
+    "kind": "surface_detail",
+    "name": "Inn Hitching Rail",
+    "visual_style": "fixture:hitching_post",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3232,
+      -3941
+    ],
+    "id": "detail_northgate_stable_hitching_post",
+    "kind": "surface_detail",
+    "name": "Stable Hitching Rail",
+    "visual_style": "fixture:hitching_post",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3230,
+      -3941
+    ],
+    "id": "detail_northgate_stable_water_trough",
+    "kind": "surface_detail",
+    "name": "Horse Trough",
+    "visual_style": "fixture:water_trough",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3267,
+      -3944
+    ],
+    "id": "detail_northgate_square_edge_stones_west",
+    "kind": "surface_detail",
+    "name": "Drainage Stones",
+    "visual_style": "fixture:stone_marker",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3251,
+      -3943
+    ],
+    "id": "detail_northgate_square_edge_stones_east",
+    "kind": "surface_detail",
+    "name": "Drainage Stones",
+    "visual_style": "fixture:stone_marker",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
       -3263,
-      -3961
+      -3959
     ],
     "id": "detail_northgate_north_gate_post_west",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "North Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
@@ -1770,12 +2329,12 @@
     "canon_status": "proposal",
     "global_tile": [
       -3257,
-      -3961
+      -3959
     ],
     "id": "detail_northgate_north_gate_post_east",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "North Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
@@ -1783,12 +2342,12 @@
     "canon_status": "proposal",
     "global_tile": [
       -3263,
-      -3906
+      -3920
     ],
     "id": "detail_northgate_south_gate_post_west",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "South Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
@@ -1796,77 +2355,77 @@
     "canon_status": "proposal",
     "global_tile": [
       -3257,
-      -3906
+      -3920
     ],
     "id": "detail_northgate_south_gate_post_east",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "South Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3281,
-      -3941
+      -3282,
+      -3944
     ],
     "id": "detail_northgate_west_gate_post_north",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "West Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3281,
-      -3941
+      -3282,
+      -3938
     ],
     "id": "detail_northgate_west_gate_post_south",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "West Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3226,
-      -3941
+      -3228,
+      -3943
     ],
     "id": "detail_northgate_east_gate_post_north",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "East Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3226,
-      -3941
+      -3228,
+      -3937
     ],
     "id": "detail_northgate_east_gate_post_south",
     "kind": "surface_detail",
-    "name": "Gate Marker",
-    "visual_style": "fixture:road_post",
+    "name": "East Gate Tower",
+    "visual_style": "fixture:gate_tower",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3245,
-      -3947
+      -3254,
+      -3949
     ],
     "id": "detail_northgate_inn_sign",
     "kind": "surface_detail",
     "name": "Coaching Inn Sign",
-    "visual_style": "fixture:hanging_sign",
+    "visual_style": "hidden",
     "world_layer": "surface"
   },
   {
@@ -1874,20 +2433,20 @@
     "canon_status": "proposal",
     "global_tile": [
       -3242,
-      -3945
+      -3949
     ],
     "id": "detail_northgate_inn_barrel_01",
     "kind": "surface_detail",
-    "name": "Inn Barrel",
-    "visual_style": "fixture:barrel_stack",
+    "name": "Inn Yard Basket",
+    "visual_style": "fixture:basket",
     "world_layer": "surface"
   },
   {
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3241,
-      -3945
+      -3242,
+      -3948
     ],
     "id": "detail_northgate_inn_barrel_02",
     "kind": "surface_detail",
@@ -1899,8 +2458,158 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3233,
+      -3242,
+      -3947
+    ],
+    "id": "detail_northgate_inn_woodpile",
+    "kind": "surface_detail",
+    "name": "Inn Firewood",
+    "visual_style": "fixture:woodpile",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3245,
+      -3946
+    ],
+    "id": "detail_northgate_inn_yard_bench",
+    "kind": "surface_detail",
+    "name": "Inn Yard Bench",
+    "visual_style": "fixture:bench",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [-3246, -3944],
+    "id": "detail_northgate_inn_yard_cart",
+    "kind": "surface_detail",
+    "name": "Inn Yard Cart",
+    "visual_style": "fixture:cart",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [-3251, -3947],
+    "id": "detail_northgate_inn_rain_barrel",
+    "kind": "surface_detail",
+    "name": "Inn Rain Barrel",
+    "visual_style": "fixture:rain_barrel",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3257,
+      -3952
+    ],
+    "id": "detail_northgate_guard_crates",
+    "kind": "surface_detail",
+    "name": "Guard Stores",
+    "visual_style": "fixture:crate_stack",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3247,
+      -3952
+    ],
+    "id": "detail_northgate_guard_bench",
+    "kind": "surface_detail",
+    "name": "Guard Bench",
+    "visual_style": "fixture:bench",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3272,
       -3944
+    ],
+    "id": "detail_northgate_hall_barrels",
+    "kind": "surface_detail",
+    "name": "Hall Rain Barrels",
+    "visual_style": "fixture:barrel_stack",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3270,
+      -3943
+    ],
+    "id": "detail_northgate_hall_bench",
+    "kind": "surface_detail",
+    "name": "Petitioners Bench",
+    "visual_style": "fixture:bench",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3271,
+      -3951
+    ],
+    "id": "detail_northgate_north_altar_bench",
+    "kind": "surface_detail",
+    "name": "Pilgrim Bench",
+    "visual_style": "fixture:bench",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3276,
+      -3951
+    ],
+    "id": "detail_northgate_north_yard_fence_west",
+    "kind": "surface_detail",
+    "name": "North Yard Fence",
+    "visual_style": "fixture:fence",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3240,
+      -3953
+    ],
+    "id": "detail_northgate_north_yard_fence_east",
+    "kind": "surface_detail",
+    "name": "North Yard Fence",
+    "visual_style": "fixture:fence",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3240,
+      -3949
+    ],
+    "id": "detail_northgate_north_yard_crates",
+    "kind": "surface_detail",
+    "name": "Road Stores",
+    "visual_style": "fixture:crate_stack",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3235,
+      -3942
     ],
     "id": "detail_northgate_stable_hay_01",
     "kind": "surface_detail",
@@ -1912,8 +2621,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3232,
-      -3944
+      -3234,
+      -3942
     ],
     "id": "detail_northgate_stable_hay_02",
     "kind": "surface_detail",
@@ -1926,7 +2635,7 @@
     "canon_status": "proposal",
     "global_tile": [
       -3231,
-      -3943
+      -3942
     ],
     "id": "detail_northgate_stable_cart",
     "kind": "surface_detail",
@@ -1964,8 +2673,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3242,
-      -3928
+      -3244,
+      -3930
     ],
     "id": "detail_northgate_smith_water",
     "kind": "surface_detail",
@@ -2003,8 +2712,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3268,
-      -3933
+      -3274,
+      -3939
     ],
     "id": "detail_northgate_shop_sign",
     "kind": "surface_detail",
@@ -2016,8 +2725,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3257,
-      -3931
+      -3261,
+      -3927
     ],
     "id": "detail_northgate_store_barrels",
     "kind": "surface_detail",
@@ -2029,8 +2738,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3256,
-      -3931
+      -3261,
+      -3926
     ],
     "id": "detail_northgate_store_crates",
     "kind": "surface_detail",
@@ -2042,8 +2751,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3265,
-      -3950
+      -3269,
+      -3952
     ],
     "id": "detail_northgate_shrine_candle",
     "kind": "surface_detail",
@@ -2055,8 +2764,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3264,
-      -3950
+      -3261,
+      -3951
     ],
     "id": "detail_northgate_shrine_stones",
     "kind": "surface_detail",
@@ -2068,8 +2777,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3272,
-      -3925
+      -3278,
+      -3926
     ],
     "id": "detail_northgate_west_home_wash",
     "kind": "surface_detail",
@@ -2081,8 +2790,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3273,
-      -3925
+      -3271,
+      -3929
     ],
     "id": "detail_northgate_west_home_planter",
     "kind": "surface_detail",
@@ -2094,8 +2803,21 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3264,
-      -3923
+      -3271,
+      -3926
+    ],
+    "id": "detail_northgate_west_home_wood",
+    "kind": "surface_detail",
+    "name": "Craft Firewood",
+    "visual_style": "fixture:woodpile",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3270,
+      -3924
     ],
     "id": "detail_northgate_south_home_wood",
     "kind": "surface_detail",
@@ -2107,8 +2829,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3263,
-      -3923
+      -3261,
+      -3925
     ],
     "id": "detail_northgate_south_home_bench",
     "kind": "surface_detail",
@@ -2120,8 +2842,21 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3925
+      -3269,
+      -3924
+    ],
+    "id": "detail_northgate_south_home_planter",
+    "kind": "surface_detail",
+    "name": "Family Garden",
+    "visual_style": "fixture:planter",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3234,
+      -3934
     ],
     "id": "detail_northgate_east_home_herbs",
     "kind": "surface_detail",
@@ -2133,8 +2868,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3924
+      -3235,
+      -3932
     ],
     "id": "detail_northgate_east_home_rain",
     "kind": "surface_detail",
@@ -2146,8 +2881,21 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3924
+      -3233,
+      -3936
+    ],
+    "id": "detail_northgate_east_home_wash",
+    "kind": "surface_detail",
+    "name": "Courier Drying Line",
+    "visual_style": "fixture:wash_line",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3255,
+      -3927
     ],
     "id": "detail_northgate_southeast_home_basket",
     "kind": "surface_detail",
@@ -2159,8 +2907,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3924
+      -3247,
+      -3928
     ],
     "id": "detail_northgate_southeast_home_bench",
     "kind": "surface_detail",
@@ -2172,8 +2920,21 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3924
+      -3255,
+      -3925
+    ],
+    "id": "detail_northgate_southeast_home_planter",
+    "kind": "surface_detail",
+    "name": "Kitchen Garden",
+    "visual_style": "fixture:planter",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3243,
+      -3927
     ],
     "id": "detail_northgate_far_east_home_fence",
     "kind": "surface_detail",
@@ -2185,13 +2946,26 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3239,
-      -3924
+      -3234,
+      -3929
     ],
     "id": "detail_northgate_far_east_home_tree",
     "kind": "surface_detail",
     "name": "Apple Tree",
     "visual_style": "fixture:tree",
+    "world_layer": "surface"
+  },
+  {
+    "authored_purpose": "Northgate visual dressing",
+    "canon_status": "proposal",
+    "global_tile": [
+      -3234,
+      -3928
+    ],
+    "id": "detail_northgate_far_east_home_rain",
+    "kind": "surface_detail",
+    "name": "Lodger Rain Barrel",
+    "visual_style": "fixture:rain_barrel",
     "world_layer": "surface"
   },
   {
@@ -2211,8 +2985,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3230,
-      -3957
+      -3226,
+      -3947
     ],
     "id": "detail_northgate_east_road_tree",
     "kind": "surface_detail",
@@ -2224,8 +2998,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3230,
-      -3957
+      -3272,
+      -3917
     ],
     "id": "detail_northgate_south_road_tree",
     "kind": "surface_detail",
@@ -2237,8 +3011,8 @@
     "authored_purpose": "Northgate visual dressing",
     "canon_status": "proposal",
     "global_tile": [
-      -3230,
-      -3957
+      -3268,
+      -3961
     ],
     "id": "detail_northgate_north_road_tree",
     "kind": "surface_detail",
@@ -2253,19 +3027,19 @@
     "assigned_work_structure_id": "structure_northgate_inn_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_innkeeper",
     "combat_enabled": true,
     "damage_taken_per_hit": 4,
     "equipment_owner_id": "char_northgate_innkeeper",
     "global_tile": [
-      15,
-      2
+      4,
+      4
     ],
     "home_tile": [
-      15,
-      2
+      4,
+      4
     ],
     "hostility": "neutral",
     "id": "npc_northgate_innkeeper_world",
@@ -2297,12 +3071,12 @@
     "damage_taken_per_hit": 4,
     "equipment_owner_id": "char_northgate_shopkeeper",
     "global_tile": [
-      2,
-      2
+      6,
+      3
     ],
     "home_tile": [
-      2,
-      2
+      6,
+      3
     ],
     "hostility": "neutral",
     "id": "npc_northgate_shopkeeper_world",
@@ -2327,7 +3101,7 @@
     "assigned_work_structure_id": "structure_northgate_smith_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_smith",
     "combat_enabled": true,
@@ -2364,7 +3138,7 @@
     "assigned_work_structure_id": "structure_northgate_smith_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_apprentice",
     "combat_enabled": true,
@@ -2401,7 +3175,7 @@
     "assigned_work_structure_id": "structure_northgate_hall_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_reeve",
     "combat_enabled": true,
@@ -2438,7 +3212,7 @@
     "assigned_work_structure_id": "structure_northgate_hall_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_clerk",
     "combat_enabled": true,
@@ -2475,7 +3249,7 @@
     "assigned_work_structure_id": "structure_northgate_store_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_storekeeper",
     "combat_enabled": true,
@@ -2512,7 +3286,7 @@
     "assigned_work_structure_id": "structure_northgate_stable_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_stablehand",
     "combat_enabled": true,
@@ -2549,7 +3323,7 @@
     "assigned_work_structure_id": "structure_northgate_guard_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_guard_north",
     "combat_enabled": true,
@@ -2586,7 +3360,7 @@
     "assigned_work_structure_id": "structure_northgate_shrine_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_shrine_keeper",
     "combat_enabled": true,
@@ -2623,7 +3397,7 @@
     "assigned_work_structure_id": "structure_northgate_west_home_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_resident_01",
     "combat_enabled": true,
@@ -2660,7 +3434,7 @@
     "assigned_work_structure_id": "structure_northgate_south_home_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_resident_02",
     "combat_enabled": true,
@@ -2697,7 +3471,7 @@
     "assigned_work_structure_id": "structure_northgate_east_home_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_resident_03",
     "combat_enabled": true,
@@ -2734,7 +3508,7 @@
     "assigned_work_structure_id": "structure_northgate_southeast_home_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_resident_04",
     "combat_enabled": true,
@@ -2771,7 +3545,7 @@
     "assigned_work_structure_id": "structure_northgate_far_east_home_plot",
     "attack_damage": 2,
     "behavior_state": "idle",
-    "brain_id": "hostile_basic",
+    "brain_id": "civilian_schedule",
     "canon_status": "proposal",
     "character_profile_id": "char_northgate_resident_05",
     "combat_enabled": true,
@@ -2904,8 +3678,8 @@
       }
     ],
     "global_tile": [
-      6,
-      2
+      8,
+      5
     ],
     "id": "pickup_northgate_missing_manifest",
     "interaction_radius": 96,
@@ -2916,8 +3690,8 @@
   },
   {
     "global_tile": [
-      8,
-      2
+      12,
+      8
     ],
     "heal_amount": 999,
     "id": "object_northgate_inn_bed",
@@ -2925,6 +3699,7 @@
     "kind": "rest",
     "name": "Northgate Inn Bed",
     "rest_hours": 8,
+    "visual_style": "fixture:guest_bed",
     "world_layer": "interior:structure_northgate_inn_plot"
   },
   {
@@ -2936,8 +3711,8 @@
       }
     ],
     "global_tile": [
-      8,
-      2
+      10,
+      7
     ],
     "id": "object_northgate_player_storage",
     "interaction_radius": 96,
@@ -2969,7 +3744,7 @@
     ],
     "description": "A maintained workbench for fitting, sharpening, and repairing travel gear.",
     "global_tile": [
-      6,
+      3,
       2
     ],
     "id": "poi_northgate_repair_bench",

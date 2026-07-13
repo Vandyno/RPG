@@ -5,7 +5,9 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 
 const SURFACE_LAYER := "surface"
 const INTERIOR_FALLBACK_KIND := "stone_wall"
-const BLOCKED_TILE_KINDS := ["water", "stone_wall", "wood_wall"]
+const BLOCKED_TILE_KINDS := [
+	"water", "stone_wall", "wood_wall", "palisade", "structure_blocker"
+]
 
 var chunk_manager
 var structure_manager: StructureManager

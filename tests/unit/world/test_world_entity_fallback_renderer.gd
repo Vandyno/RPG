@@ -75,6 +75,24 @@ func test_draw_entity_smoke_covers_combat_target_and_pickups() -> void:
 		assert_eq(probe.draw_count, 1)
 
 
+func test_draw_entity_smoke_covers_authored_fixture_shapes() -> void:
+	for style in [
+		"fixture:hearth", "fixture:bed", "fixture:family_table", "fixture:herb_rack",
+		"fixture:storage_chest", "fixture:elder_chair", "fixture:anvil",
+		"fixture:family_mementos", "fixture:work_basket", "fixture:preserve_jars",
+		"fixture:drying_cloak", "fixture:privacy_screen", "fixture:notice_board",
+		"fixture:road_map", "fixture:west_horse_stall", "fixture:feed_bin",
+		"fixture:offering_bowl", "fixture:market_stall", "fixture:hitching_post",
+		"fixture:water_trough", "fixture:notice_kiosk", "fixture:gate_tower"
+	]:
+		var probe := _draw_probe(
+			func(canvas: CanvasItem) -> void:
+				WorldEntityFallbackRenderer.draw_entity(canvas, "fixture", false, {}, style)
+		)
+		await get_tree().process_frame
+		assert_eq(probe.draw_count, 1, style)
+
+
 func _draw_probe(draw_callable: Callable) -> DrawProbe:
 	var probe := DrawProbe.new()
 	probe.draw_callable = draw_callable

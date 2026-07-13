@@ -29,6 +29,17 @@
     "scaled_land_width_tiles": 25300,
     "note": "Straight coast-to-coast baseline is about 30.7 minutes before terrain, roads, obstacles, or encounters."
   },
+  "authoring_policy": {
+    "terrain_palette": "extensible",
+    "may_add_tile_kinds": true,
+    "intent": "Prefer wonderfully authored regional identity over forcing every biome through the current small terrain palette.",
+    "requirements": [
+      "new tile kinds must define visuals, walkability, collision, and movement cost",
+      "regional variants must support a concrete place, route, biome transition, or traversal story",
+      "generated terrain remains editable proposal data",
+      "new terrain cannot move protected atlas anchors, routes, water, passes, or landmarks"
+    ]
+  },
   "provenance": {
     "intent_sources": ["res://MAP.md", "res://LORE.md"],
     "audit_source": "res://docs/WORLD_ATLAS_AUDIT.md",

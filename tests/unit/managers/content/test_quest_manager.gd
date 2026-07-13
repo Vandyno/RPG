@@ -4,6 +4,24 @@ const ContentDatabase = preload("res://scripts/data/content_database.gd")
 const EventBus = preload("res://scripts/core/event_bus.gd")
 const QuestManager = preload("res://scripts/managers/content/quest_manager.gd")
 
+
+func test_required_npc_death_fails_active_quest_and_resurrection_does_not_undo_it() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var content := ContentDatabase.new()
+	add_child_autofree(content)
+	assert_eq(content.load_all(), [])
+	var manager := QuestManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, content)
+	assert_true(manager.start_quest("quest_missing_tools"))
+
+	bus.actor_state_changed.emit("npc_harrow_venn_world", "npc_harrow_venn", "dead")
+	assert_eq(manager.get_quest_state("quest_missing_tools"), "failed")
+
+	bus.actor_state_changed.emit("npc_harrow_venn_world", "npc_harrow_venn", "alive")
+	assert_eq(manager.get_quest_state("quest_missing_tools"), "failed")
+
 var content: ContentDatabase
 var event_bus: EventBus
 var quests: QuestManager
