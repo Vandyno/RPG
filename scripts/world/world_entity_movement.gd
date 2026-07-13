@@ -5,6 +5,7 @@ const GridMath = preload("res://scripts/core/grid_math.gd")
 
 const COLLISION_RADIUS := 10.0
 const MAX_COLLISION_STEP := 8.0
+const MAX_MOVE_STEPS_PER_CALL := 16
 
 
 static func try_move(
@@ -21,13 +22,15 @@ static func try_move(
 	entity.set_facing_direction(normalized_direction)
 	var remaining_distance := speed_pixels_per_second * delta
 	var moved := false
-	while remaining_distance > 0.0:
+	var step_count := 0
+	while remaining_distance > 0.0 and step_count < MAX_MOVE_STEPS_PER_CALL:
 		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
 		var motion := normalized_direction * step_distance
 		if not _try_move_step(entity, motion, chunk_manager):
 			break
 		moved = true
 		remaining_distance -= step_distance
+		step_count += 1
 	entity.set_locomotion(moved, delta)
 	return moved
 

@@ -82,6 +82,15 @@ func test_try_move_normalizes_direction_splits_steps_and_sets_locomotion() -> vo
 	assert_eq(entity.locomotion_values, [{"moving": true, "delta": 1.0}])
 
 
+func test_try_move_caps_collision_steps_after_a_large_frame_hitch() -> void:
+	var entity := EntityStub.new()
+
+	assert_true(WorldEntityMovement.try_move(entity, Vector2.RIGHT, 100.0, null, 80.0))
+
+	assert_eq(entity.world_positions.size(), WorldEntityMovement.MAX_MOVE_STEPS_PER_CALL)
+	assert_eq(entity.position.x, float(WorldEntityMovement.MAX_MOVE_STEPS_PER_CALL) * 8.0)
+
+
 func test_try_move_step_slides_horizontally_when_diagonal_target_is_blocked() -> void:
 	var entity := EntityStub.new()
 	entity.position = _tile_center(Vector2i(0, 0))

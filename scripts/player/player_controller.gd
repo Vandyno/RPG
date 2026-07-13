@@ -11,6 +11,7 @@ const WorldEntityMovement = preload("res://scripts/world/world_entity_movement.g
 
 const COLLISION_RADIUS := WorldEntityMovement.COLLISION_RADIUS
 const MAX_COLLISION_STEP := WorldEntityMovement.MAX_COLLISION_STEP
+const MAX_MOVE_STEPS_PER_CALL := WorldEntityMovement.MAX_MOVE_STEPS_PER_CALL
 const BLOCKED_MESSAGE_INTERVAL := 0.35
 const DEFAULT_MAX_HEALTH := 100
 const DEFAULT_MAX_MANA := 100.0
@@ -69,13 +70,15 @@ func try_move(direction: Vector2, delta: float = 1.0) -> void:
 		humanoid_avatar.set_facing_direction(facing_direction)
 	var speed := move_speed * (SNEAK_SPEED_MULTIPLIER if is_sneaking else 1.0)
 	var remaining_distance := speed * delta
-	while remaining_distance > 0.0:
+	var step_count := 0
+	while remaining_distance > 0.0 and step_count < MAX_MOVE_STEPS_PER_CALL:
 		var step_distance := minf(remaining_distance, MAX_COLLISION_STEP)
 		var motion := normalized_direction * step_distance
 		if not _try_move_step(motion):
 			_post_blocked_message()
 			return
 		remaining_distance -= step_distance
+		step_count += 1
 
 
 func _try_move_step(motion: Vector2) -> bool:

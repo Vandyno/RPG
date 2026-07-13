@@ -86,7 +86,7 @@ func test_handle_aim_uses_attack_joystick_against_aimed_enemy() -> void:
 	)
 
 
-func test_handle_held_melee_repeats_on_weapon_interval() -> void:
+func test_handle_held_melee_caps_catch_up_after_a_frame_hitch() -> void:
 	var main := AimMainStub.new()
 	main.equipment.equipped_item_id = "item_training_sword"
 
@@ -98,8 +98,6 @@ func test_handle_held_melee_repeats_on_weapon_interval() -> void:
 	assert_eq(
 		main.calls,
 		[
-			"damage:actor_west:3",
-			"message:Training Sword hits River Ruffian for 3.",
 			"damage:actor_west:3",
 			"message:Training Sword hits River Ruffian for 3.",
 			"damage:actor_west:3",

@@ -12,6 +12,8 @@ const SystemsActionIds = preload("res://scripts/main/actions/systems_action_ids.
 const MIN_AIM_DIRECTION := 0.1
 const DEFAULT_BOW_CHARGE_SECONDS := 2.0
 const MIN_PROJECTILE_CHARGE_DAMAGE_RATIO := 0.15
+const MAX_HELD_ATTACKS_PER_FRAME := 2
+const MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME := 3
 
 
 class SystemsActionContext:
@@ -286,13 +288,17 @@ static func _handle_held_spell_aim(
 	_spawn_effect(ctx, String(attack.get("visual", "fire_stream")), aim_direction, attack)
 	var dps := maxf(0.0, float(attack.get("damage_per_second", spell.get("mana_cost", 1))))
 	var bank: float = float(ctx.channeled_spell_damage_bank.get(action_id, 0.0)) + dps * delta
-	while bank >= 1.0:
+	var damage_ticks := 0
+	while bank >= 1.0 and damage_ticks < MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME:
 		bank -= 1.0
 		var channel_query := {
 			"origin": ctx.player.global_position, "direction": aim_direction, "attack": attack
 		}
 		var targets := DirectionalAttack.targets_in_shape(_combat_candidates(ctx), channel_query)
 		_damage_targets(ctx, targets, 1, spell_name)
+		damage_ticks += 1
+	if damage_ticks >= MAX_CHANNELED_DAMAGE_TICKS_PER_FRAME:
+		bank = 0.0
 	ctx.channeled_spell_damage_bank[action_id] = bank
 	ctx.refresh_hud()
 
@@ -448,10 +454,14 @@ static func _handle_held_weapon_attack(
 	var interval := maxf(0.05, float(attack.get("attack_interval_seconds", 0.55)))
 	var elapsed := float(ctx.held_weapon_attack_elapsed.get(action_id, interval)) + delta
 	var fired := false
-	while elapsed >= interval:
+	var attacks_fired := 0
+	while elapsed >= interval and attacks_fired < MAX_HELD_ATTACKS_PER_FRAME:
 		elapsed -= interval
 		_perform_weapon_attack(ctx, direction)
 		fired = true
+		attacks_fired += 1
+	if attacks_fired >= MAX_HELD_ATTACKS_PER_FRAME:
+		elapsed = 0.0
 	ctx.held_weapon_attack_elapsed[action_id] = elapsed
 	if fired:
 		ctx.refresh_hud()

@@ -182,6 +182,19 @@ func test_large_motion_does_not_tunnel_through_blocked_tile() -> void:
 	assert_eq(player.global_tile, Vector2i(1, 0))
 
 
+func test_large_frame_hitch_caps_player_collision_steps() -> void:
+	var player := PlayerController.new()
+	add_child_autofree(player)
+	player.setup(null, null, Vector2i.ZERO)
+
+	player.try_move(Vector2.RIGHT, 100.0)
+
+	assert_eq(
+		player.position.x,
+		8.0 + float(PlayerController.MAX_MOVE_STEPS_PER_CALL * PlayerController.MAX_COLLISION_STEP)
+	)
+
+
 func test_diagonal_blocked_motion_slides_along_open_axis() -> void:
 	var chunks := BlockingChunks.new()
 	chunks.block(Vector2i(2, 0))
