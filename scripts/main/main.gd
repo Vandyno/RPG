@@ -130,6 +130,8 @@ func _process(delta: float) -> void:
 	MainInputRouter.update_auto_interaction(MainInputRouter.context(self), delta)
 	HostileActorBrain.update(HostileActorBrain.context(self), delta)
 	CivilianScheduleBrain.update(civilian_schedules, delta)
+	if npc_perception and hud:
+		npc_perception.set_debug_visible(bool(hud.visible_debug))
 	_update_location_discoveries()
 	_update_nearby()
 
@@ -170,7 +172,9 @@ func _hud_context() -> MainHudState.HudContext:
 			quests,
 			statuses,
 			factions,
-			time
+			time,
+			crime,
+			npc_perception
 		),
 		MainHudState.HudUiServices.new(hud_queries, _action_list_context(), world_state),
 		MainHudState.HudSnapshot.new(
@@ -417,11 +421,37 @@ func _bootstrap_player() -> void:
 	player.set_humanoid_profile(content.get_resolved_character_profile("char_player"))
 	civilian_schedules.set_player(player)
 	crime.set_player(player)
+	event_bus.player_jailed.connect(_on_player_jailed)
+	event_bus.player_released_from_jail.connect(_on_player_released_from_jail)
 	effect_runner.set_player(player)
 	event_bus.equipment_changed.connect(
 		func(equipped_by_slot: Dictionary) -> void:
 			player.set_equipped_items(equipped_by_slot, content)
 	)
+
+
+func _on_player_jailed(state: Dictionary) -> void:
+	_transport_player_for_law(state)
+
+
+func _on_player_released_from_jail(state: Dictionary) -> void:
+	_transport_player_for_law(state)
+
+
+func _transport_player_for_law(state: Dictionary) -> void:
+	if not player:
+		return
+	var target_layer := String(state.get("target_layer", "surface"))
+	var target_tile := VariantFields.vector2i_from_pair(
+		state.get("target_tile", []), player.global_tile
+	)
+	player.set_world_layer(target_layer)
+	player.set_global_tile(target_tile)
+	world_query.set_layer(target_layer)
+	streamer.update_center(target_tile, target_layer)
+	clear_target_state()
+	_sync_camera_to_player()
+	_update_nearby()
 
 
 func _bootstrap_hud_queries() -> void:

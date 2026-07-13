@@ -23,13 +23,39 @@ class TimeStub:
 	var day := 2
 	var minute_of_day := 90
 
+	func advance_hours(hours: int) -> void:
+		var total := minute_of_day + hours * 60
+		day += total / 1440
+		minute_of_day = total % 1440
+
 
 class FactionStub:
 	var changes: Array[Dictionary] = []
+	var reputation := -15
 
 	func change_reputation(faction_id: String, amount: int) -> bool:
 		changes.append({"faction_id": faction_id, "amount": amount})
+		reputation += amount
 		return true
+
+	func get_reputation(_faction_id: String) -> int:
+		return reputation
+
+
+class InventoryStub:
+	var gold := 200
+
+	func has_item(item_id: String, count: int = 1) -> bool:
+		return item_id == "item_gold_coin" and gold >= count
+
+	func remove_item(item_id: String, count: int = 1) -> bool:
+		if not has_item(item_id, count):
+			return false
+		gold -= count
+		return true
+
+	func get_count(item_id: String) -> int:
+		return gold if item_id == "item_gold_coin" else 0
 
 
 func test_guard_witness_reports_crime_and_memories_survive_resurrection_and_save() -> void:
@@ -71,7 +97,7 @@ func test_guard_witness_reports_crime_and_memories_survive_resurrection_and_save
 	assert_eq(crime["absolute_minute"], 2970)
 	assert_eq(manager.reports.size(), 1)
 	assert_eq(manager.bounty, 100)
-	assert_eq(manager.get_guard_response("npc_guard")["action"], "attack")
+	assert_eq(manager.get_guard_response("npc_guard")["action"], "arrest")
 	assert_eq(factions.changes, [{"faction_id": "faction_town", "amount": -15}])
 	assert_eq(manager.get_witness_memory("npc_guard")[0]["kind"], "murder")
 	assert_eq(manager.get_witness_memory("npc_citizen")[0]["report_status"], "unknown_offender")
@@ -137,6 +163,69 @@ func test_civilian_eyewitness_reaches_guard_and_files_report() -> void:
 	assert_eq(manager.get_crime(String(crime["id"]))["status"], "reported")
 	assert_eq(manager.reports[0]["witness_npc_id"], "npc_citizen")
 	assert_eq(manager.get_guard_response("npc_guard")["action"], "arrest")
+
+
+func test_surrender_moves_into_persistent_sentence_then_serving_releases_without_erasing_memory() -> void:
+	var bus := EventBus.new()
+	add_child_autofree(bus)
+	var jailed_events: Array[Dictionary] = []
+	var released_events: Array[Dictionary] = []
+	bus.player_jailed.connect(func(state: Dictionary): jailed_events.append(state))
+	bus.player_released_from_jail.connect(func(state: Dictionary): released_events.append(state))
+	var entities := EntitySet.new()
+	var guard := _actor("guard_actor", "npc_guard", "guard")
+	entities.entities_by_id = {guard.get_entity_id(): guard}
+	var perception := PerceptionStub.new()
+	perception.witnesses = [
+		{"entity_id": guard.get_entity_id(), "npc_id": "npc_guard", "sense": "sight", "saw": true, "heard": true}
+	]
+	var clock := TimeStub.new()
+	var inventory := InventoryStub.new()
+	var manager := CrimeManager.new()
+	add_child_autofree(manager)
+	manager.setup(bus, entities, perception, clock, FactionStub.new(), null, null, inventory)
+	manager.record_player_crime(
+		{"kind": "murder", "victim_npc_id": "npc_victim", "victim_faction_id": "faction_town", "world_position": [0, 0], "world_layer": "surface", "noise_radius": 160}
+	)
+
+	var surrender := manager.resolve_guard_response("npc_guard", "submit")
+
+	assert_true(surrender["ok"])
+	assert_true(manager.is_player_jailed())
+	assert_eq(manager.sentence_remaining_hours(), 32)
+	assert_eq(jailed_events[0]["target_layer"], CrimeManager.JAIL_LAYER)
+	var restored := CrimeManager.new()
+	add_child_autofree(restored)
+	restored.setup(bus, entities, perception, clock, FactionStub.new(), null, null, inventory)
+	restored.load_save_data(manager.get_save_data())
+	assert_true(restored.is_player_jailed())
+	assert_eq(restored.get_witness_memory("npc_guard")[0]["kind"], "murder")
+
+	var served := restored.serve_sentence()
+
+	assert_true(served["ok"])
+	assert_false(restored.is_player_jailed())
+	assert_eq(restored.bounty, 0)
+	assert_eq(restored.reports[0]["status"], "resolved")
+	assert_eq(released_events.back()["target_layer"], "surface")
+	assert_eq(restored.get_witness_memory("npc_guard")[0]["kind"], "murder")
+
+
+func test_pay_bounty_and_make_amends_cost_gold_and_repair_reputation() -> void:
+	var inventory := InventoryStub.new()
+	var factions := FactionStub.new()
+	var manager := CrimeManager.new()
+	add_child_autofree(manager)
+	manager.setup(null, EntitySet.new(), PerceptionStub.new(), TimeStub.new(), factions, null, null, inventory)
+	manager.bounty = 25
+	manager.crimes = [{"victim_faction_id": "faction_town", "status": "reported"}]
+
+	assert_true(manager.pay_bounty()["ok"])
+	assert_eq(inventory.gold, 175)
+	assert_true(manager.can_make_amends())
+	assert_true(manager.make_amends()["ok"])
+	assert_eq(inventory.gold, 150)
+	assert_eq(factions.reputation, -10)
 
 
 func _actor(entity_id: String, npc_id: String, role: String) -> WorldEntity:

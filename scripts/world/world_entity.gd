@@ -207,6 +207,8 @@ func get_pick_match(world_position: Vector2, pick_radius_pixels: float) -> Dicti
 
 
 func _draw() -> void:
+	_draw_perception_debug()
+	_draw_awareness_marker()
 	if quest_marker_visible:
 		_draw_quest_marker()
 	if action_hint_visible:
@@ -231,6 +233,42 @@ func _draw() -> void:
 		get_pickup_item_visual_state(),
 		String(data.get("visual_style", "")),
 		data
+	)
+
+
+func _draw_perception_debug() -> void:
+	if not bool(data.get("debug_perception_visible", false)) or not ActorRules.is_actor_data(data):
+		return
+	if ActorRules.is_dead_actor_data(data):
+		return
+	var distance := maxf(8.0, float(data.get("vision_distance", 192.0)))
+	var degrees := clampf(float(data.get("vision_degrees", 120.0)), 1.0, 360.0)
+	var points := PackedVector2Array([Vector2.ZERO])
+	var half_angle := deg_to_rad(degrees * 0.5)
+	var start_angle := facing_direction.angle() - half_angle
+	for index in range(17):
+		var angle := start_angle + (half_angle * 2.0 * float(index) / 16.0)
+		points.append(Vector2.RIGHT.rotated(angle) * distance)
+	draw_colored_polygon(points, Color(0.95, 0.78, 0.18, 0.12))
+	draw_polyline(points, Color(0.98, 0.82, 0.24, 0.45), 1.0)
+	draw_circle(Vector2.ZERO, maxf(8.0, float(data.get("hearing_radius", 144.0))), Color(0.2, 0.65, 1.0, 0.05))
+
+
+func _draw_awareness_marker() -> void:
+	var state := String(data.get("perception_awareness_state", ""))
+	if state.is_empty() or ActorRules.is_dead_actor_data(data):
+		return
+	var color := Color(1.0, 0.76, 0.18, 0.96) if state == "suspicious" else Color(0.95, 0.18, 0.16, 0.98)
+	var center := Vector2(0.0, -27.0)
+	draw_circle(center, 7.0, color)
+	draw_string(
+		ThemeDB.fallback_font,
+		center + Vector2(-2.5, 4.0),
+		"?" if state == "suspicious" else "!",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1.0,
+		11,
+		Color(0.08, 0.06, 0.04)
 	)
 
 

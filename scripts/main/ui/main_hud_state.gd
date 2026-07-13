@@ -19,6 +19,8 @@ class HudDataSources:
 	var quests
 	var statuses
 	var factions
+	var crime
+	var npc_perception
 	var time
 
 	func _init(
@@ -31,7 +33,9 @@ class HudDataSources:
 		quests_value,
 		statuses_value,
 		factions_value,
-		time_value
+		time_value,
+		crime_value = null,
+		npc_perception_value = null
 	) -> void:
 		content = content_value
 		entities = entities_value
@@ -43,6 +47,8 @@ class HudDataSources:
 		statuses = statuses_value
 		factions = factions_value
 		time = time_value
+		crime = crime_value
+		npc_perception = npc_perception_value
 
 
 class HudUiServices:
@@ -112,6 +118,8 @@ class HudContext:
 	var entities
 	var equipment
 	var factions
+	var crime
+	var npc_perception
 	var hud_queries
 	var inventory
 	var nearby
@@ -137,6 +145,8 @@ class HudContext:
 		entities = sources.entities
 		equipment = sources.equipment
 		factions = sources.factions
+		crime = sources.crime
+		npc_perception = sources.npc_perception
 		hud_queries = services.hud_queries
 		inventory = sources.inventory
 		nearby = snapshot.nearby
@@ -164,7 +174,9 @@ static func context(values: Dictionary) -> HudContext:
 			values.get("quests"),
 			values.get("statuses"),
 			values.get("factions"),
-			values.get("time")
+			values.get("time"),
+			values.get("crime"),
+			values.get("npc_perception")
 		),
 		HudUiServices.new(
 			values.get("hud_queries"),
@@ -215,6 +227,12 @@ static func build(ctx: HudContext) -> Dictionary:
 		quest_state,
 		journal_state,
 		spell_state
+	)
+	var legal_status: Dictionary = ctx.crime.get_status_data() if ctx.crime else {}
+	state.merge(legal_status, true)
+	state["legal_area"] = ctx.crime.area_status(String(ctx.player.world_layer)) if ctx.crime else ""
+	state["stealth_state"] = (
+		ctx.npc_perception.player_stealth_state(ctx.player) if ctx.npc_perception else ""
 	)
 	return state
 

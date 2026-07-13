@@ -18,6 +18,7 @@ var world_query
 var time
 var recent_noise_by_npc_id: Dictionary = {}
 var awareness_by_npc_id: Dictionary = {}
+var debug_visible := false
 
 
 func setup(bus, entity_manager, query, time_manager = null) -> void:
@@ -43,11 +44,15 @@ func _process(delta: float) -> void:
 		var awareness: Dictionary = awareness_by_npc_id[npc_id]
 		var score := maxf(0.0, float(awareness.get("score", 0.0)) - AWARENESS_DECAY_PER_SECOND * delta)
 		awareness["score"] = score
+		var previous_state := String(awareness.get("state", "unaware"))
 		awareness["state"] = _awareness_state(score)
 		if score <= 0.0:
 			awareness_by_npc_id.erase(npc_id)
+			_apply_awareness_visual(String(npc_id), "unaware")
 		else:
 			awareness_by_npc_id[npc_id] = awareness
+			if previous_state != String(awareness["state"]):
+				_apply_awareness_visual(String(npc_id), String(awareness["state"]))
 
 
 func perceive_event(event: Dictionary) -> Array[Dictionary]:
@@ -156,6 +161,51 @@ func get_awareness(npc_id: String) -> Dictionary:
 	return value.duplicate(true) if value is Dictionary else {}
 
 
+func player_stealth_state(player_actor) -> String:
+	if not player_actor:
+		return "Unknown"
+	var suspicious := false
+	for awareness_value in awareness_by_npc_id.values():
+		if not awareness_value is Dictionary or String(awareness_value.get("source_id", "")) != "player":
+			continue
+		var state := String(awareness_value.get("state", "unaware"))
+		if state == "detected":
+			return "Detected"
+		suspicious = suspicious or state == "suspicious"
+	if suspicious:
+		return "Suspicious"
+	var observed := false
+	if entities:
+		for actor in entities.entities_by_id.values():
+			if actor and ActorRules.is_living_actor_data(actor.data) and can_see(actor, player_actor):
+				observed = true
+				break
+	if bool(player_actor.get("is_sneaking")):
+		return "Observed" if observed else "Hidden"
+	return "Visible" if observed else "Unobserved"
+
+
+func set_debug_visible(value: bool) -> void:
+	debug_visible = value
+	if not entities:
+		return
+	for actor in entities.entities_by_id.values():
+		if not actor or not (actor.data is Dictionary) or not ActorRules.is_actor_data(actor.data):
+			continue
+		if bool(actor.data.get("debug_perception_visible", false)) == debug_visible:
+			continue
+		actor.data["debug_perception_visible"] = debug_visible
+		actor.queue_redraw()
+
+
+func get_debug_snapshot() -> Dictionary:
+	return {
+		"debug_visible": debug_visible,
+		"awareness": awareness_by_npc_id.duplicate(true),
+		"recent_noise": recent_noise_by_npc_id.duplicate(true)
+	}
+
+
 func _on_noise_emitted(noise: Dictionary) -> void:
 	for perception in perceive_event(noise):
 		if not bool(perception.get("heard", false)):
@@ -186,6 +236,23 @@ func _register_awareness(perception: Dictionary, event: Dictionary) -> void:
 	awareness["last_world_layer"] = String(event.get("world_layer", "surface"))
 	awareness["last_sense"] = String(perception.get("sense", "sight"))
 	awareness_by_npc_id[npc_id] = awareness
+	_apply_awareness_visual(npc_id, String(awareness["state"]))
+
+
+func _apply_awareness_visual(npc_id: String, state: String) -> void:
+	if not entities:
+		return
+	for actor in entities.entities_by_id.values():
+		if not actor or not (actor.data is Dictionary):
+			continue
+		if String(actor.data.get("npc_id", actor.get_entity_id())) != npc_id:
+			continue
+		if state == "unaware":
+			actor.data.erase("perception_awareness_state")
+		else:
+			actor.data["perception_awareness_state"] = state
+		actor.queue_redraw()
+		return
 
 
 func _awareness_state(score: float) -> String:

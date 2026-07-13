@@ -1,0 +1,22 @@
+{
+  "archetype_structure_northgate_jail_exterior": {
+    "anchors": {"entry": [3, 4]},
+    "id": "archetype_structure_northgate_jail_exterior",
+    "name": "Northgate Lockup Exterior",
+    "role": "surface_exterior",
+    "size": [7, 5],
+    "terrain_rows": ["sssssss", "ssfffss", "sfffffs", "sfffffs", "sssdsss"],
+    "tile_kinds": {"d": "grass", "f": "grass", "s": "structure_blocker"},
+    "visual_style": "timber_guard_post"
+  },
+  "archetype_structure_northgate_jail_interior": {
+    "anchors": {"cell": [2, 3], "desk": [6, 2], "exit": [4, 6]},
+    "id": "archetype_structure_northgate_jail_interior",
+    "name": "Northgate Lockup Interior",
+    "role": "interior_room",
+    "size": [9, 7],
+    "terrain_rows": ["wwwwwwwww", "wfffffffw", "wfffffffw", "wfffffffw", "wfffffffw", "wfffffffw", "wwwwdwwww"],
+    "tile_kinds": {"d": "wood_floor", "f": "wood_floor", "w": "wood_wall"},
+    "visual_style": "timber_guard_post_interior"
+  }
+}

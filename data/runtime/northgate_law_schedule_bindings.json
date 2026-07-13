@@ -1,0 +1,10 @@
+{
+  "binding_northgate_jail_guard": {
+    "activation_status": "review_required", "canon_status": "proposal",
+    "home_destination_id": "northgate_jail_guard_break",
+    "leisure_destination_ids": ["northgate_guard_break_runtime", "northgate_square_runtime"],
+    "npc_id": "npc_northgate_jail_guard", "patrol_destination_id": "northgate_jail_guard_patrol",
+    "schedule_id": "schedule_guard_standard", "work_break_destination_id": "northgate_jail_guard_break",
+    "work_destination_id": "northgate_jail_guard_work"
+  }
+}

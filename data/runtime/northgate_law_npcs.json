@@ -1,0 +1,7 @@
+{
+  "npc_northgate_jail_guard": {
+    "canon_status": "proposal", "character_profile_id": "char_northgate_jail_guard",
+    "dialogue_id": "dialogue_northgate_jail_guard", "faction": "faction_marches_of_velcor",
+    "id": "npc_northgate_jail_guard", "location": "northgate", "name": "Northgate Gaoler", "role": "Jail guard"
+  }
+}

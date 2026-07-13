@@ -35,14 +35,14 @@ func test_approved_northgate_geometry_is_active_runtime_content() -> void:
 	var northgate_structures: Array = content.world_structure_entries().filter(
 		func(entry): return String(entry.get("id", "")).begins_with("structure_northgate_")
 	)
-	assert_eq(northgate_structures.size(), 26)
+	assert_eq(northgate_structures.size(), 28)
 	assert_eq(
 		northgate_structures.filter(func(entry): return entry["world_layer"] == "surface").size(),
-		13
+		14
 	)
 	assert_eq(
 		northgate_structures.filter(func(entry): return entry["world_layer"] != "surface").size(),
-		13
+		14
 	)
 	assert_true(northgate_structures.all(func(entry): return structures.has_structure(entry["id"])))
 
@@ -93,6 +93,31 @@ func test_every_northgate_building_has_walkable_reciprocal_runtime_portals() -> 
 			assert_eq(int(portal.get("interaction_radius", 0)), 48, portal["id"])
 
 
+func test_northgate_lockup_has_walkable_structure_cell_legal_service_and_scheduled_guard() -> void:
+	assert_true(structures.has_structure("structure_northgate_jail"))
+	assert_true(structures.has_structure("structure_northgate_jail_interior"))
+	for object_id in [
+		"portal_northgate_jail_entry", "portal_northgate_jail_exit",
+		"poi_northgate_jail_cot", "poi_northgate_jail_ledger",
+		"container_northgate_jail_evidence"
+	]:
+		var matches: Array = content.world_object_entries().filter(
+			func(entry): return String(entry.get("id", "")) == object_id
+		)
+		assert_eq(matches.size(), 1, object_id)
+		var tile: Array = matches[0].get("global_tile", [])
+		assert_true(
+			query.is_walkable(
+				Vector2i(int(tile[0]), int(tile[1])), String(matches[0].get("world_layer", "surface"))
+			),
+			object_id
+		)
+	var binding: Dictionary = content.get_schedule_binding("binding_northgate_jail_guard")
+	assert_eq(binding.get("npc_id", ""), "npc_northgate_jail_guard")
+	assert_eq(binding.get("patrol_destination_id", ""), "northgate_jail_guard_patrol")
+	assert_eq(content.get_npc("npc_northgate_jail_guard").get("canon_status", ""), "proposal")
+
+
 func test_roads_gates_palisade_and_coach_routes_are_walkable_as_intended() -> void:
 	for gate_tile in [
 		Vector2i(-3260, -3958), Vector2i(-3229, -3940),
@@ -129,7 +154,7 @@ func test_northgate_residents_services_and_local_quest_are_loaded() -> void:
 	var residents: Array = content.world_object_entries().filter(
 		func(entry): return String(entry.get("id", "")).begins_with("npc_northgate_")
 	)
-	assert_eq(residents.size(), 16)
+	assert_eq(residents.size(), 17)
 	assert_true(residents.all(func(entry): return not String(entry.get("assigned_home_structure_id", "")).is_empty()))
 	assert_true(residents.all(func(entry): return entry.get("canon_status", "") == "proposal"))
 	assert_true(content.has_shop("shop_northgate_general"))

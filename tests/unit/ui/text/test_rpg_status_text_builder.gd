@@ -30,3 +30,19 @@ func test_compact_lines_condense_level_xp_progression() -> void:
 		RpgStatusTextBuilder.lines({}, "Level 4 120 XP", true),
 		["Adventurer", "Lv 4  120 XP"]
 	)
+
+
+func test_status_lines_expose_stealth_bounty_and_jail_sentence() -> void:
+	assert_eq(
+		RpgStatusTextBuilder.lines(
+			{"stealth_state": "Suspicious", "bounty": 25, "jailed": true, "sentence_hours": 8},
+			"Level 2 25 XP"
+		),
+		["Adventurer", "Level 2 25 XP", "Stealth: Suspicious", "Wanted: 25g", "Jailed: 8h"]
+	)
+	assert_eq(
+		RpgStatusTextBuilder.lines(
+			{"stealth_state": "Hidden", "bounty": 10}, "Level 1", true
+		),
+		["Adventurer", "Lv 1", "Hidden  Wanted 10g"]
+	)

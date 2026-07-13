@@ -45,6 +45,7 @@ func test_noise_creates_suspicion_sight_detects_and_awareness_decays() -> void:
 	)
 	assert_eq(manager.get_awareness_state("observer"), "suspicious")
 	assert_true(manager.heard_recently("observer", "player"))
+	assert_eq(observer.data.get("perception_awareness_state", ""), "suspicious")
 
 	manager.perceive_event(
 		{
@@ -60,6 +61,10 @@ func test_noise_creates_suspicion_sight_detects_and_awareness_decays() -> void:
 
 	manager._process(20.0)
 	assert_eq(manager.get_awareness_state("observer"), "unaware")
+	assert_false(observer.data.has("perception_awareness_state"))
+	manager.set_debug_visible(true)
+	assert_true(observer.data["debug_perception_visible"])
+	assert_true(manager.get_debug_snapshot()["debug_visible"])
 
 
 func test_closed_door_blocks_vision_and_open_door_restores_it() -> void:

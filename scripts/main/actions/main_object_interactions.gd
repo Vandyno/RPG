@@ -12,6 +12,7 @@ class InteractionContext:
 	var chunks
 	var condition_evaluator
 	var content
+	var crime
 	var entities
 	var event_bus
 	var hud
@@ -33,6 +34,7 @@ class InteractionContext:
 		chunks = main.chunks
 		condition_evaluator = main.condition_evaluator
 		content = main.content
+		crime = main.get("crime")
 		entities = main.entities
 		event_bus = main.event_bus
 		hud = main.hud
@@ -130,6 +132,11 @@ static func interact_container(ctx: InteractionContext, entity: WorldEntity) -> 
 
 
 static func interact_portal(ctx: InteractionContext, entity: WorldEntity) -> void:
+	if bool(entity.data.get("jail_exit", false)) and ctx.crime and ctx.crime.is_player_jailed():
+		ctx.event_bus.post_message(
+			"The lockup door remains barred. Serve the sentence at the prisoner cot."
+		)
+		return
 	var portal := VariantFields.portal_data(entity)
 	var display_name := entity.get_display_name()
 	var message := String(portal.get("message", "Moved through %s." % display_name))

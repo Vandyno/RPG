@@ -170,6 +170,83 @@ func test_wounded_shopkeeper_flees_home_and_recovers_before_routine_resume() -> 
 	assert_eq(main.combat.get_entity_health(shopkeeper), int(shopkeeper.data["max_health"]))
 
 
+func test_real_pointer_theft_guard_surrender_locked_cell_sentence_and_release() -> void:
+	var main := Main.new()
+	add_child_autofree(main)
+	await MainFlowInputHelper.settle(main, get_tree())
+	assert_true(await _click_entity(main, "object_briarwatch_northgate_coach"))
+	assert_true(await _click_entity(main, "portal_northgate_jail_entry"))
+	assert_eq(main.player.world_layer, "interior:structure_northgate_jail")
+	assert_true(await _click_entity(main, "container_northgate_jail_evidence"))
+	var guard = main.entities.get_entity("npc_northgate_jail_guard_world")
+	assert_not_null(guard)
+	guard.data["vision_degrees"] = 360.0
+	guard.data["vision_distance"] = 256.0
+	guard.set_world_position(main.player.global_position + Vector2(16.0, 0.0))
+	guard.set_facing_direction(main.player.global_position - guard.global_position)
+	var take_coin := main.hud.systems_item_list.find_child(
+		"TransferTake_ItemGoldCoin", true, false
+	) as Button
+	assert_not_null(take_coin)
+	await MainFlowInputHelper.click(take_coin, get_tree())
+	assert_eq(main.crime.bounty, 10)
+	assert_eq(main.crime.reports.size(), 1)
+	assert_true(main.hud.status_label.text.contains("Wanted: 10g"))
+
+	main._clear_active_transfer(true)
+	main.hud.hide_systems_panel()
+	main.hud.hide_content_card()
+	main.crime._process(0.1)
+	guard = main.entities.get_entity("npc_northgate_jail_guard_world")
+	assert_eq(main.crime.get_guard_response("npc_northgate_jail_guard")["state"], "confronting")
+	main.selected_target_id = guard.get_entity_id()
+	main.manual_target_locked = true
+	main._update_nearby()
+	main.hud.refresh()
+	await MainFlowInputHelper.settle(main, get_tree())
+	var selected = main._get_nearby_entity()
+	assert_not_null(selected)
+	assert_eq(selected.get_entity_id(), guard.get_entity_id())
+	assert_false(main.hud.is_systems_panel_visible())
+	assert_false(main.hud.is_content_card_visible())
+	assert_true(
+		MainContextActions.build(MainContextActions.action_list_context(main), guard).any(
+			func(action): return String(action.get("id", "")).begins_with("guard:submit:")
+		)
+	)
+	var surrender := MainFlowInputHelper.button_containing(
+		main.hud.context_action_buttons, "Surrender to Jail"
+	)
+	assert_not_null(surrender)
+	if surrender:
+		await MainFlowInputHelper.click(surrender, get_tree())
+	assert_true(main.crime.is_player_jailed())
+	assert_eq(main.player.world_layer, CrimeManager.JAIL_LAYER)
+	assert_eq(main.player.global_tile, CrimeManager.JAIL_CELL_TILE)
+	if not main.crime.is_player_jailed():
+		return
+
+	assert_true(await _click_entity(main, "portal_northgate_jail_exit"))
+	assert_eq(main.player.world_layer, CrimeManager.JAIL_LAYER)
+	assert_true(main.hud.message_log.has("The lockup door remains barred. Serve the sentence at the prisoner cot."))
+	assert_true(await _click_entity(main, "poi_northgate_jail_cot"))
+	main.hud.hide_content_card()
+	main._update_nearby()
+	main.hud.refresh()
+	await MainFlowInputHelper.settle(main, get_tree())
+	var serve := MainFlowInputHelper.button_containing(
+		main.hud.context_action_buttons, "Serve Sentence"
+	)
+	assert_not_null(serve)
+	if serve:
+		await MainFlowInputHelper.click(serve, get_tree())
+	assert_false(main.crime.is_player_jailed())
+	assert_eq(main.crime.bounty, 0)
+	assert_eq(main.player.world_layer, "surface")
+	assert_eq(main.player.global_tile, CrimeManager.JAIL_RELEASE_TILE)
+	assert_eq(main.crime.get_witness_memory("npc_northgate_jail_guard")[0]["kind"], "theft")
+
+
 func _click_entity(main, entity_id: String) -> bool:
 	var source := _content_entry(main, entity_id)
 	if source.is_empty():

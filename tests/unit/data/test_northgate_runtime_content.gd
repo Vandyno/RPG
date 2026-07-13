@@ -22,9 +22,9 @@ func test_northgate_runtime_geometry_is_fully_activated() -> void:
 	var northgate_structures: Array = content.world_structure_entries().filter(
 		func(entry): return String(entry.get("id", "")).begins_with("structure_northgate_")
 	)
-	assert_eq(northgate_structures.size(), 26)
-	assert_eq(northgate_structures.filter(func(entry): return entry["world_layer"] == "surface").size(), 13)
-	assert_eq(northgate_structures.filter(func(entry): return entry["world_layer"] != "surface").size(), 13)
+	assert_eq(northgate_structures.size(), 28)
+	assert_eq(northgate_structures.filter(func(entry): return entry["world_layer"] == "surface").size(), 14)
+	assert_eq(northgate_structures.filter(func(entry): return entry["world_layer"] != "surface").size(), 14)
 	var northgate_doors: Array = content.world_object_entries().filter(
 		func(entry): return String(entry.get("id", "")).begins_with("portal_structure_northgate_")
 	)
@@ -38,7 +38,7 @@ func test_northgate_palisade_blocks_and_all_gates_are_open() -> void:
 	var proposal: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/proposals/settlement_northgate_seed_2701.json")
 	)
-	var defense: Dictionary = proposal["defenses"]
+	var defense: Dictionary = proposal.get("runtime_defenses", proposal["defenses"])
 	for gate in defense["gates"]:
 		var tile := Vector2i(int(gate["global_tile"][0]), int(gate["global_tile"][1]))
 		assert_true(chunks.is_walkable(tile), String(gate["id"]))

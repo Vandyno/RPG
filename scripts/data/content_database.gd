@@ -65,14 +65,21 @@ func load_all() -> Array[String]:
 		[readables, "res://data/runtime/northgate_readables.json"],
 		[quests, "res://data/runtime/northgate_quests.json"],
 		[npcs, "res://data/runtime/northgate_npcs.json"],
+		[npcs, "res://data/runtime/northgate_law_npcs.json"],
 		[character_profiles, "res://data/runtime/northgate_character_profiles.json"],
+		[character_profiles, "res://data/runtime/northgate_law_character_profiles.json"],
 		[dialogues, "res://data/runtime/northgate_dialogues.json"],
+		[dialogues, "res://data/runtime/northgate_law_dialogues.json"],
 		[shops, "res://data/runtime/northgate_shops.json"]
 	]:
 		_merge_runtime_dictionary(runtime_dictionary[0], _load_dictionary(runtime_dictionary[1]))
 	_merge_runtime_dictionary(
 		structure_archetypes,
 		_load_dictionary("res://data/runtime/northgate_structure_archetypes.json")
+	)
+	_merge_runtime_dictionary(
+		structure_archetypes,
+		_load_dictionary("res://data/runtime/northgate_jail_archetypes.json")
 	)
 	_merge_runtime_dictionary(
 		character_profiles,
@@ -83,8 +90,16 @@ func load_all() -> Array[String]:
 		_load_dictionary("res://data/runtime/northgate_schedule_bindings.json")
 	)
 	_merge_runtime_dictionary(
+		schedule_bindings,
+		_load_dictionary("res://data/runtime/northgate_law_schedule_bindings.json")
+	)
+	_merge_runtime_dictionary(
 		schedule_destinations,
 		_load_dictionary("res://data/runtime/northgate_schedule_destinations.json")
+	)
+	_merge_runtime_dictionary(
+		schedule_destinations,
+		_load_dictionary("res://data/runtime/northgate_law_schedule_destinations.json")
 	)
 	_merge_runtime_dictionary(
 		npcs,
@@ -93,8 +108,13 @@ func load_all() -> Array[String]:
 	world_structures.append_array(
 		_load_array("res://data/runtime/northgate_structures.json")
 	)
+	world_structures.append_array(
+		_load_array("res://data/runtime/northgate_jail_structures.json")
+	)
 	world_objects.append_array(_load_array("res://data/runtime/northgate_objects.json"))
+	world_objects.append_array(_load_array("res://data/runtime/northgate_jail_objects.json"))
 	world_objects.append_array(_load_array("res://data/runtime/northgate_schedule_actors.json"))
+	world_objects.append_array(_load_array("res://data/runtime/northgate_law_actors.json"))
 	var northgate_terrain := _load_dictionary("res://data/runtime/northgate_terrain.json")
 	if not world_terrain.has("areas") or not world_terrain["areas"] is Array:
 		world_terrain["areas"] = []

@@ -109,7 +109,7 @@ func refresh() -> void:
 
 
 func toggle_debug() -> void:
-	visible_debug = false
+	visible_debug = not visible_debug
 	if debug_panel:
 		debug_panel.visible = false
 

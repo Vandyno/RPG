@@ -78,6 +78,16 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 	if entity and ActorRules.is_dead_actor_data(entity.data):
 		return actions
 	if entity and entity.get_kind() == "poi":
+		if ctx.crime and String(entity.data.get("jail_action", "")) == "serve_sentence":
+			if ctx.crime.is_player_jailed():
+				actions.append(
+					{
+						"id": "law:serve_sentence",
+						"text": "Serve Sentence (%dh)" % ctx.crime.sentence_remaining_hours()
+					}
+				)
+		if ctx.crime and bool(entity.data.get("legal_service", false)):
+			_append_legal_service_actions(ctx, actions)
 		for action in PoiInteraction.available_actions(entity, ctx.condition_evaluator):
 			actions.append(
 				{"id": "poi:%s" % String(action.get("id", "")), "text": action.get("text", "")}
@@ -92,12 +102,27 @@ static func build(ctx: ActionListContext, entity) -> Array[Dictionary]:
 		)
 		if String(guard_response.get("state", "")) == "confronting":
 			var guard_npc_id := String(entity.data.get("npc_id", ""))
-			if String(guard_response.get("action", "")) == "fine":
-				actions.append({"id": "guard:pay_fine:%s" % guard_npc_id, "text": "Pay Fine"})
-			elif String(guard_response.get("action", "")) == "arrest":
-				actions.append({"id": "guard:submit:%s" % guard_npc_id, "text": "Submit to Arrest"})
+			if ctx.crime.bounty > 0:
+				actions.append(
+					{
+						"id": "guard:pay_fine:%s" % guard_npc_id,
+						"text": "Pay Bounty (%dg)" % ctx.crime.bounty
+					}
+				)
+			actions.append({"id": "guard:submit:%s" % guard_npc_id, "text": "Surrender to Jail"})
 			actions.append({"id": "guard:resist:%s" % guard_npc_id, "text": "Resist"})
 			return actions
+		if ctx.crime and _is_guard_entity(entity):
+			var guard_npc_id := String(entity.data.get("npc_id", ""))
+			if ctx.crime.bounty > 0:
+				actions.append(
+					{"id": "law:pay_bounty", "text": "Pay Bounty (%dg)" % ctx.crime.bounty}
+				)
+				actions.append(
+					{"id": "law:surrender:%s" % guard_npc_id, "text": "Surrender to Jail"}
+				)
+			elif ctx.crime.can_make_amends():
+				actions.append({"id": "law:make_amends", "text": "Make Amends (25g)"})
 		var npc: Dictionary = _npc_for_entity(ctx, entity)
 		if ctx.player.is_sneaking and PickpocketRules.is_pickpocket_target(entity):
 			actions.append({"id": "pickpocket:%s" % entity.get_entity_id(), "text": "Pickpocket"})
@@ -179,6 +204,8 @@ static func handle(ctx: ActionHandleContext, action_id: String) -> void:
 			_handle_pickpocket_selected(ctx, String(parsed.get("id", "")))
 		"guard":
 			_handle_guard_response(ctx, String(parsed.get("id", "")))
+		"law":
+			_handle_law_action(ctx, String(parsed.get("id", "")))
 		_:
 			ctx.event_bus.post_message("Unknown action.")
 
@@ -364,6 +391,42 @@ static func _handle_guard_response(ctx: ActionHandleContext, response_id: String
 	var result: Dictionary = ctx.crime.resolve_guard_response(npc_id, response)
 	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
 	ctx._refresh_hud.call()
+
+
+static func _handle_law_action(ctx: ActionHandleContext, action_id: String) -> void:
+	if not ctx.crime:
+		ctx.event_bus.post_message("No legal service is available.")
+		return
+	var result: Dictionary
+	if action_id == "serve_sentence":
+		result = ctx.crime.serve_sentence()
+	elif action_id == "pay_bounty":
+		result = ctx.crime.pay_bounty()
+	elif action_id == "make_amends":
+		result = ctx.crime.make_amends()
+	elif action_id.begins_with("surrender:"):
+		result = ctx.crime.surrender_to_guard(action_id.trim_prefix("surrender:"))
+	else:
+		result = {"ok": false, "message": "That legal action is unavailable."}
+	ctx.event_bus.post_message(String(result.get("message", "Nothing happens.")))
+	ctx._refresh_hud.call()
+
+
+static func _append_legal_service_actions(
+	ctx: ActionListContext, actions: Array[Dictionary]
+) -> void:
+	if ctx.crime.bounty > 0:
+		actions.append({"id": "law:pay_bounty", "text": "Pay Bounty (%dg)" % ctx.crime.bounty})
+	elif ctx.crime.can_make_amends():
+		actions.append({"id": "law:make_amends", "text": "Make Amends (25g)"})
+
+
+static func _is_guard_entity(entity) -> bool:
+	if not entity or not (entity.data is Dictionary):
+		return false
+	var role := String(entity.data.get("role", "")).to_lower()
+	var npc_id := String(entity.data.get("npc_id", "")).to_lower()
+	return role.contains("guard") or npc_id.contains("guard")
 
 
 static func _apply_choice_action(ctx: ActionHandleContext, action: Dictionary) -> void:

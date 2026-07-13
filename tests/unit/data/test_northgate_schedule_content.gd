@@ -69,6 +69,7 @@ func test_northgate_schedule_bindings_and_farm_remain_review_gated() -> void:
 		"npc_northgate_smith", "npc_northgate_apprentice", "npc_northgate_reeve",
 		"npc_northgate_clerk", "npc_northgate_storekeeper", "npc_northgate_stablehand",
 		"npc_northgate_guard_north", "npc_northgate_shrine_keeper",
+		"npc_northgate_jail_guard",
 		"npc_northgate_resident_01", "npc_northgate_resident_02",
 		"npc_northgate_resident_03", "npc_northgate_resident_04",
 		"npc_northgate_resident_05"

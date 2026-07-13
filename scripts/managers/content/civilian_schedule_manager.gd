@@ -979,6 +979,8 @@ func _emit_trespass_crime(actor, npc_id: String) -> void:
 func _player_is_trespassing_in_home(actor, npc_id: String) -> bool:
 	if not player or not actor:
 		return false
+	if bool(actor.data.get("allow_public_access", false)):
+		return false
 	var binding := _binding_for_npc(npc_id)
 	var home_id := String(binding.get("home_destination_id", ""))
 	var home := destinations.get_destination(home_id)

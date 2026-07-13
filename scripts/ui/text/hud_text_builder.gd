@@ -53,6 +53,8 @@ static func debug_text(state: Dictionary) -> String:
 	lines.append("Locations: %s" % state.get("locations", "none"))
 	lines.append("Factions:")
 	lines.append(String(state.get("factions", "none")))
+	lines.append("Stealth: %s" % state.get("stealth_state", "unknown"))
+	lines.append("Legal: %s, bounty %dg" % [state.get("legal_area", "unknown"), int(state.get("bounty", 0))])
 	return "\n".join(lines)
 
 

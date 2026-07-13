@@ -278,7 +278,7 @@ func target_detail_text(entity) -> String:
 			detail = "Body: loot"
 		"rest":
 			detail = _rest_detail_text(entity)
-	return detail
+	return _with_ownership_detail(entity, detail)
 
 
 func shop_id_for_entity(entity) -> String:
@@ -345,6 +345,21 @@ func _rest_detail_text(entity) -> String:
 	var heal_amount := VariantFields.positive_int_field(entity.data, "heal_amount", player.max_health)
 	var rest_hours := VariantFields.positive_int_field(entity.data, "rest_hours", 8)
 	return "Rest: heals %d, advances %dh" % [heal_amount, rest_hours]
+
+
+func _with_ownership_detail(entity, detail: String) -> String:
+	if not entity or not (entity.data is Dictionary):
+		return detail
+	var owner_faction_id := String(entity.data.get("owner_faction_id", ""))
+	if not owner_faction_id.is_empty():
+		var faction: Dictionary = content.get_faction(owner_faction_id)
+		return "%s · Owned by %s" % [detail, String(faction.get("name", owner_faction_id))]
+	if bool(entity.data.get("private", false)):
+		return "%s · Private" % detail
+	var layer := String(entity.data.get("world_layer", "surface"))
+	if layer.contains("home_plot"):
+		return "%s · Private property" % detail
+	return detail
 
 
 func _shop_hours_text(shop_id: String) -> String:

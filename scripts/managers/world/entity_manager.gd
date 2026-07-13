@@ -17,6 +17,7 @@ var entities_by_id: Dictionary = {}
 var runtime_entities_by_id: Dictionary = {}
 var entity_runtime_state_by_id: Dictionary = {}
 var actor_life_state_by_id: Dictionary = {}
+var container_inventory_seeded_by_id: Dictionary = {}
 var highlighted_entity_id := ""
 var active_chunk_keys: Dictionary = {}
 var has_active_chunk_filter := false
@@ -147,11 +148,20 @@ func is_npc_dead(npc_id: String) -> bool:
 
 func get_save_data() -> Dictionary:
 	_capture_live_runtime_state()
-	return {"actor_life_states": actor_life_state_by_id.duplicate(true)}
+	return {
+		"actor_life_states": actor_life_state_by_id.duplicate(true),
+		"container_inventory_seeded_by_id": container_inventory_seeded_by_id.duplicate(true)
+	}
 
 
 func load_save_data(data: Dictionary) -> void:
 	actor_life_state_by_id.clear()
+	container_inventory_seeded_by_id.clear()
+	var saved_container_seeds: Variant = data.get("container_inventory_seeded_by_id", {})
+	if saved_container_seeds is Dictionary:
+		for entity_id in saved_container_seeds:
+			if bool(saved_container_seeds[entity_id]):
+				container_inventory_seeded_by_id[String(entity_id)] = true
 	var saved_states: Variant = data.get("actor_life_states", {})
 	if saved_states is Dictionary:
 		for entity_id in saved_states:
@@ -384,6 +394,7 @@ func _spawn_entry(entry: Dictionary) -> void:
 	add_child(entity)
 	entity.setup(spawn_entry, content)
 	entities_by_id[entity_id] = entity
+	_seed_container_inventory_once(entity_id, spawn_entry)
 
 
 func _on_chunks_changed(loaded_chunks: Array) -> void:
@@ -584,6 +595,26 @@ func _seed_actor_inventory(owner_id: String, data: Dictionary) -> void:
 		var item_id := String(item_id_value)
 		if not item_id.is_empty():
 			inventory.add_item_to_owner(owner_id, item_id, 1)
+
+
+func _seed_container_inventory_once(entity_id: String, data: Dictionary) -> void:
+	if (
+		entity_id.is_empty()
+		or String(data.get("kind", "")) != "container"
+		or container_inventory_seeded_by_id.has(entity_id)
+		or not inventory
+	):
+		return
+	var owner_id := String(data.get("inventory_owner_id", ""))
+	if owner_id.is_empty():
+		return
+	for entry in _array_field(data.get("inventory", [])):
+		if not entry is Dictionary:
+			continue
+		var item_id := String(entry.get("item_id", ""))
+		var count := _positive_int_value(entry.get("count", 1), 1)
+		inventory.add_item_to_owner(owner_id, item_id, count)
+	container_inventory_seeded_by_id[entity_id] = true
 
 
 func _emit_actor_state_changed(entity) -> void:

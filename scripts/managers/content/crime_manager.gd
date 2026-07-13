@@ -16,6 +16,12 @@ const DISPOSITION_PENALTIES := {
 	"theft": -12,
 	"trespass": -8
 }
+const JAIL_LAYER := "interior:structure_northgate_jail"
+const JAIL_CELL_TILE := Vector2i(2, 3)
+const JAIL_RELEASE_LAYER := "surface"
+const JAIL_RELEASE_TILE := Vector2i(-3244, -3953)
+const AMENDS_COST := 25
+const AMENDS_REPUTATION_GAIN := 5
 
 var event_bus
 var entities
@@ -33,6 +39,7 @@ var disposition_by_npc_id: Dictionary = {}
 var pending_report_by_npc_id: Dictionary = {}
 var guard_response_by_npc_id: Dictionary = {}
 var bounty := 0
+var jail_state: Dictionary = {}
 var next_crime_number := 1
 
 
@@ -67,6 +74,8 @@ func _process(delta: float) -> void:
 		return
 	_process_pending_witnesses(delta)
 	_process_guard_responses(delta)
+	if is_player_jailed() and _absolute_minute() >= int(jail_state.get("release_absolute_minute", 0)):
+		_finish_sentence()
 
 
 func record_player_crime(event: Dictionary) -> Dictionary:
@@ -126,6 +135,9 @@ func report_crime(witness_npc_id: String, crime_id: String) -> bool:
 	pending_report_by_npc_id.erase(witness_npc_id)
 	if event_bus:
 		event_bus.crime_reported.emit(report.duplicate(true))
+		event_bus.post_message(
+			"%s reported. Bounty is now %dg." % [String(crime.get("kind", "Crime")).capitalize(), bounty]
+		)
 	return true
 
 
@@ -153,6 +165,34 @@ func get_guard_response(npc_id: String) -> Dictionary:
 	return value.duplicate(true) if value is Dictionary else {}
 
 
+func is_player_jailed() -> bool:
+	return bool(jail_state.get("active", false))
+
+
+func sentence_remaining_hours() -> int:
+	if not is_player_jailed():
+		return 0
+	return maxi(0, ceili(float(int(jail_state.get("release_absolute_minute", 0)) - _absolute_minute()) / 60.0))
+
+
+func get_status_data() -> Dictionary:
+	return {
+		"bounty": bounty,
+		"wanted": bounty > 0,
+		"jailed": is_player_jailed(),
+		"sentence_hours": sentence_remaining_hours(),
+		"active_reports": _active_report_count()
+	}
+
+
+func area_status(world_layer: String) -> String:
+	if world_layer == JAIL_LAYER:
+		return "Restricted: Northgate Lockup"
+	if world_layer.begins_with("interior:structure_northgate_") and world_layer.contains("home_plot"):
+		return "Private property"
+	return "Public area"
+
+
 func resolve_guard_response(npc_id: String, response: String) -> Dictionary:
 	var guard_response := get_guard_response(npc_id)
 	if guard_response.is_empty():
@@ -166,14 +206,7 @@ func resolve_guard_response(npc_id: String, response: String) -> Dictionary:
 			_resolve_legal_response(npc_id)
 			return {"ok": true, "message": "You pay %dg. The guard records the settlement." % fine}
 		"submit":
-			if inventory:
-				var paid := mini(bounty, inventory.get_count("item_gold_coin"))
-				if paid > 0:
-					inventory.remove_item("item_gold_coin", paid)
-			if time and time.has_method("advance_hours"):
-				time.advance_hours(8)
-			_resolve_legal_response(npc_id)
-			return {"ok": true, "message": "You submit to arrest and lose eight hours."}
+			return _begin_jail_sentence(npc_id)
 		"resist":
 			var guard: Variant = _actor_for_npc(npc_id)
 			if guard:
@@ -182,6 +215,58 @@ func resolve_guard_response(npc_id: String, response: String) -> Dictionary:
 			guard_response_by_npc_id[npc_id] = guard_response
 			return {"ok": true, "message": "You resist arrest."}
 	return {"ok": false, "message": "That response is unavailable."}
+
+
+func pay_bounty() -> Dictionary:
+	if bounty <= 0:
+		return {"ok": false, "message": "You have no active bounty."}
+	if not inventory or not inventory.has_item("item_gold_coin", bounty):
+		return {"ok": false, "message": "You need %dg to settle the bounty." % bounty}
+	var paid := bounty
+	inventory.remove_item("item_gold_coin", paid)
+	_resolve_legal_response("")
+	return {"ok": true, "message": "You pay %dg and settle the active bounty." % paid}
+
+
+func surrender_to_guard(npc_id: String) -> Dictionary:
+	if bounty <= 0:
+		return {"ok": false, "message": "There is no active charge to surrender for."}
+	return _begin_jail_sentence(npc_id)
+
+
+func serve_sentence() -> Dictionary:
+	if not is_player_jailed():
+		return {"ok": false, "message": "You are not serving a sentence."}
+	var hours := sentence_remaining_hours()
+	if hours > 0 and time and time.has_method("advance_hours"):
+		time.advance_hours(hours)
+	_finish_sentence()
+	return {"ok": true, "message": "Sentence served. You are released outside the lockup."}
+
+
+func make_amends() -> Dictionary:
+	if bounty > 0:
+		return {"ok": false, "message": "Settle your active bounty first."}
+	var faction_id := _legal_faction_id()
+	if faction_id.is_empty() or not factions or factions.get_reputation(faction_id) >= 0:
+		return {"ok": false, "message": "No restitution is currently required."}
+	if not inventory or not inventory.has_item("item_gold_coin", AMENDS_COST):
+		return {"ok": false, "message": "Restitution costs %dg." % AMENDS_COST}
+	inventory.remove_item("item_gold_coin", AMENDS_COST)
+	factions.change_reputation(faction_id, AMENDS_REPUTATION_GAIN)
+	for npc_id in disposition_by_npc_id:
+		disposition_by_npc_id[npc_id] = clampi(get_disposition(String(npc_id)) + 10, -100, 100)
+	return {"ok": true, "message": "You pay restitution. Local reputation improves."}
+
+
+func can_make_amends() -> bool:
+	var faction_id := _legal_faction_id()
+	return (
+		bounty <= 0
+		and not faction_id.is_empty()
+		and factions
+		and factions.get_reputation(faction_id) < 0
+	)
 
 
 func has_active_report_for_faction(faction_id: String) -> bool:
@@ -205,6 +290,7 @@ func get_save_data() -> Dictionary:
 		"pending_report_by_npc_id": pending_report_by_npc_id.duplicate(true),
 		"guard_response_by_npc_id": guard_response_by_npc_id.duplicate(true),
 		"bounty": bounty,
+		"jail_state": jail_state.duplicate(true),
 		"next_crime_number": next_crime_number
 	}
 
@@ -227,6 +313,11 @@ func load_save_data(data: Dictionary) -> void:
 	pending_report_by_npc_id = _dictionary_field(data.get("pending_report_by_npc_id", {}))
 	guard_response_by_npc_id = _dictionary_field(data.get("guard_response_by_npc_id", {}))
 	bounty = maxi(0, int(data.get("bounty", 0)))
+	jail_state = _dictionary_field(data.get("jail_state", {}))
+	if bool(jail_state.get("active", false)):
+		jail_state["release_absolute_minute"] = maxi(
+			_absolute_minute(), int(jail_state.get("release_absolute_minute", _absolute_minute()))
+		)
 	next_crime_number = maxi(int(data.get("next_crime_number", crimes.size() + 1)), crimes.size() + 1)
 
 
@@ -312,7 +403,7 @@ func _activate_guard_response(guard_npc_id: String, crime: Dictionary) -> void:
 		return
 	var npc_id := String(guard.data.get("npc_id", guard.get_entity_id()))
 	var kind := String(crime.get("kind", ""))
-	var action := "attack" if kind == "murder" else ("arrest" if kind == "assault" else "fine")
+	var action := "arrest" if kind in ["assault", "murder"] else "fine"
 	var response := {
 		"crime_id": String(crime.get("id", "")),
 		"kind": kind,
@@ -362,10 +453,8 @@ func _process_guard_responses(delta: float) -> void:
 			guard_response_by_npc_id[npc_id] = response
 			guard.data["guard_response"] = response.duplicate(true)
 			guard.data["behavior_state"] = "confronting_criminal"
-			if String(response.get("action", "")) == "attack":
-				_make_guard_hostile(guard)
-				response["state"] = "attacking"
-				guard_response_by_npc_id[npc_id] = response
+			if event_bus:
+				event_bus.post_message(_guard_confrontation_text(response))
 			continue
 		guard.data["behavior_state"] = "pursuing_criminal"
 		guard.set_facing_direction(player.global_position - guard.global_position)
@@ -377,10 +466,69 @@ func _resolve_legal_response(npc_id: String) -> void:
 	for index in range(reports.size()):
 		if String(reports[index].get("status", "")) == "active":
 			reports[index]["status"] = "resolved"
-	guard_response_by_npc_id.erase(npc_id)
-	var guard: Variant = _actor_for_npc(npc_id)
-	if guard:
-		guard.data.erase("guard_response")
+	_clear_guard_responses()
+
+
+func _begin_jail_sentence(npc_id: String) -> Dictionary:
+	if is_player_jailed():
+		return {"ok": false, "message": "You are already serving a sentence."}
+	var sentence_hours := clampi(maxi(8, ceili(float(maxi(1, bounty)) / 25.0) * 8), 8, 72)
+	jail_state = {
+		"active": true,
+		"arresting_npc_id": npc_id,
+		"started_absolute_minute": _absolute_minute(),
+		"release_absolute_minute": _absolute_minute() + sentence_hours * 60,
+		"sentence_hours": sentence_hours,
+		"bounty_at_arrest": bounty
+	}
+	_clear_guard_responses()
+	if event_bus:
+		event_bus.player_jailed.emit(jail_state.merged({"target_layer": JAIL_LAYER, "target_tile": [JAIL_CELL_TILE.x, JAIL_CELL_TILE.y]}))
+	return {"ok": true, "message": "You surrender and are taken to the Northgate Lockup for %dh." % sentence_hours}
+
+
+func _finish_sentence() -> void:
+	if not is_player_jailed():
+		return
+	jail_state["active"] = false
+	jail_state["served_absolute_minute"] = _absolute_minute()
+	_resolve_legal_response("")
+	if event_bus:
+		event_bus.player_released_from_jail.emit(
+			{"target_layer": JAIL_RELEASE_LAYER, "target_tile": [JAIL_RELEASE_TILE.x, JAIL_RELEASE_TILE.y]}
+		)
+
+
+func _clear_guard_responses() -> void:
+	for guard_npc_id in guard_response_by_npc_id:
+		var guard: Variant = _actor_for_npc(String(guard_npc_id))
+		if guard:
+			guard.data.erase("guard_response")
+	guard_response_by_npc_id.clear()
+
+
+func _guard_confrontation_text(response: Dictionary) -> String:
+	var kind := String(response.get("kind", "crime"))
+	var fine := int(response.get("fine", bounty))
+	if String(response.get("action", "")) == "arrest":
+		return "Guard: You are wanted for %s. Surrender, pay what is owed, or resist." % kind
+	return "Guard: The charge is %s. Pay the %dg fine, surrender, or resist." % [kind, fine]
+
+
+func _active_report_count() -> int:
+	var count := 0
+	for report in reports:
+		if String(report.get("status", "")) == "active":
+			count += 1
+	return count
+
+
+func _legal_faction_id() -> String:
+	for crime in crimes:
+		var faction_id := String(crime.get("victim_faction_id", ""))
+		if not faction_id.is_empty():
+			return faction_id
+	return ""
 
 
 func _make_guard_hostile(guard) -> void:
